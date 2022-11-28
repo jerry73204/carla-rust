@@ -6,21 +6,13 @@ pub struct Client {
     inner: UniquePtr<ffi::Client>,
 }
 
-pub struct ClientBuilder {
-    timeout: Option<Duration>,
-}
-
 impl Client {
-    pub fn new(host: &str, port: u16) -> Self {
+    pub fn connect(host: &str, port: u16) -> Self {
         let_cxx_string!(host_cxx = host);
 
         Self {
             inner: ffi::client_new(&host_cxx, port),
         }
-    }
-
-    pub fn builder() -> ClientBuilder {
-        ClientBuilder::new()
     }
 
     pub fn client_version(&self) -> String {
@@ -31,6 +23,15 @@ impl Client {
         ffi::client_get_server_version(&self.inner)
     }
 
+    pub fn timeout(&mut self) -> Duration {
+        let millis = ffi::client_get_timeout_millis(self.inner.pin_mut());
+        Duration::from_millis(millis as u64)
+    }
+
+    pub fn set_timeout(&mut self, timeout: Duration) {
+        ffi::client_set_timeout_millis(self.inner.pin_mut(), timeout.as_millis() as usize)
+    }
+
     pub fn load_world(&self, map_name: &str) -> World {
         let_cxx_string!(map_name = map_name);
         let world = ffi::client_load_world(&self.inner, &map_name);
@@ -38,22 +39,8 @@ impl Client {
     }
 }
 
-impl ClientBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn build(host: &str, port: u16) -> Client {
-        Client::new(host, port)
-    }
-
-    pub fn timeout(&mut self, timeout: Duration) {
-        todo!();
-    }
-}
-
-impl Default for ClientBuilder {
+impl Default for Client {
     fn default() -> Self {
-        Self { timeout: None }
+        Self::connect("localhost", 2000)
     }
 }

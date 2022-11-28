@@ -1,5 +1,8 @@
-#include "carla_rust.hpp"
 #include <memory>
+#include "carla/Time.h"
+#include "carla_rust.hpp"
+
+using carla::time_duration;
 
 // Client
 
@@ -25,6 +28,17 @@ unique_ptr<World> client_get_world(const Client &client) {
     return unique_ptr<World>(new World(world));
 }
 
+size_t client_get_timeout_millis(Client &client) {
+    return client.GetTimeout().milliseconds();
+}
+
+void client_set_timeout_millis(Client &client, size_t millis) {
+    auto dur = time_duration::milliseconds(millis);
+    client.SetTimeout(dur);
+}
+
+
+
 // World
 
 unique_ptr<SharedMap> world_get_map(const World &world) {
@@ -43,8 +57,6 @@ world_get_spectator(const World &world) {
     auto actor = world.GetSpectator();
     return unique_ptr<SharedActor>(new SharedActor(actor));
 }
-
-
 
 // BlueprintLibrary
 

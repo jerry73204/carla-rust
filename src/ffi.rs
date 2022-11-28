@@ -5,6 +5,10 @@ mod ffi_ {
     unsafe extern "C++" {
         include!("csrc/carla_rust.hpp");
 
+        // time_duration
+        type time_duration;
+        fn milliseconds(self: &time_duration) -> usize;
+
         // Client
         type Client;
         fn client_new(host: &CxxString, port: u16) -> UniquePtr<Client>;
@@ -12,6 +16,8 @@ mod ffi_ {
         fn client_get_server_version(client: &Client) -> String;
         fn client_load_world(client: &Client, map_name: &CxxString) -> UniquePtr<World>;
         fn client_get_world(client: &Client) -> UniquePtr<World>;
+        fn client_get_timeout_millis(client: Pin<&mut Client>) -> usize;
+        fn client_set_timeout_millis(client: Pin<&mut Client>, millis: usize);
 
         // World
         type World;
