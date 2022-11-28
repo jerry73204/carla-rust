@@ -9,6 +9,8 @@
 #include "carla/client/World.h"
 #include "carla/client/Map.h"
 #include "carla/client/Actor.h"
+#include "carla/client/ActorBlueprint.h"
+#include "carla/client/ActorAttribute.h"
 
 using namespace std;
 
@@ -18,6 +20,11 @@ using carla::client::Map;
 using carla::client::World;
 using carla::client::BlueprintLibrary;
 using carla::client::Actor;
+using carla::client::ActorBlueprint;
+using carla::client::ActorAttribute;
+using carla::geom::Transform;
+using carla::geom::Location;
+using carla::geom::Rotation;
 using carla::geom::Vector2D;
 using carla::geom::Vector3D;
 using SharedMap = carla::SharedPtr<Map>;
@@ -43,5 +50,12 @@ unique_ptr<SharedActor> world_get_spectator(const World &world);
 
 // BlueprintLibrary
 unique_ptr<SharedBlueprintLibrary> bp_filter(const SharedBlueprintLibrary &bp, const string &wildcard_pattern);
+const BlueprintLibrary *bp_to_raw(const SharedBlueprintLibrary &bp);
 
 // Actor
+
+// ActorBlueprint
+unique_ptr<ActorBlueprint> actor_bp_copy(const ActorBlueprint &from);
+void actor_bp_set_attribute(ActorBlueprint &actor_bp, const string &id, const string &value);
+
+// ActorAttribute

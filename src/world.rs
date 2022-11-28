@@ -1,6 +1,7 @@
 use cxx::UniquePtr;
+use nalgebra::Isometry3;
 
-use crate::{actor::Actor, blueprint_library::BlueprintLibrary, ffi, map::Map};
+use crate::{actor::Actor, blueprint_library::BlueprintLibrary, ffi, map::Map, ActorBlueprint};
 
 pub struct World {
     pub(crate) inner: UniquePtr<ffi::World>,
@@ -27,5 +28,14 @@ impl World {
         Actor {
             inner: ffi::world_get_spectator(&self.inner),
         }
+    }
+
+    pub fn try_spawn_actor(
+        &mut self,
+        blueprint: &ActorBlueprint,
+        transform: &Isometry3<f32>,
+        parent: Option<&Actor>,
+    ) -> Option<Actor> {
+        todo!();
     }
 }

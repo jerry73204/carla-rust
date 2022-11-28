@@ -31,13 +31,51 @@ mod ffi_ {
         type SharedMap;
 
         // BlueprintLibrary
+        type BlueprintLibrary;
         type SharedBlueprintLibrary;
+
         fn bp_filter(
             bp: &SharedBlueprintLibrary,
             wildcard_pattern: &CxxString,
         ) -> UniquePtr<SharedBlueprintLibrary>;
+        fn bp_to_raw(bp: &SharedBlueprintLibrary) -> *const BlueprintLibrary;
+
+        fn Find(self: &BlueprintLibrary, key: &CxxString) -> *const ActorBlueprint;
+        fn size(self: &BlueprintLibrary) -> usize;
+        fn at(self: &BlueprintLibrary, pos: usize) -> &ActorBlueprint;
+        fn empty(self: &BlueprintLibrary) -> bool;
 
         // Actor
         type SharedActor;
+
+        // ActorBlueprint
+        type ActorBlueprint;
+
+        fn actor_bp_copy(actor_bp: &ActorBlueprint) -> UniquePtr<ActorBlueprint>;
+        fn ContainsAttribute(self: &ActorBlueprint, id: &CxxString) -> bool;
+        fn actor_bp_set_attribute(
+            actor_bp: Pin<&mut ActorBlueprint>,
+            id: &CxxString,
+            value: &CxxString,
+        );
+        fn size(self: &ActorBlueprint) -> usize;
+
+        // ActorAttribute
+        type ActorAttribute;
+
+        // Transform
+        type Transform;
+
+        // Location
+        type Location;
+
+        // Rotation
+        type Rotation;
+
+        // Vector2D
+        type Vector2D;
+
+        // Vector3D
+        type Vector3D;
     }
 }

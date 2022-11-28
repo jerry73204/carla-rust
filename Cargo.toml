@@ -6,6 +6,7 @@ links = "carla"
 
 [dependencies]
 cxx = "1.0.82"
+nalgebra = "0.31.4"
 
 [build-dependencies]
 cxx-build = "1.0.82"

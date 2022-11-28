@@ -5,7 +5,6 @@
 using carla::time_duration;
 
 // Client
-
 unique_ptr<Client> client_new(const string &host, uint16_t port) {
     return make_unique<Client>(host, port);
 }
@@ -37,10 +36,7 @@ void client_set_timeout_millis(Client &client, size_t millis) {
     client.SetTimeout(dur);
 }
 
-
-
 // World
-
 unique_ptr<SharedMap> world_get_map(const World &world) {
     auto map = world.GetMap();
     return unique_ptr<SharedMap>(new SharedMap(map));
@@ -59,9 +55,24 @@ world_get_spectator(const World &world) {
 }
 
 // BlueprintLibrary
-
 unique_ptr<SharedBlueprintLibrary>
 bp_filter(const SharedBlueprintLibrary &bp, const string &wildcard_pattern) {
     auto new_bp = bp->Filter(wildcard_pattern);
     return unique_ptr<SharedBlueprintLibrary>(new SharedBlueprintLibrary(new_bp));
+}
+
+const BlueprintLibrary *bp_to_raw(const SharedBlueprintLibrary &bp) {
+    return bp.get();
+}
+
+
+// Actor
+
+// ActorBlueprint
+unique_ptr<ActorBlueprint> actor_bp_copy(const ActorBlueprint &from) {
+    return unique_ptr<ActorBlueprint>(new ActorBlueprint(from));
+}
+void actor_bp_set_attribute(ActorBlueprint &actor_bp, const string &id,
+                            const string &value) {
+    actor_bp.SetAttribute(id, value);
 }
