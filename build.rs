@@ -7,6 +7,7 @@ use std::{
 fn main() {
     // Set change triggers
     println!("cargo:rerun-if-changed=csrc/carla_rust.hpp");
+    println!("cargo:rerun-if-changed=csrc/carla_rust.cpp");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 
     // Prepare paths
