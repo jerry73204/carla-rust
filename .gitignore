@@ -1,0 +1,8 @@
+# editor
+*~
+.*~
+\#*#
+
+# rust
+/target
+Cargo.lock
