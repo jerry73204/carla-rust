@@ -1,0 +1,12 @@
+[package]
+name = "carla-rust"
+version = "0.1.0"
+edition = "2021"
+links = "carla"
+
+[dependencies]
+cxx = "1.0.82"
+
+[build-dependencies]
+cxx-build = "1.0.82"
+pkg-config = "0.3.26"
