@@ -47,15 +47,50 @@ void client_set_timeout_millis(Client &client, size_t millis);
 unique_ptr<SharedMap> world_get_map(const World &world);
 unique_ptr<SharedBlueprintLibrary> world_get_blueprint_library(const World &world);
 unique_ptr<SharedActor> world_get_spectator(const World &world);
-
+unique_ptr<SharedActor> world_try_spawn_actor(World &world,
+                                              const ActorBlueprint &blueprint,
+                                              const Transform &transform,
+                                              const SharedActor *parent);
 // BlueprintLibrary
 unique_ptr<SharedBlueprintLibrary> bp_filter(const SharedBlueprintLibrary &bp, const string &wildcard_pattern);
 const BlueprintLibrary *bp_to_raw(const SharedBlueprintLibrary &bp);
 
 // Actor
+unique_ptr<Location> actor_get_location(const SharedActor &actor);
+unique_ptr<Transform> actor_get_transform(const SharedActor &actor);
+unique_ptr<Vector3D> actor_get_velocity(const SharedActor &actor);
+unique_ptr<Vector3D> actor_get_acceleration(const SharedActor &actor);
+unique_ptr<Vector3D> actor_get_angular_velocity(const SharedActor &actor);
 
 // ActorBlueprint
 unique_ptr<ActorBlueprint> actor_bp_copy(const ActorBlueprint &from);
 void actor_bp_set_attribute(ActorBlueprint &actor_bp, const string &id, const string &value);
 
 // ActorAttribute
+
+// Vector2D
+unique_ptr<Vector2D> vec2d_new(float x, float y);
+float vec2d_x(const Vector2D &vec2d);
+float vec2d_y(const Vector2D &vec2d);
+
+// Vector3D
+unique_ptr<Vector3D> vec3d_new(float x, float y, float z);
+float vec3d_x(const Vector3D &vec3d);
+float vec3d_y(const Vector3D &vec3d);
+float vec3d_z(const Vector3D &vec3d);
+
+// Location
+unique_ptr<Location> location_from_xyz(float x, float, float z);
+const Vector3D& location_as_vec3d(const Location &loc);
+
+
+// Rotation
+unique_ptr<Rotation> rotation_from_pitch_yaw_roll(float p, float y, float r);
+float rotation_roll(const Rotation &rot);
+float rotation_pitch(const Rotation &rot);
+float rotation_yaw(const Rotation &rot);
+
+// Transform
+unique_ptr<Transform> transform_new(const Location &loc, const Rotation &rot);
+const Location &transform_get_location(const Transform &trans);
+const Rotation &transform_get_rotation(const Transform &trans);

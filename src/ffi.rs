@@ -26,6 +26,12 @@ mod ffi_ {
         fn world_get_map(world: &World) -> UniquePtr<SharedMap>;
         fn world_get_blueprint_library(world: &World) -> UniquePtr<SharedBlueprintLibrary>;
         fn world_get_spectator(world: &World) -> UniquePtr<SharedActor>;
+        unsafe fn world_try_spawn_actor(
+            world: Pin<&mut World>,
+            blueprint: &ActorBlueprint,
+            transform: &Transform,
+            parent: *const SharedActor,
+        ) -> UniquePtr<SharedActor>;
 
         // Map
         type SharedMap;
@@ -46,7 +52,14 @@ mod ffi_ {
         fn empty(self: &BlueprintLibrary) -> bool;
 
         // Actor
+        type Actor;
         type SharedActor;
+
+        fn actor_get_location(actor: &SharedActor) -> UniquePtr<Location>;
+        fn actor_get_transform(actor: &SharedActor) -> UniquePtr<Transform>;
+        fn actor_get_velocity(actor: &SharedActor) -> UniquePtr<Vector3D>;
+        fn actor_get_angular_velocity(actor: &SharedActor) -> UniquePtr<Vector3D>;
+        fn actor_get_acceleration(actor: &SharedActor) -> UniquePtr<Vector3D>;
 
         // ActorBlueprint
         type ActorBlueprint;
@@ -63,19 +76,35 @@ mod ffi_ {
         // ActorAttribute
         type ActorAttribute;
 
-        // Transform
-        type Transform;
-
         // Location
         type Location;
+        fn location_from_xyz(x: f32, y: f32, z: f32) -> UniquePtr<Location>;
+        fn location_as_vec3d(loc: &Location) -> &Vector3D;
 
         // Rotation
         type Rotation;
+        fn rotation_from_pitch_yaw_roll(p: f32, r: f32, y: f32) -> UniquePtr<Rotation>;
+        fn rotation_roll(rot: &Rotation) -> f32;
+        fn rotation_pitch(rot: &Rotation) -> f32;
+        fn rotation_yaw(rot: &Rotation) -> f32;
+
+        // Transform
+        type Transform;
+        fn transform_new(loc: &Location, rot: &Rotation) -> UniquePtr<Transform>;
+        fn transform_get_location(trans: &Transform) -> &Location;
+        fn transform_get_rotation(trans: &Transform) -> &Rotation;
 
         // Vector2D
         type Vector2D;
+        fn vec2d_new(x: f32, y: f32) -> UniquePtr<Vector2D>;
+        fn vec2d_x(v: &Vector2D) -> f32;
+        fn vec2d_y(v: &Vector2D) -> f32;
 
         // Vector3D
         type Vector3D;
+        fn vec3d_new(x: f32, y: f32, z: f32) -> UniquePtr<Vector3D>;
+        fn vec3d_x(v: &Vector3D) -> f32;
+        fn vec3d_y(v: &Vector3D) -> f32;
+        fn vec3d_z(v: &Vector3D) -> f32;
     }
 }
