@@ -1,5 +1,5 @@
 [package]
-name = "carla-rust"
+name = "carla"
 version = "0.1.0"
 edition = "2021"
 links = "carla"

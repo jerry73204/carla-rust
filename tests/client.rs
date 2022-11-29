@@ -1,4 +1,4 @@
-use carla_rust::Client;
+use carla::Client;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
 
 #[test]
