@@ -1,4 +1,3 @@
-use cxx_build::CFG;
 use std::{
     env,
     path::{Path, PathBuf},
@@ -8,6 +7,7 @@ fn main() {
     // Set change triggers
     println!("cargo:rerun-if-changed=csrc/carla_rust.hpp");
     println!("cargo:rerun-if-changed=csrc/carla_rust.cpp");
+    println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 
     // Prepare paths
@@ -27,9 +27,10 @@ fn main() {
     let boost_dir = build_dir.join("boost-1.80.0-c8-install");
     let libpng_dir = build_dir.join("libpng-1.6.37-install");
 
+    let mut include_dirs = vec![];
+
     // Set include dirs
-    CFG.exported_header_dirs
-        .extend([&*carla_source_dir, &*carla_third_party_dir]);
+    include_dirs.extend([carla_source_dir, carla_third_party_dir]);
 
     // link libcarla_client library
     println!(
@@ -48,23 +49,26 @@ fn main() {
             // "static=DetourTileCache",
             // "static=DebugUtils",
         ],
+        &mut include_dirs,
     );
-    add_library(&rpclib_dir, &["static=rpc"]);
-    add_library(&libpng_dir, &["static=png"]);
-    add_library(&boost_dir, &["static=boost_filesystem"]);
+    add_library(&rpclib_dir, &["static=rpc"], &mut include_dirs);
+    add_library(&libpng_dir, &["static=png"], &mut include_dirs);
+    add_library(&boost_dir, &["static=boost_filesystem"], &mut include_dirs);
 
     // Generate bindings
-    cxx_build::bridge("src/ffi.rs")
+    autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
+        .build()
+        .unwrap()
         .file("csrc/carla_rust.cpp")
         .flag_if_supported("-std=c++14")
         .compile("carla-rust");
 }
 
-fn add_library(dir: &Path, libs: &[&str]) {
+fn add_library(dir: &Path, libs: &[&str], include_dirs: &mut Vec<PathBuf>) {
     let include_dir = dir.join("include");
     let lib_dir = dir.join("lib");
 
-    CFG.exported_header_dirs.push(&include_dir);
+    include_dirs.push(include_dir);
     println!(
         "cargo:rustc-link-search=native={}",
         lib_dir.to_str().unwrap()
