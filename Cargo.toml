@@ -1,14 +1,5 @@
-[package]
-name = "carla"
-version = "0.1.0"
-edition = "2021"
-links = "carla"
-
-[dependencies]
-autocxx = "0.23.1"
-cxx = "1.0.82"
-nalgebra = "0.31.4"
-
-[build-dependencies]
-autocxx-build = "0.23.1"
-pkg-config = "0.3.26"
+[workspace]
+members = [
+    "carla",
+    "carla-sys",
+]

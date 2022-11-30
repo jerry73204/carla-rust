@@ -7,7 +7,7 @@ fn main() {
     // Set change triggers
     println!("cargo:rerun-if-changed=csrc/carla_rust.hpp");
     println!("cargo:rerun-if-changed=csrc/carla_rust.cpp");
-    println!("cargo:rerun-if-changed=src/ffi.rs");
+    println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 
     // Prepare paths
@@ -58,12 +58,12 @@ fn main() {
     add_library(&boost_dir, &["static=boost_filesystem"], &mut include_dirs);
 
     // Generate bindings
-    autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
+    autocxx_build::Builder::new("src/lib.rs", &include_dirs)
         .build()
         .unwrap()
         .file("csrc/carla_rust.cpp")
         .flag_if_supported("-std=c++14")
-        .compile("carla-rust");
+        .compile("carla_rust");
 }
 
 fn add_library(dir: &Path, libs: &[&str], include_dirs: &mut Vec<PathBuf>) {

@@ -1,4 +1,4 @@
-use crate::ffi::carla_rust::client::FfiMap;
+use carla_sys::carla_rust::client::FfiMap;
 use cxx::UniquePtr;
 
 pub struct Map {

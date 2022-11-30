@@ -1,7 +1,7 @@
-use crate::ffi::carla_rust::geom::{
+use autocxx::prelude::*;
+use carla_sys::carla_rust::geom::{
     FfiLocation, FfiRotation, FfiTransform, FfiVector2D, FfiVector3D,
 };
-use autocxx::prelude::*;
 use cxx::UniquePtr;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 

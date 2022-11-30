@@ -1,5 +1,8 @@
-use crate::{ffi::carla_rust::client::FfiActor, Location, Transform, Vector3D};
+use crate::Location;
+use crate::Transform;
+use crate::Vector3D;
 use autocxx::prelude::*;
+use carla_sys::carla_rust::client::FfiActor;
 use cxx::UniquePtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
 

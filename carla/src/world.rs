@@ -1,6 +1,8 @@
-use crate::{ffi::carla_rust::client::FfiWorld, Map};
 use autocxx::prelude::*;
+use carla_sys::carla_rust::client::FfiWorld;
 use cxx::UniquePtr;
+
+use crate::Map;
 
 pub struct World {
     pub(crate) inner: UniquePtr<FfiWorld>,

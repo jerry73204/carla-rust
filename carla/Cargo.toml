@@ -1,0 +1,10 @@
+[package]
+name = "carla"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+autocxx = "0.23.1"
+cxx = "1.0.82"
+nalgebra = "0.31.4"
+carla-sys = { version = "0.1.0", path = "../carla-sys" }

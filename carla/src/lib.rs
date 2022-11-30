@@ -1,5 +1,3 @@
-pub mod ffi;
-
 mod actor;
 pub use actor::*;
 
