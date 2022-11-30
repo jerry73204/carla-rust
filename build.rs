@@ -11,6 +11,8 @@ fn main() {
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 
     // Prepare paths
+    let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
+    let csrc_dir = manifest_dir.join("csrc");
     let carla_dir = env::var_os("CARLA_DIR").expect("CARLA_DIR is not set");
     let carla_dir = PathBuf::from(carla_dir);
     let libcarla_dir = carla_dir.join("LibCarla");
@@ -30,7 +32,7 @@ fn main() {
     let mut include_dirs = vec![];
 
     // Set include dirs
-    include_dirs.extend([carla_source_dir, carla_third_party_dir]);
+    include_dirs.extend([csrc_dir, carla_source_dir, carla_third_party_dir]);
 
     // link libcarla_client library
     println!(

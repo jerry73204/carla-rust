@@ -1,22 +1,35 @@
-use crate::ffi;
+use crate::ffi::carla_rust::geom::{
+    FfiLocation, FfiRotation, FfiTransform, FfiVector2D, FfiVector3D,
+};
+use autocxx::prelude::*;
 use cxx::UniquePtr;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
-impl ffi::Vector2D {
-    pub fn new(x: f32, y: f32) -> UniquePtr<Self> {
-        ffi::vec2d_new(x, y)
+pub struct Vector2D {
+    inner: UniquePtr<FfiVector2D>,
+}
+
+impl Vector2D {
+    pub fn from_xy(xy: [f32; 2]) -> Self {
+        let [x, y] = xy;
+        let ptr = FfiVector2D::new1(x, y).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
-    pub fn from_na(from: &Vector2<f32>) -> UniquePtr<Self> {
-        Self::new(from.x, from.y)
+    pub fn from_cxx(from: UniquePtr<FfiVector2D>) -> Self {
+        Self { inner: from }
+    }
+
+    pub fn from_na(from: &Vector2<f32>) -> Self {
+        Self::from_xy([from.x, from.y])
     }
 
     pub fn x(&self) -> f32 {
-        ffi::vec2d_x(self)
+        self.inner.x()
     }
 
     pub fn y(&self) -> f32 {
-        ffi::vec2d_y(self)
+        self.inner.y()
     }
 
     pub fn xy(&self) -> [f32; 2] {
@@ -28,24 +41,34 @@ impl ffi::Vector2D {
     }
 }
 
-impl ffi::Vector3D {
-    pub fn new(x: f32, y: f32, z: f32) -> UniquePtr<Self> {
-        ffi::vec3d_new(x, y, z)
+pub struct Vector3D {
+    inner: UniquePtr<FfiVector3D>,
+}
+
+impl Vector3D {
+    pub fn from_xyz(xyz: [f32; 3]) -> Self {
+        let [x, y, z] = xyz;
+        let ptr = FfiVector3D::new1(x, y, z).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
-    pub fn from_na(from: &Vector3<f32>) -> UniquePtr<Self> {
-        Self::new(from.x, from.y, from.z)
+    pub fn from_cxx(from: UniquePtr<FfiVector3D>) -> Self {
+        Self { inner: from }
+    }
+
+    pub fn from_na(from: &Vector3<f32>) -> Self {
+        Self::from_xyz([from.x, from.y, from.z])
     }
 
     pub fn x(&self) -> f32 {
-        ffi::vec3d_x(self)
+        self.inner.x()
     }
 
     pub fn y(&self) -> f32 {
-        ffi::vec3d_y(self)
+        self.inner.y()
     }
     pub fn z(&self) -> f32 {
-        ffi::vec3d_z(self)
+        self.inner.z()
     }
 
     pub fn xyz(&self) -> [f32; 3] {
@@ -57,45 +80,76 @@ impl ffi::Vector3D {
     }
 }
 
-impl ffi::Location {
-    pub fn new(x: f32, y: f32, z: f32) -> UniquePtr<Self> {
-        ffi::location_from_xyz(x, y, z)
+pub struct Location {
+    inner: UniquePtr<FfiLocation>,
+}
+
+impl Location {
+    pub fn from_xyz(xyz: [f32; 3]) -> Self {
+        let [x, y, z] = xyz;
+        let ptr = FfiLocation::new1(x, y, z).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
-    pub fn from_na(from: &Translation3<f32>) -> UniquePtr<Self> {
-        Self::new(from.x, from.y, from.z)
+    pub fn from_cxx(from: UniquePtr<FfiLocation>) -> Self {
+        Self { inner: from }
     }
 
-    pub fn as_vec3d(&self) -> &ffi::Vector3D {
-        ffi::location_as_vec3d(self)
+    pub fn from_na(from: &Translation3<f32>) -> Self {
+        Self::from_xyz([from.x, from.y, from.z])
+    }
+
+    pub fn x(&self) -> f32 {
+        self.inner.x()
+    }
+
+    pub fn y(&self) -> f32 {
+        self.inner.y()
+    }
+
+    pub fn z(&self) -> f32 {
+        self.inner.z()
+    }
+
+    pub fn xyz(&self) -> [f32; 3] {
+        [self.x(), self.y(), self.z()]
     }
 
     pub fn to_na(&self) -> Translation3<f32> {
-        let [x, y, z] = self.as_vec3d().xyz();
+        let [x, y, z] = self.xyz();
         Translation3::new(x, y, z)
     }
 }
 
-impl ffi::Rotation {
-    pub fn from_euler_angles(roll: f32, pitch: f32, yaw: f32) -> UniquePtr<Self> {
-        ffi::rotation_from_pitch_yaw_roll(pitch, yaw, roll)
+pub struct Rotation {
+    inner: UniquePtr<FfiRotation>,
+}
+
+impl Rotation {
+    pub fn from_euler_angles(roll: f32, pitch: f32, yaw: f32) -> Self {
+        let ptr = FfiRotation::new1(pitch, yaw, roll).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
-    pub fn from_na(from: &UnitQuaternion<f32>) -> UniquePtr<Self> {
+    pub fn from_cxx(from: UniquePtr<FfiRotation>) -> Self {
+        Self { inner: from }
+    }
+
+    pub fn from_na(from: &UnitQuaternion<f32>) -> Self {
         let (r, p, y) = from.euler_angles();
         Self::from_euler_angles(r, p, y)
     }
 
     pub fn roll(&self) -> f32 {
-        ffi::rotation_roll(self)
+        self.inner.roll()
     }
 
     pub fn pitch(&self) -> f32 {
-        ffi::rotation_pitch(self)
+        self.inner.pitch()
     }
 
     pub fn yaw(&self) -> f32 {
-        ffi::rotation_yaw(self)
+        self.inner.yaw()
     }
 
     pub fn to_na(&self) -> UnitQuaternion<f32> {
@@ -103,28 +157,36 @@ impl ffi::Rotation {
     }
 }
 
-impl ffi::Transform {
-    pub fn new(location: &ffi::Location, rotation: &ffi::Rotation) -> UniquePtr<Self> {
-        ffi::transform_new(location, rotation)
+pub struct Transform {
+    inner: UniquePtr<FfiTransform>,
+}
+
+impl Transform {
+    pub fn new(location: &Location, rotation: &Rotation) -> Self {
+        let ptr = FfiTransform::new1(&location.inner, &rotation.inner).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
-    pub fn from_na(pose: &Isometry3<f32>) -> UniquePtr<Self> {
+    pub fn from_cxx(from: UniquePtr<FfiTransform>) -> Self {
+        Self { inner: from }
+    }
+
+    pub fn from_na(pose: &Isometry3<f32>) -> Self {
         let Isometry3 {
             rotation,
             translation,
         } = pose;
-        Self::new(
-            &ffi::Location::from_na(translation),
-            &ffi::Rotation::from_na(rotation),
-        )
+        let location = Location::from_na(translation);
+        let rotation = Rotation::from_na(rotation);
+        Self::new(&location, &rotation)
     }
 
-    pub fn location(&self) -> &ffi::Location {
-        ffi::transform_get_location(self)
+    pub fn location(&self) -> Location {
+        Location::from_cxx(self.inner.location().within_unique_ptr())
     }
 
-    pub fn rotation(&self) -> &ffi::Rotation {
-        ffi::transform_get_rotation(self)
+    pub fn rotation(&self) -> Rotation {
+        Rotation::from_cxx(self.inner.rotation().within_unique_ptr())
     }
 
     pub fn to_na(&self) -> Isometry3<f32> {

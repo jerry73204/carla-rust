@@ -1,8 +1,13 @@
 // #include <memory>
 // #include "carla/Time.h"
-// #include "carla_rust.hpp"
+#include "carla_rust.hpp"
 
 // using carla::time_duration;
+
+// CarlaClient::CarlaClient(const string &host, uint16_t port,
+//                          size_t worker_threads)
+//     : carla::client::Client(host, port, worker_threads)
+// {}
 
 // // Client
 // unique_ptr<Client> client_new(const string &host, uint16_t port) {

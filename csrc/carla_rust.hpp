@@ -1,96 +1,353 @@
-// #pragma once
+#pragma once
 
-// #include <memory>
-// #include <string>
+#include <vector>
+#include <string>
 // #include "rust/cxx.h"
-// #include "carla/Time.h"
-// #include "carla/client/Client.h"
+#include "carla/Time.h"
+#include "carla/Memory.h"
+#include "carla/client/Client.h"
+#include "carla/client/World.h"
+#include "carla/client/Map.h"
+#include "carla/client/Actor.h"
 // #include "carla/client/BlueprintLibrary.h"
-// #include "carla/client/World.h"
-// #include "carla/client/Map.h"
-// #include "carla/client/Actor.h"
 // #include "carla/client/ActorBlueprint.h"
 // #include "carla/client/ActorAttribute.h"
 
-// using namespace std;
+namespace carla_rust {
 
-// using carla::time_duration;
-// using carla::client::Client;
-// using carla::client::Map;
-// using carla::client::World;
-// using carla::client::BlueprintLibrary;
-// using carla::client::Actor;
-// using carla::client::ActorBlueprint;
-// using carla::client::ActorAttribute;
-// using carla::geom::Transform;
-// using carla::geom::Location;
-// using carla::geom::Rotation;
-// using carla::geom::Vector2D;
-// using carla::geom::Vector3D;
-// using SharedMap = carla::SharedPtr<Map>;
-// using SharedBlueprintLibrary = carla::SharedPtr<BlueprintLibrary>;
-// using SharedActor = carla::SharedPtr<Actor>;
+    namespace geom {
+        using carla::geom::Transform;
+        using carla::geom::Location;
+        using carla::geom::Rotation;
+        using carla::geom::Vector2D;
+        using carla::geom::Vector3D;
+        
+        // Vector2D
+        class FfiVector2D {
+        public:
+            FfiVector2D(Vector2D &&from)
+                : inner_(from)
+            {}
 
-// // time_duration
-// // unique_ptr<time_duration> time_duration_from_millis(size_t millis);
+            FfiVector2D(float x, float y)
+                : inner_(std::move(Vector2D(x, y)))
+            {}
 
-// // Client
-// unique_ptr<Client> client_new(const string &host, uint16_t port);
-// rust::String client_get_client_version(const Client &client);
-// rust::String client_get_server_version(const Client &client);
-// unique_ptr<World> client_load_world(const Client &client, const string &map_name);
-// unique_ptr<World> client_get_world(const Client &client);
-// size_t client_get_timeout_millis(Client &client);
-// void client_set_timeout_millis(Client &client, size_t millis);
+            float x() const {
+                return inner_.x;
+            }
 
-// // World
-// unique_ptr<SharedMap> world_get_map(const World &world);
-// unique_ptr<SharedBlueprintLibrary> world_get_blueprint_library(const World &world);
-// unique_ptr<SharedActor> world_get_spectator(const World &world);
-// unique_ptr<SharedActor> world_try_spawn_actor(World &world,
-//                                               const ActorBlueprint &blueprint,
-//                                               const Transform &transform,
-//                                               const SharedActor *parent);
-// // BlueprintLibrary
-// unique_ptr<SharedBlueprintLibrary> bp_filter(const SharedBlueprintLibrary &bp, const string &wildcard_pattern);
-// const BlueprintLibrary *bp_to_raw(const SharedBlueprintLibrary &bp);
+            float y() const {
+                return inner_.y;
+            }
 
-// // Actor
-// unique_ptr<Location> actor_get_location(const SharedActor &actor);
-// unique_ptr<Transform> actor_get_transform(const SharedActor &actor);
-// unique_ptr<Vector3D> actor_get_velocity(const SharedActor &actor);
-// unique_ptr<Vector3D> actor_get_acceleration(const SharedActor &actor);
-// unique_ptr<Vector3D> actor_get_angular_velocity(const SharedActor &actor);
-
-// // ActorBlueprint
-// unique_ptr<ActorBlueprint> actor_bp_copy(const ActorBlueprint &from);
-// void actor_bp_set_attribute(ActorBlueprint &actor_bp, const string &id, const string &value);
-
-// // ActorAttribute
-
-// // Vector2D
-// unique_ptr<Vector2D> vec2d_new(float x, float y);
-// float vec2d_x(const Vector2D &vec2d);
-// float vec2d_y(const Vector2D &vec2d);
-
-// // Vector3D
-// unique_ptr<Vector3D> vec3d_new(float x, float y, float z);
-// float vec3d_x(const Vector3D &vec3d);
-// float vec3d_y(const Vector3D &vec3d);
-// float vec3d_z(const Vector3D &vec3d);
-
-// // Location
-// unique_ptr<Location> location_from_xyz(float x, float, float z);
-// const Vector3D& location_as_vec3d(const Location &loc);
+            const Vector2D& inner() const {
+                return inner_;
+            }
+            
+        private:
+            Vector2D inner_;
+        };
 
 
-// // Rotation
-// unique_ptr<Rotation> rotation_from_pitch_yaw_roll(float p, float y, float r);
-// float rotation_roll(const Rotation &rot);
-// float rotation_pitch(const Rotation &rot);
-// float rotation_yaw(const Rotation &rot);
+        // float vec2d_x(const Vector2D &vec2d) {
+        //     return vec2d.x;
+        // }
 
-// // Transform
-// unique_ptr<Transform> transform_new(const Location &loc, const Rotation &rot);
-// const Location &transform_get_location(const Transform &trans);
-// const Rotation &transform_get_rotation(const Transform &trans);
+        // float vec2d_y(const Vector2D &vec2d) {
+        //     return vec2d.y;
+        // }
+
+            
+
+        // Vector3D
+        class FfiVector3D {
+        public:
+            FfiVector3D(Vector3D &&from)
+                : inner_(from)
+            {}
+
+            FfiVector3D(float x, float y, float z)
+                : inner_(std::move(Vector3D(x, y, z)))
+            {}
+
+            float x() const {
+                return inner_.x;
+            }
+
+            float y() const {
+                return inner_.y;
+            }
+
+            float z() const {
+                return inner_.z;
+            }
+
+            const Vector3D& inner() const {
+                return inner_;
+            }
+            
+        private:
+            Vector3D inner_;
+        };
+
+        // Location
+        class FfiLocation {
+        public:
+            FfiLocation(Location &&from)
+                : inner_(from)
+            {}
+
+            FfiLocation(float x, float y, float z)
+                : FfiLocation(std::move(Location(Vector3D(x, y, z))))
+            {}
+
+            
+            float x() const {
+                return inner_.x;
+            }
+
+            float y() const {
+                return inner_.y;
+            }
+
+            float z() const {
+                return inner_.z;
+            }
+
+            const Location &as_location() const {
+                return inner_;
+            }
+
+            const Vector3D &as_vector_3d() const {
+                return static_cast<const Vector3D&>(inner_);
+            }
+
+        private:
+            Location inner_;
+        };
+        
+        // Rotation
+        class FfiRotation {
+        public:
+            FfiRotation(Rotation &&from)
+                : inner_(from)
+            {}
+
+            FfiRotation(float p, float y, float r)
+                : FfiRotation(std::move(Rotation(p, y, r)))
+            {}
+
+            
+            float pitch() const {
+                return inner_.pitch;
+            }
+
+            float yaw() const {
+                return inner_.yaw;
+            }
+
+            float roll() const {
+                return inner_.roll;
+            }
+
+            const Rotation &inner() const {
+                return inner_;
+            }
+
+        private:
+            Rotation inner_;
+        };
+        
+
+        // Transform
+        class FfiTransform {
+        public:
+            FfiTransform(Transform &&transform)
+                : inner_(transform)
+            {}
+
+            
+            FfiTransform(const FfiLocation &location, const FfiRotation &rotation)
+                : inner_(location.as_location(), rotation.inner())
+            {
+            }
+
+            FfiLocation location() const {
+                Location loc = inner_.location;
+                return FfiLocation(std::move(loc));
+            }
+
+            FfiRotation rotation() const {
+                Rotation rot = inner_.rotation;
+                return FfiRotation(std::move(rot));
+            }
+            
+        private:
+            Transform inner_;
+        };
+    }
+    
+    namespace client {
+        using carla::SharedPtr;
+        using carla::time_duration;
+        using carla::geom::Transform;
+        using carla::geom::Location;
+        using carla::geom::Vector3D;
+        using carla::client::Client;
+        using carla::client::World;
+        using carla::client::Map;
+        using carla::client::Actor;
+        using carla::client::Waypoint;
+        using carla::road::Lane;
+        using carla::road::RoadId;
+        using carla::road::LaneId;
+        using carla_rust::geom::FfiVector2D;
+        using carla_rust::geom::FfiVector3D;
+        using carla_rust::geom::FfiLocation;
+        using carla_rust::geom::FfiRotation;
+        using carla_rust::geom::FfiTransform;
+    
+        class FfiClient : Client {
+        public:
+            explicit FfiClient(
+                                 const std::string &host,
+                                 uint16_t port,
+                                 size_t worker_threads = 0u)
+                : Client(host, port, worker_threads)
+            {}
+
+            FfiClient(const Client &base)
+                : Client(base)
+            {}
+
+            size_t GetTimeout() {
+                return Client::GetTimeout().milliseconds();
+            }
+
+            void SetTimeout(size_t millis) {
+                Client::SetTimeout(time_duration::milliseconds(millis));
+            }
+
+
+            std::string GetClientVersion() const {
+                return Client::GetClientVersion();
+            }
+
+            std::string GetServerVersion() const {
+                return Client::GetServerVersion();
+            }
+
+    
+            std::vector<std::string> GetAvailableMaps() const {
+                return Client::GetAvailableMaps();
+            }
+        };
+
+
+
+        class FfiMap {
+        public:
+            FfiMap(SharedPtr<Map> &&ref)
+                : inner_(ref)
+            {}
+
+            FfiMap(FfiMap &&from) = default;
+        
+            const std::string &GetName() const {
+                return inner_->GetName();
+            }
+
+            const std::string &GetOpenDrive() const {
+                return inner_->GetOpenDrive();
+            }
+
+            const std::vector<Transform> &GetRecommendedSpawnPoints() const {
+                return inner_->GetRecommendedSpawnPoints();
+            }
+
+            SharedPtr<Waypoint> GetWaypoint(const Location &location,
+                                            bool project_to_road = true,
+                                            int32_t lane_type = static_cast<uint32_t>(Lane::LaneType::Driving)) const
+            {
+                return SharedPtr<Waypoint>(inner_->GetWaypoint(location, project_to_road, lane_type));
+            }
+
+            SharedPtr<Waypoint> GetWaypointXODR(RoadId road_id,
+                                                LaneId lane_id,
+                                                float s) const
+            {
+                return SharedPtr<Waypoint>(inner_->GetWaypointXODR(road_id, lane_id, s));
+            }
+
+        
+        private:
+            SharedPtr<Map> inner_;
+        };
+
+        class FfiActor {
+        public:
+            FfiActor(SharedPtr<Actor> &&ref)
+                : inner_(ref)
+            {
+            }
+
+            FfiLocation GetLocation() const {
+                auto location = inner_->GetLocation();
+                return FfiLocation(std::move(location));
+            }
+
+            FfiTransform GetTransform() const {
+                auto transform = inner_->GetTransform();
+                return FfiTransform(std::move(transform));
+            }
+
+            FfiVector3D GetVelocity() const {
+                auto vel = inner_->GetVelocity();
+                return FfiVector3D(std::move(vel));
+            }
+
+            FfiVector3D GetAngularVelocity() const {
+                auto av = inner_->GetAngularVelocity();
+                return FfiVector3D(std::move(av));
+            }
+
+            FfiVector3D GetAcceleration() const {
+                auto acc = inner_->GetAcceleration();
+                return FfiVector3D(std::move(acc));
+            }
+        
+        private:
+            SharedPtr<Actor> inner_;
+        };
+
+
+        class FfiWorld {
+        public:
+            FfiWorld(World &&base)
+                : inner_(base)
+            {
+            }
+        
+
+            uint64_t GetId() const {
+                return inner_.GetId();
+            }
+            
+            FfiMap GetMap() const {
+                auto inner = inner_.GetMap();
+                FfiMap map(std::move(inner));
+                return map;
+            }
+        
+            FfiActor GetSpectator() const {
+                auto inner = inner_.GetSpectator();
+                FfiActor actor(std::move(inner));
+                return actor;
+            }
+        
+        private:
+            World inner_;
+        };
+    }
+}
