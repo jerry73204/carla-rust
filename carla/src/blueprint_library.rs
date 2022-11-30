@@ -1,51 +1,47 @@
-use crate::{ffi, ActorBlueprint};
+use autocxx::prelude::*;
+use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
 use cxx::{let_cxx_string, UniquePtr};
 
+use crate::ActorBlueprint;
+
 pub struct BlueprintLibrary {
-    pub(crate) inner: UniquePtr<ffi::SharedBlueprintLibrary>,
+    pub(crate) inner: UniquePtr<FfiBlueprintLibrary>,
 }
 
 impl BlueprintLibrary {
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiBlueprintLibrary>) -> Self {
+        Self { inner: ptr }
+    }
+
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
-
-        Self {
-            inner: ffi::bp_filter(&self.inner, &pattern),
-        }
+        let ptr = self.inner.filter(&pattern).within_unique_ptr();
+        Self::from_cxx(ptr)
     }
 
     pub fn find(&self, key: &str) -> Option<ActorBlueprint> {
         let_cxx_string!(key = key);
         unsafe {
-            // let bp_lib = ffi::bp_to_raw(&self.inner).as_ref().unwrap();
-            // let actor_bp = bp_lib.find(&key).as_ref()?;
-            let actor_bp = (*self.inner).as_ref().Find(&key).as_ref()?;
-            let actor_bp = ffi::actor_bp_copy(actor_bp);
-            Some(ActorBlueprint { inner: actor_bp })
+            let actor_bp = self.inner.find(&key).as_ref()?;
+            let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
+            Some(ActorBlueprint::from_cxx(actor_bp))
         }
     }
 
     pub fn get(&self, index: usize) -> Option<ActorBlueprint> {
-        if !(0..self.len()).contains(&index) {
-            return None;
+        unsafe {
+            let actor_bp = self.inner.at(index).as_ref()?;
+            let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
+            Some(ActorBlueprint::from_cxx(actor_bp))
         }
-        let actor_bp = (*self.inner).as_ref().at(index);
-        let actor_bp = ffi::actor_bp_copy(actor_bp);
-        Some(ActorBlueprint { inner: actor_bp })
     }
 
     pub fn len(&self) -> usize {
-        (*self.inner).as_ref().size()
+        self.inner.size()
     }
 
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        (*self.inner).as_ref().empty()
-    }
-}
-
-impl AsRef<ffi::BlueprintLibrary> for ffi::SharedBlueprintLibrary {
-    fn as_ref(&self) -> &ffi::BlueprintLibrary {
-        unsafe { ffi::bp_to_raw(self).as_ref().unwrap() }
+        self.inner.is_empty()
     }
 }

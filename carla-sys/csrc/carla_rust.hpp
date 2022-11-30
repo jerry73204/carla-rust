@@ -9,12 +9,19 @@
 #include "carla/client/World.h"
 #include "carla/client/Map.h"
 #include "carla/client/Actor.h"
-// #include "carla/client/BlueprintLibrary.h"
-// #include "carla/client/ActorBlueprint.h"
+#include "carla/client/ActorBlueprint.h"
+#include "carla/client/BlueprintLibrary.h"
 // #include "carla/client/ActorAttribute.h"
+#include "carla/rpc/AttachmentType.h"
+#include "carla/rpc/MapLayer.h"
+#include "carla/rpc/OpendriveGenerationParameters.h"
+#include "carla/geom/Transform.h"
+#include "carla/geom/Location.h"
+#include "carla/geom/Rotation.h"
+#include "carla/geom/Vector2D.h"
+#include "carla/geom/Vector3D.h"
 
 namespace carla_rust {
-
     namespace geom {
         using carla::geom::Transform;
         using carla::geom::Location;
@@ -173,6 +180,10 @@ namespace carla_rust {
             {
             }
 
+            const Transform& inner() const {
+                return inner_;
+            }
+            
             FfiLocation location() const {
                 Location loc = inner_.location;
                 return FfiLocation(std::move(loc));
@@ -199,6 +210,11 @@ namespace carla_rust {
         using carla::client::Map;
         using carla::client::Actor;
         using carla::client::Waypoint;
+        using carla::client::BlueprintLibrary;
+        using carla::client::ActorBlueprint;
+        using carla::rpc::AttachmentType;
+        using carla::rpc::MapLayer;
+        using carla::rpc::OpendriveGenerationParameters;
         using carla::road::Lane;
         using carla::road::RoadId;
         using carla::road::LaneId;
@@ -207,45 +223,11 @@ namespace carla_rust {
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
-    
-        class FfiClient : Client {
-        public:
-            explicit FfiClient(
-                                 const std::string &host,
-                                 uint16_t port,
-                                 size_t worker_threads = 0u)
-                : Client(host, port, worker_threads)
-            {}
 
-            FfiClient(const Client &base)
-                : Client(base)
-            {}
-
-            size_t GetTimeout() {
-                return Client::GetTimeout().milliseconds();
-            }
-
-            void SetTimeout(size_t millis) {
-                Client::SetTimeout(time_duration::milliseconds(millis));
-            }
-
-
-            std::string GetClientVersion() const {
-                return Client::GetClientVersion();
-            }
-
-            std::string GetServerVersion() const {
-                return Client::GetServerVersion();
-            }
-
-    
-            std::vector<std::string> GetAvailableMaps() const {
-                return Client::GetAvailableMaps();
-            }
-        };
-
-
-
+        ActorBlueprint copy_actor_blueprint(const ActorBlueprint &ref) {
+            return ref;
+        }
+        
         class FfiMap {
         public:
             FfiMap(SharedPtr<Map> &&ref)
@@ -292,6 +274,10 @@ namespace carla_rust {
             {
             }
 
+            const SharedPtr<Actor>& inner() const {
+                return inner_;
+            }
+            
             FfiLocation GetLocation() const {
                 auto location = inner_->GetLocation();
                 return FfiLocation(std::move(location));
@@ -321,6 +307,43 @@ namespace carla_rust {
             SharedPtr<Actor> inner_;
         };
 
+        class FfiBlueprintLibrary {
+        public:
+            FfiBlueprintLibrary(SharedPtr<BlueprintLibrary> &&ref)
+                : inner_(ref)
+            {
+            }
+
+
+            FfiBlueprintLibrary filter(const std::string &pattern) const {
+                auto lib = inner_->Filter(pattern);
+                return FfiBlueprintLibrary(std::move(lib));
+            }
+
+            const ActorBlueprint* find(const std::string &key) const {
+                return inner_->Find(key);
+            }
+            
+            const ActorBlueprint* at(size_t pos) const {
+                if (pos >= size()) {
+                    return nullptr;
+                }
+                return &inner_->at(pos);
+            }
+
+
+            bool is_empty() const {
+                return inner_->empty();
+            }
+
+            size_t size() const {
+                return inner_->size();
+            }
+            
+        private:
+            SharedPtr<BlueprintLibrary> inner_;
+        };
+
 
         class FfiWorld {
         public:
@@ -346,8 +369,99 @@ namespace carla_rust {
                 return actor;
             }
         
+            FfiBlueprintLibrary GetBlueprintLibrary() const {
+                auto lib = inner_.GetBlueprintLibrary();
+                return FfiBlueprintLibrary(std::move(lib));
+            }
+
+            std::unique_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
+                                               const FfiTransform &transform,
+                                               FfiActor *parent = nullptr,
+                                               AttachmentType attachment_type = AttachmentType::Rigid) noexcept
+            {
+                Actor *parent_arg = nullptr;
+                if (parent != nullptr) {
+                    const SharedPtr<Actor> &ptr = parent->inner();
+                    parent_arg = ptr.get();
+                }
+
+                auto transform_arg = transform.inner();
+                
+                auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_unique<FfiActor>(std::move(actor));
+                }
+            }
+
+            
         private:
             World inner_;
+        };
+        
+        class FfiClient {
+        public:
+            explicit FfiClient(const std::string &host,
+                               uint16_t port,
+                               size_t worker_threads = 0u)
+                : inner_(host, port, worker_threads)
+            {}
+
+            FfiClient(const Client &&base)
+                : inner_(base)
+            {}
+
+            size_t GetTimeout() {
+                return inner_.GetTimeout().milliseconds();
+            }
+
+            void SetTimeout(size_t millis) {
+                inner_.SetTimeout(time_duration::milliseconds(millis));
+            }
+
+
+            std::string GetClientVersion() const {
+                return inner_.GetClientVersion();
+            }
+
+            std::string GetServerVersion() const {
+                return inner_.GetServerVersion();
+            }
+
+    
+            std::vector<std::string> GetAvailableMaps() const {
+                return inner_.GetAvailableMaps();
+            }
+            
+            FfiWorld ReloadWorld(bool reset_settings = true) const {
+                auto world = inner_.ReloadWorld(reset_settings);
+                return FfiWorld(std::move(world));
+            }
+
+            FfiWorld LoadWorld(std::string map_name,
+                               bool reset_settings = true) const
+            {
+                auto map_layers = MapLayer::All;
+                auto world = inner_.LoadWorld(map_name, reset_settings, map_layers);
+                return FfiWorld(std::move(world));
+            }
+
+            FfiWorld GenerateOpenDriveWorld(std::string opendrive,
+                                            const OpendriveGenerationParameters & params,
+                                            bool reset_settings = true) const
+            {
+                auto world = inner_.GenerateOpenDriveWorld(opendrive, params, reset_settings);
+                return FfiWorld(std::move(world));
+            }
+
+            FfiWorld GetWorld() const {
+                auto world = inner_.GetWorld();
+                return FfiWorld(std::move(world));
+            }
+
+        private:
+            Client inner_;
         };
     }
 }

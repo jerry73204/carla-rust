@@ -13,6 +13,10 @@ include_cpp! {
     #include "carla/geom/Vector2D.h"
     #include "carla/geom/Vector3D.h"
 
+    #include "carla/rpc/AttachmentType.h"
+    // #include "carla/rpc/MapLayer.h"
+    #include "carla/rpc/OpendriveGenerationParameters.h"
+
     #include "carla/client/Waypoint.h"
     #include "carla/client/Sensor.h"
     #include "carla/client/Vehicle.h"
@@ -39,6 +43,9 @@ include_cpp! {
     generate!("carla::SharedPtr")
     generate!("carla::time_duration")
 
+    generate!("carla::rpc::AttachmentType")
+    generate!("carla::rpc::OpendriveGenerationParameters")
+
     generate!("carla::client::Waypoint")
     generate!("carla::client::Sensor")
     generate!("carla::client::Vehicle")
@@ -55,6 +62,7 @@ include_cpp! {
 
 
     // bad types
+    // generate!("carla::rpc::MapLayer")
     // generate!("carla::client::Map")
     // generate!("carla::client::World")
     // generate!("carla::client::BlueprintLibrary")

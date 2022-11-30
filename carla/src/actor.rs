@@ -39,6 +39,12 @@ pub struct Actor {
     pub(crate) inner: UniquePtr<FfiActor>,
 }
 
+impl Actor {
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActor>) -> Self {
+        Self { inner: ptr }
+    }
+}
+
 impl ActorTrait for Actor {
     fn as_cxx_actor(&self) -> &FfiActor {
         &self.inner

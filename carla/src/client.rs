@@ -1,3 +1,5 @@
+use crate::rpc::OpendriveGenerationParameters;
+use crate::World;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};
@@ -46,11 +48,44 @@ impl Client {
             .collect()
     }
 
-    // pub fn load_world(&self, map_name: &str) -> World {
-    //     let_cxx_string!(map_name = map_name);
-    //     let world = ffi::client_load_world(&self.inner, &map_name);
-    //     World { inner: world }
-    // }
+    pub fn load_world(&self, map_name: &str) -> World {
+        self.load_world_opt(map_name, true)
+    }
+
+    pub fn load_world_opt(&self, map_name: &str, reset_settings: bool) -> World {
+        let world = self
+            .inner
+            .LoadWorld(map_name, reset_settings)
+            .within_unique_ptr();
+        World::from_cxx(world)
+    }
+
+    pub fn reload_world(&self) -> World {
+        self.reload_world_opt(true)
+    }
+
+    pub fn reload_world_opt(&self, reset_settings: bool) -> World {
+        let world = self.inner.ReloadWorld(reset_settings).within_unique_ptr();
+        World::from_cxx(world)
+    }
+
+    pub fn generate_open_drive_world(
+        &self,
+        opendrive: &str,
+        params: &OpendriveGenerationParameters,
+        reset_settings: bool,
+    ) -> World {
+        let world = self
+            .inner
+            .GenerateOpenDriveWorld(opendrive, params, reset_settings)
+            .within_unique_ptr();
+        World::from_cxx(world)
+    }
+
+    pub fn world(&self) -> World {
+        let world = self.inner.GetWorld().within_unique_ptr();
+        World::from_cxx(world)
+    }
 }
 
 impl Default for Client {

@@ -158,7 +158,7 @@ impl Rotation {
 }
 
 pub struct Transform {
-    inner: UniquePtr<FfiTransform>,
+    pub(crate) inner: UniquePtr<FfiTransform>,
 }
 
 impl Transform {

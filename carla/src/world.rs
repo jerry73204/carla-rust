@@ -1,8 +1,12 @@
-use autocxx::prelude::*;
-use carla_sys::carla_rust::client::FfiWorld;
-use cxx::UniquePtr;
+use std::ptr;
 
-use crate::Map;
+use crate::{AttachmentType, Transform};
+use autocxx::prelude::*;
+use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
+use cxx::UniquePtr;
+use nalgebra::Isometry3;
+
+use crate::{Actor, ActorBlueprint, BlueprintLibrary, Map};
 
 pub struct World {
     pub(crate) inner: UniquePtr<FfiWorld>,
@@ -19,41 +23,53 @@ impl World {
         }
     }
 
-    // pub fn blueprint_library(&self) -> BlueprintLibrary {
-    //     BlueprintLibrary {
-    //         inner: ffi::world_get_blueprint_library(&self.inner),
-    //     }
-    // }
+    pub fn blueprint_library(&self) -> BlueprintLibrary {
+        let ptr = self.inner.GetBlueprintLibrary().within_unique_ptr();
+        BlueprintLibrary::from_cxx(ptr)
+    }
 
-    // pub fn spectator(&self) -> Actor {
-    //     Actor {
-    //         inner: ffi::world_get_spectator(&self.inner),
-    //     }
-    // }
+    pub fn spectator(&self) -> Actor {
+        let actor = self.inner.GetSpectator().within_unique_ptr();
+        Actor::from_cxx(actor)
+    }
 
-    // pub fn try_spawn_actor(
-    //     &mut self,
-    //     blueprint: &ActorBlueprint,
-    //     transform: &Isometry3<f32>,
-    //     parent: Option<&Actor>,
-    // ) -> Option<Actor> {
-    //     unsafe {
-    //         let parent_ptr: *const ffi::SharedActor = parent
-    //             .and_then(|parent| parent.inner.as_ref())
-    //             .map(|ref_| ref_ as *const _)
-    //             .unwrap_or(ptr::null());
-    //         let transform = ffi::Transform::from_na(transform);
-    //         let actor = ffi::world_try_spawn_actor(
-    //             self.inner.pin_mut(),
-    //             &blueprint.inner,
-    //             &transform,
-    //             parent_ptr,
-    //         );
-    //         if actor.is_null() {
-    //             None
-    //         } else {
-    //             Some(Actor { inner: actor })
-    //         }
-    //     }
-    // }
+    pub fn try_spawn_actor(
+        &mut self,
+        blueprint: &ActorBlueprint,
+        transform: &Isometry3<f32>,
+        parent: Option<&Actor>,
+    ) -> Option<Actor> {
+        self.try_spawn_actor_opt(blueprint, transform, parent, AttachmentType::Rigid)
+    }
+
+    pub fn try_spawn_actor_opt(
+        &mut self,
+        blueprint: &ActorBlueprint,
+        transform: &Isometry3<f32>,
+        parent: Option<&Actor>,
+        attachment_type: AttachmentType,
+    ) -> Option<Actor> {
+        unsafe {
+            let parent_ptr: *const FfiActor = parent
+                .and_then(|parent| parent.inner.as_ref())
+                .map(|ref_| ref_ as *const _)
+                .unwrap_or(ptr::null());
+            let transform = Transform::from_na(transform);
+            let actor = self.inner.pin_mut().TrySpawnActor(
+                &blueprint.inner,
+                &transform.inner,
+                parent_ptr as *mut _,
+                attachment_type,
+            );
+            if actor.is_null() {
+                None
+            } else {
+                Some(Actor { inner: actor })
+            }
+        }
+    }
+
+    pub(crate) fn from_cxx(from: UniquePtr<FfiWorld>) -> World {
+        Self { inner: from }
+    }
 }
