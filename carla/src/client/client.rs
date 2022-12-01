@@ -1,5 +1,5 @@
+use super::World;
 use crate::rpc::OpendriveGenerationParameters;
-use crate::World;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};

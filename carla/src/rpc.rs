@@ -1,4 +1,4 @@
 pub use carla_sys::carla::rpc::{
-    AttachmentType, OpendriveGenerationParameters, VehicleControl, VehicleDoor,
+    AttachmentType, OpendriveGenerationParameters, TrafficLightState, VehicleControl, VehicleDoor,
     VehicleLightState_LightState, VehicleWheelLocation,
 };

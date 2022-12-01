@@ -1,7 +1,5 @@
-use crate::Location;
-use crate::Transform;
-use crate::Vector3D;
-use crate::Vehicle;
+use super::Vehicle;
+use crate::geom::{Location, Transform, Vector3D};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::UniquePtr;

@@ -1,16 +1,15 @@
-use crate::Actor;
-use crate::ActorBase;
-use crate::CowFfiActor;
-use crate::VehicleDoor;
-use crate::VehicleLightState_LightState;
-use crate::VehicleWheelLocation;
-use autocxx::prelude::*;
-use carla_sys::carla::{
-    rpc::{TrafficLightState, VehicleControl, VehiclePhysicsControl},
-    traffic_manager::constants::Networking::TM_DEFAULT_PORT,
+use crate::rpc::{
+    TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState_LightState,
+    VehicleWheelLocation,
 };
-use carla_sys::carla_rust::client::FfiVehicle;
+use autocxx::prelude::*;
+use carla_sys::{
+    carla::{rpc::VehiclePhysicsControl, traffic_manager::constants::Networking::TM_DEFAULT_PORT},
+    carla_rust::client::FfiVehicle,
+};
 use cxx::UniquePtr;
+
+use super::{Actor, ActorBase, CowFfiActor};
 
 pub struct Vehicle {
     inner: UniquePtr<FfiVehicle>,

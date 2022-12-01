@@ -1,12 +1,11 @@
-use std::{ptr, time::Duration};
-
-use crate::{AttachmentType, Transform, WorldSnapshot};
+use crate::{geom::Transform, rpc::AttachmentType};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
 use cxx::UniquePtr;
 use nalgebra::Isometry3;
+use std::{ptr, time::Duration};
 
-use crate::{Actor, ActorBlueprint, BlueprintLibrary, Map};
+use super::{Actor, ActorBlueprint, BlueprintLibrary, Map, WorldSnapshot};
 
 pub struct World {
     pub(crate) inner: UniquePtr<FfiWorld>,
@@ -81,16 +80,16 @@ impl World {
         self.inner.pin_mut().Tick(dur.as_millis() as usize)
     }
 
-    fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
+    pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
         self.inner.pin_mut().SetPedestriansCrossFactor(percentage);
     }
 
-    fn set_pedestrians_seed(&mut self, seed: usize) {
+    pub fn set_pedestrians_seed(&mut self, seed: usize) {
         let seed = c_uint(seed as std::os::raw::c_uint);
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
 
-    fn reset_all_traffic_lights(&mut self) {
+    pub fn reset_all_traffic_lights(&mut self) {
         self.inner.pin_mut().ResetAllTrafficLights();
     }
 
