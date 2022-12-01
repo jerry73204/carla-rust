@@ -8,7 +8,7 @@ use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
     new_vector_uint32_t,
 };
-use cxx::{let_cxx_string, UniquePtr};
+use cxx::UniquePtr;
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
 
@@ -23,19 +23,18 @@ impl World {
     }
 
     pub fn map(&self) -> Map {
-        Map {
-            inner: self.inner.GetMap().within_unique_ptr(),
-        }
+        let ptr = self.inner.GetMap().within_unique_ptr();
+        Map::from_cxx(ptr).unwrap()
     }
 
     pub fn blueprint_library(&self) -> BlueprintLibrary {
         let ptr = self.inner.GetBlueprintLibrary();
-        BlueprintLibrary::from_cxx(ptr)
+        BlueprintLibrary::from_cxx(ptr).unwrap()
     }
 
     pub fn spectator(&self) -> Actor {
         let actor = self.inner.GetSpectator();
-        Actor::from_cxx(actor)
+        Actor::from_cxx(actor).unwrap()
     }
 
     pub fn settings(&self) -> EpisodeSettings {
@@ -45,7 +44,7 @@ impl World {
 
     pub fn snapshot(&self) -> WorldSnapshot {
         let ptr = self.inner.GetSnapshot();
-        WorldSnapshot::from_cxx(ptr)
+        WorldSnapshot::from_cxx(ptr).unwrap()
     }
 
     pub fn names_of_all_objects(&self) -> Vec<String> {
@@ -58,16 +57,12 @@ impl World {
 
     pub fn actor(&self, actor_id: ActorId) -> Option<Actor> {
         let ptr = self.inner.GetActor(actor_id);
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Actor::from_cxx(ptr))
-        }
+        Actor::from_cxx(ptr)
     }
 
     pub fn actors(&self) -> ActorList {
         let ptr = self.inner.GetActors();
-        ActorList::from_cxx(ptr)
+        ActorList::from_cxx(ptr).unwrap()
     }
 
     pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
@@ -77,7 +72,7 @@ impl World {
         });
 
         let ptr = self.inner.GetActorsByIds(&vec);
-        ActorList::from_cxx(ptr)
+        ActorList::from_cxx(ptr).unwrap()
     }
 
     pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
@@ -142,11 +137,7 @@ impl World {
     #[must_use]
     pub fn wait_for_tick_or_timeout(&self, timeout: Duration) -> Option<WorldSnapshot> {
         let ptr = self.inner.WaitForTick(timeout.as_millis() as usize);
-        if ptr.is_null() {
-            None
-        } else {
-            Some(WorldSnapshot::from_cxx(ptr))
-        }
+        WorldSnapshot::from_cxx(ptr)
     }
 
     pub fn tick(&mut self, dur: Duration) -> u64 {
@@ -171,8 +162,12 @@ impl World {
         self.inner.pin_mut().ResetAllTrafficLights();
     }
 
-    pub(crate) fn from_cxx(from: UniquePtr<FfiWorld>) -> World {
-        Self { inner: from }
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }
 

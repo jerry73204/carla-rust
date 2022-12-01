@@ -58,7 +58,7 @@ impl Client {
             .inner
             .LoadWorld(map_name, reset_settings)
             .within_unique_ptr();
-        World::from_cxx(world)
+        World::from_cxx(world).unwrap()
     }
 
     pub fn reload_world(&self) -> World {
@@ -67,7 +67,7 @@ impl Client {
 
     pub fn reload_world_opt(&self, reset_settings: bool) -> World {
         let world = self.inner.ReloadWorld(reset_settings).within_unique_ptr();
-        World::from_cxx(world)
+        World::from_cxx(world).unwrap()
     }
 
     pub fn generate_open_drive_world(
@@ -80,12 +80,12 @@ impl Client {
             .inner
             .GenerateOpenDriveWorld(opendrive, params, reset_settings)
             .within_unique_ptr();
-        World::from_cxx(world)
+        World::from_cxx(world).unwrap()
     }
 
     pub fn world(&self) -> World {
         let world = self.inner.GetWorld().within_unique_ptr();
-        World::from_cxx(world)
+        World::from_cxx(world).unwrap()
     }
 }
 

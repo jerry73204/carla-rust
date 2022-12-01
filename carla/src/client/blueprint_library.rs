@@ -6,18 +6,22 @@ use cxx::{let_cxx_string, SharedPtr};
 #[derive(Clone)]
 #[repr(transparent)]
 pub struct BlueprintLibrary {
-    pub(crate) inner: SharedPtr<FfiBlueprintLibrary>,
+    inner: SharedPtr<FfiBlueprintLibrary>,
 }
 
 impl BlueprintLibrary {
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiBlueprintLibrary>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiBlueprintLibrary>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
         let ptr = self.inner.filter(&pattern);
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
     pub fn find(&self, key: &str) -> Option<ActorBlueprint> {
@@ -25,7 +29,7 @@ impl BlueprintLibrary {
         unsafe {
             let actor_bp = self.inner.find(&key).as_ref()?;
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp))
+            Some(ActorBlueprint::from_cxx(actor_bp).unwrap())
         }
     }
 
@@ -33,7 +37,7 @@ impl BlueprintLibrary {
         unsafe {
             let actor_bp = self.inner.at(index).as_ref()?;
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp))
+            Some(ActorBlueprint::from_cxx(actor_bp).unwrap())
         }
     }
 

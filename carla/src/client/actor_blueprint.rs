@@ -52,7 +52,11 @@ impl ActorBlueprint {
         self.len() == 0
     }
 
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorBlueprint>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorBlueprint>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }

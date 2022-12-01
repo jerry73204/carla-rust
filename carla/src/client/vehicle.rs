@@ -105,11 +105,15 @@ impl Vehicle {
 
     pub fn into_actor(self) -> Actor {
         let ptr = self.inner.to_actor();
-        Actor::from_cxx(ptr)
+        Actor::from_cxx(ptr).unwrap()
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiVehicle>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiVehicle>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }
 

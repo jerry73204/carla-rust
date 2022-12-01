@@ -17,7 +17,11 @@ impl WorldSnapshot {
 
     // pub fn timestamp(&self) ->
 
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorldSnapshot>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorldSnapshot>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }

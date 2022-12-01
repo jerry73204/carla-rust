@@ -3,5 +3,15 @@ use cxx::UniquePtr;
 
 #[repr(transparent)]
 pub struct Map {
-    pub(crate) inner: UniquePtr<FfiMap>,
+    inner: UniquePtr<FfiMap>,
+}
+
+impl Map {
+    pub fn from_cxx(ptr: UniquePtr<FfiMap>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
+    }
 }

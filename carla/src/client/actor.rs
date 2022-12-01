@@ -43,24 +43,20 @@ pub struct Actor {
 impl Actor {
     pub fn try_into_vehicle(self) -> Result<Vehicle, Self> {
         let ptr = self.inner.to_vehicle();
-        if ptr.is_null() {
-            Err(self)
-        } else {
-            Ok(Vehicle::from_cxx(ptr))
-        }
+        Vehicle::from_cxx(ptr).ok_or(self)
     }
 
     pub fn try_into_sensor(self) -> Result<Sensor, Self> {
         let ptr = self.inner.to_sensor();
-        if ptr.is_null() {
-            Err(self)
-        } else {
-            Ok(Sensor::from_cxx(ptr))
-        }
+        Sensor::from_cxx(ptr).ok_or(self)
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActor>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActor>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }
 

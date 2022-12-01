@@ -12,28 +12,18 @@ pub struct ActorList {
 impl ActorList {
     pub fn find(&self, actor_id: ActorId) -> Option<Actor> {
         let ptr = self.inner.Find(actor_id);
-
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Actor::from_cxx(ptr))
-        }
+        Actor::from_cxx(ptr)
     }
 
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
         let ptr = self.inner.Filter(&pattern);
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
     pub fn get(&self, index: usize) -> Option<Actor> {
         let ptr = self.inner.at(index);
-
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Actor::from_cxx(ptr))
-        }
+        Actor::from_cxx(ptr)
     }
 
     pub fn len(&self) -> usize {
@@ -44,7 +34,11 @@ impl ActorList {
         self.inner.empty()
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActorList>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActorList>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }

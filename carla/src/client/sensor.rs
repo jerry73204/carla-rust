@@ -46,8 +46,12 @@ impl Sensor {
         }
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensor>) -> Self {
-        Self { inner: ptr }
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensor>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 }
 
