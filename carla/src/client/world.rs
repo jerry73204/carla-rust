@@ -28,7 +28,7 @@ impl World {
     }
 
     pub fn spectator(&self) -> Actor {
-        let actor = self.inner.GetSpectator().within_unique_ptr();
+        let actor = self.inner.GetSpectator();
         Actor::from_cxx(actor)
     }
 

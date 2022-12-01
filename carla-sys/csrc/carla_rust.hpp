@@ -1,8 +1,10 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <boost/optional.hpp>
+#include <boost/shared_ptr.hpp>
 #include "cxx.h"
 #include "carla/Time.h"
 #include "carla/Memory.h"
@@ -31,7 +33,18 @@
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
 
-namespace carla_rust {
+namespace carla_rust
+{
+    // Using the boost::shared_ptr to std::shared_ptr trick here:
+    // https://stackoverflow.com/questions/71572186/question-on-converting-boost-shared-pointer-to-standard-shared-pointer
+    // template<class T>
+    // std::shared_ptr<T> as_std_shared_ptr(boost::shared_ptr<T> bp)
+    // {
+    //     if (!bp) return nullptr;
+    //     auto pq = std::make_shared<boost::shared_ptr<T>>(std::move(bp));
+    //     return std::shared_ptr<T>(pq, pq.get()->get());
+    // }
+
 
     namespace geom {
         using carla::geom::Transform;
@@ -296,40 +309,40 @@ namespace carla_rust {
             {}
 
 
-            void SetAutopilot(bool enabled = true, uint16_t tm_port = TM_DEFAULT_PORT) {
+            void SetAutopilot(bool enabled = true, uint16_t tm_port = TM_DEFAULT_PORT) const {
                 inner_->SetAutopilot(enabled, tm_port);
             }
 
-            void ShowDebugTelemetry(bool enabled = true) {
+            void ShowDebugTelemetry(bool enabled = true) const {
                 inner_->ShowDebugTelemetry(enabled);
             }
 
             /// Apply @a control to this vehicle.
-            void ApplyControl(const VehicleControl &control) {
+            void ApplyControl(const VehicleControl &control) const {
                 inner_->ApplyControl(control);
             }
 
-            void ApplyPhysicsControl(const VehiclePhysicsControl &physics_control) {
+            void ApplyPhysicsControl(const VehiclePhysicsControl &physics_control) const {
                 inner_->ApplyPhysicsControl(physics_control);
             }
 
-            void OpenDoor(const VehicleDoor door_idx) {
+            void OpenDoor(const VehicleDoor door_idx) const {
                 inner_->OpenDoor(door_idx);
             }
 
-            void CloseDoor(const VehicleDoor door_idx) {
+            void CloseDoor(const VehicleDoor door_idx) const {
                 inner_->CloseDoor(door_idx);
             }
 
-            void SetLightState(const VehicleLightState::LightState &light_state) {
+            void SetLightState(const VehicleLightState::LightState &light_state) const {
                 inner_->SetLightState(light_state);
             }
 
-            void SetWheelSteerDirection(VehicleWheelLocation wheel_location, float angle_in_deg) {
+            void SetWheelSteerDirection(VehicleWheelLocation wheel_location, float angle_in_deg) const {
                 inner_->SetWheelSteerDirection(wheel_location, angle_in_deg);
             }
 
-            float GetWheelSteerAngle(VehicleWheelLocation wheel_location) {
+            float GetWheelSteerAngle(VehicleWheelLocation wheel_location) const {
                 return inner_->GetWheelSteerAngle(wheel_location);
             }
 
@@ -353,17 +366,17 @@ namespace carla_rust {
                 return inner_->GetTrafficLightState();
             }
 
-            bool IsAtTrafficLight() {
+            bool IsAtTrafficLight() const {
                 return inner_->IsAtTrafficLight();
             }
 
             // SharedPtr<TrafficLight> GetTrafficLight() const {}
 
-            void EnableCarSim(std::string simfile_path) {
+            void EnableCarSim(std::string simfile_path) const {
                 inner_->EnableCarSim(simfile_path);
             }
 
-            void UseCarSimRoad(bool enabled) {
+            void UseCarSimRoad(bool enabled) const {
                 inner_->UseCarSimRoad(enabled);
             }
 
@@ -372,7 +385,7 @@ namespace carla_rust {
                                      std::string VehicleJSON = "",
                                      std::string PowertrainJSON = "",
                                      std::string TireJSON = "",
-                                     std::string BaseJSONPath = "") {
+                                     std::string BaseJSONPath = "") const {
                 inner_->EnableChronoPhysics(MaxSubsteps,
                                            MaxSubstepDeltaTime,
                                            VehicleJSON,
@@ -381,9 +394,9 @@ namespace carla_rust {
                                            BaseJSONPath);
             }
 
-            std::unique_ptr<FfiActor> to_actor() const {
+            std::shared_ptr<FfiActor> to_actor() const {
                 SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
-                return std::make_unique<FfiActor>(std::move(ptr));
+                return std::make_shared<FfiActor>(std::move(ptr));
             }
 
         private:
@@ -428,12 +441,12 @@ namespace carla_rust {
                 return FfiVector3D(std::move(acc));
             }
 
-            std::unique_ptr<FfiVehicle> to_vehicle() const {
+            std::shared_ptr<FfiVehicle> to_vehicle() const {
                 SharedPtr<Vehicle> ptr = boost::dynamic_pointer_cast<Vehicle>(inner_);
                 if (ptr == nullptr) {
                     return nullptr;
                 } else {
-                    return std::make_unique<FfiVehicle>(std::move(ptr));
+                    return std::make_shared<FfiVehicle>(std::move(ptr));
                 }
             }
 
@@ -486,6 +499,8 @@ namespace carla_rust {
             {
             }
 
+            FfiWorld(const FfiWorld &) = default;
+            FfiWorld(FfiWorld &&) = default;
 
             uint64_t GetId() const {
                 return inner_.GetId();
@@ -497,10 +512,9 @@ namespace carla_rust {
                 return map;
             }
 
-            FfiActor GetSpectator() const {
+            std::shared_ptr<FfiActor> GetSpectator() const {
                 auto inner = inner_.GetSpectator();
-                FfiActor actor(std::move(inner));
-                return actor;
+                return std::make_shared<FfiActor>(std::move(inner));
             }
 
             FfiBlueprintLibrary GetBlueprintLibrary() const {
@@ -508,7 +522,7 @@ namespace carla_rust {
                 return FfiBlueprintLibrary(std::move(lib));
             }
 
-            std::unique_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
+            std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
                                                const FfiTransform &transform,
                                                FfiActor *parent = nullptr,
                                                AttachmentType attachment_type = AttachmentType::Rigid) noexcept
@@ -525,7 +539,7 @@ namespace carla_rust {
                 if (actor == nullptr) {
                     return nullptr;
                 } else {
-                    return std::make_unique<FfiActor>(std::move(actor));
+                    return std::make_shared<FfiActor>(std::move(actor));
                 }
             }
 
@@ -546,19 +560,19 @@ namespace carla_rust {
                 inner_.SetPedestriansSeed(seed);
             }
 
-            FfiActor GetTrafficSign(const Landmark& landmark) const {
+            std::shared_ptr<FfiActor> GetTrafficSign(const Landmark& landmark) const {
                 auto actor = inner_.GetTrafficSign(landmark);
-                return FfiActor(std::move(actor));
+                return std::make_shared<FfiActor>(std::move(actor));
             }
 
-            FfiActor GetTrafficLight(const Landmark& landmark) const {
+            std::shared_ptr<FfiActor> GetTrafficLight(const Landmark& landmark) const {
                 auto actor = inner_.GetTrafficLight(landmark);
-                return FfiActor(std::move(actor));
+                return std::make_shared<FfiActor>(std::move(actor));
             }
 
-            FfiActor GetTrafficLightFromOpenDRIVE(const SignId& sign_id) const {
-                auto actor = GetTrafficLightFromOpenDRIVE(sign_id);
-                return FfiActor(std::move(actor));
+            std::shared_ptr<FfiActor> GetTrafficLightFromOpenDRIVE(const SignId& sign_id) const {
+                auto actor = inner_.GetTrafficLightFromOpenDRIVE(sign_id);
+                return std::make_shared<FfiActor>(std::move(actor));
             }
 
             void ResetAllTrafficLights() {

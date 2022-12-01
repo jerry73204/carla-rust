@@ -2,28 +2,11 @@ use super::Vehicle;
 use crate::geom::{Location, Transform, Vector3D};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiActor;
-use cxx::UniquePtr;
+use cxx::{SharedPtr};
 use nalgebra::{Isometry3, Translation3, Vector3};
-use std::ops::Deref;
-
-pub enum CowFfiActor<'a> {
-    Owned(UniquePtr<FfiActor>),
-    Borrowed(&'a FfiActor),
-}
-
-impl<'a> Deref for CowFfiActor<'a> {
-    type Target = FfiActor;
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            CowFfiActor::Owned(me) => me,
-            CowFfiActor::Borrowed(me) => me,
-        }
-    }
-}
 
 pub trait ActorBase {
-    fn cxx_actor(&self) -> CowFfiActor<'_>;
+    fn cxx_actor(&self) -> SharedPtr<FfiActor>;
 
     fn location(&self) -> Translation3<f32> {
         let ptr = self.cxx_actor().GetLocation().within_unique_ptr();
@@ -51,8 +34,9 @@ pub trait ActorBase {
     }
 }
 
+#[derive(Clone)]
 pub struct Actor {
-    pub(crate) inner: UniquePtr<FfiActor>,
+    pub(crate) inner: SharedPtr<FfiActor>,
 }
 
 impl Actor {
@@ -65,13 +49,13 @@ impl Actor {
         }
     }
 
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActor>) -> Self {
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActor>) -> Self {
         Self { inner: ptr }
     }
 }
 
 impl ActorBase for Actor {
-    fn cxx_actor(&self) -> CowFfiActor<'_> {
-        CowFfiActor::Borrowed(&self.inner)
+    fn cxx_actor(&self) -> SharedPtr<FfiActor> {
+        self.inner.clone()
     }
 }

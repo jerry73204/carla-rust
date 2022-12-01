@@ -1,3 +1,4 @@
+use super::{Actor, ActorBase};
 use crate::rpc::{
     TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState_LightState,
     VehicleWheelLocation,
@@ -5,14 +6,12 @@ use crate::rpc::{
 use autocxx::prelude::*;
 use carla_sys::{
     carla::{rpc::VehiclePhysicsControl, traffic_manager::constants::Networking::TM_DEFAULT_PORT},
-    carla_rust::client::FfiVehicle,
+    carla_rust::client::{FfiActor, FfiVehicle},
 };
-use cxx::UniquePtr;
-
-use super::{Actor, ActorBase, CowFfiActor};
+use cxx::{SharedPtr, UniquePtr};
 
 pub struct Vehicle {
-    inner: UniquePtr<FfiVehicle>,
+    inner: SharedPtr<FfiVehicle>,
 }
 
 impl Vehicle {
@@ -21,27 +20,27 @@ impl Vehicle {
     }
 
     pub fn set_autopilot_opt(&mut self, enabled: bool, tm_port: u16) {
-        self.inner.pin_mut().SetAutopilot(enabled, tm_port);
+        self.inner.SetAutopilot(enabled, tm_port);
     }
 
     pub fn show_debug_telemetry(&mut self, enabled: bool) {
-        self.inner.pin_mut().ShowDebugTelemetry(enabled);
+        self.inner.ShowDebugTelemetry(enabled);
     }
 
     pub fn apply_control(&mut self, control: &VehicleControl) {
-        self.inner.pin_mut().ApplyControl(control);
+        self.inner.ApplyControl(control);
     }
 
     pub fn open_door(&mut self, door: VehicleDoor) {
-        self.inner.pin_mut().OpenDoor(door);
+        self.inner.OpenDoor(door);
     }
 
     pub fn close_door(&mut self, door: VehicleDoor) {
-        self.inner.pin_mut().CloseDoor(door);
+        self.inner.CloseDoor(door);
     }
 
     pub fn set_light_state(&mut self, light_state: &VehicleLightState_LightState) {
-        self.inner.pin_mut().SetLightState(light_state);
+        self.inner.SetLightState(light_state);
     }
 
     pub fn set_wheel_steer_direction(
@@ -49,13 +48,11 @@ impl Vehicle {
         wheel_location: VehicleWheelLocation,
         degrees: f32,
     ) {
-        self.inner
-            .pin_mut()
-            .SetWheelSteerDirection(wheel_location, degrees);
+        self.inner.SetWheelSteerDirection(wheel_location, degrees);
     }
 
     pub fn get_wheel_steer_angle(&mut self, wheel_location: VehicleWheelLocation) -> f32 {
-        self.inner.pin_mut().GetWheelSteerAngle(wheel_location)
+        self.inner.GetWheelSteerAngle(wheel_location)
     }
 
     pub fn control(&self) -> VehicleControl {
@@ -75,15 +72,15 @@ impl Vehicle {
     }
 
     pub fn is_at_traffic_light(&mut self) -> bool {
-        self.inner.pin_mut().IsAtTrafficLight()
+        self.inner.IsAtTrafficLight()
     }
 
     pub fn enable_car_sim(&mut self, simfile_path: &str) {
-        self.inner.pin_mut().EnableCarSim(simfile_path)
+        self.inner.EnableCarSim(simfile_path)
     }
 
     pub fn use_car_sim_road(&mut self, enabled: bool) {
-        self.inner.pin_mut().UseCarSimRoad(enabled);
+        self.inner.UseCarSimRoad(enabled);
     }
 
     pub fn enable_chrono_physics(
@@ -95,7 +92,7 @@ impl Vehicle {
         tire_json: &str,
         base_json_path: &str,
     ) {
-        self.inner.pin_mut().EnableChronoPhysics(
+        self.inner.EnableChronoPhysics(
             max_substeps,
             max_substep_delta_time,
             vehicle_json,
@@ -110,14 +107,13 @@ impl Vehicle {
         Actor::from_cxx(ptr)
     }
 
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiVehicle>) -> Self {
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiVehicle>) -> Self {
         Self { inner: ptr }
     }
 }
 
 impl ActorBase for Vehicle {
-    fn cxx_actor(&self) -> CowFfiActor<'_> {
-        let ptr = self.inner.to_actor();
-        CowFfiActor::Owned(ptr)
+    fn cxx_actor(&self) -> SharedPtr<FfiActor> {
+        self.inner.to_actor()
     }
 }
