@@ -13,6 +13,7 @@
 #include "carla/client/BlueprintLibrary.h"
 #include "carla/client/Sensor.h"
 #include "carla/client/Vehicle.h"
+#include "carla/client/TimeoutException.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/MapLayer.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
@@ -260,6 +261,7 @@ namespace carla_rust
         using carla::client::Landmark;
         using carla::client::WorldSnapshot;
         using carla::client::Vehicle;
+        using carla::client::TimeoutException;
         using carla::rpc::AttachmentType;
         using carla::rpc::MapLayer;
         using carla::rpc::OpendriveGenerationParameters;
@@ -641,9 +643,14 @@ namespace carla_rust
                 }
             }
 
-
-            WorldSnapshot WaitForTick(size_t millis) const {
-                return inner_.WaitForTick(time_duration::milliseconds(millis));
+            std::unique_ptr<WorldSnapshot> WaitForTick(size_t millis) const {
+                try {
+                    auto snapshot = inner_.WaitForTick(time_duration::milliseconds(millis));
+                    return std::make_unique<WorldSnapshot>(snapshot);
+                }
+                catch (TimeoutException e) {
+                    return nullptr;
+                }
             }
 
             uint64_t Tick(size_t millis) {

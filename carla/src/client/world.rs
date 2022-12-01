@@ -1,11 +1,10 @@
+use super::{Actor, ActorBase, ActorBlueprint, BlueprintLibrary, Map, WorldSnapshot};
 use crate::{geom::Transform, rpc::AttachmentType};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
 use cxx::UniquePtr;
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
-
-use super::{Actor, ActorBlueprint, BlueprintLibrary, Map, WorldSnapshot};
 
 #[repr(transparent)]
 pub struct World {
@@ -69,12 +68,23 @@ impl World {
         }
     }
 
-    pub fn wait_for_tick(&self, dur: Duration) -> WorldSnapshot {
-        let ptr = self
-            .inner
-            .WaitForTick(dur.as_millis() as usize)
-            .within_unique_ptr();
-        WorldSnapshot::from_cxx(ptr)
+    pub fn wait_for_tick(&self) -> WorldSnapshot {
+        const TIMEOUT: Duration = Duration::from_secs(60);
+        loop {
+            if let Some(snapshot) = self.wait_for_tick_or_timeout(TIMEOUT) {
+                return snapshot;
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn wait_for_tick_or_timeout(&self, timeout: Duration) -> Option<WorldSnapshot> {
+        let ptr = self.inner.WaitForTick(timeout.as_millis() as usize);
+        if ptr.is_null() {
+            None
+        } else {
+            Some(WorldSnapshot::from_cxx(ptr))
+        }
     }
 
     pub fn tick(&mut self, dur: Duration) -> u64 {
