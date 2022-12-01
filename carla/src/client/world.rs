@@ -1,4 +1,6 @@
-use super::{Actor, ActorBase, ActorBlueprint, ActorList, BlueprintLibrary, Map, WorldSnapshot};
+use super::{
+    Actor, ActorBase, ActorBlueprint, ActorList, BlueprintLibrary, Landmark, Map, WorldSnapshot,
+};
 use crate::{
     geom::Transform,
     rpc::{ActorId, AttachmentType, EpisodeSettings},
@@ -8,7 +10,7 @@ use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
     new_vector_uint32_t,
 };
-use cxx::UniquePtr;
+use cxx::{let_cxx_string, UniquePtr};
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
 
@@ -153,14 +155,31 @@ impl World {
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
 
-    // fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
-    //     let_cxx_string!(sign_id = sign_id);
-    //     self.inner.GetTrafficLightFromOpenDRIVE(&sign_id);
-    // }
+    pub fn traffic_sign(&self, landmark: &Landmark) -> Option<Actor> {
+        let ptr = self.inner.GetTrafficSign(landmark.inner.as_ref().unwrap());
+        Actor::from_cxx(ptr)
+    }
+
+    pub fn traffic_light(&self, landmark: &Landmark) -> Option<Actor> {
+        let ptr = self.inner.GetTrafficLight(landmark.inner.as_ref().unwrap());
+        Actor::from_cxx(ptr)
+    }
+
+    pub fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
+        let_cxx_string!(sign_id = sign_id);
+        let ptr = self.inner.GetTrafficLightFromOpenDRIVE(&sign_id);
+        Actor::from_cxx(ptr)
+    }
+
+    pub fn freeze_all_traffic_lights(&mut self, frozen: bool) {
+        self.inner.pin_mut().FreezeAllTrafficLights(frozen);
+    }
 
     pub fn reset_all_traffic_lights(&mut self) {
         self.inner.pin_mut().ResetAllTrafficLights();
     }
+
+    // pub fn level_bounding_boxes(&self) -> Vec<>
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
         if ptr.is_null() {

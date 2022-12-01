@@ -27,3 +27,9 @@ pub use world_snapshot::*;
 
 mod actor_list;
 pub use actor_list::*;
+
+mod landmark;
+pub use landmark::*;
+
+mod waypoint;
+pub use waypoint::*;

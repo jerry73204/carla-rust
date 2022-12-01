@@ -5,6 +5,7 @@ use cxx::{let_cxx_string, SharedPtr};
 use super::Actor;
 
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct ActorList {
     inner: SharedPtr<FfiActorList>,
 }

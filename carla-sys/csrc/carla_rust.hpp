@@ -17,6 +17,8 @@
 #include "carla/client/Vehicle.h"
 #include "carla/client/TimeoutException.h"
 #include "carla/client/ActorList.h"
+#include "carla/client/Landmark.h"
+#include "carla/client/Waypoint.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/MapLayer.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
@@ -376,6 +378,13 @@ namespace carla_rust
         using carla::road::RoadId;
         using carla::road::LaneId;
         using carla::road::SignId;
+        using carla::road::SectionId;
+        using carla::road::JuncId;
+        using carla::road::ObjId;
+        using carla::road::ConId;
+        using carla::road::ContId;
+        using carla::road::Lane;
+        using carla::road::element::LaneMarking;
         using carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT;
         using carla_rust::geom::FfiVector2D;
         using carla_rust::geom::FfiVector3D;
@@ -419,6 +428,134 @@ namespace carla_rust
         // class declarations
         class FfiActor;
         class FfiVehicle;
+        class FfiWaypoint;
+        class FfiLandmark;
+
+        // Waypoint
+        std::vector<std::shared_ptr<FfiWaypoint>> to_ffi_waypoint_vec(std::vector<SharedPtr<Waypoint>> &orig) {
+            std::vector<std::shared_ptr<FfiWaypoint>> new_;
+
+            for (auto iter = orig.begin(); iter != orig.end(); ++iter) {
+                new_.push_back(std::make_shared<FfiWaypoint>(std::move(*iter)));
+            }
+
+            return new_;
+        }
+
+        class FfiWaypoint {
+        public:
+            FfiWaypoint(SharedPtr<Waypoint> &&base)
+                : inner_(base)
+            {}
+
+            uint64_t GetId() const {
+                return inner_->GetId();
+            }
+
+            RoadId GetRoadId() const {
+                return inner_->GetRoadId();
+            }
+
+            SectionId GetSectionId() const {
+                return inner_->GetRoadId();
+            }
+
+            LaneId GetLaneId() const {
+                return inner_->GetLaneId();
+            }
+
+            double GetDistance() const {
+                return inner_->GetDistance();
+            }
+
+            const FfiTransform GetTransform() const {
+                auto trans = inner_->GetTransform();
+                return FfiTransform(std::move(trans));
+            }
+
+            JuncId GetJunctionId() const {
+                return inner_->GetJunctionId();
+            }
+
+            bool IsJunction() const {
+                return inner_->IsJunction();
+            }
+
+            // SharedPtr<Junction> GetJunction() const {
+            // }
+
+            double GetLaneWidth() const {
+                return inner_->GetLaneWidth();
+            }
+
+            Lane::LaneType GetType() const {
+                return inner_->GetType();
+            }
+
+            std::unique_ptr<std::vector<std::shared_ptr<FfiWaypoint>>> GetNext(double distance) const {
+                auto orig = inner_->GetNext(distance);
+                auto new_ = to_ffi_waypoint_vec(orig);
+                return std::make_unique<std::vector<std::shared_ptr<FfiWaypoint>>>(std::move(new_));
+            }
+
+            std::unique_ptr<std::vector<std::shared_ptr<FfiWaypoint>>> GetPrevious(double distance) const {
+                auto orig = inner_->GetPrevious(distance);
+                auto new_ = to_ffi_waypoint_vec(orig);
+                return std::make_unique<std::vector<std::shared_ptr<FfiWaypoint>>>(std::move(new_));
+            }
+
+
+            std::unique_ptr<std::vector<std::shared_ptr<FfiWaypoint>>> GetNextUntilLaneEnd(double distance) const {
+                auto orig = inner_->GetPrevious(distance);
+                auto new_ = to_ffi_waypoint_vec(orig);
+                return std::make_unique<std::vector<std::shared_ptr<FfiWaypoint>>>(std::move(new_));
+            }
+
+            std::unique_ptr<std::vector<std::shared_ptr<FfiWaypoint>>> GetPreviousUntilLaneStart(double distance) const {
+                auto orig = inner_->GetPreviousUntilLaneStart(distance);
+                auto new_ = to_ffi_waypoint_vec(orig);
+                return std::make_unique<std::vector<std::shared_ptr<FfiWaypoint>>>(std::move(new_));
+            }
+
+            std::shared_ptr<FfiWaypoint> GetRight() const {
+                auto ptr = inner_->GetRight();
+                return std::make_shared<FfiWaypoint>(std::move(ptr));
+            }
+
+            std::shared_ptr<FfiWaypoint> GetLeft() const {
+                auto ptr = inner_->GetLeft();
+                return std::make_shared<FfiWaypoint>(std::move(ptr));
+            }
+
+            // boost::optional<LaneMarking> GetRightLaneMarking() const;
+
+            // boost::optional<LaneMarking> GetLeftLaneMarking() const;
+
+            // LaneMarking::LaneChange GetLaneChange() const;
+
+            // std::vector<SharedPtr<Landmark>> GetAllLandmarksInDistance(double distance, bool stop_at_junction = false) const;
+
+            // std::vector<SharedPtr<Landmark>> GetLandmarksOfTypeInDistance(double distance, std::string filter_type, bool stop_at_junction = false) const;
+
+        private:
+            SharedPtr<Waypoint> inner_;
+        };
+
+
+        // Landmark
+        class FfiLandmark {
+        public:
+            FfiLandmark(SharedPtr<Landmark> &&base)
+                : inner_(base)
+            {}
+
+            const SharedPtr<Landmark>& inner() const {
+                return inner_;
+            }
+
+        private:
+            SharedPtr<Landmark> inner_;
+        };
 
         // Map
         class FfiMap {
@@ -793,7 +930,7 @@ namespace carla_rust
                     auto snapshot = inner_.WaitForTick(time_duration::milliseconds(millis));
                     return std::make_unique<WorldSnapshot>(snapshot);
                 }
-                catch (TimeoutException e) {
+                catch (TimeoutException &e) {
                     return nullptr;
                 }
             }
@@ -810,13 +947,13 @@ namespace carla_rust
                 inner_.SetPedestriansSeed(seed);
             }
 
-            std::shared_ptr<FfiActor> GetTrafficSign(const Landmark& landmark) const {
-                auto actor = inner_.GetTrafficSign(landmark);
+            std::shared_ptr<FfiActor> GetTrafficSign(const FfiLandmark& landmark) const {
+                auto actor = inner_.GetTrafficSign(*landmark.inner());
                 return std::make_shared<FfiActor>(std::move(actor));
             }
 
-            std::shared_ptr<FfiActor> GetTrafficLight(const Landmark& landmark) const {
-                auto actor = inner_.GetTrafficLight(landmark);
+            std::shared_ptr<FfiActor> GetTrafficLight(const FfiLandmark& landmark) const {
+                auto actor = inner_.GetTrafficLight(*landmark.inner());
                 return std::make_shared<FfiActor>(std::move(actor));
             }
 
@@ -933,7 +1070,7 @@ namespace carla_rust
             }
 
             std::shared_ptr<FfiActorList> GetActorsByIds(const std::vector<uint32_t> &actor_ids) const {
-                auto list = inner_.GetActors();
+                auto list = inner_.GetActors(actor_ids);
                 return std::make_shared<FfiActorList>(std::move(list));
             }
 
