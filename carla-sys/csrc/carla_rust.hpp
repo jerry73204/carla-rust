@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <vector>
 #include <string>
@@ -14,6 +16,7 @@
 #include "carla/client/Sensor.h"
 #include "carla/client/Vehicle.h"
 #include "carla/client/TimeoutException.h"
+#include "carla/client/ActorList.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/MapLayer.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
@@ -44,6 +47,100 @@ namespace carla_rust
     //     auto pq = std::make_shared<boost::shared_ptr<T>>(std::move(bp));
     //     return std::shared_ptr<T>(pq, pq.get()->get());
     // }
+
+    std::unique_ptr<std::vector<uint32_t>> new_vector_uint32_t() {
+        return std::make_unique<std::vector<uint32_t>>();
+    }
+
+    namespace rpc {
+        using carla::rpc::EpisodeSettings;
+
+        class FfiEpisodeSettings {
+        public:
+            FfiEpisodeSettings() = default;
+
+            FfiEpisodeSettings(EpisodeSettings &&base) : inner_(base)
+            {}
+
+
+            FfiEpisodeSettings(bool synchronous_mode,
+                               bool no_rendering_mode,
+                               double fixed_delta_seconds,
+                               bool substepping,
+                               double max_substep_delta_time,
+                               int max_substeps,
+                               float max_culling_distance,
+                               bool deterministic_ragdolls,
+                               float tile_stream_distance,
+                               float actor_active_distance)
+            :     inner_(synchronous_mode,
+                         no_rendering_mode,
+                         fixed_delta_seconds,
+                         substepping,
+                         max_substep_delta_time,
+                         max_substeps,
+                         max_culling_distance,
+                         deterministic_ragdolls,
+                         tile_stream_distance,
+                         actor_active_distance)
+            {}
+
+            const EpisodeSettings& inner() const {
+                return inner_;
+            }
+
+            bool synchronous_mode() const {
+                return inner_.synchronous_mode;
+            }
+
+            bool no_rendering_mode() const {
+                return inner_.no_rendering_mode;
+            }
+
+            // return NaN if it's not set.
+            double fixed_delta_seconds() const {
+                auto opt = inner_.fixed_delta_seconds;
+
+                if (opt) {
+                    return *opt;
+                } else {
+                    return std::numeric_limits<double>::quiet_NaN();
+                }
+            }
+
+            bool substepping() const {
+                return inner_.substepping;
+            }
+
+            double max_substep_delta_time() const {
+                return inner_.max_substep_delta_time;
+            }
+
+            int max_substeps() const {
+                return inner_.max_substeps;
+            }
+
+            float max_culling_distance() const {
+                return inner_.max_culling_distance;
+            }
+
+            bool deterministic_ragdolls() const {
+                return inner_.deterministic_ragdolls;
+            }
+
+            float tile_stream_distance() const {
+                return inner_.tile_stream_distance;
+            }
+
+            float actor_active_distance() const {
+                return inner_.actor_active_distance;
+            }
+
+
+        private:
+            EpisodeSettings inner_;
+        };
+    }
 
     namespace geom {
         using carla::geom::Transform;
@@ -262,6 +359,7 @@ namespace carla_rust
         using carla::client::WorldSnapshot;
         using carla::client::Vehicle;
         using carla::client::TimeoutException;
+        using carla::client::ActorList;
         using carla::rpc::AttachmentType;
         using carla::rpc::MapLayer;
         using carla::rpc::OpendriveGenerationParameters;
@@ -272,6 +370,7 @@ namespace carla_rust
         using carla::rpc::VehicleWheelLocation;
         using carla::rpc::TrafficLightState;
         using carla::rpc::VehicleLightState;
+        using carla::rpc::ActorId;
         // using LightState = carla::rpc::VehicleLightState::LightState;
         using carla::road::Lane;
         using carla::road::RoadId;
@@ -284,6 +383,7 @@ namespace carla_rust
         using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
         using carla_rust::sensor::FfiSensorData;
+        using carla_rust::rpc::FfiEpisodeSettings;
 
         class ListenCallback {
         public:
@@ -592,6 +692,51 @@ namespace carla_rust
             SharedPtr<BlueprintLibrary> inner_;
         };
 
+        class FfiActorList {
+        public:
+            FfiActorList(SharedPtr<ActorList> &&from)
+                : inner_(from)
+            {}
+
+
+            std::shared_ptr<FfiActor> Find(uint32_t actor_id) const {
+                auto actor = inner_->Find(actor_id);
+
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
+            }
+
+            std::shared_ptr<FfiActorList> Filter(const std::string &wildcard_pattern) const {
+                auto list = inner_->Filter(wildcard_pattern);
+                return std::make_shared<FfiActorList>(std::move(list));
+            }
+
+            std::shared_ptr<FfiActor> at(size_t pos) const {
+                auto actor = inner_->at(pos);
+
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
+            }
+
+            bool empty() const {
+                return inner_->empty();
+            }
+
+            size_t size() const {
+                return inner_->size();
+            }
+
+
+        private:
+            SharedPtr<ActorList> inner_;
+        };
+
         class FfiWorld {
         public:
             FfiWorld(World &&base)
@@ -754,10 +899,43 @@ namespace carla_rust
             //                             const rpc::TextureFloatColor& normal_texture,
             //                             const rpc::TextureFloatColor& ao_roughness_metallic_emissive_texture);
 
+            FfiEpisodeSettings GetSettings() const {
+                auto settings = inner_.GetSettings();
+                return FfiEpisodeSettings(std::move(settings));
+            }
+
+            uint64_t ApplySettings(const FfiEpisodeSettings &settings, size_t timeout_millis) {
+                auto timeout = time_duration::milliseconds(timeout_millis);
+                return inner_.ApplySettings(settings.inner(), timeout);
+            }
+
+            std::unique_ptr<WorldSnapshot> GetSnapshot() const {
+                auto snapshot = inner_.GetSnapshot();
+                return std::make_unique<WorldSnapshot>(snapshot);
+            }
+
             std::vector<std::string> GetNamesOfAllObjects() const {
                 return inner_.GetNamesOfAllObjects();
             }
 
+            std::shared_ptr<FfiActor> GetActor(uint32_t id) const {
+                auto actor = inner_.GetActor(id);
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
+            }
+
+            std::shared_ptr<FfiActorList> GetActors() const {
+                auto list = inner_.GetActors();
+                return std::make_shared<FfiActorList>(std::move(list));
+            }
+
+            std::shared_ptr<FfiActorList> GetActorsByIds(const std::vector<uint32_t> &actor_ids) const {
+                auto list = inner_.GetActors();
+                return std::make_shared<FfiActorList>(std::move(list));
+            }
 
         private:
             World inner_;

@@ -24,3 +24,6 @@ pub use vehicle::*;
 
 mod world_snapshot;
 pub use world_snapshot::*;
+
+mod actor_list;
+pub use actor_list::*;

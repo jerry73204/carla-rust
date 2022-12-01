@@ -22,6 +22,7 @@ include_cpp! {
     #include "carla/rpc/VehicleWheels.h"
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
+    #include "carla/rpc/EpisodeSettings.h"
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
@@ -72,6 +73,7 @@ include_cpp! {
     generate_pod!("carla::rpc::VehicleWheelLocation")
     generate!("carla::rpc::TrafficLightState")
     generate!("carla::rpc::LabelledPoint")
+    generate!("carla::rpc::EpisodeSettings")
 
     // carla::client
     generate!("carla::client::Waypoint")

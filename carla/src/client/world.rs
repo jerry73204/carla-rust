@@ -1,8 +1,14 @@
-use super::{Actor, ActorBase, ActorBlueprint, BlueprintLibrary, Map, WorldSnapshot};
-use crate::{geom::Transform, rpc::AttachmentType};
+use super::{Actor, ActorBase, ActorBlueprint, ActorList, BlueprintLibrary, Map, WorldSnapshot};
+use crate::{
+    geom::Transform,
+    rpc::{ActorId, AttachmentType, EpisodeSettings},
+};
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
-use cxx::UniquePtr;
+use carla_sys::carla_rust::{
+    client::{FfiActor, FfiWorld},
+    new_vector_uint32_t,
+};
+use cxx::{let_cxx_string, UniquePtr};
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
 
@@ -30,6 +36,54 @@ impl World {
     pub fn spectator(&self) -> Actor {
         let actor = self.inner.GetSpectator();
         Actor::from_cxx(actor)
+    }
+
+    pub fn settings(&self) -> EpisodeSettings {
+        let ptr = self.inner.GetSettings().within_unique_ptr();
+        EpisodeSettings::from_cxx(&ptr)
+    }
+
+    pub fn snapshot(&self) -> WorldSnapshot {
+        let ptr = self.inner.GetSnapshot();
+        WorldSnapshot::from_cxx(ptr)
+    }
+
+    pub fn names_of_all_objects(&self) -> Vec<String> {
+        self.inner
+            .GetNamesOfAllObjects()
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    }
+
+    pub fn actor(&self, actor_id: ActorId) -> Option<Actor> {
+        let ptr = self.inner.GetActor(actor_id);
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Actor::from_cxx(ptr))
+        }
+    }
+
+    pub fn actors(&self) -> ActorList {
+        let ptr = self.inner.GetActors();
+        ActorList::from_cxx(ptr)
+    }
+
+    pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
+        let mut vec = new_vector_uint32_t();
+        ids.iter().cloned().for_each(|id| {
+            vec.pin_mut().push(id);
+        });
+
+        let ptr = self.inner.GetActorsByIds(&vec);
+        ActorList::from_cxx(ptr)
+    }
+
+    pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
+        let settings = settings.to_cxx();
+        let millis = timeout.as_millis() as usize;
+        self.inner.pin_mut().ApplySettings(&settings, millis)
     }
 
     pub fn try_spawn_actor(
@@ -107,6 +161,11 @@ impl World {
         let seed = c_uint(seed as std::os::raw::c_uint);
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
+
+    // fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
+    //     let_cxx_string!(sign_id = sign_id);
+    //     self.inner.GetTrafficLightFromOpenDRIVE(&sign_id);
+    // }
 
     pub fn reset_all_traffic_lights(&mut self) {
         self.inner.pin_mut().ResetAllTrafficLights();
