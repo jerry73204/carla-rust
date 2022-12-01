@@ -24,3 +24,15 @@ pub use geom::*;
 
 mod rpc;
 pub use rpc::*;
+
+mod sensor;
+pub use sensor::*;
+
+mod vehicle;
+pub use vehicle::*;
+
+mod world_snapshot;
+pub use world_snapshot::*;
+
+mod timestamp;
+pub use timestamp::*;

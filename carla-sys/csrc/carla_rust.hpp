@@ -2,7 +2,8 @@
 
 #include <vector>
 #include <string>
-// #include "rust/cxx.h"
+#include <boost/optional.hpp>
+#include "cxx.h"
 #include "carla/Time.h"
 #include "carla/Memory.h"
 #include "carla/client/Client.h"
@@ -11,17 +12,20 @@
 #include "carla/client/Actor.h"
 #include "carla/client/ActorBlueprint.h"
 #include "carla/client/BlueprintLibrary.h"
-// #include "carla/client/ActorAttribute.h"
+#include "carla/client/Sensor.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/MapLayer.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
+#include "carla/rpc/LabelledPoint.h"
 #include "carla/geom/Transform.h"
 #include "carla/geom/Location.h"
 #include "carla/geom/Rotation.h"
 #include "carla/geom/Vector2D.h"
 #include "carla/geom/Vector3D.h"
+#include "carla/geom/BoundingBox.h"
 
 namespace carla_rust {
+
     namespace geom {
         using carla::geom::Transform;
         using carla::geom::Location;
@@ -55,17 +59,6 @@ namespace carla_rust {
         private:
             Vector2D inner_;
         };
-
-
-        // float vec2d_x(const Vector2D &vec2d) {
-        //     return vec2d.x;
-        // }
-
-        // float vec2d_y(const Vector2D &vec2d) {
-        //     return vec2d.y;
-        // }
-
-            
 
         // Vector3D
         class FfiVector3D {
@@ -205,6 +198,7 @@ namespace carla_rust {
         using carla::geom::Transform;
         using carla::geom::Location;
         using carla::geom::Vector3D;
+        using carla::geom::BoundingBox;
         using carla::client::Client;
         using carla::client::World;
         using carla::client::Map;
@@ -212,12 +206,17 @@ namespace carla_rust {
         using carla::client::Waypoint;
         using carla::client::BlueprintLibrary;
         using carla::client::ActorBlueprint;
+        using carla::client::Sensor;
+        using carla::client::Landmark;
+        using carla::client::WorldSnapshot;
         using carla::rpc::AttachmentType;
         using carla::rpc::MapLayer;
         using carla::rpc::OpendriveGenerationParameters;
+        using carla::rpc::LabelledPoint;
         using carla::road::Lane;
         using carla::road::RoadId;
         using carla::road::LaneId;
+        using carla::road::SignId;
         using carla_rust::geom::FfiVector2D;
         using carla_rust::geom::FfiVector3D;
         using carla_rust::geom::FfiLocation;
@@ -395,7 +394,117 @@ namespace carla_rust {
                 }
             }
 
+
+            WorldSnapshot WaitForTick(size_t millis) const {
+                return inner_.WaitForTick(time_duration::milliseconds(millis));
+            }
+
+            uint64_t Tick(size_t millis) {
+                return inner_.Tick(time_duration::milliseconds(millis));
+            }
+
+            void SetPedestriansCrossFactor(float percentage) {
+                inner_.SetPedestriansCrossFactor(percentage);
+            }
+
+            void SetPedestriansSeed(unsigned int seed) {
+                inner_.SetPedestriansSeed(seed);
+            }
+
+            FfiActor GetTrafficSign(const Landmark& landmark) const {
+                auto actor = inner_.GetTrafficSign(landmark);
+                return FfiActor(std::move(actor));
+            }
+
+            FfiActor GetTrafficLight(const Landmark& landmark) const {
+                auto actor = inner_.GetTrafficLight(landmark);
+                return FfiActor(std::move(actor));
+            }
+
+            FfiActor GetTrafficLightFromOpenDRIVE(const SignId& sign_id) const {
+                auto actor = GetTrafficLightFromOpenDRIVE(sign_id);
+                return FfiActor(std::move(actor));
+            }
+
+            void ResetAllTrafficLights() {
+                inner_.ResetAllTrafficLights();
+            }
+
+            // SharedPtr<LightManager> GetLightManager() const;
+
+            // detail::EpisodeProxy GetEpisode() const {
+            //     return _episode;
+            // };
+
             
+            void FreezeAllTrafficLights(bool frozen) {
+                inner_.FreezeAllTrafficLights(frozen);
+            }
+            
+            std::vector<BoundingBox> GetLevelBBs(uint8_t queried_tag) const {
+                return inner_.GetLevelBBs(queried_tag);
+            }
+            
+            // boost::optional<LabelledPoint> ProjectPoint(Location location,
+            //                                             Vector3D direction,
+            //                                             float search_distance = 10000.f) const
+            // {
+            //     return inner_.ProjectPoint(location, direction, search_distance);
+            // }
+
+            // boost::optional<rpc::LabelledPoint> GroundProjection(
+            //                                                      geom::Location location, float search_distance = 10000.0) const;
+
+            // std::vector<rpc::LabelledPoint> CastRay(
+            //                                         geom::Location start_location, geom::Location end_location) const;
+
+            // std::vector<SharedPtr<Actor>> GetTrafficLightsFromWaypoint(
+            //                                                            const Waypoint& waypoint, double distance) const;
+
+            // std::vector<SharedPtr<Actor>> GetTrafficLightsInJunction(
+            //                                                          const road::JuncId junc_id) const;
+
+
+
+            // void ApplyColorTextureToObject(
+            //                                const std::string &actor_name,
+            //                                const rpc::MaterialParameter& parameter,
+            //                                const rpc::TextureColor& Texture);
+
+            // void ApplyColorTextureToObjects(
+            //                                 const std::vector<std::string> &objects_names,
+            //                                 const rpc::MaterialParameter& parameter,
+            //                                 const rpc::TextureColor& Texture);
+
+            // void ApplyFloatColorTextureToObject(
+            //                                     const std::string &actor_name,
+            //                                     const rpc::MaterialParameter& parameter,
+            //                                     const rpc::TextureFloatColor& Texture);
+
+            // void ApplyFloatColorTextureToObjects(
+            //                                      const std::vector<std::string> &objects_names,
+            //                                      const rpc::MaterialParameter& parameter,
+            //                                      const rpc::TextureFloatColor& Texture);
+
+            // void ApplyTexturesToObject(
+            //                            const std::string &actor_name,
+            //                            const rpc::TextureColor& diffuse_texture,
+            //                            const rpc::TextureFloatColor& emissive_texture,
+            //                            const rpc::TextureFloatColor& normal_texture,
+            //                            const rpc::TextureFloatColor& ao_roughness_metallic_emissive_texture);
+
+            // void ApplyTexturesToObjects(
+            //                             const std::vector<std::string> &objects_names,
+            //                             const rpc::TextureColor& diffuse_texture,
+            //                             const rpc::TextureFloatColor& emissive_texture,
+            //                             const rpc::TextureFloatColor& normal_texture,
+            //                             const rpc::TextureFloatColor& ao_roughness_metallic_emissive_texture);
+
+            std::vector<std::string> GetNamesOfAllObjects() const {
+                return inner_.GetNamesOfAllObjects();
+            }
+
+
         private:
             World inner_;
         };

@@ -1,1 +1,1 @@
-pub use carla_sys::carla::rpc::{AttachmentType, OpendriveGenerationParameters};
+pub use carla_sys::carla::rpc::{AttachmentType, OpendriveGenerationParameters, VehicleControl};

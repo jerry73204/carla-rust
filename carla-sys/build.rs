@@ -6,7 +6,6 @@ use std::{
 fn main() {
     // Set change triggers
     println!("cargo:rerun-if-changed=csrc/carla_rust.hpp");
-    println!("cargo:rerun-if-changed=csrc/carla_rust.cpp");
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 
@@ -61,7 +60,6 @@ fn main() {
     autocxx_build::Builder::new("src/lib.rs", &include_dirs)
         .build()
         .unwrap()
-        .file("csrc/carla_rust.cpp")
         .flag_if_supported("-std=c++14")
         .compile("carla_rust");
 }

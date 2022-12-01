@@ -1,6 +1,6 @@
-use std::ptr;
+use std::{ptr, time::Duration};
 
-use crate::{AttachmentType, Transform};
+use crate::{AttachmentType, Transform, WorldSnapshot};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
 use cxx::UniquePtr;
@@ -67,6 +67,31 @@ impl World {
                 Some(Actor { inner: actor })
             }
         }
+    }
+
+    pub fn wait_for_tick(&self, dur: Duration) -> WorldSnapshot {
+        let ptr = self
+            .inner
+            .WaitForTick(dur.as_millis() as usize)
+            .within_unique_ptr();
+        WorldSnapshot::from_cxx(ptr)
+    }
+
+    pub fn tick(&mut self, dur: Duration) -> u64 {
+        self.inner.pin_mut().Tick(dur.as_millis() as usize)
+    }
+
+    fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
+        self.inner.pin_mut().SetPedestriansCrossFactor(percentage);
+    }
+
+    fn set_pedestrians_seed(&mut self, seed: usize) {
+        let seed = c_uint(seed as std::os::raw::c_uint);
+        self.inner.pin_mut().SetPedestriansSeed(seed);
+    }
+
+    fn reset_all_traffic_lights(&mut self) {
+        self.inner.pin_mut().ResetAllTrafficLights();
     }
 
     pub(crate) fn from_cxx(from: UniquePtr<FfiWorld>) -> World {
