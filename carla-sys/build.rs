@@ -4,8 +4,7 @@ use std::{
 };
 
 fn main() {
-    // Set change triggers
-    println!("cargo:rerun-if-changed=csrc/carla_rust.hpp");
+    // Set rerun triggers
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
 

@@ -1,9 +1,15 @@
+use crate::Actor;
+use crate::ActorBase;
+use crate::CowFfiActor;
+use crate::VehicleDoor;
+use crate::VehicleLightState_LightState;
+use crate::VehicleWheelLocation;
 use autocxx::prelude::*;
 use carla_sys::carla::{
-    client::Vehicle as FfiVehicle,
     rpc::{TrafficLightState, VehicleControl, VehiclePhysicsControl},
     traffic_manager::constants::Networking::TM_DEFAULT_PORT,
 };
+use carla_sys::carla_rust::client::FfiVehicle;
 use cxx::UniquePtr;
 
 pub struct Vehicle {
@@ -27,31 +33,31 @@ impl Vehicle {
         self.inner.pin_mut().ApplyControl(control);
     }
 
-    // pub fn open_door(&mut self, door: VehicleDoor) {
-    //     self.inner.pin_mut().OpenDoor(door);
-    // }
+    pub fn open_door(&mut self, door: VehicleDoor) {
+        self.inner.pin_mut().OpenDoor(door);
+    }
 
-    // pub fn close_door(&mut self, door: VehicleDoor) {
-    //     self.inner.pin_mut().CloseDoor(door);
-    // }
+    pub fn close_door(&mut self, door: VehicleDoor) {
+        self.inner.pin_mut().CloseDoor(door);
+    }
 
-    // pub fn set_light_state(&mut self, light_state: &TrafficLightState) {
-    //     self.inner.pin_mut().SetLightState(light_state);
-    // }
+    pub fn set_light_state(&mut self, light_state: &VehicleLightState_LightState) {
+        self.inner.pin_mut().SetLightState(light_state);
+    }
 
-    // pub fn set_wheel_steer_direction(
-    //     &mut self,
-    //     wheel_location: VehicleWheelLocation,
-    //     degrees: f32,
-    // ) {
-    //     self.inner
-    //         .pin_mut()
-    //         .SetWheelSteerDirection(wheel_location, degrees);
-    // }
+    pub fn set_wheel_steer_direction(
+        &mut self,
+        wheel_location: VehicleWheelLocation,
+        degrees: f32,
+    ) {
+        self.inner
+            .pin_mut()
+            .SetWheelSteerDirection(wheel_location, degrees);
+    }
 
-    // pub fn get_wheel_steer_angle(&mut self, wheel_location: VehicleWheelLocation) -> f32 {
-    //     self.inner.pin_mut().GetWheelSteerAngle(wheel_location)
-    // }
+    pub fn get_wheel_steer_angle(&mut self, wheel_location: VehicleWheelLocation) -> f32 {
+        self.inner.pin_mut().GetWheelSteerAngle(wheel_location)
+    }
 
     pub fn control(&self) -> VehicleControl {
         self.inner.GetControl()
@@ -61,9 +67,9 @@ impl Vehicle {
         self.inner.GetPhysicsControl().within_unique_ptr()
     }
 
-    // pub fn light_state(&self) -> VehicleLightState {
-    //     self.inner.GetLightState()
-    // }
+    pub fn light_state(&self) -> VehicleLightState_LightState {
+        self.inner.GetLightState()
+    }
 
     pub fn traffic_light_state(&self) -> TrafficLightState {
         self.inner.GetTrafficLightState()
@@ -98,5 +104,21 @@ impl Vehicle {
             tire_json,
             base_json_path,
         );
+    }
+
+    pub fn into_actor(self) -> Actor {
+        let ptr = self.inner.to_actor();
+        Actor::from_cxx(ptr)
+    }
+
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiVehicle>) -> Self {
+        Self { inner: ptr }
+    }
+}
+
+impl ActorBase for Vehicle {
+    fn cxx_actor(&self) -> CowFfiActor<'_> {
+        let ptr = self.inner.to_actor();
+        CowFfiActor::Owned(ptr)
     }
 }
