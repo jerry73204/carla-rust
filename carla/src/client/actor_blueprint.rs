@@ -7,8 +7,26 @@ pub struct ActorBlueprint {
 }
 
 impl ActorBlueprint {
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorBlueprint>) -> Self {
-        Self { inner: ptr }
+    pub fn id(&self) -> String {
+        self.inner.GetId().to_string()
+    }
+
+    pub fn contains_tag(&self, tag: &str) -> bool {
+        let_cxx_string!(tag = tag);
+        self.inner.ContainsTag(&tag)
+    }
+
+    pub fn match_tags(&self, pattern: &str) -> bool {
+        let_cxx_string!(pattern = pattern);
+        self.inner.MatchTags(&pattern)
+    }
+
+    pub fn tags(&self) -> Vec<String> {
+        self.inner
+            .GetTags()
+            .iter()
+            .map(|tag| tag.to_string())
+            .collect()
     }
 
     pub fn contains_attribute(&self, id: &str) -> bool {
@@ -32,5 +50,9 @@ impl ActorBlueprint {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorBlueprint>) -> Self {
+        Self { inner: ptr }
     }
 }

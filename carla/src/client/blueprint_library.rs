@@ -37,6 +37,10 @@ impl BlueprintLibrary {
         }
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> + '_ {
+        (0..self.len()).map(|idx| self.get(idx).unwrap())
+    }
+
     pub fn len(&self) -> usize {
         self.inner.size()
     }
