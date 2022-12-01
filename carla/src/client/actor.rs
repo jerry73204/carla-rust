@@ -10,27 +10,27 @@ pub trait ActorBase {
 
     fn location(&self) -> Translation3<f32> {
         let ptr = self.cxx_actor().GetLocation().within_unique_ptr();
-        Location::from_cxx(ptr).to_na()
+        Location::from_cxx(ptr).unwrap().to_na()
     }
 
     fn transform(&self) -> Isometry3<f32> {
         let ptr = self.cxx_actor().GetTransform().within_unique_ptr();
-        Transform::from_cxx(ptr).to_na()
+        Transform::from_cxx(ptr).unwrap().to_na()
     }
 
     fn velocity(&self) -> Vector3<f32> {
         let ptr = self.cxx_actor().GetVelocity().within_unique_ptr();
-        Vector3D::from_cxx(ptr).to_na()
+        Vector3D::from_cxx(ptr).unwrap().to_na()
     }
 
     fn acceleration(&self) -> Vector3<f32> {
         let ptr = self.cxx_actor().GetAcceleration().within_unique_ptr();
-        Vector3D::from_cxx(ptr).to_na()
+        Vector3D::from_cxx(ptr).unwrap().to_na()
     }
 
     fn angular_velocity(&self) -> Vector3<f32> {
         let ptr = self.cxx_actor().GetAngularVelocity().within_unique_ptr();
-        Vector3D::from_cxx(ptr).to_na()
+        Vector3D::from_cxx(ptr).unwrap().to_na()
     }
 }
 

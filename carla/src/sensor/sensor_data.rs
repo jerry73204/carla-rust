@@ -20,7 +20,7 @@ pub trait SensorDataBase {
             .cxx_sensor_data()
             .GetSensorTransform()
             .within_unique_ptr();
-        let transform = Transform::from_cxx(ptr);
+        let transform = Transform::from_cxx(ptr).unwrap();
         transform.to_na()
     }
 }

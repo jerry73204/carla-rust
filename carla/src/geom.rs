@@ -14,11 +14,15 @@ impl Vector2D {
     pub fn from_xy(xy: [f32; 2]) -> Self {
         let [x, y] = xy;
         let ptr = FfiVector2D::new1(x, y).within_unique_ptr();
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
-    pub fn from_cxx(from: UniquePtr<FfiVector2D>) -> Self {
-        Self { inner: from }
+    pub fn from_cxx(ptr: UniquePtr<FfiVector2D>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn from_na(from: &Vector2<f32>) -> Self {
@@ -51,11 +55,15 @@ impl Vector3D {
     pub fn from_xyz(xyz: [f32; 3]) -> Self {
         let [x, y, z] = xyz;
         let ptr = FfiVector3D::new1(x, y, z).within_unique_ptr();
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
-    pub fn from_cxx(from: UniquePtr<FfiVector3D>) -> Self {
-        Self { inner: from }
+    pub fn from_cxx(ptr: UniquePtr<FfiVector3D>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn from_na(from: &Vector3<f32>) -> Self {
@@ -91,11 +99,15 @@ impl Location {
     pub fn from_xyz(xyz: [f32; 3]) -> Self {
         let [x, y, z] = xyz;
         let ptr = FfiLocation::new1(x, y, z).within_unique_ptr();
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
-    pub fn from_cxx(from: UniquePtr<FfiLocation>) -> Self {
-        Self { inner: from }
+    pub fn from_cxx(ptr: UniquePtr<FfiLocation>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn from_na(from: &Translation3<f32>) -> Self {
@@ -132,11 +144,15 @@ pub struct Rotation {
 impl Rotation {
     pub fn from_euler_angles(roll: f32, pitch: f32, yaw: f32) -> Self {
         let ptr = FfiRotation::new1(pitch, yaw, roll).within_unique_ptr();
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
-    pub fn from_cxx(from: UniquePtr<FfiRotation>) -> Self {
-        Self { inner: from }
+    pub fn from_cxx(ptr: UniquePtr<FfiRotation>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn from_na(from: &UnitQuaternion<f32>) -> Self {
@@ -169,11 +185,15 @@ pub struct Transform {
 impl Transform {
     pub fn new(location: &Location, rotation: &Rotation) -> Self {
         let ptr = FfiTransform::new1(&location.inner, &rotation.inner).within_unique_ptr();
-        Self::from_cxx(ptr)
+        Self::from_cxx(ptr).unwrap()
     }
 
-    pub fn from_cxx(from: UniquePtr<FfiTransform>) -> Self {
-        Self { inner: from }
+    pub fn from_cxx(ptr: UniquePtr<FfiTransform>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
     }
 
     pub fn from_na(pose: &Isometry3<f32>) -> Self {
@@ -187,11 +207,11 @@ impl Transform {
     }
 
     pub fn location(&self) -> Location {
-        Location::from_cxx(self.inner.location().within_unique_ptr())
+        Location::from_cxx(self.inner.location().within_unique_ptr()).unwrap()
     }
 
     pub fn rotation(&self) -> Rotation {
-        Rotation::from_cxx(self.inner.rotation().within_unique_ptr())
+        Rotation::from_cxx(self.inner.rotation().within_unique_ptr()).unwrap()
     }
 
     pub fn to_na(&self) -> Isometry3<f32> {
