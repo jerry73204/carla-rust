@@ -75,7 +75,6 @@ include_cpp! {
 
     // carla::client
     generate!("carla::client::Waypoint")
-    // generate!("carla::client::Sensor")
     generate!("carla::client::Vehicle")
     generate!("carla::client::Walker")
     generate!("carla::client::TrafficLight")
@@ -96,6 +95,7 @@ include_cpp! {
     block!("carla::client::Sensor_CallbackFunctionType")
 
     // bad types
+    // generate!("carla::client::Sensor")
     // generate!("carla::rpc::MapLayer")
     // generate!("carla::client::Map")
     // generate!("carla::client::World")

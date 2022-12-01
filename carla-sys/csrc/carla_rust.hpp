@@ -3,9 +3,6 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
-#include "cxx.h"
 #include "carla/Time.h"
 #include "carla/Memory.h"
 #include "carla/client/Client.h"
