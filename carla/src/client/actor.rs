@@ -1,4 +1,4 @@
-use super::Vehicle;
+use super::{Sensor, Vehicle};
 use crate::geom::{Location, Transform, Vector3D};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiActor;
@@ -46,6 +46,15 @@ impl Actor {
             Err(self)
         } else {
             Ok(Vehicle::from_cxx(ptr))
+        }
+    }
+
+    pub fn try_into_sensor(self) -> Result<Sensor, Self> {
+        let ptr = self.inner.to_sensor();
+        if ptr.is_null() {
+            Err(self)
+        } else {
+            Ok(Sensor::from_cxx(ptr))
         }
     }
 

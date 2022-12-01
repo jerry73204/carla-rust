@@ -1,10 +1,19 @@
-use carla::Client;
+use carla::client::Client;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
 
 #[test]
 fn client_connect() {
     let client = Client::default();
     let mut world = client.load_world("Town07");
+
+    let spectator = world.spectator();
+    let spectator = spectator
+        .try_into_sensor()
+        .unwrap_or_else(|_| panic!("spectator is not a sensor"));
+    spectator.listen(move |_data| {
+        println!("data received");
+    });
+
     let blulib = world.blueprint_library();
     let vblu = blulib.find("vehicle.tesla.model3").unwrap();
     let pose = Isometry3 {

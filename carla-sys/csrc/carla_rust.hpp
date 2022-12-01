@@ -284,17 +284,33 @@ namespace carla_rust
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
+        using carla_rust::sensor::FfiSensorData;
 
+        class ListenCallback {
+        public:
+            ListenCallback(void *caller, void *fn, void *delete_fn)
+            {
+                auto caller_ptr = reinterpret_cast<void (*) (void* ctx, std::shared_ptr<FfiSensorData> data)>(caller);
+                auto delete_fn_ptr = reinterpret_cast<void (*) (void* ctx)>(delete_fn);
 
-        // typedef struct ListenCallback {
-        //     void (*function)(void * data , int arg1, float arg2);
-        //     void * data;
-        //     void (*delete_data)(void *data);
-        // } ListenCallback;
-        // void Wtf_closure_call(WtfClosure * const self ,
-        //                       int arg1,
-        //                       float arg2);
-        // void Wtf_closure_release(WtfClosure * const self);
+                caller_ = caller_ptr;
+                fn_ = fn;
+                delete_fn_ = delete_fn_ptr;
+            }
+
+            ~ListenCallback() {
+                (delete_fn_)(fn_);
+            }
+
+            void operator()(std::shared_ptr<FfiSensorData> data) const {
+                (caller_)(fn_, data);
+            }
+
+        private:
+            void (*caller_)(void * fn , std::shared_ptr<FfiSensorData> data);
+            void * fn_;
+            void (*delete_fn_)(void *fn);
+        };
 
         // functions
         ActorBlueprint copy_actor_blueprint(const ActorBlueprint &ref) {
@@ -447,6 +463,39 @@ namespace carla_rust
             SharedPtr<Vehicle> inner_;
         };
 
+        // Sensor
+        class FfiSensor {
+        public:
+            FfiSensor(SharedPtr<Sensor> &&base) : inner_(base) {}
+
+            void Listen(void *caller, void *fn, void *delete_fn) const {
+                auto container = ListenCallback(caller, fn, delete_fn);
+                auto callback =
+                    [container = std::move(container)]
+                    (SharedPtr<sensor::SensorData> data)
+                    {
+                        auto ffi_data = std::make_shared<FfiSensorData>(std::move(data));
+                        (container)(ffi_data);
+                    };
+                inner_->Listen(callback);
+            }
+
+            void Stop() const {
+                inner_->Stop();
+            }
+
+            bool IsListening() const {
+                return inner_->IsListening();
+            }
+
+            std::shared_ptr<FfiActor> to_actor() const {
+                SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
+                return std::make_shared<FfiActor>(std::move(ptr));
+            }
+
+        private:
+            SharedPtr<Sensor> inner_;
+        };
 
         // Actor
         class FfiActor {
@@ -494,6 +543,15 @@ namespace carla_rust
                 }
             }
 
+            std::shared_ptr<FfiSensor> to_sensor() const {
+                SharedPtr<Sensor> ptr = boost::dynamic_pointer_cast<Sensor>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiSensor>(std::move(ptr));
+                }
+            }
+
         private:
             SharedPtr<Actor> inner_;
         };
@@ -533,26 +591,6 @@ namespace carla_rust
 
         private:
             SharedPtr<BlueprintLibrary> inner_;
-        };
-
-        class FfiSensor {
-        public:
-            FfiSensor(SharedPtr<Sensor> &&base) : inner_(base) {}
-
-            void Listen(void (*f)()) const {
-                // TODO
-            }
-
-            void Stop() const {
-                inner_->Stop();
-            }
-
-            bool IsListening() const {
-                return inner_->IsListening();
-            }
-
-        private:
-            SharedPtr<Sensor> inner_;
         };
 
         class FfiWorld {

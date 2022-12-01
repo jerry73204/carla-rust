@@ -1,4 +1,5 @@
 use autocxx::prelude::*;
+
 pub use ffi::*;
 
 include_cpp! {
@@ -74,7 +75,7 @@ include_cpp! {
 
     // carla::client
     generate!("carla::client::Waypoint")
-    generate!("carla::client::Sensor")
+    // generate!("carla::client::Sensor")
     generate!("carla::client::Vehicle")
     generate!("carla::client::Walker")
     generate!("carla::client::TrafficLight")
@@ -90,6 +91,9 @@ include_cpp! {
 
     // carla::sensor
     generate!("carla::sensor::SensorData")
+
+    // block offending types
+    block!("carla::client::Sensor_CallbackFunctionType")
 
     // bad types
     // generate!("carla::rpc::MapLayer")
