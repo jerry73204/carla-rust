@@ -564,9 +564,9 @@ namespace carla_rust
             }
 
 
-            FfiBlueprintLibrary filter(const std::string &pattern) const {
+            std::shared_ptr<FfiBlueprintLibrary> filter(const std::string &pattern) const {
                 auto lib = inner_->Filter(pattern);
-                return FfiBlueprintLibrary(std::move(lib));
+                return std::make_shared<FfiBlueprintLibrary>(std::move(lib));
             }
 
             const ActorBlueprint* find(const std::string &key) const {
@@ -618,9 +618,9 @@ namespace carla_rust
                 return std::make_shared<FfiActor>(std::move(inner));
             }
 
-            FfiBlueprintLibrary GetBlueprintLibrary() const {
+            std::shared_ptr<FfiBlueprintLibrary> GetBlueprintLibrary() const {
                 auto lib = inner_.GetBlueprintLibrary();
-                return FfiBlueprintLibrary(std::move(lib));
+                return std::make_shared<FfiBlueprintLibrary>(std::move(lib));
             }
 
             std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,

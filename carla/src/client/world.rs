@@ -24,7 +24,7 @@ impl World {
     }
 
     pub fn blueprint_library(&self) -> BlueprintLibrary {
-        let ptr = self.inner.GetBlueprintLibrary().within_unique_ptr();
+        let ptr = self.inner.GetBlueprintLibrary();
         BlueprintLibrary::from_cxx(ptr)
     }
 

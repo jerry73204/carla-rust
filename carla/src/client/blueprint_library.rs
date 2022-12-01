@@ -1,21 +1,22 @@
 use super::ActorBlueprint;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
-use cxx::{let_cxx_string, UniquePtr};
+use cxx::{let_cxx_string, SharedPtr};
 
+#[derive(Clone)]
 #[repr(transparent)]
 pub struct BlueprintLibrary {
-    pub(crate) inner: UniquePtr<FfiBlueprintLibrary>,
+    pub(crate) inner: SharedPtr<FfiBlueprintLibrary>,
 }
 
 impl BlueprintLibrary {
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiBlueprintLibrary>) -> Self {
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiBlueprintLibrary>) -> Self {
         Self { inner: ptr }
     }
 
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
-        let ptr = self.inner.filter(&pattern).within_unique_ptr();
+        let ptr = self.inner.filter(&pattern);
         Self::from_cxx(ptr)
     }
 
