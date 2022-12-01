@@ -5,6 +5,7 @@ use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};
 use std::time::Duration;
 
+#[repr(transparent)]
 pub struct Client {
     inner: UniquePtr<FfiClient>,
 }

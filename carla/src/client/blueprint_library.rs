@@ -3,6 +3,7 @@ use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
 use cxx::{let_cxx_string, UniquePtr};
 
+#[repr(transparent)]
 pub struct BlueprintLibrary {
     pub(crate) inner: UniquePtr<FfiBlueprintLibrary>,
 }

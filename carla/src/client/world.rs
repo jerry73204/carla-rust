@@ -7,6 +7,7 @@ use std::{ptr, time::Duration};
 
 use super::{Actor, ActorBlueprint, BlueprintLibrary, Map, WorldSnapshot};
 
+#[repr(transparent)]
 pub struct World {
     pub(crate) inner: UniquePtr<FfiWorld>,
 }

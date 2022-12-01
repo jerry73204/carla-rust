@@ -10,6 +10,7 @@ use carla_sys::{
 };
 use cxx::{SharedPtr, UniquePtr};
 
+#[repr(transparent)]
 pub struct Vehicle {
     inner: SharedPtr<FfiVehicle>,
 }

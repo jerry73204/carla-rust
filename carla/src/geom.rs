@@ -5,6 +5,7 @@ use carla_sys::carla_rust::geom::{
 use cxx::UniquePtr;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
+#[repr(transparent)]
 pub struct Vector2D {
     inner: UniquePtr<FfiVector2D>,
 }
@@ -41,6 +42,7 @@ impl Vector2D {
     }
 }
 
+#[repr(transparent)]
 pub struct Vector3D {
     inner: UniquePtr<FfiVector3D>,
 }
@@ -80,6 +82,7 @@ impl Vector3D {
     }
 }
 
+#[repr(transparent)]
 pub struct Location {
     inner: UniquePtr<FfiLocation>,
 }
@@ -121,6 +124,7 @@ impl Location {
     }
 }
 
+#[repr(transparent)]
 pub struct Rotation {
     inner: UniquePtr<FfiRotation>,
 }
@@ -157,6 +161,7 @@ impl Rotation {
     }
 }
 
+#[repr(transparent)]
 pub struct Transform {
     pub(crate) inner: UniquePtr<FfiTransform>,
 }

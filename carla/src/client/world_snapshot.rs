@@ -1,6 +1,7 @@
 use carla_sys::carla::client::WorldSnapshot as FfiWorldSnapshot;
 use cxx::UniquePtr;
 
+#[repr(transparent)]
 pub struct WorldSnapshot {
     inner: UniquePtr<FfiWorldSnapshot>,
 }

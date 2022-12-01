@@ -26,6 +26,7 @@ pub trait SensorDataBase {
 }
 
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct SensorData {
     inner: SharedPtr<FfiSensorData>,
 }

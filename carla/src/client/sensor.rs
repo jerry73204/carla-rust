@@ -10,6 +10,7 @@ use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
+#[repr(transparent)]
 pub struct Sensor {
     inner: SharedPtr<FfiSensor>,
 }

@@ -1,6 +1,7 @@
 use carla_sys::carla::client::ActorBlueprint as FfiActorBlueprint;
 use cxx::{let_cxx_string, UniquePtr};
 
+#[repr(transparent)]
 pub struct ActorBlueprint {
     pub(crate) inner: UniquePtr<FfiActorBlueprint>,
 }

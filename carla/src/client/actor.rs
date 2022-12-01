@@ -35,6 +35,7 @@ pub trait ActorBase {
 }
 
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct Actor {
     pub(crate) inner: SharedPtr<FfiActor>,
 }
