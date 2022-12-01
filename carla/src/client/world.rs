@@ -36,21 +36,29 @@ impl World {
         &mut self,
         blueprint: &ActorBlueprint,
         transform: &Isometry3<f32>,
-        parent: Option<&Actor>,
     ) -> Option<Actor> {
-        self.try_spawn_actor_opt(blueprint, transform, parent, AttachmentType::Rigid)
+        self.try_spawn_actor_opt::<Actor>(blueprint, transform, Default::default())
     }
 
-    pub fn try_spawn_actor_opt(
+    pub fn try_spawn_actor_opt<A>(
         &mut self,
         blueprint: &ActorBlueprint,
         transform: &Isometry3<f32>,
-        parent: Option<&Actor>,
-        attachment_type: AttachmentType,
-    ) -> Option<Actor> {
+        options: TrySpawnActorOptions<'_, A>,
+    ) -> Option<Actor>
+    where
+        A: ActorBase,
+    {
+        let TrySpawnActorOptions {
+            parent,
+            attachment_type,
+        } = options;
+
         unsafe {
+            let parent = parent.map(|parent| parent.cxx_actor());
             let parent_ptr: *const FfiActor = parent
-                .and_then(|parent| parent.inner.as_ref())
+                .as_ref()
+                .and_then(|parent| parent.as_ref())
                 .map(|ref_| ref_ as *const _)
                 .unwrap_or(ptr::null());
             let transform = Transform::from_na(transform);
@@ -106,5 +114,20 @@ impl World {
 
     pub(crate) fn from_cxx(from: UniquePtr<FfiWorld>) -> World {
         Self { inner: from }
+    }
+}
+
+#[derive(Clone)]
+pub struct TrySpawnActorOptions<'a, A> {
+    pub parent: Option<&'a A>,
+    pub attachment_type: AttachmentType,
+}
+
+impl<'a, A> Default for TrySpawnActorOptions<'a, A> {
+    fn default() -> Self {
+        Self {
+            parent: None,
+            attachment_type: AttachmentType::Rigid,
+        }
     }
 }
