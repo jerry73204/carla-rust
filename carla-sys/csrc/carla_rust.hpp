@@ -32,6 +32,8 @@
 #include "carla/geom/Vector2D.h"
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
+#include "carla/sensor/SensorData.h"
+
 
 namespace carla_rust
 {
@@ -44,7 +46,6 @@ namespace carla_rust
     //     auto pq = std::make_shared<boost::shared_ptr<T>>(std::move(bp));
     //     return std::shared_ptr<T>(pq, pq.get()->get());
     // }
-
 
     namespace geom {
         using carla::geom::Transform;
@@ -212,6 +213,38 @@ namespace carla_rust
         };
     }
 
+    namespace sensor {
+        using carla::SharedPtr;
+        using carla::sensor::SensorData;
+        using carla::geom::Transform;
+        using carla_rust::geom::FfiTransform;
+
+        class FfiSensorData {
+        public:
+            FfiSensorData(SharedPtr<SensorData> &&base)
+                : inner_(base)
+            {}
+
+            size_t GetFrame() const {
+                return inner_->GetFrame();
+            }
+
+            /// Simulation-time when the data was generated.
+            double GetTimestamp() const {
+                return inner_->GetTimestamp();
+            }
+
+            /// Sensor's transform when the data was generated.
+            const FfiTransform GetSensorTransform() const {
+                auto transform = inner_->GetSensorTransform();
+                return FfiTransform(std::move(transform));
+            }
+
+        private:
+            SharedPtr<SensorData> inner_;
+        };
+    }
+
     namespace client {
         using carla::SharedPtr;
         using carla::time_duration;
@@ -251,6 +284,17 @@ namespace carla_rust
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
+
+
+        // typedef struct ListenCallback {
+        //     void (*function)(void * data , int arg1, float arg2);
+        //     void * data;
+        //     void (*delete_data)(void *data);
+        // } ListenCallback;
+        // void Wtf_closure_call(WtfClosure * const self ,
+        //                       int arg1,
+        //                       float arg2);
+        // void Wtf_closure_release(WtfClosure * const self);
 
         // functions
         ActorBlueprint copy_actor_blueprint(const ActorBlueprint &ref) {
@@ -491,6 +535,25 @@ namespace carla_rust
             SharedPtr<BlueprintLibrary> inner_;
         };
 
+        class FfiSensor {
+        public:
+            FfiSensor(SharedPtr<Sensor> &&base) : inner_(base) {}
+
+            void Listen(void (*f)()) const {
+                // TODO
+            }
+
+            void Stop() const {
+                inner_->Stop();
+            }
+
+            bool IsListening() const {
+                return inner_->IsListening();
+            }
+
+        private:
+            SharedPtr<Sensor> inner_;
+        };
 
         class FfiWorld {
         public:

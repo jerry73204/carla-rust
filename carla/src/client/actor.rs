@@ -2,7 +2,7 @@ use super::Vehicle;
 use crate::geom::{Location, Transform, Vector3D};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiActor;
-use cxx::{SharedPtr};
+use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
 
 pub trait ActorBase {

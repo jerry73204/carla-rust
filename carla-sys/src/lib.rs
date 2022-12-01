@@ -44,17 +44,24 @@ include_cpp! {
     #include "carla/client/World.h"
     #include "carla/client/WorldSnapshot.h"
 
+    #include "carla/sensor/SensorData.h"
+
     safety!(unsafe_ffi)
 
+    // carla_rust
     generate_ns!("carla_rust")
 
+    // carla
     generate!("carla::SharedPtr")
     generate!("carla::time_duration")
 
+    // carla::geom
     generate_ns!("carla::geom")
 
+    // carla::traffic_manager
     generate_ns!("carla::traffic_manager::constants")
 
+    // carla::rpc
     generate!("carla::rpc::OpendriveGenerationParameters")
     generate_pod!("carla::rpc::AttachmentType")
     generate_pod!("carla::rpc::VehicleControl")
@@ -65,6 +72,7 @@ include_cpp! {
     generate!("carla::rpc::TrafficLightState")
     generate!("carla::rpc::LabelledPoint")
 
+    // carla::client
     generate!("carla::client::Waypoint")
     generate!("carla::client::Sensor")
     generate!("carla::client::Vehicle")
@@ -79,6 +87,9 @@ include_cpp! {
     generate!("carla::client::Light")
     generate!("carla::client::LaneInvasionSensor")
     generate!("carla::client::WorldSnapshot")
+
+    // carla::sensor
+    generate!("carla::sensor::SensorData")
 
     // bad types
     // generate!("carla::rpc::MapLayer")
