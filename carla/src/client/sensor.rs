@@ -62,8 +62,9 @@ impl ActorBase for Sensor {
     }
 }
 
-unsafe extern "C" fn caller(fn_: *mut c_void, arg: SharedPtr<FfiSensorData>) {
+unsafe extern "C" fn caller(fn_: *mut c_void, arg: *mut SharedPtr<FfiSensorData>) {
     let fn_ = fn_ as *mut Box<Callback>;
+    let arg = (*arg).clone();
     (*fn_)(arg);
 }
 

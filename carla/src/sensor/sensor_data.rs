@@ -4,6 +4,8 @@ use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use nalgebra::Isometry3;
 
+use super::data::Image;
+
 pub trait SensorDataBase {
     fn cxx_sensor_data(&self) -> SharedPtr<FfiSensorData>;
 
@@ -32,6 +34,11 @@ pub struct SensorData {
 }
 
 impl SensorData {
+    pub fn try_into_image(self) -> Result<Image, Self> {
+        let ptr = self.inner.to_image();
+        Image::from_cxx(ptr).ok_or(self)
+    }
+
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensorData>) -> Self {
         Self { inner: ptr }
     }

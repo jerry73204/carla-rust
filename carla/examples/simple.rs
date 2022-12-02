@@ -51,8 +51,16 @@ fn main() {
             .unwrap_or_else(|_| panic!("not a sensor"))
     };
 
-    lidar.listen(move |_data| {
-        println!("data received");
+    lidar.listen(move |data| {
+        let image = data
+            .try_into_image()
+            .unwrap_or_else(|_| panic!("not an image"));
+        let ih = image.height();
+        let iw = image.width();
+        let fov = image.fov_angle();
+        let data = image.data();
+        println!("image h={}, w={} fov={}", ih, iw, fov);
+        dbg!(data[0].r);
     });
 
     loop {

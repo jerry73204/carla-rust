@@ -36,6 +36,8 @@
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
 #include "carla/sensor/SensorData.h"
+#include "carla/sensor/data/Color.h"
+#include "carla/sensor/data/Image.h"
 
 
 namespace carla_rust
@@ -311,10 +313,71 @@ namespace carla_rust
     }
 
     namespace sensor {
+        namespace data {
+            using carla::SharedPtr;
+            using carla::sensor::data::Image;
+            using carla::sensor::data::Color;
+
+            typedef struct FfiColor {
+                uint8_t b;
+                uint8_t g;
+                uint8_t r;
+                uint8_t a;
+            } FfiColor;
+            static_assert(sizeof(FfiColor) == sizeof(Color), "Invalid FfiColor size!");
+
+            FfiColor to_ffi_color(Color &orig) {
+                FfiColor color;
+                color.r = orig.r;
+                color.g = orig.g;
+                color.b = orig.b;
+                color.a = orig.a;
+                return color;
+            }
+
+            class FfiImage {
+            public:
+                FfiImage(SharedPtr<Image> &&base) : inner_(base) {}
+
+                size_t GetWidth() const {
+                    return inner_->GetWidth();
+                }
+
+                size_t GetHeight() const {
+                    return inner_->GetHeight();
+                }
+
+                float GetFOVAngle() const {
+                    return inner_->GetFOVAngle();
+                }
+
+                size_t size() const {
+                    return inner_->size();
+                }
+
+                const FfiColor* data() const {
+                    auto orig = inner_->data();
+                    auto new_ = reinterpret_cast<FfiColor*>(orig);
+                    return new_;
+                }
+
+                const FfiColor& at(size_t pos) const {
+                    auto orig = inner_->at(pos);
+                    auto new_ = reinterpret_cast<const FfiColor&>(orig);
+                    return new_;
+                }
+
+            private:
+                SharedPtr<Image> inner_;
+            };
+        }
+
         using carla::SharedPtr;
         using carla::sensor::SensorData;
+        using carla::sensor::data::Image;
         using carla::geom::Transform;
         using carla_rust::geom::FfiTransform;
+        using carla_rust::sensor::data::FfiImage;
 
         class FfiSensorData {
         public:
@@ -335,6 +398,15 @@ namespace carla_rust
             const FfiTransform GetSensorTransform() const {
                 auto transform = inner_->GetSensorTransform();
                 return FfiTransform(std::move(transform));
+            }
+
+            std::shared_ptr<FfiImage> to_image() const {
+                SharedPtr<Image> ptr = boost::dynamic_pointer_cast<Image>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiImage>(std::move(ptr));
+                }
             }
 
         private:
@@ -398,7 +470,7 @@ namespace carla_rust
         public:
             ListenCallback(void *caller, void *fn, void *delete_fn)
             {
-                auto caller_ptr = reinterpret_cast<void (*) (void* ctx, std::shared_ptr<FfiSensorData> data)>(caller);
+                auto caller_ptr = reinterpret_cast<void (*) (void* ctx, std::shared_ptr<FfiSensorData> *data)>(caller);
                 auto delete_fn_ptr = reinterpret_cast<void (*) (void* ctx)>(delete_fn);
 
                 caller_ = caller_ptr;
@@ -415,11 +487,11 @@ namespace carla_rust
             ListenCallback& operator=(ListenCallback&&) = default;
 
             void operator()(std::shared_ptr<FfiSensorData> data) const {
-                (caller_)(fn_, data);
+                (caller_)(fn_, &data);
             }
 
         private:
-            void (*caller_)(void * fn , std::shared_ptr<FfiSensorData> data);
+            void (*caller_)(void * fn , std::shared_ptr<FfiSensorData> *data);
             void * fn_;
             void (*delete_fn_)(void *fn);
         };

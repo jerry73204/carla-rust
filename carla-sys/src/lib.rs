@@ -47,11 +47,13 @@ include_cpp! {
     #include "carla/client/WorldSnapshot.h"
 
     #include "carla/sensor/SensorData.h"
+    #include "carla/sensor/data/Image.h"
 
     safety!(unsafe_ffi)
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate_pod!("carla_rust::sensor::data::FfiColor")
 
     // carla
     generate!("carla::SharedPtr")
@@ -93,6 +95,9 @@ include_cpp! {
     // carla::sensor
     generate!("carla::sensor::SensorData")
 
+    // carla::sensor::data
+    generate!("carla::sensor::data::Image")
+
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")
 
@@ -104,4 +109,5 @@ include_cpp! {
     // generate!("carla::client::BlueprintLibrary")
     // generate!("carla::client::LightManager")
     // generate!("carla::traffic_manager::TrafficManager")
+    // generate!("carla::sensor::data::Color")
 }
