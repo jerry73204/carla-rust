@@ -63,7 +63,7 @@ namespace carla_rust
         public:
             FfiEpisodeSettings() = default;
 
-            FfiEpisodeSettings(EpisodeSettings &&base) : inner_(base)
+            FfiEpisodeSettings(EpisodeSettings &&base) : inner_(std::move(base))
             {}
 
 
@@ -156,8 +156,8 @@ namespace carla_rust
         // Vector2D
         class FfiVector2D {
         public:
-            FfiVector2D(Vector2D &&from)
-                : inner_(from)
+            FfiVector2D(Vector2D &&base)
+                : inner_(std::move(base))
             {}
 
             FfiVector2D(float x, float y)
@@ -183,8 +183,8 @@ namespace carla_rust
         // Vector3D
         class FfiVector3D {
         public:
-            FfiVector3D(Vector3D &&from)
-                : inner_(from)
+            FfiVector3D(Vector3D &&base)
+                : inner_(std::move(base))
             {}
 
             FfiVector3D(float x, float y, float z)
@@ -214,8 +214,8 @@ namespace carla_rust
         // Location
         class FfiLocation {
         public:
-            FfiLocation(Location &&from)
-                : inner_(from)
+            FfiLocation(Location &&base)
+                : inner_(std::move(base))
             {}
 
             FfiLocation(float x, float y, float z)
@@ -250,8 +250,8 @@ namespace carla_rust
         // Rotation
         class FfiRotation {
         public:
-            FfiRotation(Rotation &&from)
-                : inner_(from)
+            FfiRotation(Rotation &&base)
+                : inner_(std::move(base))
             {}
 
             FfiRotation(float p, float y, float r)
@@ -283,8 +283,8 @@ namespace carla_rust
         // Transform
         class FfiTransform {
         public:
-            FfiTransform(Transform &&transform)
-                : inner_(transform)
+            FfiTransform(Transform &&base)
+                : inner_(std::move(base))
             {}
 
 
@@ -337,7 +337,7 @@ namespace carla_rust
 
             class FfiImage {
             public:
-                FfiImage(SharedPtr<Image> &&base) : inner_(base) {}
+                FfiImage(SharedPtr<Image> &&base) : inner_(std::move(base)) {}
 
                 size_t GetWidth() const {
                     return inner_->GetWidth();
@@ -382,7 +382,7 @@ namespace carla_rust
         class FfiSensorData {
         public:
             FfiSensorData(SharedPtr<SensorData> &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {}
 
             size_t GetFrame() const {
@@ -521,7 +521,7 @@ namespace carla_rust
         class FfiWaypoint {
         public:
             FfiWaypoint(SharedPtr<Waypoint> &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {}
 
             uint64_t GetId() const {
@@ -622,7 +622,7 @@ namespace carla_rust
         class FfiLandmark {
         public:
             FfiLandmark(SharedPtr<Landmark> &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {}
 
             const SharedPtr<Landmark>& inner() const {
@@ -636,8 +636,8 @@ namespace carla_rust
         // Map
         class FfiMap {
         public:
-            FfiMap(SharedPtr<Map> &&ref)
-                : inner_(ref)
+            FfiMap(SharedPtr<Map> &&base)
+                : inner_(std::move(base))
             {}
 
             FfiMap(FfiMap &&from) = default;
@@ -722,7 +722,7 @@ namespace carla_rust
         class FfiVehicle {
         public:
             FfiVehicle(SharedPtr<Vehicle> &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {}
 
 
@@ -823,7 +823,7 @@ namespace carla_rust
         // Sensor
         class FfiSensor {
         public:
-            FfiSensor(SharedPtr<Sensor> &&base) : inner_(base) {}
+            FfiSensor(SharedPtr<Sensor> &&base) : inner_(std::move(base)) {}
 
             void Listen(void *caller, void *fn, void *delete_fn) const {
                 auto container = std::make_shared<ListenCallback>(caller, fn, delete_fn);
@@ -857,8 +857,8 @@ namespace carla_rust
         // Actor
         class FfiActor {
         public:
-            FfiActor(SharedPtr<Actor> &&ref)
-                : inner_(ref)
+            FfiActor(SharedPtr<Actor> &&base)
+                : inner_(std::move(base))
             {
             }
 
@@ -915,8 +915,8 @@ namespace carla_rust
 
         class FfiBlueprintLibrary {
         public:
-            FfiBlueprintLibrary(SharedPtr<BlueprintLibrary> &&ref)
-                : inner_(ref)
+            FfiBlueprintLibrary(SharedPtr<BlueprintLibrary> &&base)
+                : inner_(std::move(base))
             {
             }
 
@@ -952,8 +952,8 @@ namespace carla_rust
 
         class FfiActorList {
         public:
-            FfiActorList(SharedPtr<ActorList> &&from)
-                : inner_(from)
+            FfiActorList(SharedPtr<ActorList> &&base)
+                : inner_(std::move(base))
             {}
 
 
@@ -998,7 +998,7 @@ namespace carla_rust
         class FfiWorld {
         public:
             FfiWorld(World &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {
             }
 
@@ -1207,7 +1207,7 @@ namespace carla_rust
             {}
 
             FfiClient(const Client &&base)
-                : inner_(base)
+                : inner_(std::move(base))
             {}
 
             size_t GetTimeout() {
