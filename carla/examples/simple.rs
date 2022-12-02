@@ -7,6 +7,8 @@ fn main() {
     client.set_timeout(Duration::from_secs(5));
     let mut world = client.load_world("Town07");
 
+    let spawn_points = world.map().recommended_spawn_points();
+
     let spectator = world.spectator();
     // let spectator = spectator
     //     .try_into_sensor()
@@ -49,13 +51,11 @@ fn main() {
             .unwrap_or_else(|_| panic!("not a sensor"))
     };
 
-    // lidar.listen(move |_data| {
-    //     println!("data received");
-    // });
+    lidar.listen(move |_data| {
+        println!("data received");
+    });
 
     loop {
-        let since = Instant::now();
         world.wait_for_tick();
-        dbg!(since.elapsed());
     }
 }
