@@ -406,9 +406,13 @@ namespace carla_rust
                 delete_fn_ = delete_fn_ptr;
             }
 
+            ListenCallback(ListenCallback&&) = default;
+
             ~ListenCallback() {
                 (delete_fn_)(fn_);
             }
+
+            ListenCallback& operator=(ListenCallback&&) = default;
 
             void operator()(std::shared_ptr<FfiSensorData> data) const {
                 (caller_)(fn_, data);
@@ -750,15 +754,15 @@ namespace carla_rust
             FfiSensor(SharedPtr<Sensor> &&base) : inner_(base) {}
 
             void Listen(void *caller, void *fn, void *delete_fn) const {
-                auto container = ListenCallback(caller, fn, delete_fn);
+                auto container = std::make_shared<ListenCallback>(caller, fn, delete_fn);
                 auto callback =
                     [container = std::move(container)]
                     (SharedPtr<sensor::SensorData> data)
                     {
                         auto ffi_data = std::make_shared<FfiSensorData>(std::move(data));
-                        (container)(ffi_data);
+                        (*container)(ffi_data);
                     };
-                inner_->Listen(callback);
+                inner_->Listen(std::move(callback));
             }
 
             void Stop() const {

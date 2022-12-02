@@ -34,8 +34,9 @@ impl Sensor {
                     let data = SensorData::from_cxx(ptr);
                     (callback)(data);
                 };
-                let fn_: Box<Callback> = Box::new(fn_);
-                let fn_: *mut Callback = Box::into_raw(fn_);
+                let fn_: Box<Callback> = Box::new(fn_); // Create a trait object ("fat" pointer)
+                let fn_ = Box::new(fn_); // Create a "thin" pointer. The address is aliased
+                let fn_: *mut Callback = Box::into_raw(fn_); // Convert to raw pointer
                 fn_ as *mut c_void
             };
 
@@ -61,14 +62,13 @@ impl ActorBase for Sensor {
     }
 }
 
-unsafe extern "C" fn caller(fn_: *mut c_void, arg: *mut c_void) {
-    let fn_: *mut Callback = mem::transmute_copy(&fn_);
-    let fn_: &mut Callback = &mut *fn_;
-    let arg: SharedPtr<FfiSensorData> = mem::transmute_copy(&arg);
-    (fn_)(arg);
+unsafe extern "C" fn caller(fn_: *mut c_void, arg: SharedPtr<FfiSensorData>) {
+    let fn_ = fn_ as *mut Box<Callback>;
+    (*fn_)(arg);
 }
 
-unsafe extern "C" fn deleter(ptr: *mut c_void) {
-    let ptr: *mut Callback = mem::transmute_copy(&ptr);
-    mem::drop(Box::from_raw(ptr));
+unsafe extern "C" fn deleter(fn_: *mut c_void) {
+    let fn_ = fn_ as *mut Box<Callback>;
+    let fn_: Box<Box<Callback>> = Box::from_raw(fn_);
+    mem::drop(fn_);
 }
