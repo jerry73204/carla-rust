@@ -25,7 +25,7 @@ impl World {
     }
 
     pub fn map(&self) -> Map {
-        let ptr = self.inner.GetMap().within_unique_ptr();
+        let ptr = self.inner.GetMap();
         Map::from_cxx(ptr).unwrap()
     }
 

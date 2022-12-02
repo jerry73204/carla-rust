@@ -92,7 +92,7 @@ impl Vector3D {
 
 #[repr(transparent)]
 pub struct Location {
-    inner: UniquePtr<FfiLocation>,
+    pub(crate) inner: UniquePtr<FfiLocation>,
 }
 
 impl Location {
@@ -204,6 +204,33 @@ impl Transform {
         let location = Location::from_na(translation);
         let rotation = Rotation::from_na(rotation);
         Self::new(&location, &rotation)
+    }
+
+    pub fn location(&self) -> Location {
+        Location::from_cxx(self.inner.location().within_unique_ptr()).unwrap()
+    }
+
+    pub fn rotation(&self) -> Rotation {
+        Rotation::from_cxx(self.inner.rotation().within_unique_ptr()).unwrap()
+    }
+
+    pub fn to_na(&self) -> Isometry3<f32> {
+        Isometry3 {
+            rotation: self.rotation().to_na(),
+            translation: self.location().to_na(),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+#[repr(transparent)]
+pub(crate) struct TransformRef<'a> {
+    pub(crate) inner: &'a FfiTransform,
+}
+
+impl<'a> TransformRef<'a> {
+    pub fn from_cxx(ptr: &'a FfiTransform) -> Self {
+        Self { inner: ptr }
     }
 
     pub fn location(&self) -> Location {
