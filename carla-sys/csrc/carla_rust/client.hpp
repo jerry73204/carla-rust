@@ -45,8 +45,6 @@
 namespace carla_rust
 {
     namespace geom {
-        class FfiVector2D;
-        class FfiVector3D;
         class FfiLocation;
         class FfiRotation;
         class FfiTransform;
@@ -105,8 +103,6 @@ namespace carla_rust
         using carla::road::element::LaneMarking;
         using carla::sensor::SensorData;
         using carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT;
-        using carla_rust::geom::FfiVector2D;
-        using carla_rust::geom::FfiVector3D;
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
@@ -523,19 +519,16 @@ namespace carla_rust
                 return FfiTransform(std::move(transform));
             }
 
-            FfiVector3D GetVelocity() const {
-                auto vel = inner_->GetVelocity();
-                return FfiVector3D(std::move(vel));
+            Vector3D GetVelocity() const {
+                return inner_->GetVelocity();
             }
 
-            FfiVector3D GetAngularVelocity() const {
-                auto av = inner_->GetAngularVelocity();
-                return FfiVector3D(std::move(av));
+            Vector3D GetAngularVelocity() const {
+                return inner_->GetAngularVelocity();
             }
 
-            FfiVector3D GetAcceleration() const {
-                auto acc = inner_->GetAcceleration();
-                return FfiVector3D(std::move(acc));
+            Vector3D GetAcceleration() const {
+                return inner_->GetAcceleration();
             }
 
             std::shared_ptr<FfiVehicle> to_vehicle() const {

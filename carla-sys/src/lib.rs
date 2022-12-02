@@ -61,6 +61,8 @@ include_cpp! {
 
     // carla::geom
     generate_ns!("carla::geom")
+    generate_pod!("carla::geom::Vector2D")
+    generate_pod!("carla::geom::Vector3D")
 
     // carla::traffic_manager
     generate_ns!("carla::traffic_manager::constants")

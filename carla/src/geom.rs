@@ -1,92 +1,46 @@
 use autocxx::prelude::*;
-use carla_sys::carla_rust::geom::{
-    FfiLocation, FfiRotation, FfiTransform, FfiVector2D, FfiVector3D,
-};
+use carla_sys::carla_rust::geom::{FfiLocation, FfiRotation, FfiTransform};
 use cxx::UniquePtr;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
-#[repr(transparent)]
-pub struct Vector2D {
-    inner: UniquePtr<FfiVector2D>,
+pub use carla_sys::carla::geom::{Vector2D, Vector3D};
+
+pub trait Vector2DExt {
+    fn from_na(from: &Vector2<f32>) -> Self;
+    fn to_na(&self) -> Vector2<f32>;
 }
 
-impl Vector2D {
-    pub fn from_xy(xy: [f32; 2]) -> Self {
-        let [x, y] = xy;
-        let ptr = FfiVector2D::new1(x, y).within_unique_ptr();
-        Self::from_cxx(ptr).unwrap()
-    }
-
-    pub fn from_cxx(ptr: UniquePtr<FfiVector2D>) -> Option<Self> {
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Self { inner: ptr })
+impl Vector2DExt for Vector2D {
+    fn from_na(from: &Vector2<f32>) -> Self {
+        Self {
+            x: from.x,
+            y: from.y,
         }
     }
 
-    pub fn from_na(from: &Vector2<f32>) -> Self {
-        Self::from_xy([from.x, from.y])
-    }
-
-    pub fn x(&self) -> f32 {
-        self.inner.x()
-    }
-
-    pub fn y(&self) -> f32 {
-        self.inner.y()
-    }
-
-    pub fn xy(&self) -> [f32; 2] {
-        [self.x(), self.y()]
-    }
-
-    pub fn to_na(&self) -> Vector2<f32> {
-        Vector2::new(self.x(), self.y())
+    fn to_na(&self) -> Vector2<f32> {
+        let Self { x, y } = *self;
+        Vector2::new(x, y)
     }
 }
 
-#[repr(transparent)]
-pub struct Vector3D {
-    inner: UniquePtr<FfiVector3D>,
+pub trait Vector3DExt {
+    fn from_na(from: &Vector3<f32>) -> Self;
+    fn to_na(&self) -> Vector3<f32>;
 }
 
-impl Vector3D {
-    pub fn from_xyz(xyz: [f32; 3]) -> Self {
-        let [x, y, z] = xyz;
-        let ptr = FfiVector3D::new1(x, y, z).within_unique_ptr();
-        Self::from_cxx(ptr).unwrap()
-    }
-
-    pub fn from_cxx(ptr: UniquePtr<FfiVector3D>) -> Option<Self> {
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Self { inner: ptr })
+impl Vector3DExt for Vector3D {
+    fn from_na(from: &Vector3<f32>) -> Self {
+        Self {
+            x: from.x,
+            y: from.y,
+            z: from.z,
         }
     }
 
-    pub fn from_na(from: &Vector3<f32>) -> Self {
-        Self::from_xyz([from.x, from.y, from.z])
-    }
-
-    pub fn x(&self) -> f32 {
-        self.inner.x()
-    }
-
-    pub fn y(&self) -> f32 {
-        self.inner.y()
-    }
-    pub fn z(&self) -> f32 {
-        self.inner.z()
-    }
-
-    pub fn xyz(&self) -> [f32; 3] {
-        [self.x(), self.y(), self.z()]
-    }
-
-    pub fn to_na(&self) -> Vector3<f32> {
-        Vector3::new(self.x(), self.y(), self.z())
+    fn to_na(&self) -> Vector3<f32> {
+        let Self { x, y, z } = *self;
+        Vector3::new(x, y, z)
     }
 }
 

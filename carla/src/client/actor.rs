@@ -1,5 +1,5 @@
 use super::{Sensor, Vehicle};
-use crate::geom::{Location, Transform, Vector3D};
+use crate::geom::{Location, Transform, Vector3DExt};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
@@ -19,18 +19,15 @@ pub trait ActorBase {
     }
 
     fn velocity(&self) -> Vector3<f32> {
-        let ptr = self.cxx_actor().GetVelocity().within_unique_ptr();
-        Vector3D::from_cxx(ptr).unwrap().to_na()
+        self.cxx_actor().GetVelocity().to_na()
     }
 
     fn acceleration(&self) -> Vector3<f32> {
-        let ptr = self.cxx_actor().GetAcceleration().within_unique_ptr();
-        Vector3D::from_cxx(ptr).unwrap().to_na()
+        self.cxx_actor().GetAcceleration().to_na()
     }
 
     fn angular_velocity(&self) -> Vector3<f32> {
-        let ptr = self.cxx_actor().GetAngularVelocity().within_unique_ptr();
-        Vector3D::from_cxx(ptr).unwrap().to_na()
+        self.cxx_actor().GetAngularVelocity().to_na()
     }
 }
 

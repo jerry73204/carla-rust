@@ -32,7 +32,6 @@
 #include "carla/geom/Transform.h"
 #include "carla/geom/Location.h"
 #include "carla/geom/Rotation.h"
-#include "carla/geom/Vector2D.h"
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
 #include "carla/sensor/SensorData.h"
@@ -46,66 +45,7 @@ namespace carla_rust
         using carla::geom::Transform;
         using carla::geom::Location;
         using carla::geom::Rotation;
-        using carla::geom::Vector2D;
         using carla::geom::Vector3D;
-
-        // Vector2D
-        class FfiVector2D {
-        public:
-            FfiVector2D(Vector2D &&base)
-                : inner_(std::move(base))
-            {}
-
-            FfiVector2D(float x, float y)
-                : inner_(std::move(Vector2D(x, y)))
-            {}
-
-            float x() const {
-                return inner_.x;
-            }
-
-            float y() const {
-                return inner_.y;
-            }
-
-            const Vector2D& inner() const {
-                return inner_;
-            }
-
-        private:
-            Vector2D inner_;
-        };
-
-        // Vector3D
-        class FfiVector3D {
-        public:
-            FfiVector3D(Vector3D &&base)
-                : inner_(std::move(base))
-            {}
-
-            FfiVector3D(float x, float y, float z)
-                : inner_(std::move(Vector3D(x, y, z)))
-            {}
-
-            float x() const {
-                return inner_.x;
-            }
-
-            float y() const {
-                return inner_.y;
-            }
-
-            float z() const {
-                return inner_.z;
-            }
-
-            const Vector3D& inner() const {
-                return inner_;
-            }
-
-        private:
-            Vector3D inner_;
-        };
 
         // Location
         class FfiLocation {
