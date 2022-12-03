@@ -1,5 +1,4 @@
-use crate::geom::Transform;
-use autocxx::prelude::*;
+use crate::geom::TransformExt;
 use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use nalgebra::Isometry3;
@@ -18,12 +17,7 @@ pub trait SensorDataBase {
     }
 
     fn sensor_transform(&self) -> Isometry3<f32> {
-        let ptr = self
-            .cxx_sensor_data()
-            .GetSensorTransform()
-            .within_unique_ptr();
-        let transform = Transform::from_cxx(ptr).unwrap();
-        transform.to_na()
+        self.cxx_sensor_data().GetSensorTransform().to_na()
     }
 }
 

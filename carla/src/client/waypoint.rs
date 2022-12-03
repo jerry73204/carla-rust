@@ -1,12 +1,12 @@
 use crate::{
-    geom::Transform,
+    geom::TransformExt,
     road::{JuncId, LaneId, LaneType, RoadId, SectionId},
 };
-use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiWaypoint;
 use cxx::SharedPtr;
 use nalgebra::Isometry3;
 
+#[repr(transparent)]
 pub struct Waypoint {
     inner: SharedPtr<FfiWaypoint>,
 }
@@ -37,8 +37,7 @@ impl Waypoint {
     }
 
     pub fn transofrm(&self) -> Isometry3<f32> {
-        let ptr = self.inner.GetTransform().within_unique_ptr();
-        Transform::from_cxx(ptr).unwrap().to_na()
+        self.inner.GetTransform().to_na()
     }
 
     pub fn is_junction(&self) -> bool {

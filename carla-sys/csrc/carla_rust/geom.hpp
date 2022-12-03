@@ -50,101 +50,40 @@ namespace carla_rust
         // Location
         class FfiLocation {
         public:
-            FfiLocation(Location &&base)
-                : inner_(std::move(base))
-            {}
+            float x;
+            float y;
+            float z;
 
-            FfiLocation(float x, float y, float z)
-                : FfiLocation(std::move(Location(Vector3D(x, y, z))))
-            {}
-
-
-            float x() const {
-                return inner_.x;
+            FfiLocation(Location &&base) {
+                *this = std::move(reinterpret_cast<FfiLocation&&>(base));
             }
 
-            float y() const {
-                return inner_.y;
+            const Location& as_location() const {
+                return reinterpret_cast<const Location&>(*this);
             }
-
-            float z() const {
-                return inner_.z;
-            }
-
-            const Location &as_location() const {
-                return inner_;
-            }
-
-            const Vector3D &as_vector_3d() const {
-                return static_cast<const Vector3D&>(inner_);
-            }
-
-        private:
-            Location inner_;
         };
 
-        // Rotation
-        class FfiRotation {
-        public:
-            FfiRotation(Rotation &&base)
-                : inner_(std::move(base))
-            {}
-
-            FfiRotation(float p, float y, float r)
-                : FfiRotation(std::move(Rotation(p, y, r)))
-            {}
-
-
-            float pitch() const {
-                return inner_.pitch;
-            }
-
-            float yaw() const {
-                return inner_.yaw;
-            }
-
-            float roll() const {
-                return inner_.roll;
-            }
-
-            const Rotation &inner() const {
-                return inner_;
-            }
-
-        private:
-            Rotation inner_;
-        };
-
+        static_assert(sizeof(FfiLocation) == sizeof(Location), "FfiLocation and Location size mismatch");
 
         // Transform
         class FfiTransform {
         public:
+            FfiLocation location;
+            Rotation rotation;
+
             FfiTransform(Transform &&base)
-                : inner_(std::move(base))
-            {}
+                :
+                location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
+                rotation(std::move(base.rotation))
 
-
-            FfiTransform(const FfiLocation &location, const FfiRotation &rotation)
-                : inner_(location.as_location(), rotation.inner())
             {
             }
 
-            const Transform& inner() const {
-                return inner_;
+            const Transform& as_transform() const {
+                return reinterpret_cast<const Transform&>(*this);
             }
-
-            FfiLocation location() const {
-                Location loc = inner_.location;
-                return FfiLocation(std::move(loc));
-            }
-
-            FfiRotation rotation() const {
-                Rotation rot = inner_.rotation;
-                return FfiRotation(std::move(rot));
-            }
-
-        private:
-            Transform inner_;
         };
+
+        static_assert(sizeof(FfiTransform) == sizeof(Transform), "FfiTransform and Transform size mismatch");
     }
 }

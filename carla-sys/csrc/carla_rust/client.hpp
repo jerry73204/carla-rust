@@ -46,14 +46,13 @@ namespace carla_rust
 {
     namespace geom {
         class FfiLocation;
-        class FfiRotation;
         class FfiTransform;
     }
 
     namespace rpc {
         class FfiEpisodeSettings;
     }
-    
+
     namespace sensor {
         class FfiSensorData;
     }
@@ -104,7 +103,6 @@ namespace carla_rust
         using carla::sensor::SensorData;
         using carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT;
         using carla_rust::geom::FfiLocation;
-        using carla_rust::geom::FfiRotation;
         using carla_rust::geom::FfiTransform;
         using carla_rust::sensor::FfiSensorData;
         using carla_rust::rpc::FfiEpisodeSettings;
@@ -675,7 +673,7 @@ namespace carla_rust
                     parent_arg = ptr.get();
                 }
 
-                auto transform_arg = transform.inner();
+                auto transform_arg = transform.as_transform();
 
                 auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
                 if (actor == nullptr) {

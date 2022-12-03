@@ -1,5 +1,5 @@
 use crate::{
-    geom::{Location, TransformRef},
+    geom::{Location, LocationExt, TransformExt},
     road::{LaneId, LaneType, RoadId},
 };
 use carla_sys::carla_rust::client::FfiMap;
@@ -25,9 +25,7 @@ impl Map {
 
     pub fn recommended_spawn_points(&self) -> Vec<Isometry3<f32>> {
         let pts = self.inner.GetRecommendedSpawnPoints();
-        pts.iter()
-            .map(|trans| TransformRef::from_cxx(trans).to_na())
-            .collect()
+        pts.iter().map(|trans| trans.to_na()).collect()
     }
 
     pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint> {
@@ -43,7 +41,7 @@ impl Map {
         let location = Location::from_na(location);
         let ptr = self
             .inner
-            .GetWaypoint(&location.inner, project_to_road, lane_type as i32);
+            .GetWaypoint(&location, project_to_road, lane_type as i32);
         Waypoint::from_cxx(ptr)
     }
 

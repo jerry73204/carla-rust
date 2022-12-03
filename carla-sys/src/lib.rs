@@ -48,11 +48,14 @@ include_cpp! {
 
     #include "carla/sensor/SensorData.h"
     #include "carla/sensor/data/Image.h"
+    #include "carla/sensor/data/LidarData.h"
 
     safety!(unsafe_ffi)
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate_pod!("carla_rust::geom::FfiLocation")
+    generate_pod!("carla_rust::geom::FfiTransform")
     generate_pod!("carla_rust::sensor::data::FfiColor")
 
     // carla
@@ -63,6 +66,7 @@ include_cpp! {
     generate_ns!("carla::geom")
     generate_pod!("carla::geom::Vector2D")
     generate_pod!("carla::geom::Vector3D")
+    generate_pod!("carla::geom::Rotation")
 
     // carla::traffic_manager
     generate_ns!("carla::traffic_manager::constants")
@@ -99,6 +103,8 @@ include_cpp! {
 
     // carla::sensor::data
     generate!("carla::sensor::data::Image")
+    generate!("carla::sensor::data::LidarDetection")
+    generate!("carla::sensor::data::LidarData")
 
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")

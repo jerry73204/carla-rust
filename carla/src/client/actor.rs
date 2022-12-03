@@ -1,6 +1,5 @@
 use super::{Sensor, Vehicle};
-use crate::geom::{Location, Transform, Vector3DExt};
-use autocxx::prelude::*;
+use crate::geom::{LocationExt, TransformExt, Vector3DExt};
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
@@ -9,13 +8,11 @@ pub trait ActorBase {
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
 
     fn location(&self) -> Translation3<f32> {
-        let ptr = self.cxx_actor().GetLocation().within_unique_ptr();
-        Location::from_cxx(ptr).unwrap().to_na()
+        self.cxx_actor().GetLocation().to_na()
     }
 
     fn transform(&self) -> Isometry3<f32> {
-        let ptr = self.cxx_actor().GetTransform().within_unique_ptr();
-        Transform::from_cxx(ptr).unwrap().to_na()
+        self.cxx_actor().GetTransform().to_na()
     }
 
     fn velocity(&self) -> Vector3<f32> {

@@ -2,7 +2,7 @@ use super::{
     Actor, ActorBase, ActorBlueprint, ActorList, BlueprintLibrary, Landmark, Map, WorldSnapshot,
 };
 use crate::{
-    geom::Transform,
+    geom::{Transform, TransformExt},
     rpc::{ActorId, AttachmentType, EpisodeSettings},
 };
 use autocxx::prelude::*;
@@ -115,7 +115,7 @@ impl World {
             let transform = Transform::from_na(transform);
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
-                &transform.inner,
+                &transform,
                 parent_ptr as *mut _,
                 attachment_type,
             );
