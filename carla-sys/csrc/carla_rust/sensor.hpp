@@ -18,27 +18,6 @@
 #include "carla/client/TimeoutException.h"
 #include "carla/client/ActorList.h"
 #include "carla/client/Landmark.h"
-#include "carla/client/Waypoint.h"
-#pragma once
-
-#include <cstdint>
-#include <limits>
-#include <memory>
-#include <vector>
-#include <string>
-#include "carla/Time.h"
-#include "carla/Memory.h"
-#include "carla/client/Client.h"
-#include "carla/client/World.h"
-#include "carla/client/Map.h"
-#include "carla/client/Actor.h"
-#include "carla/client/ActorBlueprint.h"
-#include "carla/client/BlueprintLibrary.h"
-#include "carla/client/Sensor.h"
-#include "carla/client/Vehicle.h"
-#include "carla/client/TimeoutException.h"
-#include "carla/client/ActorList.h"
-#include "carla/client/Landmark.h"
 #include "carla/client/detail/EpisodeProxy.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/MapLayer.h"
@@ -67,7 +46,9 @@
 #include "carla/sensor/data/ObstacleDetectionEvent.h"
 #include "carla/sensor/data/CollisionEvent.h"
 #include "carla/sensor/data/LaneInvasionEvent.h"
+#include "carla_rust/road.hpp"
 #include "geom.hpp"
+#include "road.hpp"
 
 
 namespace carla_rust
@@ -92,6 +73,7 @@ namespace carla_rust
             using carla_rust::client::FfiActor;
             using carla_rust::geom::FfiLocation;
             using carla_rust::geom::FfiTransform;
+            using carla_rust::road::element::FfiLaneMarking;
 
             // Color
             class FfiColor {
@@ -262,10 +244,11 @@ namespace carla_rust
                     return std::make_shared<FfiActor>(std::move(inner_->GetActor()));
                 }
 
-                const std::vector<LaneMarking> &GetCrossedLaneMarkings() const {
-                    return inner_->GetCrossedLaneMarkings();
+                const std::vector<FfiLaneMarking>& GetCrossedLaneMarkings() const {
+                    const std::vector<LaneMarking>& orig = inner_->GetCrossedLaneMarkings();
+                    const std::vector<FfiLaneMarking>& new_ = reinterpret_cast<const std::vector<FfiLaneMarking>&>(orig);
+                    return new_;
                 }
-
 
             private:
                 SharedPtr<LaneInvasionEvent> inner_;
@@ -275,10 +258,16 @@ namespace carla_rust
         using carla::SharedPtr;
         using carla::sensor::SensorData;
         using carla::sensor::data::Image;
+        using carla::sensor::data::CollisionEvent;
+        using carla::sensor::data::ObstacleDetectionEvent;
+        using carla::sensor::data::LaneInvasionEvent;
         using carla::geom::Transform;
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiTransform;
         using carla_rust::sensor::data::FfiImage;
+        using carla_rust::sensor::data::FfiCollisionEvent;
+        using carla_rust::sensor::data::FfiObstacleDetectionEvent;
+        using carla_rust::sensor::data::FfiLaneInvasionEvent;
 
         class FfiSensorData {
         public:
@@ -302,11 +291,38 @@ namespace carla_rust
             }
 
             std::shared_ptr<FfiImage> to_image() const {
-                SharedPtr<Image> ptr = boost::dynamic_pointer_cast<Image>(inner_);
+                auto ptr = boost::dynamic_pointer_cast<Image>(inner_);
                 if (ptr == nullptr) {
                     return nullptr;
                 } else {
                     return std::make_shared<FfiImage>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiCollisionEvent> to_collision_event() const {
+                auto ptr = boost::dynamic_pointer_cast<CollisionEvent>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiCollisionEvent>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiObstacleDetectionEvent> to_obstacle_detection_event() const {
+                auto ptr = boost::dynamic_pointer_cast<ObstacleDetectionEvent>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiObstacleDetectionEvent>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiLaneInvasionEvent> to_lane_invasion_event() const {
+                auto ptr = boost::dynamic_pointer_cast<LaneInvasionEvent>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiLaneInvasionEvent>(std::move(ptr));
                 }
             }
 

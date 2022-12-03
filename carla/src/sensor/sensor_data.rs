@@ -3,7 +3,7 @@ use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use nalgebra::Isometry3;
 
-use super::data::Image;
+use super::data::{CollisionEvent, Image, LaneInvasionEvent, ObstacleDetectionEvent};
 
 pub trait SensorDataBase {
     fn cxx_sensor_data(&self) -> SharedPtr<FfiSensorData>;
@@ -31,6 +31,21 @@ impl SensorData {
     pub fn try_into_image(self) -> Result<Image, Self> {
         let ptr = self.inner.to_image();
         Image::from_cxx(ptr).ok_or(self)
+    }
+
+    pub fn try_into_collision_event(self) -> Result<CollisionEvent, Self> {
+        let ptr = self.inner.to_collision_event();
+        CollisionEvent::from_cxx(ptr).ok_or(self)
+    }
+
+    pub fn try_into_lane_invasion_event(self) -> Result<LaneInvasionEvent, Self> {
+        let ptr = self.inner.to_lane_invasion_event();
+        LaneInvasionEvent::from_cxx(ptr).ok_or(self)
+    }
+
+    pub fn try_into_obstacle_detection_event(self) -> Result<ObstacleDetectionEvent, Self> {
+        let ptr = self.inner.to_obstacle_detection_event();
+        ObstacleDetectionEvent::from_cxx(ptr).ok_or(self)
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensorData>) -> Self {

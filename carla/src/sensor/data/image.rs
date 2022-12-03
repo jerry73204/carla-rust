@@ -49,9 +49,7 @@ impl Image {
             None
         }
     }
-}
 
-impl Image {
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiImage>) -> Option<Self> {
         if ptr.is_null() {
             None
