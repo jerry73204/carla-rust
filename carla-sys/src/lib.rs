@@ -49,6 +49,10 @@ include_cpp! {
     #include "carla/sensor/SensorData.h"
     #include "carla/sensor/data/Image.h"
     #include "carla/sensor/data/LidarData.h"
+    #include "carla/sensor/data/SemanticLidarData.h"
+    #include "carla/sensor/data/ObstacleDetectionEvent.h"
+    #include "carla/sensor/data/CollisionEvent.h"
+    #include "carla/sensor/data/LaneInvasionEvent.h"
 
     safety!(unsafe_ffi)
 
@@ -57,6 +61,12 @@ include_cpp! {
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
     generate_pod!("carla_rust::sensor::data::FfiColor")
+    generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
+    generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
+    generate!("carla_rust::sensor::data::FfiObstacleDetectionEvent")
+    generate!("carla_rust::sensor::data::FfiCollisionEvent")
+    generate!("carla_rust::sensor::data::FfiLaneInvasionEvent")
+    generate!("carla_rust::road::element::FfiLaneMarking")
 
     // carla
     generate!("carla::SharedPtr")
@@ -67,9 +77,15 @@ include_cpp! {
     generate_pod!("carla::geom::Vector2D")
     generate_pod!("carla::geom::Vector3D")
     generate_pod!("carla::geom::Rotation")
+    generate_pod!("carla::geom::GeoLocation")
 
     // carla::traffic_manager
     generate_ns!("carla::traffic_manager::constants")
+
+    // carla::rpc::element
+    generate_pod!("carla::road::element::LaneMarking_Type")
+    generate_pod!("carla::road::element::LaneMarking_Color")
+    generate_pod!("carla::road::element::LaneMarking_LaneChange")
 
     // carla::rpc
     generate!("carla::rpc::OpendriveGenerationParameters")
@@ -105,6 +121,10 @@ include_cpp! {
     generate!("carla::sensor::data::Image")
     generate!("carla::sensor::data::LidarDetection")
     generate!("carla::sensor::data::LidarData")
+    generate!("carla::sensor::data::SemanticLidarDetection")
+    generate!("carla::sensor::data::SemanticLidarData")
+    generate!("carla::sensor::data::IMUMeasurement")
+    generate!("carla::sensor::data::GnssMeasurement")
 
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")

@@ -76,8 +76,14 @@ namespace carla_rust
                 location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
                 rotation(std::move(base.rotation))
 
-            {
-            }
+            {}
+
+            FfiTransform(const Transform &base)
+                :
+                location(reinterpret_cast<const FfiLocation&>(base.location)),
+                rotation(std::move(base.rotation))
+
+            {}
 
             const Transform& as_transform() const {
                 return reinterpret_cast<const Transform&>(*this);

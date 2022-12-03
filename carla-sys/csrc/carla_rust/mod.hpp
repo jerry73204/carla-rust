@@ -7,6 +7,7 @@
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc.hpp"
 #include "carla_rust/sensor.hpp"
+#include "carla_rust/road.hpp"
 
 namespace carla_rust
 {
