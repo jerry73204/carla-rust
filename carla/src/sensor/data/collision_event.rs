@@ -1,8 +1,9 @@
+use crate::client::Actor;
 use carla_sys::{carla::geom::Vector3D, carla_rust::sensor::data::FfiCollisionEvent};
 use cxx::SharedPtr;
 
-use crate::client::Actor;
-
+#[derive(Clone)]
+#[repr(transparent)]
 pub struct CollisionEvent {
     inner: SharedPtr<FfiCollisionEvent>,
 }

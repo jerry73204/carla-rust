@@ -2,6 +2,8 @@ use crate::client::Actor;
 use carla_sys::carla_rust::sensor::data::FfiObstacleDetectionEvent;
 use cxx::SharedPtr;
 
+#[derive(Clone)]
+#[repr(transparent)]
 pub struct ObstacleDetectionEvent {
     inner: SharedPtr<FfiObstacleDetectionEvent>,
 }

@@ -3,6 +3,8 @@ use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
 use cxx::SharedPtr;
 
+#[derive(Clone)]
+#[repr(transparent)]
 pub struct LaneInvasionEvent {
     inner: SharedPtr<FfiLaneInvasionEvent>,
 }
