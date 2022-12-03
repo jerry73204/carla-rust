@@ -48,6 +48,10 @@ include_cpp! {
 
     #include "carla/sensor/SensorData.h"
     #include "carla/sensor/data/Image.h"
+    #include "carla/sensor/data/RadarMeasurement.h"
+    #include "carla/sensor/data/RadarData.h"
+    #include "carla/sensor/data/LidarMeasurement.h"
+    #include "carla/sensor/data/SemanticLidarMeasurement.h"
     #include "carla/sensor/data/LidarData.h"
     #include "carla/sensor/data/SemanticLidarData.h"
     #include "carla/sensor/data/ObstacleDetectionEvent.h"
@@ -119,6 +123,11 @@ include_cpp! {
 
     // carla::sensor::data
     generate!("carla::sensor::data::Image")
+    generate!("carla::sensor::data::RadarMeasurement")
+    generate_pod!("carla::sensor::data::RadarDetection")
+    generate!("carla::sensor::data::RadarData")
+    generate!("carla::sensor::data::LidarMeasurement")
+    generate!("carla::sensor::data::SemanticLidarMeasurement")
     generate!("carla::sensor::data::LidarDetection")
     generate!("carla::sensor::data::LidarData")
     generate!("carla::sensor::data::SemanticLidarDetection")
