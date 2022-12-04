@@ -67,10 +67,6 @@ include_cpp! {
     generate_pod!("carla_rust::sensor::data::FfiColor")
     generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
-    generate!("carla_rust::sensor::data::FfiObstacleDetectionEvent")
-    generate!("carla_rust::sensor::data::FfiCollisionEvent")
-    generate!("carla_rust::sensor::data::FfiLaneInvasionEvent")
-    generate!("carla_rust::road::element::FfiLaneMarking")
 
     // carla
     generate!("carla::SharedPtr")

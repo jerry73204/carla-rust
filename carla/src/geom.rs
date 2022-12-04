@@ -1,7 +1,7 @@
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
 
 pub use carla_sys::{
-    carla::geom::{Rotation, Vector2D, Vector3D},
+    carla::geom::{GeoLocation, Rotation, Vector2D, Vector3D},
     carla_rust::geom::{FfiLocation as Location, FfiTransform as Transform},
 };
 

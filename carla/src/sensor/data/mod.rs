@@ -10,7 +10,25 @@ pub use lane_invasion_event::*;
 mod image;
 pub use image::*;
 
-pub use carla_sys::carla_rust::sensor::data::{
-    FfiColor as Color, FfiLidarDetection as LidarDetection,
-    FfiSemanticLidarDetection as SemanticLidarDetection,
+mod gnss_measurement;
+pub use gnss_measurement::*;
+
+mod imu_measurement;
+pub use imu_measurement::*;
+
+mod radar_measurement;
+pub use radar_measurement::*;
+
+mod lidar_measurement;
+pub use lidar_measurement::*;
+
+mod semantic_lidar_measurement;
+pub use semantic_lidar_measurement::*;
+
+pub use carla_sys::{
+    carla::sensor::data::RadarDetection,
+    carla_rust::sensor::data::{
+        FfiColor as Color, FfiLidarDetection as LidarDetection,
+        FfiSemanticLidarDetection as SemanticLidarDetection,
+    },
 };

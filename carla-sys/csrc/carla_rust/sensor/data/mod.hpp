@@ -7,3 +7,6 @@
 #include "lidar_detection.hpp"
 #include "obstacle_detection_event.hpp"
 #include "semantic_lidar_detection.hpp"
+#include "lidar_measurement.hpp"
+#include "semantic_lidar_measurement.hpp"
+#include "radar_measurement.hpp"
