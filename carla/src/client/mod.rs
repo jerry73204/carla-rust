@@ -33,3 +33,6 @@ pub use landmark::*;
 
 mod waypoint;
 pub use waypoint::*;
+
+mod actor_builder;
+pub use actor_builder::*;

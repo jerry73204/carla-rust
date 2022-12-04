@@ -1,10 +1,12 @@
 use super::{
-    Actor, ActorBase, ActorBlueprint, ActorList, BlueprintLibrary, Landmark, Map, WorldSnapshot,
+    Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, BlueprintLibrary, Landmark, Map,
+    WorldSnapshot,
 };
 use crate::{
     geom::{Transform, TransformExt},
     rpc::{ActorId, AttachmentType, EpisodeSettings},
 };
+use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
@@ -13,6 +15,8 @@ use carla_sys::carla_rust::{
 use cxx::{let_cxx_string, UniquePtr};
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
+
+const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[repr(transparent)]
 pub struct World {
@@ -83,57 +87,56 @@ impl World {
         self.inner.pin_mut().ApplySettings(&settings, millis)
     }
 
-    pub fn try_spawn_actor(
+    pub fn spawn_actor(
         &mut self,
         blueprint: &ActorBlueprint,
         transform: &Isometry3<f32>,
-    ) -> Option<Actor> {
-        self.try_spawn_actor_opt::<Actor>(blueprint, transform, Default::default())
+    ) -> Result<Actor> {
+        self.spawn_actor_opt::<Actor, _>(blueprint, transform, None, None)
     }
 
-    pub fn try_spawn_actor_opt<A>(
+    pub fn spawn_actor_opt<A, T>(
         &mut self,
         blueprint: &ActorBlueprint,
         transform: &Isometry3<f32>,
-        options: TrySpawnActorOptions<'_, A>,
-    ) -> Option<Actor>
+        parent: Option<&A>,
+        attachment_type: T,
+    ) -> Result<Actor>
     where
         A: ActorBase,
+        T: Into<Option<AttachmentType>>,
     {
-        let TrySpawnActorOptions {
-            parent,
-            attachment_type,
-        } = options;
+        let parent = parent.map(|parent| parent.cxx_actor());
+        let attachment_type = attachment_type.into().unwrap_or(AttachmentType::Rigid);
 
         unsafe {
-            let parent = parent.map(|parent| parent.cxx_actor());
             let parent_ptr: *const FfiActor = parent
                 .as_ref()
                 .and_then(|parent| parent.as_ref())
                 .map(|ref_| ref_ as *const _)
                 .unwrap_or(ptr::null());
-            let transform = Transform::from_na(transform);
+            let ffi_transform = Transform::from_na(transform);
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
-                &transform,
+                &ffi_transform,
                 parent_ptr as *mut _,
                 attachment_type,
             );
-            if actor.is_null() {
-                None
-            } else {
-                Some(Actor { inner: actor })
-            }
+            Actor::from_cxx(actor)
+                .ok_or_else(|| anyhow!("Unable to spawn an actor with transform {}", transform))
         }
     }
 
     pub fn wait_for_tick(&self) -> WorldSnapshot {
-        const TIMEOUT: Duration = Duration::from_secs(60);
         loop {
-            if let Some(snapshot) = self.wait_for_tick_or_timeout(TIMEOUT) {
+            if let Some(snapshot) = self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT) {
                 return snapshot;
             }
         }
+    }
+
+    pub fn actor_builder(&mut self, key: &str) -> Result<ActorBuilder<'_>> {
+        ActorBuilder::new(self, key)
     }
 
     #[must_use]
@@ -142,8 +145,12 @@ impl World {
         WorldSnapshot::from_cxx(ptr)
     }
 
-    pub fn tick(&mut self, dur: Duration) -> u64 {
-        self.inner.pin_mut().Tick(dur.as_millis() as usize)
+    pub fn tick_or_timeuot(&mut self, timeout: Duration) -> u64 {
+        self.inner.pin_mut().Tick(timeout.as_millis() as usize)
+    }
+
+    pub fn tick(&mut self) -> u64 {
+        self.tick_or_timeuot(DEFAULT_TICK_TIMEOUT)
     }
 
     pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
@@ -186,21 +193,6 @@ impl World {
             None
         } else {
             Some(Self { inner: ptr })
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct TrySpawnActorOptions<'a, A> {
-    pub parent: Option<&'a A>,
-    pub attachment_type: AttachmentType,
-}
-
-impl<'a, A> Default for TrySpawnActorOptions<'a, A> {
-    fn default() -> Self {
-        Self {
-            parent: None,
-            attachment_type: AttachmentType::Rigid,
         }
     }
 }

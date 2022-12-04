@@ -1,4 +1,7 @@
-use carla_sys::carla::client::ActorBlueprint as FfiActorBlueprint;
+use autocxx::prelude::*;
+use carla_sys::{
+    carla::client::ActorBlueprint as FfiActorBlueprint, carla_rust::client::copy_actor_blueprint,
+};
 use cxx::{let_cxx_string, UniquePtr};
 
 #[repr(transparent)]
@@ -58,5 +61,12 @@ impl ActorBlueprint {
         } else {
             Some(Self { inner: ptr })
         }
+    }
+}
+
+impl Clone for ActorBlueprint {
+    fn clone(&self) -> Self {
+        let clone = copy_actor_blueprint(&self.inner).within_unique_ptr();
+        Self { inner: clone }
     }
 }
