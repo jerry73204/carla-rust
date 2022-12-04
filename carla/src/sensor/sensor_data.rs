@@ -1,6 +1,7 @@
 use crate::geom::TransformExt;
 use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use nalgebra::Isometry3;
 
 pub trait SensorDataBase {
@@ -19,9 +20,11 @@ pub trait SensorDataBase {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct SensorData {
+    #[derivative(Debug = "ignore")]
     pub(crate) inner: SharedPtr<FfiSensorData>,
 }
 

@@ -1,6 +1,7 @@
 use crate::geom::{LocationExt, TransformExt, Vector3DExt};
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3, Vector3};
 
 pub trait ActorBase {
@@ -27,9 +28,11 @@ pub trait ActorBase {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Actor {
+    #[derivative(Debug = "ignore")]
     pub(crate) inner: SharedPtr<FfiActor>,
 }
 

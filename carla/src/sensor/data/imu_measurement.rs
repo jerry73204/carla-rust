@@ -1,10 +1,13 @@
 use crate::{geom::Vector3D, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiImuMeasurement;
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct ImuMeasurement {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiImuMeasurement>,
 }
 

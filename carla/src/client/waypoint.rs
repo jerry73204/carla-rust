@@ -4,10 +4,14 @@ use crate::{
 };
 use carla_sys::carla_rust::client::FfiWaypoint;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use nalgebra::Isometry3;
 
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Waypoint {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiWaypoint>,
 }
 

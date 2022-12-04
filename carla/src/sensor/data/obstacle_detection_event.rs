@@ -1,10 +1,13 @@
 use crate::{client::Actor, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiObstacleDetectionEvent;
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct ObstacleDetectionEvent {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiObstacleDetectionEvent>,
 }
 

@@ -4,13 +4,16 @@ use crate::{
 };
 use carla_sys::carla_rust::client::FfiMap;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3};
 
 use super::Waypoint;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Map {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiMap>,
 }
 

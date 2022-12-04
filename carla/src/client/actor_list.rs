@@ -1,12 +1,15 @@
 use crate::rpc::ActorId;
 use carla_sys::carla_rust::client::FfiActorList;
 use cxx::{let_cxx_string, SharedPtr};
+use derivative::Derivative;
 
 use super::Actor;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct ActorList {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiActorList>,
 }
 

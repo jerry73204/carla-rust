@@ -1,13 +1,15 @@
-use crate::sensor::SensorData;
-
 use super::LidarDetection;
+use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiLidarMeasurement;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use std::slice;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct LidarMeasurement {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiLidarMeasurement>,
 }
 

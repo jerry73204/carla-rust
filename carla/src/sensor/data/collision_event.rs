@@ -1,10 +1,13 @@
 use crate::{client::Actor, sensor::SensorData};
 use carla_sys::{carla::geom::Vector3D, carla_rust::sensor::data::FfiCollisionEvent};
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct CollisionEvent {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiCollisionEvent>,
 }
 

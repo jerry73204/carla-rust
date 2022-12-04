@@ -4,6 +4,7 @@ use carla_sys::carla::rpc::AttachmentType;
 use itertools::chain;
 use nalgebra::Isometry3;
 
+#[derive(Debug)]
 pub struct ActorBuilder<'a> {
     world: &'a mut World,
     blueprint: ActorBlueprint,

@@ -1,14 +1,16 @@
-use crate::sensor::SensorData;
-
 use super::Color;
+use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiImage;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use ndarray::ArrayView2;
 use std::slice;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Image {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiImage>,
 }
 

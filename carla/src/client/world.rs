@@ -13,13 +13,17 @@ use carla_sys::carla_rust::{
     new_vector_uint32_t,
 };
 use cxx::{let_cxx_string, UniquePtr};
+use derivative::Derivative;
 use nalgebra::Isometry3;
 use std::{ptr, time::Duration};
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct World {
+    #[derivative(Debug = "ignore")]
     pub(crate) inner: UniquePtr<FfiWorld>,
 }
 

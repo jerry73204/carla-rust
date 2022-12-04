@@ -1,14 +1,16 @@
-use crate::sensor::SensorData;
-
 use super::SemanticLidarDetection;
+use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiSemanticLidarMeasurement;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use ndarray::ArrayView2;
 use std::slice;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct SemanticLidarMeasurement {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiSemanticLidarMeasurement>,
 }
 

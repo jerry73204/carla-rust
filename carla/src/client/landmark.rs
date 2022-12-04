@@ -1,9 +1,12 @@
 use carla_sys::carla_rust::client::FfiLandmark;
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Landmark {
+    #[derivative(Debug = "ignore")]
     pub(crate) inner: SharedPtr<FfiLandmark>,
 }
 

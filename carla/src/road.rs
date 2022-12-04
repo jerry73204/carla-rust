@@ -9,8 +9,12 @@ pub mod element {
     pub use carla_sys::carla::road::element::{
         LaneMarking_Color, LaneMarking_LaneChange, LaneMarking_Type,
     };
+    use derivative::Derivative;
 
+    #[derive(Derivative)]
+    #[derivative(Debug)]
     pub struct LaneMarking {
+        #[derivative(Debug = "ignore")]
         inner: UniquePtr<FfiLaneMarking>,
     }
 

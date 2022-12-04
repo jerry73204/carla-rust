@@ -3,10 +3,14 @@ use crate::rpc::OpendriveGenerationParameters;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};
+use derivative::Derivative;
 use std::time::Duration;
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Client {
+    #[derivative(Debug = "ignore")]
     inner: UniquePtr<FfiClient>,
 }
 

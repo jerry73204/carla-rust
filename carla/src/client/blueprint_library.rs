@@ -2,10 +2,13 @@ use super::ActorBlueprint;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
 use cxx::{let_cxx_string, SharedPtr};
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct BlueprintLibrary {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiBlueprintLibrary>,
 }
 

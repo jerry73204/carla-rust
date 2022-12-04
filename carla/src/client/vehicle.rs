@@ -9,9 +9,13 @@ use carla_sys::{
     carla_rust::client::{FfiActor, FfiVehicle},
 };
 use cxx::{SharedPtr, UniquePtr};
+use derivative::Derivative;
 
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Vehicle {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiVehicle>,
 }
 

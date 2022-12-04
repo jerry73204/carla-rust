@@ -6,12 +6,16 @@ use carla_sys::carla_rust::{
     sensor::FfiSensorData,
 };
 use cxx::SharedPtr;
+use derivative::Derivative;
 use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct Sensor {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiSensor>,
 }
 

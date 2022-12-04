@@ -1,10 +1,13 @@
 use crate::{geom::GeoLocation, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiGnssMeasurement;
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct GnssMeasurement {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiGnssMeasurement>,
 }
 

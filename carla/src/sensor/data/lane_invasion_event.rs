@@ -2,10 +2,13 @@ use crate::{client::Actor, road::element::LaneMarking, sensor::SensorData};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
 use cxx::SharedPtr;
+use derivative::Derivative;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct LaneInvasionEvent {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiLaneInvasionEvent>,
 }
 

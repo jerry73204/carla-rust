@@ -3,9 +3,13 @@ use carla_sys::{
     carla::client::ActorBlueprint as FfiActorBlueprint, carla_rust::client::copy_actor_blueprint,
 };
 use cxx::{let_cxx_string, UniquePtr};
+use derivative::Derivative;
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct ActorBlueprint {
+    #[derivative(Debug = "ignore")]
     pub(crate) inner: UniquePtr<FfiActorBlueprint>,
 }
 

@@ -1,13 +1,15 @@
-use crate::sensor::SensorData;
-
 use super::RadarDetection;
+use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiRadarMeasurement;
 use cxx::SharedPtr;
+use derivative::Derivative;
 use std::slice;
 
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct RadarMeasurement {
+    #[derivative(Debug = "ignore")]
     inner: SharedPtr<FfiRadarMeasurement>,
 }
 

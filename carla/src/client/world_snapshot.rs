@@ -1,8 +1,12 @@
 use carla_sys::carla::client::WorldSnapshot as FfiWorldSnapshot;
 use cxx::UniquePtr;
+use derivative::Derivative;
 
+#[derive(Derivative)]
+#[derivative(Debug)]
 #[repr(transparent)]
 pub struct WorldSnapshot {
+    #[derivative(Debug = "ignore")]
     inner: UniquePtr<FfiWorldSnapshot>,
 }
 
