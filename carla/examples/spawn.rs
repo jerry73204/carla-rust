@@ -50,14 +50,14 @@ fn main() -> Result<()> {
 
     // Set sensor callbacks
     camera.listen(move |data| {
-        let image: Image = data.try_into().unwrap_or_else(|_| panic!("not an image"));
+        let image: Image = data.try_into().unwrap();
         let fov = image.fov_angle();
         let array = image.as_array();
         println!("image shape={:?} fov={}", array.shape(), fov);
     });
 
     lidar.listen(move |data| {
-        let measure: LidarMeasurement = data.try_into().unwrap_or_else(|_| panic!("not an image"));
+        let measure: LidarMeasurement = data.try_into().unwrap();
         let n_channels = measure.channel_count();
         println!("lidar n_channels={:?}", n_channels);
     });
