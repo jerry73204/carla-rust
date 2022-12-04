@@ -122,3 +122,12 @@ impl ActorBase for Vehicle {
         self.inner.to_actor()
     }
 }
+
+impl TryFrom<Actor> for Vehicle {
+    type Error = Actor;
+
+    fn try_from(value: Actor) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_vehicle();
+        Self::from_cxx(ptr).ok_or(value)
+    }
+}

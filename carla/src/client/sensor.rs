@@ -1,4 +1,4 @@
-use super::ActorBase;
+use super::{Actor, ActorBase};
 use crate::sensor::SensorData;
 use autocxx::c_void;
 use carla_sys::carla_rust::{
@@ -59,6 +59,15 @@ impl Sensor {
 impl ActorBase for Sensor {
     fn cxx_actor(&self) -> SharedPtr<FfiActor> {
         self.inner.to_actor()
+    }
+}
+
+impl TryFrom<Actor> for Sensor {
+    type Error = Actor;
+
+    fn try_from(value: Actor) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_sensor();
+        Self::from_cxx(ptr).ok_or(value)
     }
 }
 

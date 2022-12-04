@@ -1,4 +1,3 @@
-use super::{Sensor, Vehicle};
 use crate::geom::{LocationExt, TransformExt, Vector3DExt};
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
@@ -35,16 +34,6 @@ pub struct Actor {
 }
 
 impl Actor {
-    pub fn try_into_vehicle(self) -> Result<Vehicle, Self> {
-        let ptr = self.inner.to_vehicle();
-        Vehicle::from_cxx(ptr).ok_or(self)
-    }
-
-    pub fn try_into_sensor(self) -> Result<Sensor, Self> {
-        let ptr = self.inner.to_sensor();
-        Sensor::from_cxx(ptr).ok_or(self)
-    }
-
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiActor>) -> Option<Self> {
         if ptr.is_null() {
             None
