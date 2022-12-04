@@ -3,7 +3,6 @@ use crate::sensor::SensorData;
 use super::LidarDetection;
 use carla_sys::carla_rust::sensor::data::FfiLidarMeasurement;
 use cxx::SharedPtr;
-use ndarray::ArrayView2;
 use std::slice;
 
 #[derive(Clone)]
@@ -27,14 +26,6 @@ impl LidarMeasurement {
 
     pub fn as_slice(&self) -> &[LidarDetection] {
         unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
-    }
-
-    pub fn as_array(&self) -> ArrayView2<'_, LidarDetection> {
-        let len = self.len();
-        let ih = self.channel_count();
-        let iw = len / ih;
-        assert!(ih * iw == len);
-        ArrayView2::from_shape((iw, ih), self.as_slice()).unwrap()
     }
 
     pub fn len(&self) -> usize {
