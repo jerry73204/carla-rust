@@ -72,12 +72,16 @@ pub trait RotationExt {
 impl RotationExt for Rotation {
     fn from_na(from: &UnitQuaternion<f32>) -> Self {
         let (roll, pitch, yaw) = from.euler_angles();
-        Self { roll, pitch, yaw }
+        Self {
+            roll: roll.to_degrees(),
+            pitch: pitch.to_degrees(),
+            yaw: yaw.to_degrees(),
+        }
     }
 
     fn to_na(&self) -> UnitQuaternion<f32> {
         let Self { roll, pitch, yaw } = *self;
-        UnitQuaternion::from_euler_angles(roll, pitch, yaw)
+        UnitQuaternion::from_euler_angles(roll.to_radians(), pitch.to_radians(), yaw.to_radians())
     }
 }
 
