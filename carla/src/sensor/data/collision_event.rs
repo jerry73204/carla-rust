@@ -1,4 +1,4 @@
-use crate::client::Actor;
+use crate::{client::Actor, sensor::SensorData};
 use carla_sys::{carla::geom::Vector3D, carla_rust::sensor::data::FfiCollisionEvent};
 use cxx::SharedPtr;
 
@@ -27,5 +27,14 @@ impl CollisionEvent {
         } else {
             Some(Self { inner: ptr })
         }
+    }
+}
+
+impl TryFrom<SensorData> for CollisionEvent {
+    type Error = SensorData;
+
+    fn try_from(value: SensorData) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_collision_event();
+        Self::from_cxx(ptr).ok_or(value)
     }
 }

@@ -7,37 +7,7 @@
 #include <string>
 #include "carla/Time.h"
 #include "carla/Memory.h"
-#include "carla/client/Client.h"
-#include "carla/client/World.h"
-#include "carla/client/Map.h"
-#include "carla/client/Actor.h"
-#include "carla/client/ActorBlueprint.h"
-#include "carla/client/BlueprintLibrary.h"
-#include "carla/client/Sensor.h"
-#include "carla/client/Vehicle.h"
-#include "carla/client/TimeoutException.h"
-#include "carla/client/ActorList.h"
-#include "carla/client/Landmark.h"
-#include "carla/client/detail/EpisodeProxy.h"
-#include "carla/rpc/AttachmentType.h"
-#include "carla/rpc/MapLayer.h"
-#include "carla/rpc/OpendriveGenerationParameters.h"
-#include "carla/rpc/LabelledPoint.h"
-#include "carla/rpc/VehicleControl.h"
-#include "carla/rpc/VehiclePhysicsControl.h"
-#include "carla/rpc/VehicleDoor.h"
-#include "carla/rpc/VehicleWheels.h"
-#include "carla/rpc/VehicleLightState.h"
-#include "carla/rpc/TrafficLightState.h"
-#include "carla/road/element/LaneMarking.h"
-#include "carla/geom/Transform.h"
-#include "carla/geom/Location.h"
-#include "carla/geom/Rotation.h"
-#include "carla/geom/Vector2D.h"
-#include "carla/geom/Vector3D.h"
-#include "carla/geom/BoundingBox.h"
 #include "carla/sensor/SensorData.h"
-#include "carla/sensor/data/Color.h"
 #include "carla/sensor/data/Image.h"
 #include "carla/sensor/data/LidarData.h"
 #include "carla/sensor/data/SemanticLidarData.h"
@@ -46,8 +16,15 @@
 #include "carla/sensor/data/ObstacleDetectionEvent.h"
 #include "carla/sensor/data/CollisionEvent.h"
 #include "carla/sensor/data/LaneInvasionEvent.h"
+#include "carla/sensor/data/RadarMeasurement.h"
+#include "carla/sensor/data/LidarMeasurement.h"
+#include "carla/sensor/data/SemanticLidarMeasurement.h"
 #include "carla_rust/road.hpp"
-
+#include "carla_rust/sensor/data/gnss_measurement.hpp"
+#include "carla_rust/sensor/data/imu_measurement.hpp"
+#include "carla_rust/sensor/data/radar_measurement.hpp"
+#include "carla_rust/sensor/data/lidar_measurement.hpp"
+#include "carla_rust/sensor/data/semantic_lidar_measurement.hpp"
 
 namespace carla_rust
 {
@@ -58,13 +35,22 @@ namespace carla_rust
         using carla::sensor::data::CollisionEvent;
         using carla::sensor::data::ObstacleDetectionEvent;
         using carla::sensor::data::LaneInvasionEvent;
+        using carla::sensor::data::RadarMeasurement;
+        using carla::sensor::data::LidarMeasurement;
+        using carla::sensor::data::SemanticLidarMeasurement;
+        using carla::sensor::data::IMUMeasurement;
+        using carla::sensor::data::GnssMeasurement;
         using carla::geom::Transform;
-        using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiTransform;
         using carla_rust::sensor::data::FfiImage;
         using carla_rust::sensor::data::FfiCollisionEvent;
         using carla_rust::sensor::data::FfiObstacleDetectionEvent;
         using carla_rust::sensor::data::FfiLaneInvasionEvent;
+        using carla_rust::sensor::data::FfiRadarMeasurement;
+        using carla_rust::sensor::data::FfiLidarMeasurement;
+        using carla_rust::sensor::data::FfiSemanticLidarMeasurement;
+        using carla_rust::sensor::data::FfiImuMeasurement;
+        using carla_rust::sensor::data::FfiGnssMeasurement;
 
         class FfiSensorData {
         public:
@@ -96,6 +82,24 @@ namespace carla_rust
                 }
             }
 
+            std::shared_ptr<FfiGnssMeasurement> to_gnss_measurement() const {
+                auto ptr = boost::dynamic_pointer_cast<GnssMeasurement>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiGnssMeasurement>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiImuMeasurement> to_imu_measurement() const {
+                auto ptr = boost::dynamic_pointer_cast<IMUMeasurement>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiImuMeasurement>(std::move(ptr));
+                }
+            }
+
             std::shared_ptr<FfiCollisionEvent> to_collision_event() const {
                 auto ptr = boost::dynamic_pointer_cast<CollisionEvent>(inner_);
                 if (ptr == nullptr) {
@@ -120,6 +124,33 @@ namespace carla_rust
                     return nullptr;
                 } else {
                     return std::make_shared<FfiLaneInvasionEvent>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiLidarMeasurement> to_lidar_measurement() const {
+                auto ptr = boost::dynamic_pointer_cast<LidarMeasurement>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiLidarMeasurement>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiSemanticLidarMeasurement> to_semantic_lidar_measurement() const {
+                auto ptr = boost::dynamic_pointer_cast<SemanticLidarMeasurement>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiSemanticLidarMeasurement>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiRadarMeasurement> to_radar_measurement() const {
+                auto ptr = boost::dynamic_pointer_cast<RadarMeasurement>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiRadarMeasurement>(std::move(ptr));
                 }
             }
 

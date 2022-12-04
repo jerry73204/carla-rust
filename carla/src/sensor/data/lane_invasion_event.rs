@@ -1,4 +1,4 @@
-use crate::{client::Actor, road::element::LaneMarking};
+use crate::{client::Actor, road::element::LaneMarking, sensor::SensorData};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
 use cxx::SharedPtr;
@@ -29,5 +29,14 @@ impl LaneInvasionEvent {
         } else {
             Some(Self { inner: ptr })
         }
+    }
+}
+
+impl TryFrom<SensorData> for LaneInvasionEvent {
+    type Error = SensorData;
+
+    fn try_from(value: SensorData) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_lane_invasion_event();
+        Self::from_cxx(ptr).ok_or(value)
     }
 }

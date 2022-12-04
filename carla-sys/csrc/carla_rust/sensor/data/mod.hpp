@@ -10,3 +10,5 @@
 #include "lidar_measurement.hpp"
 #include "semantic_lidar_measurement.hpp"
 #include "radar_measurement.hpp"
+#include "gnss_measurement.hpp"
+#include "imu_measurement.hpp"

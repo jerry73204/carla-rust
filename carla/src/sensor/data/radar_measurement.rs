@@ -1,3 +1,5 @@
+use crate::sensor::SensorData;
+
 use super::RadarDetection;
 use carla_sys::carla_rust::sensor::data::FfiRadarMeasurement;
 use cxx::SharedPtr;
@@ -25,5 +27,22 @@ impl RadarMeasurement {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub(crate) fn from_cxx(ptr: SharedPtr<FfiRadarMeasurement>) -> Option<Self> {
+        if ptr.is_null() {
+            None
+        } else {
+            Some(Self { inner: ptr })
+        }
+    }
+}
+
+impl TryFrom<SensorData> for RadarMeasurement {
+    type Error = SensorData;
+
+    fn try_from(value: SensorData) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_radar_measurement();
+        Self::from_cxx(ptr).ok_or(value)
     }
 }

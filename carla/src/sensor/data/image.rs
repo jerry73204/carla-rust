@@ -1,3 +1,5 @@
+use crate::sensor::SensorData;
+
 use super::Color;
 use carla_sys::carla_rust::sensor::data::FfiImage;
 use cxx::SharedPtr;
@@ -56,5 +58,14 @@ impl Image {
         } else {
             Some(Self { inner: ptr })
         }
+    }
+}
+
+impl TryFrom<SensorData> for Image {
+    type Error = SensorData;
+
+    fn try_from(value: SensorData) -> Result<Self, Self::Error> {
+        let ptr = value.inner.to_image();
+        Self::from_cxx(ptr).ok_or(value)
     }
 }
