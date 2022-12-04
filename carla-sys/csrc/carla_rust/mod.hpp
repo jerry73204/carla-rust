@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "carla_rust/client.hpp"
-#include "carla_rust/geom.hpp"
-#include "carla_rust/rpc.hpp"
-#include "carla_rust/sensor.hpp"
-#include "carla_rust/road.hpp"
+#include "client.hpp"
+#include "geom.hpp"
+#include "rpc.hpp"
+#include "sensor/mod.hpp"
+#include "road.hpp"
 
 namespace carla_rust
 {
