@@ -1,21 +1,17 @@
 pub mod config;
 pub use config::Config;
 
-use anyhow::{ensure, Context, Result};
-use cfg_if::cfg_if;
+use anyhow::{ensure, Result};
 use flate2::bufread::GzDecoder;
-use itertools::chain;
 use log::info;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     env,
-    fs::{self, File, OpenOptions},
+    fs::{File, OpenOptions},
     io::{self, prelude::*, BufReader, BufWriter},
     path::{Path, PathBuf},
-    process::Command,
     sync::Arc,
-    thread,
 };
 use tar::Archive;
 
