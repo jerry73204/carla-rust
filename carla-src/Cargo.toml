@@ -1,9 +1,14 @@
 [package]
 name = "carla-src"
 version = "0.1.0"
+authors = ["jerry73204 <jerry73204@gmail.com>"]
+description = "A utility crate that prepares Carla simulator source code"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/jerry73204/carla"
+repository = "https://github.com/jerry73204/carla"
+documentation = "https://docs.rs/carla-src/"
 
 [dependencies]
 anyhow = "1.0.66"
