@@ -23,7 +23,6 @@ derivative = "2.2.0"
 
 [features]
 docs-only = ["carla-sys/docs-only"]
-bindgen = ["carla-sys/bindgen"]
 
 [package.metadata.docs.rs]
 no-default-features = true

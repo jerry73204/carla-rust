@@ -66,21 +66,17 @@ fn main() {
     add_library(&boost_dir, &["static=boost_filesystem"], &mut include_dirs);
 
     // Generate bindings
-    #[cfg(feature = "bindgen")]
-    {
-        let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
-        autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
-            .build()
-            .unwrap()
-            .flag_if_supported("-std=c++14")
-            .compile("carla_rust");
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
+    autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
+        .build()
+        .unwrap()
+        .flag_if_supported("-std=c++14")
+        .compile("carla_rust");
 
-        // Save generated bindings
-        save_bindings(&out_dir, &manifest_dir);
-    }
+    // Save generated bindings
+    save_bindings(&out_dir, &manifest_dir);
 }
 
-#[cfg(feature = "bindgen")]
 fn save_bindings(out_dir: &Path, manifest_dir: &Path) {
     use std::fs;
     let src_file = out_dir.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");

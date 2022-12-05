@@ -1,9 +1,9 @@
-#[cfg(not(feature = "bindgen"))]
+#[cfg(feature = "docs-only")]
 mod ffi_docs_only;
-#[cfg(not(feature = "bindgen"))]
+#[cfg(feature = "docs-only")]
 pub use ffi_docs_only::*;
 
-#[cfg(feature = "bindgen")]
+#[cfg(not(feature = "docs-only"))]
 mod ffi;
-#[cfg(feature = "bindgen")]
+#[cfg(not(feature = "docs-only"))]
 pub use ffi::*;

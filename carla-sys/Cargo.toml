@@ -16,12 +16,11 @@ autocxx = { version = "0.23.1" }
 cxx = "1.0.82"
 
 [build-dependencies]
-autocxx-build = { version = "0.23.1", optional = true }
+autocxx-build = { version = "0.23.1" }
 carla-bin = { version = "0.1.0", path = "../carla-bin" }
 
 [features]
 docs-only = []
-bindgen = ["autocxx-build"]
 
 [package.metadata.docs.rs]
 no-default-features = true
