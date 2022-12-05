@@ -3,4 +3,5 @@ members = [
     "carla",
     "carla-sys",
     "carla-src",
+    "carla-bin",
 ]

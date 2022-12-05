@@ -4,7 +4,6 @@ pub use config::Config;
 use anyhow::{ensure, Result};
 use flate2::bufread::GzDecoder;
 use log::info;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     env,
@@ -14,14 +13,6 @@ use std::{
     sync::Arc,
 };
 use tar::Archive;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CarlaSrc {
-    pub carla_src_dir: PathBuf,
-    pub include_dirs: Vec<PathBuf>,
-    pub lib_dirs: Vec<PathBuf>,
-    pub libs: Vec<String>,
-}
 
 pub(crate) fn load(config: Config) -> Result<PathBuf> {
     let out_dir = config.out_dir.clone().unwrap_or_else(|| {
@@ -146,50 +137,3 @@ where
 
     (callback)().map(Some)
 }
-
-// fn llvm8_include_dir() -> Result<PathBuf> {
-//     let mut stdout = Command::new("llvm-config-8")
-//         .arg("--includedir")
-//         .output()
-//         .with_context(|| "Is llvm-config-8 installed on your system?")?
-//         .stdout;
-
-//     // Remove a trailing '\n'
-//     assert!(stdout.pop() == Some(b'\n'));
-
-//     let path = bytes_to_path(stdout)?;
-//     Ok(path)
-// }
-
-// fn llvm8_lib_dir() -> Result<PathBuf> {
-//     let mut stdout = Command::new("llvm-config-8")
-//         .arg("--libdir")
-//         .output()
-//         .with_context(|| "Is llvm-config-8 installed on your system?")?
-//         .stdout;
-
-//     // Remove a trailing '\n'
-//     assert!(stdout.pop() == Some(b'\n'));
-
-//     let path = bytes_to_path(stdout)?;
-//     Ok(path)
-// }
-
-// fn bytes_to_path(bytes: Vec<u8>) -> Result<PathBuf> {
-//     let path = {
-//         cfg_if! {
-//             if #[cfg(unix)] {
-//                 use std::os::unix::ffi::OsStringExt;
-//                 PathBuf::from(OsString::from_vec(bytes))
-//             } else if #[cfg(windows)] {
-//                 use std::os::windows::ffi::OsStringExt;
-//                 let bytes: &[u16] = safe_transmute::transmute_many_pedantic(&stdout)?;
-//                 PathBuf::from(OsString::from_wide(bytes))
-//             } else if #[cfg(wasm)] {
-//                 use std::os::wasi::ffi::OsStringExt;
-//                 PathBuf::from(OsString::from_vec(bytes))
-//             }
-//         }
-//     };
-//     Ok(path)
-// }
