@@ -12,18 +12,16 @@ repository = "https://github.com/jerry73204/carla"
 documentation = "https://docs.rs/carla-sys/"
 
 [dependencies]
-autocxx = "0.23.1"
-cfg-if = "1.0.0"
+autocxx = { version = "0.23.1" }
 cxx = "1.0.82"
 
 [build-dependencies]
-autocxx-build = "0.23.1"
-pkg-config = "0.3.26"
-carla-src = { version = "0.1.0", path = "../carla-src" }
+autocxx-build = { version = "0.23.1", optional = true }
+carla-bin = { version = "0.1.0", path = "../carla-bin" }
 
 [features]
 docs-only = []
-save-bindings = []
+bindgen = ["autocxx-build"]
 
 [package.metadata.docs.rs]
 no-default-features = true

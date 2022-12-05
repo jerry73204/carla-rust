@@ -1,5 +1,7 @@
 use autocxx::prelude::*;
 
+pub use ffi::*;
+
 include_cpp! {
     #include "carla_rust.hpp"
 
