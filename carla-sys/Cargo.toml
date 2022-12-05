@@ -11,3 +11,4 @@ cxx = "1.0.82"
 [build-dependencies]
 autocxx-build = "0.23.1"
 pkg-config = "0.3.26"
+carla-src = { version = "0.1.0", path = "../carla-src" }

@@ -1,31 +1,5 @@
 {
-    "c_compiler": "clang-8",
-    "cxx_compiler": "clang++-8",
-    "carla": {
-        "url": "https://github.com/jerry73204/carla/archive/64591d7e69abe28efc7ed47cd74e2d39497aa7c6.tar.gz",
-        "dir": "carla-64591d7e69abe28efc7ed47cd74e2d39497aa7c6",
-        "sha256sum": "0fc1ecb1ec9ad0b77969e44ef7c64a1daa1202b2ffd1c7a783cc5cbb7daed93f",
-    },
-    "recast": {
-        "url": "https://github.com/carla-simulator/recastnavigation/archive/0b13b0d288ac96fdc5347ee38299511c6e9400db.tar.gz",
-        "dir": "recastnavigation-0b13b0d288ac96fdc5347ee38299511c6e9400db",
-        "sha256sum": "6ead4a7b38191d2cdb33ccdc7f14a3ba42935dfbc0698131bf5c9e2f400f4e66",
-    },
-    "rpclib": {
-        "url": "https://github.com/carla-simulator/rpclib/archive/9bb73dae8f91c67b382b02f8b5b63a6cfcd865b2.tar.gz",
-        "dir": "rpclib-9bb73dae8f91c67b382b02f8b5b63a6cfcd865b2",
-        "sha256sum": "e465fd9ebcadd5a50657d210943bc47067a5c0d00716df0e9d631d7ce3ed4166",
-    },
-    "libpng": {
-        "url": "https://sourceforge.net/projects/libpng/files/libpng16/1.6.37/libpng-1.6.37.tar.gz",
-        "dir": "libpng-1.6.37",
-        "sha256sum": "daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4",
-    },
-    "boost": {
-        "url": "https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.gz",
-        "dir": "boost_1_80_0",
-        "sha256sum": "4b2136f98bdd1f5857f1c3dea9ac2018effe65286cf251534b6ae20cc45e1847",
-        "bootstrap_toolset": "clang",
-        "b2_toolset": "clang-8.0",
-    },
+    "url": "https://github.com/jerry73204/carla/archive/6b98a4a41128929044e814bc051c043003e0bbfd.tar.gz",
+    "dir": "carla-6b98a4a41128929044e814bc051c043003e0bbfd",
+    "sha256sum": "80f0c592a29c9960fe2e3f342a1adb4a42e5a45ba48ff3820946d46374897da2",
 }
