@@ -7,8 +7,14 @@ use std::{
 
 fn main() {
     // Set rerun triggers
-    println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-env-changed=CARLA_CIR");
+
+    // If docs-only feature presents, use saved bindings.rs instead.
+    #[cfg(feature = "docs-only")]
+    {
+        return;
+    }
 
     // Prepare Carla source code
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
@@ -19,17 +25,7 @@ fn main() {
             println!("cargo:rerun-if-changed={}", dir.display());
             dir
         }
-        None => {
-            let prepare_dir = out_dir.join("prepare");
-            fs::create_dir_all(&prepare_dir).unwrap();
-
-            carla_src::Config {
-                out_dir: Some(prepare_dir),
-                ..Default::default()
-            }
-            .load()
-            .unwrap()
-        }
+        None => prepare_carla_dir(&out_dir),
     };
 
     // Prepare paths
@@ -50,9 +46,6 @@ fn main() {
     let rpclib_dir = build_dir.join("rpclib-v2.2.1_c5-c8-libstdcxx-install");
     let boost_dir = build_dir.join("boost-1.80.0-c8-install");
     let libpng_dir = build_dir.join("libpng-1.6.37-install");
-
-    // Build LibCarla.client library
-    build_libcarla_client_library(&out_dir, &carla_dir);
 
     let mut include_dirs = vec![];
 
@@ -83,11 +76,15 @@ fn main() {
     add_library(&boost_dir, &["static=boost_filesystem"], &mut include_dirs);
 
     // Generate bindings
-    autocxx_build::Builder::new("src/lib.rs", &include_dirs)
+    autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
         .build()
         .unwrap()
         .flag_if_supported("-std=c++14")
         .compile("carla_rust");
+
+    // Save generated bindings
+    #[cfg(feature = "save-bindings")]
+    save_bindings(&out_dir, &manifest_dir);
 }
 
 fn build_libcarla_client_library(out_dir: &Path, carla_src_dir: &Path) {
@@ -105,6 +102,31 @@ fn build_libcarla_client_library(out_dir: &Path, carla_src_dir: &Path) {
 
     // Mark the step is done
     touch(&ready_file);
+}
+
+#[cfg(feature = "save-bindings")]
+fn save_bindings(out_dir: &Path, manifest_dir: &Path) {
+    let src_file = out_dir.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
+    let tgt_dir = manifest_dir.join("generated");
+    let tgt_file = tgt_dir.join("bindings.rs");
+    fs::create_dir_all(&tgt_dir).unwrap();
+    fs::copy(src_file, tgt_file).unwrap();
+}
+
+fn prepare_carla_dir(out_dir: &Path) {
+    let prepare_dir = out_dir.join("prepare");
+    fs::create_dir_all(&prepare_dir).unwrap();
+
+    // Download source code
+    let carla_dir = carla_src::Config {
+        out_dir: Some(prepare_dir),
+        ..Default::default()
+    }
+    .load()
+    .unwrap();
+
+    // Build LibCarla.client library
+    build_libcarla_client_library(&out_dir, &carla_dir);
 }
 
 fn add_library(dir: &Path, libs: &[&str], include_dirs: &mut Vec<PathBuf>) {
