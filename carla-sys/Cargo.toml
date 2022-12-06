@@ -17,7 +17,7 @@ cxx = "1.0.82"
 
 [build-dependencies]
 autocxx-build = { version = "0.23.1" }
-carla-bin = { version = "0.1.0", path = "../carla-bin" }
+carla-bin = { version = "0.1.1", path = "../carla-bin" }
 
 [features]
 docs-only = []
