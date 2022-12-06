@@ -1,6 +1,5 @@
-pub use carla_sys::carla::road::{
-    JuncId, LaneId, Lane_LaneType as LaneType, RoadId, SectionId, SignId,
-};
+pub use carla_sys::carla::road::{JuncId, LaneId, Lane_LaneType as LaneType, RoadId, SectionId};
+pub type SignId = String;
 
 pub mod element {
     use carla_sys::carla_rust::road::element::FfiLaneMarking;

@@ -75,6 +75,7 @@ namespace carla_rust
         using carla::client::Landmark;
         using carla::client::WorldSnapshot;
         using carla::client::Vehicle;
+        using carla::client::TrafficSign;
         using carla::client::TimeoutException;
         using carla::client::ActorList;
         using carla::rpc::AttachmentType;
@@ -104,6 +105,7 @@ namespace carla_rust
         using carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT;
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiTransform;
+        using carla_rust::geom::FfiBoundingBox;
         using carla_rust::sensor::FfiSensorData;
         using carla_rust::rpc::FfiEpisodeSettings;
         using carla_rust::rpc::FfiActorId;
@@ -360,6 +362,30 @@ namespace carla_rust
         //     return new_;
         // }
 
+
+        // TrafficSign
+        class FfiTrafficSign {
+        public:
+            FfiTrafficSign(SharedPtr<TrafficSign> &&base)
+                : inner_(std::move(base))
+            {}
+
+            const FfiBoundingBox &GetTriggerVolume() const {
+                return FfiBoundingBox(inner_->GetTriggerVolume());
+            }
+
+            SignId GetSignId() const {
+                return inner_->GetSignId();
+            }
+
+            std::shared_ptr<FfiActor> to_actor() const {
+                SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
+                return std::make_shared<FfiActor>(std::move(ptr));
+            }
+
+        private:
+            SharedPtr<TrafficSign> inner_;
+        };
 
         // Vehicle
         class FfiVehicle {
@@ -653,6 +679,15 @@ namespace carla_rust
                     return nullptr;
                 } else {
                     return std::make_shared<FfiSensor>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiTrafficSign> to_traffic_sign() const {
+                SharedPtr<TrafficSign> ptr = boost::dynamic_pointer_cast<TrafficSign>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiTrafficSign>(std::move(ptr));
                 }
             }
 

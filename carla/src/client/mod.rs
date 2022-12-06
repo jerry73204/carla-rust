@@ -42,3 +42,6 @@ pub use waypoint::*;
 
 mod actor_builder;
 pub use actor_builder::*;
+
+mod traffic_sign;
+pub use traffic_sign::*;

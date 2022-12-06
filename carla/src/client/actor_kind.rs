@@ -1,9 +1,10 @@
-use super::{Actor, Sensor, Vehicle};
+use super::{Actor, Sensor, TrafficSign, Vehicle};
 
 #[derive(Debug, Clone)]
 pub enum ActorKind {
     Vehicle(Vehicle),
     Sensor(Sensor),
+    TrafficSign(TrafficSign),
     Other(Actor),
 }
 
@@ -32,6 +33,14 @@ impl ActorKind {
         matches!(self, Self::Other(..))
     }
 
+    /// Returns `true` if the actor kind is [`TrafficSign`].
+    ///
+    /// [`TrafficSign`]: ActorKind::TrafficSign
+    #[must_use]
+    pub fn is_traffic_sign(&self) -> bool {
+        matches!(self, Self::TrafficSign(..))
+    }
+
     pub fn try_into_vehicle(self) -> Result<Vehicle, Self> {
         if let Self::Vehicle(v) = self {
             Ok(v)
@@ -55,6 +64,14 @@ impl ActorKind {
             Err(self)
         }
     }
+
+    pub fn try_into_traffic_sign(self) -> Result<TrafficSign, Self> {
+        if let Self::TrafficSign(v) = self {
+            Ok(v)
+        } else {
+            Err(self)
+        }
+    }
 }
 
 impl From<Actor> for ActorKind {
@@ -72,5 +89,11 @@ impl From<Sensor> for ActorKind {
 impl From<Vehicle> for ActorKind {
     fn from(v: Vehicle) -> Self {
         Self::Vehicle(v)
+    }
+}
+
+impl From<TrafficSign> for ActorKind {
+    fn from(v: TrafficSign) -> Self {
+        Self::TrafficSign(v)
     }
 }
