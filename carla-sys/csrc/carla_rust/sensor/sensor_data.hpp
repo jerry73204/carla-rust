@@ -1,30 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <limits>
-#include <memory>
-#include <vector>
-#include <string>
-#include "carla/Time.h"
-#include "carla/Memory.h"
-#include "carla/sensor/SensorData.h"
-#include "carla/sensor/data/Image.h"
-#include "carla/sensor/data/LidarData.h"
-#include "carla/sensor/data/SemanticLidarData.h"
-#include "carla/sensor/data/IMUMeasurement.h"
-#include "carla/sensor/data/GnssMeasurement.h"
-#include "carla/sensor/data/ObstacleDetectionEvent.h"
-#include "carla/sensor/data/CollisionEvent.h"
-#include "carla/sensor/data/LaneInvasionEvent.h"
-#include "carla/sensor/data/RadarMeasurement.h"
-#include "carla/sensor/data/LidarMeasurement.h"
-#include "carla/sensor/data/SemanticLidarMeasurement.h"
-#include "carla_rust/road.hpp"
-#include "carla_rust/sensor/data/gnss_measurement.hpp"
-#include "carla_rust/sensor/data/imu_measurement.hpp"
-#include "carla_rust/sensor/data/radar_measurement.hpp"
-#include "carla_rust/sensor/data/lidar_measurement.hpp"
-#include "carla_rust/sensor/data/semantic_lidar_measurement.hpp"
+#include "data/mod.hpp"
 
 namespace carla_rust
 {

@@ -129,7 +129,7 @@ namespace carla_rust
                     new_.push_back(FfiLocation(std::move(loc)));
                 }
 
-                return std::move(new_);
+                return new_;
             }
 
             std::vector<FfiLocation> GetWorldVertices(const FfiTransform &in_bbox_to_world_tr) const {
@@ -140,7 +140,7 @@ namespace carla_rust
                     new_.push_back(FfiLocation(std::move(loc)));
                 }
 
-                return std::move(new_);
+                return new_;
             }
 
             const BoundingBox& as_native() const {

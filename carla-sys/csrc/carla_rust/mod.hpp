@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "client.hpp"
+#include "client/mod.hpp"
 #include "geom.hpp"
 #include "rpc.hpp"
 #include "sensor/mod.hpp"
@@ -21,8 +21,8 @@ namespace carla_rust
     //     return std::shared_ptr<T>(pq, pq.get()->get());
     // }
 
-    std::unique_ptr<std::vector<uint32_t>> new_vector_uint32_t() {
-        return std::make_unique<std::vector<uint32_t>>();
-    }
+    // std::unique_ptr<std::vector<uint32_t>> new_vector_uint32_t() {
+    //     return std::make_unique<std::vector<uint32_t>>();
+    // }
 
 }
