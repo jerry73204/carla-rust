@@ -6,8 +6,8 @@ description = "Rust client library for Carla simulator"
 edition = "2021"
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/jerry73204/carla"
-repository = "https://github.com/jerry73204/carla"
+homepage = "https://github.com/jerry73204/carla-rust"
+repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla/"
 
 [dependencies]
