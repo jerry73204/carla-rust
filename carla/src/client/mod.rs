@@ -1,6 +1,12 @@
 mod actor;
 pub use actor::*;
 
+mod actor_kind;
+pub use actor_kind::*;
+
+mod actor_base;
+pub use actor_base::*;
+
 mod blueprint_library;
 pub use blueprint_library::*;
 
