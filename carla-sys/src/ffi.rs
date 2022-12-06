@@ -64,6 +64,7 @@ include_cpp! {
     generate_ns!("carla_rust")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
+    generate_pod!("carla_rust::geom::FfiBoundingBox")
     generate_pod!("carla_rust::sensor::data::FfiColor")
     generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")

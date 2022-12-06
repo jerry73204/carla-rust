@@ -1,10 +1,11 @@
+use carla_sys::carla_rust::geom::FfiBoundingBox as NativeBoundingBox;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
+use static_assertions::assert_impl_all;
 
 pub use carla_sys::{
     carla::geom::{GeoLocation, Rotation, Vector2D, Vector3D},
     carla_rust::geom::{FfiLocation as Location, FfiTransform as Transform},
 };
-use static_assertions::assert_impl_all;
 
 pub trait Vector2DExt {
     fn from_na(from: &Vector2<f32>) -> Self;
@@ -110,8 +111,68 @@ impl TransformExt for Transform {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct BoundingBox<T> {
+    pub transform: Isometry3<T>,
+    pub extent: Vector3<T>,
+}
+
+impl BoundingBox<f32> {
+    pub fn to_native(&self) -> NativeBoundingBox {
+        let Self { transform, extent } = self;
+        NativeBoundingBox {
+            location: Location::from_na(&transform.translation),
+            rotation: Rotation::from_na(&transform.rotation),
+            extent: Vector3D::from_na(extent),
+        }
+    }
+
+    pub fn from_native(bbox: &NativeBoundingBox) -> Self {
+        let NativeBoundingBox {
+            location,
+            extent,
+            rotation,
+        } = bbox;
+        Self {
+            transform: Isometry3 {
+                rotation: rotation.to_na(),
+                translation: location.to_na(),
+            },
+            extent: extent.to_na(),
+        }
+    }
+
+    pub fn contains(
+        &self,
+        in_world_point: &Translation3<f32>,
+        in_bbox_to_world_transform: &Isometry3<f32>,
+    ) -> bool {
+        self.to_native().Contains(
+            &Location::from_na(in_world_point),
+            &Transform::from_na(in_bbox_to_world_transform),
+        )
+    }
+
+    pub fn local_vertices(&self) -> Vec<Translation3<f32>> {
+        self.to_native()
+            .GetLocalVertices()
+            .iter()
+            .map(|loc| loc.to_na())
+            .collect()
+    }
+
+    pub fn world_vertices(&self, in_bbox_to_world_tr: &Isometry3<f32>) -> Vec<Translation3<f32>> {
+        self.to_native()
+            .GetWorldVertices(&Transform::from_na(in_bbox_to_world_tr))
+            .iter()
+            .map(|loc| loc.to_na())
+            .collect()
+    }
+}
+
 assert_impl_all!(Vector2D: Send, Sync);
 assert_impl_all!(Vector3D: Send, Sync);
 assert_impl_all!(Location: Send, Sync);
 assert_impl_all!(Rotation: Send, Sync);
 assert_impl_all!(Transform: Send, Sync);
+assert_impl_all!(NativeBoundingBox: Send, Sync);

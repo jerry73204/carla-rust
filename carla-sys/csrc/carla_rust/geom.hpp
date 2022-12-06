@@ -46,6 +46,7 @@ namespace carla_rust
         using carla::geom::Location;
         using carla::geom::Rotation;
         using carla::geom::Vector3D;
+        using carla::geom::BoundingBox;
 
         // Location
         class FfiLocation {
@@ -91,5 +92,62 @@ namespace carla_rust
         };
 
         static_assert(sizeof(FfiTransform) == sizeof(Transform), "FfiTransform and Transform size mismatch");
+
+        // BoundingBox
+        class FfiBoundingBox {
+        public:
+            FfiLocation location;
+            Vector3D extent;
+            Rotation rotation;
+
+            FfiBoundingBox(BoundingBox &&base)
+                :
+                location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
+                rotation(std::move(base.rotation))
+
+            {}
+
+            FfiBoundingBox(const BoundingBox &base)
+                :
+                location(reinterpret_cast<const FfiLocation&>(base.location)),
+                rotation(std::move(base.rotation))
+
+            {}
+
+            bool Contains(const FfiLocation &in_world_point,
+                          const FfiTransform &in_bbox_to_world_transform) const
+            {
+                return as_native().Contains(in_world_point.as_native(),
+                                            in_bbox_to_world_transform.as_native());
+            }
+
+            std::vector<FfiLocation> GetLocalVertices() const {
+                auto orig = as_native().GetLocalVertices();
+                std::vector<FfiLocation> new_;
+
+                for (Location& loc: orig) {
+                    new_.push_back(FfiLocation(std::move(loc)));
+                }
+
+                return std::move(new_);
+            }
+
+            std::vector<FfiLocation> GetWorldVertices(const FfiTransform &in_bbox_to_world_tr) const {
+                auto orig = as_native().GetWorldVertices(in_bbox_to_world_tr.as_native());
+                std::vector<FfiLocation> new_;
+
+                for (Location& loc: orig) {
+                    new_.push_back(FfiLocation(std::move(loc)));
+                }
+
+                return std::move(new_);
+            }
+
+            const BoundingBox& as_native() const {
+                return reinterpret_cast<const BoundingBox&>(*this);
+            }
+        };
+
+        static_assert(sizeof(FfiBoundingBox) == sizeof(BoundingBox), "FfiBoundingBox and BoundingBox size mismatch");
     }
 }
