@@ -371,7 +371,8 @@ namespace carla_rust
             {}
 
             const FfiBoundingBox &GetTriggerVolume() const {
-                return FfiBoundingBox(inner_->GetTriggerVolume());
+                const BoundingBox& bbox = inner_->GetTriggerVolume();
+                return FfiBoundingBox(bbox);
             }
 
             SignId GetSignId() const {
