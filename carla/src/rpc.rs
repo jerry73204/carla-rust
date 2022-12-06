@@ -5,7 +5,7 @@ pub use carla_sys::carla::rpc::{
 };
 use carla_sys::carla_rust::rpc::FfiEpisodeSettings;
 
-pub type ActorId = u32;
+pub use carla_sys::carla_rust::rpc::FfiActorId as ActorId;
 
 #[derive(Debug, Clone)]
 pub struct EpisodeSettings {

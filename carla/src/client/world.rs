@@ -202,4 +202,10 @@ impl World {
     }
 }
 
+impl Clone for World {
+    fn clone(&self) -> Self {
+        Self::from_cxx(self.inner.clone().within_unique_ptr()).unwrap()
+    }
+}
+
 assert_impl_all!(World: Send);

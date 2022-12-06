@@ -58,7 +58,7 @@ namespace carla_rust
                 *this = std::move(reinterpret_cast<FfiLocation&&>(base));
             }
 
-            const Location& as_location() const {
+            const Location& as_native() const {
                 return reinterpret_cast<const Location&>(*this);
             }
         };
@@ -85,7 +85,7 @@ namespace carla_rust
 
             {}
 
-            const Transform& as_transform() const {
+            const Transform& as_native() const {
                 return reinterpret_cast<const Transform&>(*this);
             }
         };

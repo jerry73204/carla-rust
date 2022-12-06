@@ -87,7 +87,7 @@ namespace carla_rust
         using carla::rpc::VehicleWheelLocation;
         using carla::rpc::TrafficLightState;
         using carla::rpc::VehicleLightState;
-        using carla::rpc::ActorId;
+        // using carla::rpc::ActorId;
         // using LightState = carla::rpc::VehicleLightState::LightState;
         using carla::road::Lane;
         using carla::road::RoadId;
@@ -106,6 +106,7 @@ namespace carla_rust
         using carla_rust::geom::FfiTransform;
         using carla_rust::sensor::FfiSensorData;
         using carla_rust::rpc::FfiEpisodeSettings;
+        using carla_rust::rpc::FfiActorId;
 
         class ListenCallback {
         public:
@@ -147,6 +148,7 @@ namespace carla_rust
         class FfiVehicle;
         class FfiWaypoint;
         class FfiLandmark;
+        class FfiWorld;
 
         // Waypoint
         std::vector<std::shared_ptr<FfiWaypoint>> to_ffi_waypoint_vec(std::vector<SharedPtr<Waypoint>> &&orig) {
@@ -306,7 +308,7 @@ namespace carla_rust
                                             bool project_to_road = true,
                                             int32_t lane_type = static_cast<uint32_t>(Lane::LaneType::Driving)) const
             {
-                auto ptr = inner_->GetWaypoint(location.as_location(), project_to_road, lane_type);
+                auto ptr = inner_->GetWaypoint(location.as_native(), project_to_road, lane_type);
                 if (ptr == nullptr) {
                     return nullptr;
                 } else {
@@ -517,6 +519,45 @@ namespace carla_rust
                 return FfiTransform(std::move(transform));
             }
 
+            FfiActorId GetId() const {
+                return inner_->GetId();
+            }
+
+            const std::string &GetTypeId() const {
+                return inner_->GetTypeId();
+            }
+
+            const std::string &GetDisplayId() const {
+                return inner_->GetDisplayId();
+            }
+
+            FfiActorId GetParentId() const {
+                return inner_->GetParentId();
+            }
+
+            const std::vector<uint8_t> &GetSemanticTags() const {
+                return inner_->GetSemanticTags();
+            }
+
+            std::shared_ptr<FfiActor> GetParent() const {
+                auto parent = inner_->GetParent();
+                if (parent == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(parent));
+                }
+            }
+
+            std::unique_ptr<FfiWorld> GetWorld() const {
+                auto world = inner_->GetWorld();
+                return std::make_unique<FfiWorld>(std::move(world));
+            }
+
+            // const std::vector<ActorAttributeValue> &GetAttributes() const
+            // {
+            //     return inner_->GetAttributes();
+            // }
+
             Vector3D GetVelocity() const {
                 return inner_->GetVelocity();
             }
@@ -527,6 +568,74 @@ namespace carla_rust
 
             Vector3D GetAcceleration() const {
                 return inner_->GetAcceleration();
+            }
+
+            void SetLocation(const FfiLocation &location) const {
+                return inner_->SetLocation(location.as_native());
+            }
+
+            void SetTransform(const FfiTransform &transform) const {
+                return inner_->SetTransform(transform.as_native());
+            }
+
+            void SetTargetVelocity(const Vector3D &vector) const {
+                return inner_->SetTargetVelocity(vector);
+            }
+
+            void SetTargetAngularVelocity(const Vector3D &vector) const {
+                return inner_->SetTargetAngularVelocity(vector);
+            }
+
+            void EnableConstantVelocity(const Vector3D &vector) const {
+                return inner_->EnableConstantVelocity(vector);
+            }
+
+            void DisableConstantVelocity() const {
+                return inner_->DisableConstantVelocity();
+            }
+
+            void AddImpulse1(const Vector3D &vector) const {
+                return inner_->AddImpulse(vector);
+            }
+
+            void AddImpulse2(const Vector3D &impulse, const Vector3D &location) const {
+                return inner_->AddImpulse(impulse, location);
+            }
+
+            void AddForce1(const Vector3D &force) const {
+                return inner_->AddForce(force);
+            }
+
+            void AddForce2(const Vector3D &force, const Vector3D &location) const {
+                return inner_->AddForce(force, location);
+            }
+
+            void AddAngularImpulse(const Vector3D &vector) const {
+                return inner_->AddAngularImpulse(vector);
+            }
+
+            void AddTorque(const Vector3D &vector) const {
+                return inner_->AddTorque(vector);
+            }
+
+            void SetSimulatePhysics(bool enabled) const {
+                return inner_->SetSimulatePhysics(enabled);
+            }
+
+            void SetEnableGravity(bool enabled) const {
+                return inner_->SetEnableGravity(enabled);
+            }
+
+            bool IsAlive() const {
+                return inner_->IsAlive();
+            }
+
+            bool IsDormant() const {
+                return inner_->IsDormant();
+            }
+
+            bool IsActive() const {
+                return inner_->IsActive();
             }
 
             std::shared_ptr<FfiVehicle> to_vehicle() const {
@@ -673,7 +782,7 @@ namespace carla_rust
                     parent_arg = ptr.get();
                 }
 
-                auto transform_arg = transform.as_transform();
+                const Transform& transform_arg = transform.as_native();
 
                 auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
                 if (actor == nullptr) {
@@ -830,6 +939,10 @@ namespace carla_rust
             std::shared_ptr<FfiActorList> GetActorsByIds(const std::vector<uint32_t> &actor_ids) const {
                 auto list = inner_.GetActors(actor_ids);
                 return std::make_shared<FfiActorList>(std::move(list));
+            }
+
+            FfiWorld clone() const {
+                return *this;
             }
 
         private:

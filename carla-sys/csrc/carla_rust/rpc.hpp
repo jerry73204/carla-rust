@@ -44,6 +44,10 @@ namespace carla_rust
 {
     namespace rpc {
         using carla::rpc::EpisodeSettings;
+        using carla::rpc::ActorId;
+
+        using FfiActorId = uint32_t;
+        static_assert(sizeof(FfiActorId) == sizeof(ActorId), "FfiActorId has incorrect size");
 
         class FfiEpisodeSettings {
         public:

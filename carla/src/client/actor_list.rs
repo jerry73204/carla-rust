@@ -39,6 +39,11 @@ impl ActorList {
         self.inner.empty()
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = Actor> + Send {
+        let list = self.clone();
+        (0..self.len()).scan(list, |list, idx| Some(list.get(idx).unwrap()))
+    }
+
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiActorList>) -> Option<Self> {
         if ptr.is_null() {
             None
