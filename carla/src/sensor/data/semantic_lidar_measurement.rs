@@ -4,6 +4,7 @@ use carla_sys::carla_rust::sensor::data::FfiSemanticLidarMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use ndarray::ArrayView2;
+use static_assertions::assert_impl_all;
 use std::slice;
 
 #[derive(Clone, Derivative)]
@@ -65,3 +66,5 @@ impl TryFrom<SensorData> for SemanticLidarMeasurement {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(SemanticLidarMeasurement: Send, Sync);

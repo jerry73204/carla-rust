@@ -4,6 +4,7 @@ pub use carla_sys::{
     carla::geom::{GeoLocation, Rotation, Vector2D, Vector3D},
     carla_rust::geom::{FfiLocation as Location, FfiTransform as Transform},
 };
+use static_assertions::assert_impl_all;
 
 pub trait Vector2DExt {
     fn from_na(from: &Vector2<f32>) -> Self;
@@ -108,3 +109,9 @@ impl TransformExt for Transform {
         }
     }
 }
+
+assert_impl_all!(Vector2D: Send, Sync);
+assert_impl_all!(Vector3D: Send, Sync);
+assert_impl_all!(Location: Send, Sync);
+assert_impl_all!(Rotation: Send, Sync);
+assert_impl_all!(Transform: Send, Sync);

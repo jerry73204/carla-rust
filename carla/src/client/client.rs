@@ -4,6 +4,7 @@ use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 use std::time::Duration;
 
 #[derive(Derivative)]
@@ -98,3 +99,5 @@ impl Default for Client {
         Self::connect("localhost", 2000, None)
     }
 }
+
+assert_impl_all!(Client: Send);

@@ -4,6 +4,7 @@ use carla_sys::{
 };
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -74,3 +75,5 @@ impl Clone for ActorBlueprint {
         Self { inner: clone }
     }
 }
+
+assert_impl_all!(ActorBlueprint: Send, Sync);

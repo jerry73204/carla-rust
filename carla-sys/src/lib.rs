@@ -7,3 +7,5 @@ pub use ffi_docs_only::*;
 mod ffi;
 #[cfg(not(feature = "docs-only"))]
 pub use ffi::*;
+
+mod impls;

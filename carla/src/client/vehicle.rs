@@ -10,6 +10,7 @@ use carla_sys::{
 };
 use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -135,3 +136,5 @@ impl TryFrom<Actor> for Vehicle {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(Vehicle: Send, Sync);

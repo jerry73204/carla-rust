@@ -2,6 +2,7 @@ use crate::{geom::GeoLocation, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiGnssMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -45,3 +46,5 @@ impl TryFrom<SensorData> for GnssMeasurement {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(GnssMeasurement: Send, Sync);

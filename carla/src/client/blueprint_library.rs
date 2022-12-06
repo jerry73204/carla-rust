@@ -3,6 +3,7 @@ use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
 use cxx::{let_cxx_string, SharedPtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -57,3 +58,5 @@ impl BlueprintLibrary {
         self.inner.is_empty()
     }
 }
+
+assert_impl_all!(BlueprintLibrary: Send, Sync);

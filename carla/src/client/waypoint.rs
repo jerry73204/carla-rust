@@ -6,6 +6,7 @@ use carla_sys::carla_rust::client::FfiWaypoint;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use nalgebra::Isometry3;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -74,3 +75,5 @@ impl Waypoint {
         }
     }
 }
+
+assert_impl_all!(Waypoint: Send, Sync);

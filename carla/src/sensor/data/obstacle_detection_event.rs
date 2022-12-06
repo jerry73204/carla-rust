@@ -2,6 +2,7 @@ use crate::{client::Actor, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiObstacleDetectionEvent;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -41,3 +42,5 @@ impl TryFrom<SensorData> for ObstacleDetectionEvent {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(ObstacleDetectionEvent: Send, Sync);

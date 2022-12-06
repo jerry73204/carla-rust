@@ -3,6 +3,7 @@ use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiLidarMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 use std::slice;
 
 #[derive(Clone, Derivative)]
@@ -56,3 +57,5 @@ impl TryFrom<SensorData> for LidarMeasurement {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(LidarMeasurement: Send, Sync);

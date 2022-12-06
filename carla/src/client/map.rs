@@ -6,6 +6,7 @@ use carla_sys::carla_rust::client::FfiMap;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3};
+use static_assertions::assert_impl_all;
 
 use super::Waypoint;
 
@@ -68,3 +69,5 @@ impl Map {
         }
     }
 }
+
+assert_impl_all!(Map: Send, Sync);

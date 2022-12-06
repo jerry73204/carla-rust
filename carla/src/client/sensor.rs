@@ -7,6 +7,7 @@ use carla_sys::carla_rust::{
 };
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
@@ -86,3 +87,5 @@ unsafe extern "C" fn deleter(fn_: *mut c_void) {
     let fn_: Box<Box<Callback>> = Box::from_raw(fn_);
     mem::drop(fn_);
 }
+
+assert_impl_all!(Sensor: Send, Sync);

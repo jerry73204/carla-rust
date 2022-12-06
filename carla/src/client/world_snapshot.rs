@@ -1,6 +1,7 @@
 use carla_sys::carla::client::WorldSnapshot as FfiWorldSnapshot;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -29,3 +30,5 @@ impl WorldSnapshot {
         }
     }
 }
+
+assert_impl_all!(WorldSnapshot: Send);

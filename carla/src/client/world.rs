@@ -15,6 +15,7 @@ use carla_sys::carla_rust::{
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
 use nalgebra::Isometry3;
+use static_assertions::assert_impl_all;
 use std::{ptr, time::Duration};
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
@@ -200,3 +201,5 @@ impl World {
         }
     }
 }
+
+assert_impl_all!(World: Send);

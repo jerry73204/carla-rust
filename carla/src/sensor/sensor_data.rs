@@ -3,6 +3,7 @@ use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use nalgebra::Isometry3;
+use static_assertions::assert_impl_all;
 
 pub trait SensorDataBase {
     fn cxx_sensor_data(&self) -> SharedPtr<FfiSensorData>;
@@ -39,3 +40,5 @@ impl SensorDataBase for SensorData {
         self.inner.clone()
     }
 }
+
+assert_impl_all!(SensorData: Send, Sync);

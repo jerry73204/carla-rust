@@ -3,6 +3,7 @@ use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3, Vector3};
+use static_assertions::assert_impl_all;
 
 pub trait ActorBase {
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
@@ -51,3 +52,5 @@ impl ActorBase for Actor {
         self.inner.clone()
     }
 }
+
+assert_impl_all!(Actor: Send, Sync);

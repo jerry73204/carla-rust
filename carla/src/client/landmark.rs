@@ -1,6 +1,7 @@
 use carla_sys::carla_rust::client::FfiLandmark;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -19,3 +20,5 @@ impl Landmark {
         }
     }
 }
+
+assert_impl_all!(Landmark: Send, Sync);

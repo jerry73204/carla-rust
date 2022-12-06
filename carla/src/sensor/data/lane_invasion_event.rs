@@ -3,6 +3,7 @@ use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -43,3 +44,5 @@ impl TryFrom<SensorData> for LaneInvasionEvent {
         Self::from_cxx(ptr).ok_or(value)
     }
 }
+
+assert_impl_all!(LaneInvasionEvent: Send, Sync);

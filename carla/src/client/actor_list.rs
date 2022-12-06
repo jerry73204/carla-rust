@@ -2,6 +2,7 @@ use crate::rpc::ActorId;
 use carla_sys::carla_rust::client::FfiActorList;
 use cxx::{let_cxx_string, SharedPtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 use super::Actor;
 
@@ -46,3 +47,5 @@ impl ActorList {
         }
     }
 }
+
+assert_impl_all!(ActorList: Send, Sync);

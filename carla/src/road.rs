@@ -10,6 +10,7 @@ pub mod element {
         LaneMarking_Color, LaneMarking_LaneChange, LaneMarking_Type,
     };
     use derivative::Derivative;
+    use static_assertions::assert_impl_all;
 
     #[derive(Derivative)]
     #[derivative(Debug)]
@@ -43,4 +44,6 @@ pub mod element {
             }
         }
     }
+
+    assert_impl_all!(LaneMarking: Send);
 }
