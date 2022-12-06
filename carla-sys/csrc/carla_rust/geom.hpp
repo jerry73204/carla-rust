@@ -82,8 +82,7 @@ namespace carla_rust
             FfiTransform(const Transform &base)
                 :
                 location(reinterpret_cast<const FfiLocation&>(base.location)),
-                rotation(std::move(base.rotation))
-
+                rotation(reinterpret_cast<const Rotation&>(base.rotation))
             {}
 
             const Transform& as_native() const {
@@ -103,6 +102,7 @@ namespace carla_rust
             FfiBoundingBox(BoundingBox &&base)
                 :
                 location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
+                extent(reinterpret_cast<Vector3D&&>(std::move(base.extent))),
                 rotation(std::move(base.rotation))
 
             {}
@@ -110,8 +110,8 @@ namespace carla_rust
             FfiBoundingBox(const BoundingBox &base)
                 :
                 location(reinterpret_cast<const FfiLocation&>(base.location)),
-                rotation(std::move(base.rotation))
-
+                extent(reinterpret_cast<const Vector3D&>(base.extent)),
+                rotation(reinterpret_cast<const Rotation&>(base.rotation))
             {}
 
             bool Contains(const FfiLocation &in_world_point,
