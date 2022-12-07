@@ -13,3 +13,8 @@
 #include "world.hpp"
 #include "client.hpp"
 #include "actor_blueprint.hpp"
+#include "actor_attribute.hpp"
+#include "actor_attribute_value_list.hpp"
+#include "waypoint_list.hpp"
+#include "transform_list.hpp"
+#include "landmark_list.hpp"

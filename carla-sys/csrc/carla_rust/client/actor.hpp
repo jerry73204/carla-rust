@@ -6,8 +6,11 @@
 #include "carla/client/Vehicle.h"
 #include "carla/client/Sensor.h"
 #include "carla/client/TrafficSign.h"
+#include "carla/client/ActorAttribute.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc.hpp"
+#include "carla_rust/client/actor_attribute.hpp"
+#include "carla_rust/client/actor_attribute_value_list.hpp"
 
 namespace carla_rust
 {
@@ -17,10 +20,13 @@ namespace carla_rust
         using carla::client::Vehicle;
         using carla::client::Sensor;
         using carla::client::TrafficSign;
+        using carla::client::ActorAttributeValue;
         using carla::geom::Vector3D;
         using carla_rust::rpc::FfiActorId;
         using carla_rust::geom::FfiLocation;
         using carla_rust::geom::FfiTransform;
+        using carla_rust::client::FfiActorAttributeValue;
+        using carla_rust::client::FfiActorAttributeValueList;
 
         class FfiVehicle;
         class FfiSensor;
@@ -83,10 +89,12 @@ namespace carla_rust
                 return std::make_unique<FfiWorld>(std::move(world));
             }
 
-            // const std::vector<ActorAttributeValue> &GetAttributes() const
-            // {
-            //     return inner_->GetAttributes();
-            // }
+            FfiActorAttributeValueList GetAttributes() const
+            {
+                auto& orig = inner_->GetAttributes();
+                auto new_ = FfiActorAttributeValueList(orig);
+                return new_;
+            }
 
             Vector3D GetVelocity() const {
                 return inner_->GetVelocity();

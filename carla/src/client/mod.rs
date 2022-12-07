@@ -45,3 +45,9 @@ pub use actor_builder::*;
 
 mod traffic_sign;
 pub use traffic_sign::*;
+
+mod actor_attribute_value_list;
+pub use actor_attribute_value_list::*;
+
+mod actor_attribute;
+pub use actor_attribute::*;

@@ -10,7 +10,7 @@ use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
-    new_vector_uint32_t,
+    utils::new_vector_uint32_t,
 };
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;

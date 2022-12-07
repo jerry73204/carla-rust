@@ -8,21 +8,4 @@
 #include "rpc.hpp"
 #include "sensor/mod.hpp"
 #include "road.hpp"
-
-namespace carla_rust
-{
-    // Using the boost::shared_ptr to std::shared_ptr trick here:
-    // https://stackoverflow.com/questions/71572186/question-on-converting-boost-shared-pointer-to-standard-shared-pointer
-    // template<class T>
-    // std::shared_ptr<T> as_std_shared_ptr(boost::shared_ptr<T> bp)
-    // {
-    //     if (!bp) return nullptr;
-    //     auto pq = std::make_shared<boost::shared_ptr<T>>(std::move(bp));
-    //     return std::shared_ptr<T>(pq, pq.get()->get());
-    // }
-
-    // std::unique_ptr<std::vector<uint32_t>> new_vector_uint32_t() {
-    //     return std::make_unique<std::vector<uint32_t>>();
-    // }
-
-}
+#include "utils.hpp"

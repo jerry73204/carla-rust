@@ -3,12 +3,16 @@
 #include <memory>
 #include "carla/Memory.h"
 #include "carla/client/Map.h"
+#include "carla_rust/client/transform_list.hpp"
+#include "carla_rust/client/landmark_list.hpp"
 
 namespace carla_rust
 {
     namespace client {
         using carla::SharedPtr;
         using carla::client::Map;
+        using carla_rust::client::FfiTransformList;
+        using carla_rust::client::FfiLandmarkList;
 
         // Map
         class FfiMap {
@@ -27,15 +31,9 @@ namespace carla_rust
                 return inner_->GetOpenDrive();
             }
 
-            std::vector<FfiTransform> GetRecommendedSpawnPoints() const {
+            FfiTransformList GetRecommendedSpawnPoints() const {
                 auto orig = inner_->GetRecommendedSpawnPoints();
-                std::vector<FfiTransform> new_;
-
-                for (auto&& trans: orig) {
-                    new_.push_back(FfiTransform(std::move(trans)));
-                }
-
-                return new_;
+                return FfiTransformList(std::move(orig));
             }
 
             std::shared_ptr<FfiWaypoint> GetWaypoint(const FfiLocation &location,
@@ -62,23 +60,27 @@ namespace carla_rust
                 }
             }
 
-            // std::vector<FfiLandmark> GetAllLandmarks() const {
-            //     auto orig = inner_->GetAllLandmarks();
-            //     std::vector<FfiLandmark> new_;
+            FfiLandmarkList GetAllLandmarks() const {
+                auto orig = inner_->GetAllLandmarks();
+                return FfiLandmarkList(std::move(orig));
+            }
 
-            //     for (auto&& ptr: orig) {
-            //         new_.push_back(FfiLandmark(std::move(ptr)));
-            //     }
+            FfiLandmarkList GetLandmarksFromId(std::string id) const {
+                auto orig = inner_->GetLandmarksFromId(id);
+                return FfiLandmarkList(std::move(orig));
+            }
 
-            //     return new_;
-            // }
+            FfiLandmarkList GetAllLandmarksOfType(std::string type) const {
+                auto orig = inner_->GetAllLandmarksOfType(type);
+                return FfiLandmarkList(std::move(orig));
+            }
 
-            // std::vector<std::shared_ptr<FfiLandmark>> GetLandmarksFromId(std::string id) const;
-
-            // std::vector<std::shared_ptr<FfiLandmark>> GetAllLandmarksOfType(std::string type) const;
-
-            // std::vector<std::shared_ptr<FfiLandmark>> GetLandmarkGroup(const Landmark &landmark) const;
-
+            FfiLandmarkList GetLandmarkGroup(const FfiLandmark &landmark) const {
+                const SharedPtr<Landmark>& shared = landmark.inner();
+                const Landmark& ptr = *(shared.get());
+                auto orig = inner_->GetLandmarkGroup(ptr);
+                return FfiLandmarkList(std::move(orig));
+            }
 
         private:
             SharedPtr<Map> inner_;

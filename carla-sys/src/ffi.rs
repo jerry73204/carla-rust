@@ -34,7 +34,6 @@ include_cpp! {
     #include "carla/client/TrafficLight.h"
     #include "carla/client/TrafficSign.h"
     #include "carla/client/Junction.h"
-    #include "carla/client/ActorAttribute.h"
     #include "carla/client/ActorBlueprint.h"
     #include "carla/client/ActorList.h"
     #include "carla/client/BlueprintLibrary.h"
@@ -83,7 +82,7 @@ include_cpp! {
     // carla::traffic_manager
     generate_ns!("carla::traffic_manager::constants")
 
-    // carla::rpc::element
+    // carla::road::element
     generate_pod!("carla::road::element::LaneMarking_Type")
     generate_pod!("carla::road::element::LaneMarking_Color")
     generate_pod!("carla::road::element::LaneMarking_LaneChange")
@@ -99,6 +98,7 @@ include_cpp! {
     generate!("carla::rpc::TrafficLightState")
     generate!("carla::rpc::LabelledPoint")
     generate!("carla::rpc::EpisodeSettings")
+    generate_pod!("carla::rpc::ActorAttributeType")
 
     // carla::client
     generate!("carla::client::Waypoint")
@@ -107,7 +107,6 @@ include_cpp! {
     generate!("carla::client::TrafficLight")
     generate!("carla::client::TrafficSign")
     generate!("carla::client::Junction")
-    generate!("carla::client::ActorAttribute")
     generate!("carla::client::ActorBlueprint")
     generate!("carla::client::ActorList")
     generate!("carla::client::Landmark")

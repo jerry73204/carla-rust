@@ -5,6 +5,7 @@
 #include "carla/Memory.h"
 #include "carla/road/RoadTypes.h"
 #include "carla/road/Lane.h"
+#include "carla_rust/client/waypoint_list.hpp"
 
 namespace carla_rust
 {
@@ -16,19 +17,7 @@ namespace carla_rust
         using carla::road::LaneId;
         using carla::road::JuncId;
         using carla::road::Lane;
-
-        class FfiWaypoint;
-
-        // Waypoint
-        std::vector<std::shared_ptr<FfiWaypoint>> to_ffi_waypoint_vec(std::vector<SharedPtr<Waypoint>> &&orig) {
-            std::vector<std::shared_ptr<FfiWaypoint>> new_;
-
-            for (auto&& ptr: orig) {
-                new_.push_back(std::make_shared<FfiWaypoint>(std::move(ptr)));
-            }
-
-            return new_;
-        }
+        using carla_rust::client::FfiWaypointList;
 
         class FfiWaypoint {
         public:
@@ -80,29 +69,25 @@ namespace carla_rust
                 return inner_->GetType();
             }
 
-            std::vector<std::shared_ptr<FfiWaypoint>> GetNext(double distance) const {
+            FfiWaypointList GetNext(double distance) const {
                 auto orig = inner_->GetNext(distance);
-                auto new_ = to_ffi_waypoint_vec(std::move(orig));
-                return std::vector<std::shared_ptr<FfiWaypoint>>(std::move(new_));
+                return FfiWaypointList(std::move(orig));
             }
 
-            std::vector<std::shared_ptr<FfiWaypoint>> GetPrevious(double distance) const {
+            FfiWaypointList GetPrevious(double distance) const {
                 auto orig = inner_->GetPrevious(distance);
-                auto new_ = to_ffi_waypoint_vec(std::move(orig));
-                return std::vector<std::shared_ptr<FfiWaypoint>>(std::move(new_));
+                return FfiWaypointList(std::move(orig));
             }
 
 
-            std::vector<std::shared_ptr<FfiWaypoint>> GetNextUntilLaneEnd(double distance) const {
+            FfiWaypointList GetNextUntilLaneEnd(double distance) const {
                 auto orig = inner_->GetPrevious(distance);
-                auto new_ = to_ffi_waypoint_vec(std::move(orig));
-                return std::vector<std::shared_ptr<FfiWaypoint>>(std::move(new_));
+                return FfiWaypointList(std::move(orig));
             }
 
-            std::vector<std::shared_ptr<FfiWaypoint>> GetPreviousUntilLaneStart(double distance) const {
+            FfiWaypointList GetPreviousUntilLaneStart(double distance) const {
                 auto orig = inner_->GetPreviousUntilLaneStart(distance);
-                auto new_ = to_ffi_waypoint_vec(std::move(orig));
-                return std::vector<std::shared_ptr<FfiWaypoint>>(std::move(new_));
+                return FfiWaypointList(std::move(orig));
             }
 
             std::shared_ptr<FfiWaypoint> GetRight() const {

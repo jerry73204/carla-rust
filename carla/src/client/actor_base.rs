@@ -1,8 +1,9 @@
-use super::{Actor, World};
+use super::{Actor, ActorAttributeValueList, World};
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
     rpc::ActorId,
 };
+use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
@@ -32,6 +33,11 @@ pub trait ActorBase {
 
     fn parent(&self) -> Option<Actor> {
         Actor::from_cxx(self.cxx_actor().GetParent())
+    }
+
+    fn attributes(&self) -> ActorAttributeValueList<'_> {
+        let ptr = self.cxx_actor().GetAttributes().within_unique_ptr();
+        unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap() }
     }
 
     fn world(&self) -> World {

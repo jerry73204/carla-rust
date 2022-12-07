@@ -24,6 +24,10 @@ unsafe impl Send for crate::carla_rust::client::FfiWaypoint {}
 unsafe impl Sync for crate::carla_rust::client::FfiWaypoint {}
 unsafe impl Send for crate::carla_rust::client::FfiActorList {}
 unsafe impl Sync for crate::carla_rust::client::FfiActorList {}
+unsafe impl Send for crate::carla_rust::client::FfiTransformList {}
+unsafe impl Sync for crate::carla_rust::client::FfiTransformList {}
+unsafe impl Send for crate::carla_rust::client::FfiLandmarkList {}
+unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
 
 // carla::geom
 
@@ -52,6 +56,18 @@ unsafe impl Send for crate::carla_rust::rpc::FfiEpisodeSettings {}
 // carla_rust::sensor
 unsafe impl Send for crate::carla_rust::sensor::FfiSensorData {}
 unsafe impl Sync for crate::carla_rust::sensor::FfiSensorData {}
+
+// carla_rust::sensor::data
+impl Clone for crate::carla_rust::sensor::data::FfiColor {
+    fn clone(&self) -> Self {
+        Self {
+            b: self.b,
+            g: self.g,
+            r: self.r,
+            a: self.a,
+        }
+    }
+}
 
 // carla_rust::sensor::data
 unsafe impl Send for crate::carla_rust::sensor::data::FfiCollisionEvent {}
