@@ -1,7 +1,6 @@
 use anyhow::Result;
 use carla::{
     client::{Client, Sensor, Vehicle},
-    rpc::EpisodeSettings,
     sensor::data::{Image, LidarMeasurement},
 };
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
@@ -13,14 +12,7 @@ fn main() -> Result<()> {
 
     // Use synchronous mode
     let mut world = client.load_world("Town07");
-    world.apply_settings(
-        &EpisodeSettings {
-            synchronous_mode: true,
-            fixed_delta_seconds: Some(0.05),
-            ..world.settings()
-        },
-        Duration::from_secs(5),
-    );
+    let is_sync = world.settings().synchronous_mode;
 
     // Spawn objects
     let vehicle_pose = Isometry3 {
@@ -64,6 +56,10 @@ fn main() -> Result<()> {
 
     // Spin the simulator
     loop {
-        world.tick();
+        if is_sync {
+            world.tick();
+        } else {
+            world.wait_for_tick();
+        }
     }
 }
