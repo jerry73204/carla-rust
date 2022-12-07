@@ -1,9 +1,8 @@
 use core::slice;
 
 use super::{Landmark, Waypoint};
-use crate::geom::Transform;
 use crate::{
-    geom::{Location, LocationExt, TransformExt},
+    geom::{Location, LocationExt, Transform, TransformExt},
     road::{LaneId, LaneType, RoadId},
 };
 use autocxx::WithinUniquePtr;

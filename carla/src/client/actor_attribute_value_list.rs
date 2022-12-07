@@ -33,6 +33,10 @@ impl<'a> ActorAttributeValueList<'a> {
         }
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &ActorAttributeValue> {
+        self.as_slice().iter()
+    }
+
     pub(crate) unsafe fn from_cxx(ptr: UniquePtr<FfiActorAttributeValueList>) -> Option<Self> {
         if ptr.is_null() {
             None

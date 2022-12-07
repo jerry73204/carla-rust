@@ -1,6 +1,7 @@
-use crate::geom::TransformExt;
-use crate::road::RoadId;
-use crate::road::SignalOrientation;
+use crate::{
+    geom::TransformExt,
+    road::{RoadId, SignalOrientation},
+};
 use carla_sys::carla_rust::client::FfiLandmark;
 use cxx::SharedPtr;
 use derivative::Derivative;

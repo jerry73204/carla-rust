@@ -42,6 +42,7 @@ impl ActorBlueprint {
         self.inner.ContainsAttribute(&id)
     }
 
+    #[must_use]
     pub fn set_attribute(&mut self, id: &str, value: &str) -> bool {
         if !self.contains_attribute(id) {
             return false;
