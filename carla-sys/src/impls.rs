@@ -20,6 +20,8 @@ unsafe impl Send for crate::carla_rust::client::FfiVehicle {}
 unsafe impl Sync for crate::carla_rust::client::FfiVehicle {}
 unsafe impl Send for crate::carla_rust::client::FfiTrafficSign {}
 unsafe impl Sync for crate::carla_rust::client::FfiTrafficSign {}
+unsafe impl Send for crate::carla_rust::client::FfiTrafficLight {}
+unsafe impl Sync for crate::carla_rust::client::FfiTrafficLight {}
 unsafe impl Send for crate::carla_rust::client::FfiWaypoint {}
 unsafe impl Sync for crate::carla_rust::client::FfiWaypoint {}
 unsafe impl Send for crate::carla_rust::client::FfiActorList {}

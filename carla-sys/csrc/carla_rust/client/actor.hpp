@@ -6,6 +6,7 @@
 #include "carla/client/Vehicle.h"
 #include "carla/client/Sensor.h"
 #include "carla/client/TrafficSign.h"
+#include "carla/client/TrafficLight.h"
 #include "carla/client/ActorAttribute.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc.hpp"
@@ -20,6 +21,7 @@ namespace carla_rust
         using carla::client::Vehicle;
         using carla::client::Sensor;
         using carla::client::TrafficSign;
+        using carla::client::TrafficLight;
         using carla::client::ActorAttributeValue;
         using carla::geom::Vector3D;
         using carla_rust::rpc::FfiActorId;
@@ -31,6 +33,7 @@ namespace carla_rust
         class FfiVehicle;
         class FfiSensor;
         class FfiTrafficSign;
+        class FfiTrafficLight;
         class FfiWorld;
 
         // Actor
@@ -200,6 +203,15 @@ namespace carla_rust
                     return nullptr;
                 } else {
                     return std::make_shared<FfiTrafficSign>(std::move(ptr));
+                }
+            }
+
+            std::shared_ptr<FfiTrafficLight> to_traffic_light() const {
+                SharedPtr<TrafficLight> ptr = boost::dynamic_pointer_cast<TrafficLight>(inner_);
+                if (ptr == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiTrafficLight>(std::move(ptr));
                 }
             }
 

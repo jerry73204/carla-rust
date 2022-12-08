@@ -4,7 +4,7 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-use super::{ActorBase, ActorKind, TrafficSign};
+use super::{ActorBase, ActorKind, TrafficLight, TrafficSign};
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -22,6 +22,10 @@ impl Actor {
             Err(me) => me,
         };
         let me = match Sensor::try_from(me) {
+            Ok(me) => return me.into(),
+            Err(me) => me,
+        };
+        let me = match TrafficLight::try_from(me) {
             Ok(me) => return me.into(),
             Err(me) => me,
         };

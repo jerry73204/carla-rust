@@ -4,12 +4,14 @@
 #include "carla/Memory.h"
 #include "carla/road/RoadTypes.h"
 #include "carla/geom/BoundingBox.h"
+#include "carla/client/TrafficSign.h"
 #include "carla_rust/geom.hpp"
 
 namespace carla_rust
 {
     namespace client {
         using carla::SharedPtr;
+        using carla::client::TrafficSign;
         using carla::road::SignId;
         using carla::geom::BoundingBox;
         using carla_rust::geom::FfiBoundingBox;

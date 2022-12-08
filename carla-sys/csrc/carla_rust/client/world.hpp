@@ -98,17 +98,29 @@ namespace carla_rust
 
             std::shared_ptr<FfiActor> GetTrafficSign(const FfiLandmark& landmark) const {
                 auto actor = inner_.GetTrafficSign(*landmark.inner());
-                return std::make_shared<FfiActor>(std::move(actor));
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
             }
 
             std::shared_ptr<FfiActor> GetTrafficLight(const FfiLandmark& landmark) const {
                 auto actor = inner_.GetTrafficLight(*landmark.inner());
-                return std::make_shared<FfiActor>(std::move(actor));
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
             }
 
             std::shared_ptr<FfiActor> GetTrafficLightFromOpenDRIVE(const SignId& sign_id) const {
                 auto actor = inner_.GetTrafficLightFromOpenDRIVE(sign_id);
-                return std::make_shared<FfiActor>(std::move(actor));
+                if (actor == nullptr) {
+                    return nullptr;
+                } else {
+                    return std::make_shared<FfiActor>(std::move(actor));
+                }
             }
 
             void ResetAllTrafficLights() {

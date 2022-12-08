@@ -18,3 +18,5 @@
 #include "waypoint_list.hpp"
 #include "transform_list.hpp"
 #include "landmark_list.hpp"
+#include "traffic_light.hpp"
+#include "bounding_box_list.hpp"

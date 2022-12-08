@@ -167,12 +167,12 @@ impl World {
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
 
-    pub fn traffic_sign(&self, landmark: &Landmark) -> Option<Actor> {
+    pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
         let ptr = self.inner.GetTrafficSign(landmark.inner.as_ref().unwrap());
         Actor::from_cxx(ptr)
     }
 
-    pub fn traffic_light(&self, landmark: &Landmark) -> Option<Actor> {
+    pub fn traffic_light_at(&self, landmark: &Landmark) -> Option<Actor> {
         let ptr = self.inner.GetTrafficLight(landmark.inner.as_ref().unwrap());
         Actor::from_cxx(ptr)
     }

@@ -51,3 +51,15 @@ pub use actor_attribute_value_list::*;
 
 mod actor_attribute;
 pub use actor_attribute::*;
+
+mod traffic_light;
+pub use traffic_light::*;
+
+mod waypoint_list;
+pub use waypoint_list::*;
+
+mod traffic_light_list;
+pub use traffic_light_list::*;
+
+mod bounding_box_list;
+pub use bounding_box_list::*;
