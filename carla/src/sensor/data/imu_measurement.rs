@@ -1,7 +1,8 @@
-use crate::{geom::Vector3D, sensor::SensorData};
+use crate::{geom::Vector3DExt, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiImuMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use nalgebra::Vector3;
 use static_assertions::assert_impl_all;
 
 #[derive(Clone, Derivative)]
@@ -13,16 +14,16 @@ pub struct ImuMeasurement {
 }
 
 impl ImuMeasurement {
-    pub fn accelerometer(&self) -> Vector3D {
-        self.inner.GetAccelerometer()
+    pub fn accelerometer(&self) -> Vector3<f32> {
+        self.inner.GetAccelerometer().to_na()
     }
 
     pub fn compass(&self) -> f32 {
         self.inner.GetCompass()
     }
 
-    pub fn gyroscope(&self) -> Vector3D {
-        self.inner.GetGyroscope()
+    pub fn gyroscope(&self) -> Vector3<f32> {
+        self.inner.GetGyroscope().to_na()
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiImuMeasurement>) -> Option<Self> {
