@@ -6,6 +6,7 @@
 #include "carla/road/RoadTypes.h"
 #include "carla/geom/BoundingBox.h"
 #include "carla/client/TrafficLight.h"
+#include "carla/rpc/TrafficLightState.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/client/waypoint_list.hpp"
 #include "carla_rust/client/traffic_light_list.hpp"
@@ -18,6 +19,7 @@ namespace carla_rust
         using carla::client::TrafficLight;
         using carla::road::SignId;
         using carla::geom::BoundingBox;
+        using carla::rpc::TrafficLightState;
         using carla_rust::geom::FfiBoundingBox;
         using carla_rust::client::FfiWaypointList;
         using carla_rust::client::FfiTrafficLightList;
@@ -39,6 +41,16 @@ namespace carla_rust
             SignId GetSignId() const {
                 return inner_->GetSignId();
             }
+
+
+            void SetState(TrafficLightState state) const {
+                inner_->SetState(state);
+            }
+
+            TrafficLightState GetState() const {
+                return inner_->GetState();
+            }
+
 
             void SetGreenTime(float green_time) const {
                 inner_->SetGreenTime(green_time);

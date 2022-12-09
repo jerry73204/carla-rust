@@ -1,42 +1,12 @@
 #pragma once
 
-#include <cstdint>
-#include <limits>
-#include <memory>
 #include <vector>
-#include <string>
-#include "carla/Time.h"
-#include "carla/Memory.h"
-#include "carla/client/Client.h"
-#include "carla/client/World.h"
-#include "carla/client/Map.h"
-#include "carla/client/Actor.h"
-#include "carla/client/ActorBlueprint.h"
-#include "carla/client/BlueprintLibrary.h"
-#include "carla/client/Sensor.h"
-#include "carla/client/Vehicle.h"
-#include "carla/client/TimeoutException.h"
-#include "carla/client/ActorList.h"
-#include "carla/client/Landmark.h"
-#include "carla/client/Waypoint.h"
-#include "carla/rpc/AttachmentType.h"
-#include "carla/rpc/MapLayer.h"
-#include "carla/rpc/OpendriveGenerationParameters.h"
-#include "carla/rpc/LabelledPoint.h"
-#include "carla/rpc/VehicleControl.h"
-#include "carla/rpc/VehiclePhysicsControl.h"
-#include "carla/rpc/VehicleDoor.h"
-#include "carla/rpc/VehicleWheels.h"
-#include "carla/rpc/VehicleLightState.h"
-#include "carla/rpc/TrafficLightState.h"
 #include "carla/geom/Transform.h"
 #include "carla/geom/Location.h"
 #include "carla/geom/Rotation.h"
+#include "carla/geom/Vector2D.h"
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
-#include "carla/sensor/SensorData.h"
-#include "carla/sensor/data/Color.h"
-#include "carla/sensor/data/Image.h"
 
 
 namespace carla_rust
@@ -46,7 +16,12 @@ namespace carla_rust
         using carla::geom::Location;
         using carla::geom::Rotation;
         using carla::geom::Vector3D;
+        using carla::geom::Vector2D;
         using carla::geom::BoundingBox;
+
+        std::vector<Vector2D> new_vector_2d_vector() {
+            return std::vector<Vector2D> {};
+        }
 
         // Location
         class FfiLocation {

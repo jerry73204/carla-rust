@@ -1,5 +1,5 @@
 use super::{Actor, ActorBase, BoundingBoxList, TrafficLightList, WaypointList};
-use crate::{geom::BoundingBox, road::SignId};
+use crate::{geom::BoundingBox, road::SignId, rpc::TrafficLightState};
 use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::{FfiActor, FfiTrafficLight};
 use cxx::SharedPtr;
@@ -20,6 +20,14 @@ impl TrafficLight {
 
     pub fn trigger_volume(&self) -> BoundingBox<f32> {
         BoundingBox::from_native(self.inner.GetTriggerVolume())
+    }
+
+    pub fn state(&self) -> TrafficLightState {
+        self.inner.GetState()
+    }
+
+    pub fn set_state(&self, state: TrafficLightState) {
+        self.inner.SetState(state);
     }
 
     pub fn green_time(&self) -> f32 {

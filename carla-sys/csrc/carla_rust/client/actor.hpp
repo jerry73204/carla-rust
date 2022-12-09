@@ -9,7 +9,7 @@
 #include "carla/client/TrafficLight.h"
 #include "carla/client/ActorAttribute.h"
 #include "carla_rust/geom.hpp"
-#include "carla_rust/rpc.hpp"
+#include "carla_rust/rpc/actor_id.hpp"
 #include "carla_rust/client/actor_attribute.hpp"
 #include "carla_rust/client/actor_attribute_value_list.hpp"
 

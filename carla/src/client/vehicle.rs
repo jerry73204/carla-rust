@@ -1,14 +1,14 @@
 use super::{Actor, ActorBase};
 use crate::rpc::{
     TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState_LightState,
-    VehicleWheelLocation,
+    VehiclePhysicsControl, VehicleWheelLocation,
 };
 use autocxx::prelude::*;
 use carla_sys::{
-    carla::{rpc::VehiclePhysicsControl, traffic_manager::constants::Networking::TM_DEFAULT_PORT},
+    carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT,
     carla_rust::client::{FfiActor, FfiVehicle},
 };
-use cxx::{SharedPtr, UniquePtr};
+use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
@@ -35,6 +35,11 @@ impl Vehicle {
 
     pub fn apply_control(&mut self, control: &VehicleControl) {
         self.inner.ApplyControl(control);
+    }
+
+    pub fn apply_physics_control(&mut self, control: &VehiclePhysicsControl) {
+        let control = control.to_cxx();
+        self.inner.ApplyPhysicsControl(&control);
     }
 
     pub fn open_door(&mut self, door: VehicleDoor) {
@@ -65,8 +70,8 @@ impl Vehicle {
         self.inner.GetControl()
     }
 
-    pub fn physics_control(&self) -> UniquePtr<VehiclePhysicsControl> {
-        self.inner.GetPhysicsControl().within_unique_ptr()
+    pub fn physics_control(&self) -> VehiclePhysicsControl {
+        VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
     }
 
     pub fn light_state(&self) -> VehicleLightState_LightState {

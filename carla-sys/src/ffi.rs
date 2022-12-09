@@ -16,13 +16,12 @@ include_cpp! {
 
     #include "carla/rpc/AttachmentType.h"
     #include "carla/rpc/VehicleControl.h"
-    #include "carla/rpc/VehiclePhysicsControl.h"
     #include "carla/rpc/VehicleLightState.h"
     #include "carla/rpc/VehicleDoor.h"
     #include "carla/rpc/VehicleWheels.h"
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
-    #include "carla/rpc/EpisodeSettings.h"
+    #include "carla/rpc/GearPhysicsControl.h"
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
@@ -91,7 +90,6 @@ include_cpp! {
     generate!("carla::rpc::OpendriveGenerationParameters")
     generate_pod!("carla::rpc::AttachmentType")
     generate_pod!("carla::rpc::VehicleControl")
-    generate!("carla::rpc::VehiclePhysicsControl")
     generate!("carla::rpc::VehicleLightState")
     generate_pod!("carla::rpc::VehicleDoor")
     generate_pod!("carla::rpc::VehicleWheelLocation")
@@ -99,6 +97,8 @@ include_cpp! {
     generate!("carla::rpc::LabelledPoint")
     generate!("carla::rpc::EpisodeSettings")
     generate_pod!("carla::rpc::ActorAttributeType")
+    generate_pod!("carla::rpc::GearPhysicsControl")
+    generate_pod!("carla::rpc::WheelPhysicsControl")
 
     // carla::client
     generate!("carla::client::Waypoint")

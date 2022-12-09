@@ -3,6 +3,7 @@ pub mod geom;
 pub mod road;
 pub mod rpc;
 pub mod sensor;
+mod utils;
 
 pub mod prelude {
     pub use crate::{

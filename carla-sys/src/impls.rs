@@ -1,3 +1,5 @@
+use std::fmt::{self, Debug, Formatter};
+
 // carla::client
 unsafe impl Send for crate::carla::client::ActorBlueprint {}
 unsafe impl Sync for crate::carla::client::ActorBlueprint {}
@@ -32,6 +34,43 @@ unsafe impl Send for crate::carla_rust::client::FfiLandmarkList {}
 unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
 
 // carla::geom
+impl Debug for crate::carla::geom::Vector2D {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Vector2D")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla::geom::Vector2D {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}
+
+impl Debug for crate::carla::geom::Vector3D {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Vector3D")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .field("z", &self.z)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla::geom::Vector3D {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
+}
 
 // carla_rust::geom
 
@@ -54,6 +93,60 @@ unsafe impl Send for crate::carla::rpc::WheelPhysicsControl {}
 
 // carla_rust::rpc
 unsafe impl Send for crate::carla_rust::rpc::FfiEpisodeSettings {}
+
+impl Debug for crate::carla::rpc::GearPhysicsControl {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GearPhysicsControl")
+            .field("ratio", &self.ratio)
+            .field("down_ratio", &self.down_ratio)
+            .field("up_ratio", &self.up_ratio)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla::rpc::GearPhysicsControl {
+    fn clone(&self) -> Self {
+        Self {
+            ratio: self.ratio,
+            down_ratio: self.down_ratio,
+            up_ratio: self.up_ratio,
+        }
+    }
+}
+
+impl Debug for crate::carla::rpc::WheelPhysicsControl {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("WheelPhysicsControl")
+            .field("tire_friction", &self.tire_friction)
+            .field("damping_rate", &self.damping_rate)
+            .field("max_steer_angle", &self.max_steer_angle)
+            .field("radius", &self.radius)
+            .field("max_brake_torque", &self.max_brake_torque)
+            .field("max_handbrake_torque", &self.max_handbrake_torque)
+            .field("lat_stiff_max_load", &self.lat_stiff_max_load)
+            .field("lat_stiff_value", &self.lat_stiff_value)
+            .field("long_stiff_value", &self.long_stiff_value)
+            .field("position", &self.position)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla::rpc::WheelPhysicsControl {
+    fn clone(&self) -> Self {
+        Self {
+            tire_friction: self.tire_friction,
+            damping_rate: self.damping_rate,
+            max_steer_angle: self.max_steer_angle,
+            radius: self.radius,
+            max_brake_torque: self.max_brake_torque,
+            max_handbrake_torque: self.max_handbrake_torque,
+            lat_stiff_max_load: self.lat_stiff_max_load,
+            lat_stiff_value: self.lat_stiff_value,
+            long_stiff_value: self.long_stiff_value,
+            position: self.position.clone(),
+        }
+    }
+}
 
 // carla_rust::sensor
 unsafe impl Send for crate::carla_rust::sensor::FfiSensorData {}

@@ -9,6 +9,7 @@
 #include "carla/rpc/VehicleLightState.h"
 #include "carla/rpc/VehicleWheels.h"
 #include "carla/rpc/TrafficLightState.h"
+#include "carla_rust/rpc/vehicle_physics_control.hpp"
 
 namespace carla_rust
 {
@@ -21,6 +22,7 @@ namespace carla_rust
         using carla::rpc::VehicleLightState;
         using carla::rpc::VehicleWheelLocation;
         using carla::rpc::TrafficLightState;
+        using carla_rust::rpc::FfiVehiclePhysicsControl;
 
         // Vehicle
         class FfiVehicle {
@@ -38,13 +40,12 @@ namespace carla_rust
                 inner_->ShowDebugTelemetry(enabled);
             }
 
-            /// Apply @a control to this vehicle.
             void ApplyControl(const VehicleControl &control) const {
                 inner_->ApplyControl(control);
             }
 
-            void ApplyPhysicsControl(const VehiclePhysicsControl &physics_control) const {
-                inner_->ApplyPhysicsControl(physics_control);
+            void ApplyPhysicsControl(const FfiVehiclePhysicsControl &physics_control) const {
+                inner_->ApplyPhysicsControl(physics_control.inner());
             }
 
             void OpenDoor(const VehicleDoor door_idx) const {
@@ -71,8 +72,9 @@ namespace carla_rust
                 return inner_->GetControl();
             }
 
-            VehiclePhysicsControl GetPhysicsControl() const {
-                return inner_->GetPhysicsControl();
+            FfiVehiclePhysicsControl GetPhysicsControl() const {
+                auto orig = inner_->GetPhysicsControl();
+                return FfiVehiclePhysicsControl(std::move(orig));
             }
 
             VehicleLightState::LightState GetLightState() const {

@@ -9,7 +9,7 @@
 #include "carla/client/TimeoutException.h"
 #include "carla/rpc/AttachmentType.h"
 #include "carla/geom/Transform.h"
-#include "carla_rust/rpc.hpp"
+#include "carla_rust/rpc/episode_settings.hpp"
 
 namespace carla_rust
 {
