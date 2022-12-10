@@ -42,17 +42,7 @@ fn main() {
     }
 
     // Link libraries
-    let libs = [
-        "static=carla_client",
-        "static=Recast",
-        "static=Detour",
-        "static=DetourCrowd",
-        "static=rpc",
-        "static=png",
-        "static=boost_filesystem",
-    ];
-
-    for lib in libs {
+    for lib in carla_src::libcarla_client::LIBS {
         println!("cargo:rustc-link-lib={lib}");
     }
 
@@ -65,7 +55,7 @@ fn main() {
         carla_include_dirs
     };
 
-    let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
         .build()
         .unwrap()

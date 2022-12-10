@@ -21,4 +21,4 @@ carla-src = { version = "0.2.1", path = "../carla-src" }
 
 [features]
 force-rebuild = []
-generate-cache = []
+generate-prebuild = []

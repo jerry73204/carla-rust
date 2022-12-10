@@ -16,6 +16,7 @@ autotools = "0.2.5"
 cfg-if = "1.0.0"
 cmake = "0.1.49"
 flate2 = "1.0.25"
+fs_extra = "1.2.0"
 hex = { version = "0.4.3", features = ["serde"] }
 itertools = "0.10.5"
 json5 = "0.4.1"
