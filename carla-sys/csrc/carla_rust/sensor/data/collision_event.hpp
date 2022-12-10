@@ -26,7 +26,12 @@ namespace carla_rust
                 }
 
                 std::shared_ptr<FfiActor> GetOtherActor() const {
-                    return std::make_shared<FfiActor>(std::move(inner_->GetOtherActor()));
+                    auto ptr = inner_->GetOtherActor();
+                    if (ptr == nullptr) {
+                        return nullptr;
+                    } else {
+                        return std::make_shared<FfiActor>(std::move(ptr));
+                    }
                 }
 
                 const Vector3D &GetNormalImpulse() const {

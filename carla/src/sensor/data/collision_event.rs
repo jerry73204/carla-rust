@@ -17,8 +17,8 @@ impl CollisionEvent {
         Actor::from_cxx(self.inner.GetActor()).unwrap()
     }
 
-    pub fn other_actor(&self) -> Actor {
-        Actor::from_cxx(self.inner.GetOtherActor()).unwrap()
+    pub fn other_actor(&self) -> Option<Actor> {
+        Actor::from_cxx(self.inner.GetOtherActor())
     }
 
     pub fn normal_impulse(&self) -> &Vector3D {
