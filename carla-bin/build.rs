@@ -3,7 +3,8 @@ use std::{env, fs, path::PathBuf};
 fn main() {
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     let tag = format!(
-        "{}.{}",
+        "{}.{}.{}",
+        env::var("CARGO_PKG_VERSION").unwrap(),
         env::var("TARGET").unwrap(),
         env::var("PROFILE").unwrap()
     );
