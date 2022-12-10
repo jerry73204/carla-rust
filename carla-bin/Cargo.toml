@@ -1,6 +1,6 @@
 [package]
 name = "carla-bin"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "Prepare and build Carla simulator source code."
 edition = "2021"
