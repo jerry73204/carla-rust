@@ -39,5 +39,9 @@ namespace carla_rust
         std::unique_ptr<std::vector<uint32_t>> new_vector_uint32_t() {
             return std::make_unique<std::vector<uint32_t>>();
         }
+
+        std::unique_ptr<std::vector<uint64_t>> new_vector_uint64_t() {
+            return std::make_unique<std::vector<uint64_t>>();
+        }
     }
 }

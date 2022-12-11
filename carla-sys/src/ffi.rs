@@ -22,6 +22,9 @@ include_cpp! {
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
     #include "carla/rpc/GearPhysicsControl.h"
+    // #include "carla/rpc/MapLayer.h"
+    #include "carla/rpc/WeatherParameters.h"
+    #include "carla/rpc/ObjectLabel.h"
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
@@ -66,6 +69,7 @@ include_cpp! {
     generate_pod!("carla_rust::sensor::data::FfiColor")
     generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
+    generate_pod!("carla_rust::rpc::FfiLabelledPoint")
 
     // carla
     generate!("carla::SharedPtr")
@@ -99,6 +103,9 @@ include_cpp! {
     generate_pod!("carla::rpc::ActorAttributeType")
     generate_pod!("carla::rpc::GearPhysicsControl")
     generate_pod!("carla::rpc::WheelPhysicsControl")
+    // generate_pod!("carla::rpc::MapLayer")
+    generate_pod!("carla::rpc::WeatherParameters")
+    generate_pod!("carla::rpc::CityObjectLabel")
 
     // carla::client
     generate!("carla::client::Waypoint")

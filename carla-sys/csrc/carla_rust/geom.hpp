@@ -79,7 +79,6 @@ namespace carla_rust
                 location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
                 extent(reinterpret_cast<Vector3D&&>(std::move(base.extent))),
                 rotation(std::move(base.rotation))
-
             {}
 
             FfiBoundingBox(const BoundingBox &base)

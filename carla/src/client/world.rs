@@ -1,10 +1,15 @@
 use super::{
-    Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, BlueprintLibrary, Landmark, Map,
+    Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, ActorVec, BlueprintLibrary,
+    BoundingBoxList, EnvironmentObjectList, LabelledPointList, Landmark, Map, Waypoint,
     WorldSnapshot,
 };
 use crate::{
-    geom::{Transform, TransformExt},
-    rpc::{ActorId, AttachmentType, EpisodeSettings},
+    geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
+    road::JuncId,
+    rpc::{
+        ActorId, AttachmentType, EpisodeSettings, LabelledPoint, MapLayer, VehicleLightStateList,
+        WeatherParameters,
+    },
 };
 use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
@@ -14,7 +19,7 @@ use carla_sys::carla_rust::{
 };
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
-use nalgebra::Isometry3;
+use nalgebra::{Isometry3, Translation3, Vector3};
 use static_assertions::assert_impl_all;
 use std::{ptr, time::Duration};
 
@@ -38,9 +43,26 @@ impl World {
         Map::from_cxx(ptr).unwrap()
     }
 
+    pub fn load_level_layer(&self, map_layers: MapLayer) {
+        self.inner.LoadLevelLayer(map_layers as u16);
+    }
+
+    pub fn unload_level_layer(&self, map_layers: MapLayer) {
+        self.inner.UnloadLevelLayer(map_layers as u16);
+    }
+
     pub fn blueprint_library(&self) -> BlueprintLibrary {
         let ptr = self.inner.GetBlueprintLibrary();
         BlueprintLibrary::from_cxx(ptr).unwrap()
+    }
+
+    pub fn vehicle_light_states(&self) -> VehicleLightStateList {
+        let ptr = self.inner.GetVehiclesLightStates().within_unique_ptr();
+        VehicleLightStateList::from_cxx(ptr).unwrap()
+    }
+
+    pub fn random_location_from_navigation(&self) -> Translation3<f32> {
+        self.inner.GetRandomLocationFromNavigation().to_na()
     }
 
     pub fn spectator(&self) -> Actor {
@@ -84,6 +106,22 @@ impl World {
 
         let ptr = self.inner.GetActorsByIds(&vec);
         ActorList::from_cxx(ptr).unwrap()
+    }
+
+    pub fn traffic_lights_from_waypoint(&self, waypoint: &Waypoint, distance: f64) -> ActorVec {
+        let ptr = self
+            .inner
+            .GetTrafficLightsFromWaypoint(&waypoint.inner, distance)
+            .within_unique_ptr();
+        ActorVec::from_cxx(ptr).unwrap()
+    }
+
+    pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> ActorVec {
+        let ptr = self
+            .inner
+            .GetTrafficLightsInJunction(junc_id)
+            .within_unique_ptr();
+        ActorVec::from_cxx(ptr).unwrap()
     }
 
     pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
@@ -191,7 +229,81 @@ impl World {
         self.inner.pin_mut().ResetAllTrafficLights();
     }
 
-    // pub fn level_bounding_boxes(&self) -> Vec<>
+    pub fn level_bounding_boxes(&self, queried_tag: u8) -> BoundingBoxList {
+        let ptr = self.inner.GetLevelBBs(queried_tag);
+        BoundingBoxList::from_cxx(ptr).unwrap()
+    }
+
+    pub fn weather(&self) -> WeatherParameters {
+        self.inner.GetWeather()
+    }
+
+    pub fn set_weather(&mut self, weather: &WeatherParameters) {
+        self.inner.pin_mut().SetWeather(weather)
+    }
+
+    pub fn environment_objects(&self, queried_tag: u8) -> EnvironmentObjectList {
+        let ptr = self
+            .inner
+            .GetEnvironmentObjects(queried_tag)
+            .within_unique_ptr();
+        EnvironmentObjectList::from_cxx(ptr).unwrap()
+    }
+
+    pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) {
+        let ptr = ids.as_ptr();
+        let len = ids.len();
+        unsafe {
+            self.inner.EnableEnvironmentObjects(ptr, len, enable);
+        }
+    }
+
+    pub fn project_point(
+        &self,
+        location: &Translation3<f32>,
+        direction: &Vector3<f32>,
+        search_distance: f32,
+    ) -> Option<LabelledPoint> {
+        let ptr = self.inner.ProjectPoint(
+            Location::from_na(location),
+            Vector3D::from_na(direction),
+            search_distance,
+        );
+
+        if ptr.is_null() {
+            None
+        } else {
+            Some((*ptr).clone())
+        }
+    }
+
+    pub fn ground_projection(
+        &self,
+        location: &Translation3<f32>,
+        search_distance: f32,
+    ) -> Option<LabelledPoint> {
+        let ptr = self
+            .inner
+            .GroundProjection(Location::from_na(location), search_distance);
+
+        if ptr.is_null() {
+            None
+        } else {
+            Some((*ptr).clone())
+        }
+    }
+
+    pub fn cast_ray(
+        &self,
+        start: &Translation3<f32>,
+        end: &Translation3<f32>,
+    ) -> LabelledPointList {
+        let ptr = self
+            .inner
+            .CastRay(Location::from_na(start), Location::from_na(end))
+            .within_unique_ptr();
+        LabelledPointList::from_cxx(ptr).unwrap()
+    }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
         if ptr.is_null() {

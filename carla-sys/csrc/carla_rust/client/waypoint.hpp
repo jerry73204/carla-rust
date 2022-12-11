@@ -110,6 +110,10 @@ namespace carla_rust
 
             // std::vector<SharedPtr<Landmark>> GetLandmarksOfTypeInDistance(double distance, std::string filter_type, bool stop_at_junction = false) const;
 
+            const SharedPtr<Waypoint>& inner() const {
+                return inner_;
+            }
+
         private:
             SharedPtr<Waypoint> inner_;
         };

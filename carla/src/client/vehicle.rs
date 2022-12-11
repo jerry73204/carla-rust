@@ -1,7 +1,7 @@
 use super::{Actor, ActorBase};
 use crate::rpc::{
-    TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState_LightState,
-    VehiclePhysicsControl, VehicleWheelLocation,
+    TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState, VehiclePhysicsControl,
+    VehicleWheelLocation,
 };
 use autocxx::prelude::*;
 use carla_sys::{
@@ -50,7 +50,7 @@ impl Vehicle {
         self.inner.CloseDoor(door);
     }
 
-    pub fn set_light_state(&mut self, light_state: &VehicleLightState_LightState) {
+    pub fn set_light_state(&mut self, light_state: &VehicleLightState) {
         self.inner.SetLightState(light_state);
     }
 
@@ -74,7 +74,7 @@ impl Vehicle {
         VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
     }
 
-    pub fn light_state(&self) -> VehicleLightState_LightState {
+    pub fn light_state(&self) -> VehicleLightState {
         self.inner.GetLightState()
     }
 

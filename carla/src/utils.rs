@@ -6,6 +6,7 @@ use carla_sys::{
     carla_rust::{
         geom::new_vector_2d_vector,
         rpc::{new_gear_physics_control_vector, new_wheel_physics_control_vector},
+        utils::new_vector_uint64_t,
     },
 };
 use cxx::{kind::Trivial, vector::VectorElement, CxxVector, ExternType, UniquePtr};
@@ -15,6 +16,12 @@ where
     Self: VectorElement + ExternType<Kind = Trivial>,
 {
     fn new_vector() -> UniquePtr<CxxVector<Self>>;
+}
+
+impl NewCxxVectorElement for u64 {
+    fn new_vector() -> UniquePtr<CxxVector<Self>> {
+        new_vector_uint64_t()
+    }
 }
 
 impl NewCxxVectorElement for Vector2D {

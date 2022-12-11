@@ -13,7 +13,7 @@ use static_assertions::assert_impl_all;
 #[repr(transparent)]
 pub struct Waypoint {
     #[derivative(Debug = "ignore")]
-    inner: SharedPtr<FfiWaypoint>,
+    pub(crate) inner: SharedPtr<FfiWaypoint>,
 }
 
 impl Waypoint {

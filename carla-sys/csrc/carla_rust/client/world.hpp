@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
+// #include <type_traits>
+#include "bounding_box_list.hpp"
 #include "carla/Memory.h"
 #include "carla/Time.h"
 #include "carla/client/World.h"
@@ -8,8 +11,20 @@
 #include "carla/client/ActorBlueprint.h"
 #include "carla/client/TimeoutException.h"
 #include "carla/rpc/AttachmentType.h"
+#include "carla/rpc/WeatherParameters.h"
+#include "carla/rpc/MapLayer.h"
 #include "carla/geom/Transform.h"
+#include "carla/geom/Location.h"
+#include "carla/geom/Vector3D.h"
+#include "carla/road/RoadTypes.h"
 #include "carla_rust/rpc/episode_settings.hpp"
+#include "carla_rust/geom.hpp"
+#include "carla_rust/rpc/labelled_point.hpp"
+#include "carla_rust/rpc/vehicle_light_state_list.hpp"
+#include "carla_rust/client/labelled_point_list.hpp"
+#include "carla_rust/client/environment_object_list.hpp"
+#include "carla_rust/client/actor_vec.hpp"
+#include "carla_rust/rpc/vehicle_light_state_list.hpp"
 
 namespace carla_rust
 {
@@ -21,8 +36,20 @@ namespace carla_rust
         using carla::client::ActorBlueprint;
         using carla::client::TimeoutException;
         using carla::rpc::AttachmentType;
+        using carla::rpc::WeatherParameters;
+        using carla::road::JuncId;
         using carla::geom::Transform;
+        using carla::geom::Location;
+        using carla::geom::Vector3D;
+        using carla::rpc::MapLayer;
         using carla_rust::rpc::FfiEpisodeSettings;
+        using carla_rust::rpc::FfiLabelledPoint;
+        using carla_rust::rpc::FfiVehicleLightStateList;
+        using carla_rust::geom::FfiLocation;
+        using carla_rust::client::FfiLabelledPointList;
+        using carla_rust::client::FfiEnvironmentObjectList;
+        using carla_rust::client::FfiBoundingBoxList;
+        using carla_rust::client::FfiActorVec;
 
         class FfiWorld {
         public:
@@ -43,9 +70,15 @@ namespace carla_rust
                 return std::make_shared<FfiMap>(std::move(inner));
             }
 
-            std::shared_ptr<FfiActor> GetSpectator() const {
-                auto inner = inner_.GetSpectator();
-                return std::make_shared<FfiActor>(std::move(inner));
+
+            void LoadLevelLayer(uint16_t map_layers) const {
+                auto value = static_cast<MapLayer>(map_layers);
+                inner_.LoadLevelLayer(value);
+            }
+
+            void UnloadLevelLayer(uint16_t map_layers) const {
+                auto value = static_cast<MapLayer>(map_layers);
+                inner_.UnloadLevelLayer(value);
             }
 
             std::shared_ptr<FfiBlueprintLibrary> GetBlueprintLibrary() const {
@@ -53,10 +86,29 @@ namespace carla_rust
                 return std::make_shared<FfiBlueprintLibrary>(std::move(lib));
             }
 
+            FfiVehicleLightStateList GetVehiclesLightStates() const {
+                auto orig = inner_.GetVehiclesLightStates();
+                return FfiVehicleLightStateList(std::move(orig));
+            }
+
+            std::unique_ptr<FfiLocation> GetRandomLocationFromNavigation() const {
+                auto orig = inner_.GetRandomLocationFromNavigation();
+                if (orig) {
+                    return std::make_unique<FfiLocation>(std::move(*orig));
+                } else {
+                    return nullptr;
+                }
+            }
+
+            std::shared_ptr<FfiActor> GetSpectator() const {
+                auto inner = inner_.GetSpectator();
+                return std::make_shared<FfiActor>(std::move(inner));
+            }
+
             std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
-                                               const FfiTransform &transform,
-                                               FfiActor *parent = nullptr,
-                                               AttachmentType attachment_type = AttachmentType::Rigid) noexcept
+                                                    const FfiTransform &transform,
+                                                    FfiActor *parent = nullptr,
+                                                    AttachmentType attachment_type = AttachmentType::Rigid) noexcept
             {
                 Actor *parent_arg = nullptr;
                 if (parent != nullptr) {
@@ -133,35 +185,34 @@ namespace carla_rust
             //     return _episode;
             // };
 
+            // DebugHelper MakeDebugHelper() const {
+            //     return DebugHelper{_episode};
+            // }
+
+
 
             void FreezeAllTrafficLights(bool frozen) {
                 inner_.FreezeAllTrafficLights(frozen);
             }
 
-            std::vector<BoundingBox> GetLevelBBs(uint8_t queried_tag) const {
-                return inner_.GetLevelBBs(queried_tag);
+            std::unique_ptr<FfiBoundingBoxList> GetLevelBBs(uint8_t queried_tag) const {
+                auto orig = inner_.GetLevelBBs(queried_tag);
+                return std::make_unique<FfiBoundingBoxList>(std::move(orig));
             }
 
-            // boost::optional<LabelledPoint> ProjectPoint(Location location,
-            //                                             Vector3D direction,
-            //                                             float search_distance = 10000.f) const
-            // {
-            //     return inner_.ProjectPoint(location, direction, search_distance);
-            // }
 
-            // boost::optional<rpc::LabelledPoint> GroundProjection(
-            //                                                      geom::Location location, float search_distance = 10000.0) const;
+            FfiActorVec GetTrafficLightsFromWaypoint(const FfiWaypoint& waypoint,
+                                                     double distance) const
+            {
+                auto actors = inner_.GetTrafficLightsFromWaypoint(*waypoint.inner(), distance);
+                return FfiActorVec(std::move(actors));
+            }
 
-            // std::vector<rpc::LabelledPoint> CastRay(
-            //                                         geom::Location start_location, geom::Location end_location) const;
-
-            // std::vector<SharedPtr<Actor>> GetTrafficLightsFromWaypoint(
-            //                                                            const Waypoint& waypoint, double distance) const;
-
-            // std::vector<SharedPtr<Actor>> GetTrafficLightsInJunction(
-            //                                                          const road::JuncId junc_id) const;
-
-
+            FfiActorVec GetTrafficLightsInJunction(const JuncId junc_id) const
+            {
+                auto actors = inner_.GetTrafficLightsInJunction(junc_id);
+                return FfiActorVec(std::move(actors));
+            }
 
             // void ApplyColorTextureToObject(
             //                                const std::string &actor_name,
@@ -233,6 +284,68 @@ namespace carla_rust
             std::shared_ptr<FfiActorList> GetActorsByIds(const std::vector<uint32_t> &actor_ids) const {
                 auto list = inner_.GetActors(actor_ids);
                 return std::make_shared<FfiActorList>(std::move(list));
+            }
+
+            WeatherParameters GetWeather() const {
+                return inner_.GetWeather();
+            }
+
+            void SetWeather(const WeatherParameters &weather) {
+                inner_.SetWeather(weather);
+            }
+
+            // size_t OnTick(std::function<void(WorldSnapshot)> callback);
+
+            FfiEnvironmentObjectList GetEnvironmentObjects(uint8_t queried_tag) const
+            {
+                auto orig = inner_.GetEnvironmentObjects(queried_tag);
+                return FfiEnvironmentObjectList(std::move(orig));
+            }
+
+
+            void EnableEnvironmentObjects(const uint64_t* ids_ptr,
+                                          size_t ids_len,
+                                          bool enable) const
+            {
+                std::vector<uint64_t> vec(ids_ptr, ids_ptr + ids_len);
+                inner_.EnableEnvironmentObjects(vec, enable);
+            }
+
+
+            std::unique_ptr<FfiLabelledPoint> ProjectPoint(FfiLocation location,
+                                                           Vector3D direction,
+                                                           float search_distance) const
+            {
+                auto loc = location.as_native();
+                auto ptr = inner_.ProjectPoint(loc, direction, search_distance);
+
+                if (ptr) {
+                    return std::make_unique<FfiLabelledPoint>(std::move(*ptr));
+                } else {
+                    return nullptr;
+                }
+            }
+
+            std::unique_ptr<FfiLabelledPoint> GroundProjection(FfiLocation location,
+                                                            float search_distance = 10000.0) const
+            {
+                auto loc = location.as_native();
+                auto orig = inner_.GroundProjection(loc, search_distance);
+
+                if (orig) {
+                    return std::make_unique<FfiLabelledPoint>(std::move(*orig));
+                } else {
+                    return nullptr;
+                }
+            }
+
+            FfiLabelledPointList CastRay(FfiLocation start_location,
+                                         FfiLocation end_location) const
+            {
+                auto start = start_location.as_native();
+                auto end = end_location.as_native();
+                auto orig = inner_.CastRay(start, end);
+                return FfiLabelledPointList(std::move(orig));
             }
 
             FfiWorld clone() const {

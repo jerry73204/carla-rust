@@ -34,6 +34,33 @@ unsafe impl Send for crate::carla_rust::client::FfiLandmarkList {}
 unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
 
 // carla::geom
+unsafe impl Send for crate::carla::geom::Vector2D {}
+unsafe impl Sync for crate::carla::geom::Vector2D {}
+unsafe impl Send for crate::carla::geom::Vector3D {}
+unsafe impl Sync for crate::carla::geom::Vector3D {}
+unsafe impl Send for crate::carla::geom::Rotation {}
+unsafe impl Sync for crate::carla::geom::Rotation {}
+
+impl Debug for crate::carla::geom::Rotation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Rotation")
+            .field("pitch", &self.pitch)
+            .field("yaw", &self.yaw)
+            .field("roll", &self.roll)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla::geom::Rotation {
+    fn clone(&self) -> Self {
+        Self {
+            pitch: self.pitch.clone(),
+            yaw: self.yaw.clone(),
+            roll: self.roll.clone(),
+        }
+    }
+}
+
 impl Debug for crate::carla::geom::Vector2D {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("Vector2D")
@@ -73,6 +100,48 @@ impl Clone for crate::carla::geom::Vector3D {
 }
 
 // carla_rust::geom
+unsafe impl Send for crate::carla_rust::geom::FfiLocation {}
+unsafe impl Sync for crate::carla_rust::geom::FfiLocation {}
+unsafe impl Send for crate::carla_rust::geom::FfiTransform {}
+unsafe impl Sync for crate::carla_rust::geom::FfiTransform {}
+
+impl Debug for crate::carla_rust::geom::FfiLocation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiLocation")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .field("z", &self.z)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiLocation {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x.clone(),
+            y: self.y.clone(),
+            z: self.z.clone(),
+        }
+    }
+}
+
+impl Debug for crate::carla_rust::geom::FfiTransform {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiTransform")
+            .field("location", &self.location)
+            .field("rotation", &self.rotation)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiTransform {
+    fn clone(&self) -> Self {
+        Self {
+            location: self.location.clone(),
+            rotation: self.rotation.clone(),
+        }
+    }
+}
 
 // carla::road
 
@@ -90,9 +159,61 @@ unsafe impl Send for crate::carla::rpc::WalkerBoneControlIn {}
 unsafe impl Send for crate::carla::rpc::WalkerBoneControlOut {}
 unsafe impl Send for crate::carla::rpc::WalkerControl {}
 unsafe impl Send for crate::carla::rpc::WheelPhysicsControl {}
+unsafe impl Send for crate::carla::rpc::CityObjectLabel {}
+unsafe impl Sync for crate::carla::rpc::CityObjectLabel {}
+
+impl Debug for crate::carla::rpc::CityObjectLabel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::None => write!(f, "None"),
+            Self::Buildings => write!(f, "Buildings"),
+            Self::Fences => write!(f, "Fences"),
+            Self::Other => write!(f, "Other"),
+            Self::Pedestrians => write!(f, "Pedestrians"),
+            Self::Poles => write!(f, "Poles"),
+            Self::RoadLines => write!(f, "RoadLines"),
+            Self::Roads => write!(f, "Roads"),
+            Self::Sidewalks => write!(f, "Sidewalks"),
+            Self::Vegetation => write!(f, "Vegetation"),
+            Self::Vehicles => write!(f, "Vehicles"),
+            Self::Walls => write!(f, "Walls"),
+            Self::TrafficSigns => write!(f, "TrafficSigns"),
+            Self::Sky => write!(f, "Sky"),
+            Self::Ground => write!(f, "Ground"),
+            Self::Bridge => write!(f, "Bridge"),
+            Self::RailTrack => write!(f, "RailTrack"),
+            Self::GuardRail => write!(f, "GuardRail"),
+            Self::TrafficLight => write!(f, "TrafficLight"),
+            Self::Static => write!(f, "Static"),
+            Self::Dynamic => write!(f, "Dynamic"),
+            Self::Water => write!(f, "Water"),
+            Self::Terrain => write!(f, "Terrain"),
+            Self::Any => write!(f, "Any"),
+        }
+    }
+}
 
 // carla_rust::rpc
+unsafe impl Send for crate::carla_rust::rpc::FfiLabelledPoint {}
 unsafe impl Send for crate::carla_rust::rpc::FfiEpisodeSettings {}
+
+impl Debug for crate::carla_rust::rpc::FfiLabelledPoint {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiLabelledPoint")
+            .field("location", &self.location)
+            .field("label", &self.label)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::rpc::FfiLabelledPoint {
+    fn clone(&self) -> Self {
+        Self {
+            location: self.location.clone(),
+            label: self.label.clone(),
+        }
+    }
+}
 
 impl Debug for crate::carla::rpc::GearPhysicsControl {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
