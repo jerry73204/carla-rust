@@ -22,6 +22,7 @@ carla-src = { version = "0.3.0", path = "../carla-src" }
 
 [features]
 docs-only = []
+force-rebuild = ["carla-bin/force-rebuild"]
 
 [package.metadata.docs.rs]
 no-default-features = true
