@@ -15,3 +15,5 @@ pub mod prelude {
         sensor::SensorData as _,
     };
 }
+
+pub use carla_sys;
