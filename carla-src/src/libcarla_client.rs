@@ -1,5 +1,5 @@
 use crate::{probe, Probe};
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use fs_extra::dir::CopyOptions;
 use std::{fs, path::Path, process::Command};
 
@@ -14,12 +14,19 @@ pub const LIBS: &[&str] = &[
 ];
 
 pub fn build(src_dir: &Path) -> Result<()> {
+    let err = || format!("`make LibCarla.client` failed in {}", src_dir.display());
+
     // make LibCarla.client.release
-    Command::new("make")
+    let status = Command::new("make")
         .arg("LibCarla.client.release")
         .current_dir(src_dir)
         .status()
-        .with_context(|| "Failed to run `make LibCarla.client`")?;
+        .with_context(err)?;
+
+    if !status.success() {
+        bail!("{}", err());
+    }
+
     Ok(())
 }
 
