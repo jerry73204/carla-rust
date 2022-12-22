@@ -32,6 +32,8 @@ unsafe impl Send for crate::carla_rust::client::FfiTransformList {}
 unsafe impl Sync for crate::carla_rust::client::FfiTransformList {}
 unsafe impl Send for crate::carla_rust::client::FfiLandmarkList {}
 unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
+unsafe impl Send for crate::carla_rust::client::FfiWorldSnapshot {}
+unsafe impl Sync for crate::carla_rust::client::FfiWorldSnapshot {}
 
 // carla::geom
 unsafe impl Send for crate::carla::geom::Vector2D {}

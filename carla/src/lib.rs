@@ -8,6 +8,7 @@ mod utils;
 pub mod prelude {
     pub use crate::{
         client::ActorBase as _,
+        client::TimestampExt as _,
         geom::{
             LocationExt as _, RotationExt as _, TransformExt as _, Vector2DExt as _,
             Vector3DExt as _,

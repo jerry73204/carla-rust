@@ -23,3 +23,4 @@
 #include "labelled_point_list.hpp"
 #include "environment_object_list.hpp"
 #include "actor_vec.hpp"
+#include "world_snapshot.hpp"

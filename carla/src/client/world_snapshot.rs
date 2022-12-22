@@ -1,4 +1,6 @@
-use carla_sys::carla::client::WorldSnapshot as FfiWorldSnapshot;
+use super::Timestamp;
+use crate::rpc::ActorId;
+use carla_sys::carla_rust::client::FfiWorldSnapshot;
 use cxx::UniquePtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
@@ -20,7 +22,13 @@ impl WorldSnapshot {
         self.inner.GetFrame()
     }
 
-    // pub fn timestamp(&self) ->
+    pub fn timestamp(&self) -> &Timestamp {
+        self.inner.GetTimestamp()
+    }
+
+    pub fn contains(&self, actor_id: ActorId) -> bool {
+        self.inner.Contains(actor_id)
+    }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorldSnapshot>) -> Option<Self> {
         if ptr.is_null() {

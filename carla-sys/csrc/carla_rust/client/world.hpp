@@ -25,6 +25,7 @@
 #include "carla_rust/client/environment_object_list.hpp"
 #include "carla_rust/client/actor_vec.hpp"
 #include "carla_rust/rpc/vehicle_light_state_list.hpp"
+#include "carla_rust/client/world_snapshot.hpp"
 
 namespace carla_rust
 {
@@ -50,6 +51,7 @@ namespace carla_rust
         using carla_rust::client::FfiEnvironmentObjectList;
         using carla_rust::client::FfiBoundingBoxList;
         using carla_rust::client::FfiActorVec;
+        using carla_rust::client::FfiWorldSnapshot;
 
         class FfiWorld {
         public:
@@ -126,10 +128,10 @@ namespace carla_rust
                 }
             }
 
-            std::unique_ptr<WorldSnapshot> WaitForTick(size_t millis) const {
+            std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis) const {
                 try {
                     auto snapshot = inner_.WaitForTick(time_duration::milliseconds(millis));
-                    return std::make_unique<WorldSnapshot>(snapshot);
+                    return std::make_unique<FfiWorldSnapshot>(std::move(snapshot));
                 }
                 catch (TimeoutException &e) {
                     return nullptr;
@@ -258,9 +260,9 @@ namespace carla_rust
                 return inner_.ApplySettings(settings.inner(), timeout);
             }
 
-            std::unique_ptr<WorldSnapshot> GetSnapshot() const {
+            std::unique_ptr<FfiWorldSnapshot> GetSnapshot() const {
                 auto snapshot = inner_.GetSnapshot();
-                return std::make_unique<WorldSnapshot>(snapshot);
+                return std::make_unique<FfiWorldSnapshot>(std::move(snapshot));
             }
 
             std::vector<std::string> GetNamesOfAllObjects() const {
