@@ -1,6 +1,6 @@
 [package]
 name = "carla"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "Rust client library for Carla simulator"
 edition = "2021"
