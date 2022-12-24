@@ -21,32 +21,32 @@ pub struct Vehicle {
 }
 
 impl Vehicle {
-    pub fn set_autopilot(&mut self, enabled: bool) {
+    pub fn set_autopilot(&self, enabled: bool) {
         self.set_autopilot_opt(enabled, TM_DEFAULT_PORT)
     }
 
-    pub fn set_autopilot_opt(&mut self, enabled: bool, tm_port: u16) {
+    pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) {
         self.inner.SetAutopilot(enabled, tm_port);
     }
 
-    pub fn show_debug_telemetry(&mut self, enabled: bool) {
+    pub fn show_debug_telemetry(&self, enabled: bool) {
         self.inner.ShowDebugTelemetry(enabled);
     }
 
-    pub fn apply_control(&mut self, control: &VehicleControl) {
+    pub fn apply_control(&self, control: &VehicleControl) {
         self.inner.ApplyControl(control);
     }
 
-    pub fn apply_physics_control(&mut self, control: &VehiclePhysicsControl) {
+    pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
         let control = control.to_cxx();
         self.inner.ApplyPhysicsControl(&control);
     }
 
-    pub fn open_door(&mut self, door: VehicleDoor) {
+    pub fn open_door(&self, door: VehicleDoor) {
         self.inner.OpenDoor(door);
     }
 
-    pub fn close_door(&mut self, door: VehicleDoor) {
+    pub fn close_door(&self, door: VehicleDoor) {
         self.inner.CloseDoor(door);
     }
 
@@ -54,15 +54,11 @@ impl Vehicle {
         self.inner.SetLightState(light_state);
     }
 
-    pub fn set_wheel_steer_direction(
-        &mut self,
-        wheel_location: VehicleWheelLocation,
-        degrees: f32,
-    ) {
+    pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
         self.inner.SetWheelSteerDirection(wheel_location, degrees);
     }
 
-    pub fn get_wheel_steer_angle(&mut self, wheel_location: VehicleWheelLocation) -> f32 {
+    pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         self.inner.GetWheelSteerAngle(wheel_location)
     }
 
@@ -82,20 +78,20 @@ impl Vehicle {
         self.inner.GetTrafficLightState()
     }
 
-    pub fn is_at_traffic_light(&mut self) -> bool {
+    pub fn is_at_traffic_light(&self) -> bool {
         self.inner.IsAtTrafficLight()
     }
 
-    pub fn enable_car_sim(&mut self, simfile_path: &str) {
+    pub fn enable_car_sim(&self, simfile_path: &str) {
         self.inner.EnableCarSim(simfile_path)
     }
 
-    pub fn use_car_sim_road(&mut self, enabled: bool) {
+    pub fn use_car_sim_road(&self, enabled: bool) {
         self.inner.UseCarSimRoad(enabled);
     }
 
     pub fn enable_chrono_physics(
-        &mut self,
+        &self,
         max_substeps: u64,
         max_substep_delta_time: f32,
         vehicle_json: &str,
