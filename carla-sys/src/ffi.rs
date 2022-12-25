@@ -47,6 +47,7 @@ include_cpp! {
     #include "carla/client/World.h"
     #include "carla/client/WorldSnapshot.h"
     #include "carla/client/Timestamp.h"
+    #include "carla/client/Light.h"
 
     #include "carla/sensor/SensorData.h"
     #include "carla/sensor/data/Image.h"
@@ -64,6 +65,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate_pod!("carla_rust::client::FfiLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
     generate_pod!("carla_rust::geom::FfiBoundingBox")
@@ -71,6 +73,8 @@ include_cpp! {
     generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
     generate_pod!("carla_rust::rpc::FfiLabelledPoint")
+    generate_pod!("carla_rust::rpc::FfiRpcColor")
+    generate_pod!("carla_rust::rpc::FfiRpcLightState")
 
     // carla
     generate!("carla::SharedPtr")
@@ -108,6 +112,8 @@ include_cpp! {
     generate_pod!("carla::rpc::WeatherParameters")
     generate_pod!("carla::rpc::CityObjectLabel")
     generate_pod!("carla::rpc::ActorState")
+    generate_pod!("carla::rpc::LightState_LightGroup")
+    generate_pod!("carla::rpc::LightId")
 
     // carla::client
     generate!("carla::client::Waypoint")
@@ -123,6 +129,7 @@ include_cpp! {
     generate!("carla::client::LaneInvasionSensor")
     generate!("carla::client::WorldSnapshot")
     generate_pod!("carla::client::Timestamp")
+    generate!("carla::client::Light")
 
     // carla::sensor
     generate!("carla::sensor::SensorData")
@@ -153,4 +160,5 @@ include_cpp! {
     // generate!("carla::client::LightManager")
     // generate!("carla::traffic_manager::TrafficManager")
     // generate!("carla::sensor::data::Color")
+    // generate!("carla::rpc::LightState")
 }

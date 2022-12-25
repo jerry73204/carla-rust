@@ -6,3 +6,5 @@
 #include "labelled_point.hpp"
 #include "environment_object.hpp"
 #include "vehicle_light_state_list.hpp"
+#include "light_state.hpp"
+#include "color.hpp"

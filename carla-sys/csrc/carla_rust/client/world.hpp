@@ -24,8 +24,9 @@
 #include "carla_rust/client/labelled_point_list.hpp"
 #include "carla_rust/client/environment_object_list.hpp"
 #include "carla_rust/client/actor_vec.hpp"
-#include "carla_rust/rpc/vehicle_light_state_list.hpp"
 #include "carla_rust/client/world_snapshot.hpp"
+#include "carla_rust/client/light_manager.hpp"
+#include "carla_rust/rpc/vehicle_light_state_list.hpp"
 
 namespace carla_rust
 {
@@ -52,6 +53,7 @@ namespace carla_rust
         using carla_rust::client::FfiBoundingBoxList;
         using carla_rust::client::FfiActorVec;
         using carla_rust::client::FfiWorldSnapshot;
+        using carla_rust::client::FfiLightManager;
 
         class FfiWorld {
         public:
@@ -181,7 +183,10 @@ namespace carla_rust
                 inner_.ResetAllTrafficLights();
             }
 
-            // SharedPtr<LightManager> GetLightManager() const;
+            std::shared_ptr<FfiLightManager> GetLightManager() const {
+                auto orig = inner_.GetLightManager();
+                return std::make_shared<FfiLightManager>(std::move(orig));
+            }
 
             // detail::EpisodeProxy GetEpisode() const {
             //     return _episode;

@@ -1,7 +1,7 @@
 use super::{
     Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, ActorVec, BlueprintLibrary,
-    BoundingBoxList, EnvironmentObjectList, LabelledPointList, Landmark, Map, Waypoint,
-    WorldSnapshot,
+    BoundingBoxList, EnvironmentObjectList, LabelledPointList, Landmark, LightManager, Map,
+    Waypoint, WorldSnapshot,
 };
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
@@ -41,6 +41,10 @@ impl World {
     pub fn map(&self) -> Map {
         let ptr = self.inner.GetMap();
         Map::from_cxx(ptr).unwrap()
+    }
+
+    pub fn light_manager(&self) -> LightManager {
+        LightManager::from_cxx(self.inner.GetLightManager()).unwrap()
     }
 
     pub fn load_level_layer(&self, map_layers: MapLayer) {
