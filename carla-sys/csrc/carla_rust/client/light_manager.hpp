@@ -17,6 +17,7 @@ namespace carla_rust
         using carla::rpc::EnvironmentObject;
         using carla::client::LightId;
         using carla::client::LightManager;
+        using carla::client::LightState;
         using carla_rust::client::FfiLightState;
         using carla_rust::sensor::data::FfiColor;
 
@@ -59,13 +60,17 @@ namespace carla_rust
                 return FfiLightList(std::move(orig));
             }
 
-            void SetColorList(FfiLightList& lights, FfiColor color) const {
+            void SetColorList1(FfiLightList& lights, FfiColor color) const {
                 inner_->SetColor(lights.inner(), color.as_builtin());
             }
 
-            // void SetColor(FfiLightList& lights, std::vector<Color>& colors) {}
+            void SetColorList2(FfiLightList& lights, std::vector<Color>& colors) {
+                inner_->SetColor(lights.inner(), colors);
+            }
 
-            // std::vector<Color> GetColor(std::vector<Light>& lights) const;
+            std::vector<Color> GetColor(std::vector<Light>& lights) const {
+                return inner_->GetColor(lights);
+            }
 
             void SetIntensityList1(FfiLightList& lights, float intensity) const {
                 inner_->SetIntensity(lights.inner(), intensity);
@@ -91,18 +96,25 @@ namespace carla_rust
                 inner_->GetLightGroup(lights.inner());
             }
 
-            void SetLightStateList(FfiLightList& lights, FfiLightState state) const {
+            void SetLightStateList1(FfiLightList& lights, FfiLightState state) const {
                 inner_->SetLightState(lights.inner(), state.as_builtin());
             }
 
-            // void SetLightStateList(FfiLightList& lights, std::vector<FfiLightState>& states) {
-            //     inner_->SetLightState(lights, states);
-            // }
+            void SetLightStateList2(FfiLightList& lights, std::vector<FfiLightState>& states) {
+                std::vector<LightState>& casted = reinterpret_cast<std::vector<LightState>&>(states);
+                inner_->SetLightState(lights.inner(), casted);
+            }
 
-            // std::vector<FfiLightState> GetLightStateList(FfiLightList& lights) const {
-            //     auto orig = inner_->GetLightStateList(lights);
-            //     return FfiLightState(std::move(orig));
-            // }
+            std::vector<FfiLightState> GetLightStateList(FfiLightList& lights) const {
+                auto orig = inner_->GetLightState(lights.inner());
+                std::vector<FfiLightState> vec;
+
+                for (auto&& item: orig) {
+                    vec.push_back(std::move(item));
+                }
+
+                return vec;
+            }
 
             FfiColor GetColor(uint32_t id) const {
                 auto orig = inner_->GetColor(id);

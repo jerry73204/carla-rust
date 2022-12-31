@@ -17,6 +17,11 @@ impl LightList {
         self.inner.size()
     }
 
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn get_mut(&mut self, index: usize) -> Option<LightMut<'_>> {
         if index >= self.len() {
             return None;
