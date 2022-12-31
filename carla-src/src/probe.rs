@@ -64,9 +64,9 @@ pub fn probe(carla_src_dir: &Path) -> Probe {
     let carla_source_dir = carla_src_dir.join("LibCarla").join("source");
     let carla_third_party_dir = carla_source_dir.join("third-party");
     let build_dir = carla_src_dir.join("Build");
-    let recast_dir = build_dir.join("recast-0b13b0-c8-install");
-    let rpclib_dir = build_dir.join("rpclib-v2.2.1_c5-c8-libstdcxx-install");
-    let boost_dir = build_dir.join("boost-1.80.0-c8-install");
+    let recast_dir = build_dir.join("recast-0b13b0-c10-install");
+    let rpclib_dir = build_dir.join("rpclib-v2.2.1_c5-c10-libstdcxx-install");
+    let boost_dir = build_dir.join("boost-1.80.0-c10-install");
     let libpng_dir = build_dir.join("libpng-1.6.37-install");
     let libcarla_client_lib_dir = build_dir
         .join("libcarla-client-build.release")
