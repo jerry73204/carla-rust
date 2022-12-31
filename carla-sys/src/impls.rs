@@ -168,32 +168,39 @@ impl Debug for crate::carla::rpc::CityObjectLabel {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::None => write!(f, "None"),
-            Self::Buildings => write!(f, "Buildings"),
-            Self::Fences => write!(f, "Fences"),
-            Self::Other => write!(f, "Other"),
-            Self::Pedestrians => write!(f, "Pedestrians"),
-            Self::Poles => write!(f, "Poles"),
-            Self::RoadLines => write!(f, "RoadLines"),
             Self::Roads => write!(f, "Roads"),
             Self::Sidewalks => write!(f, "Sidewalks"),
-            Self::Vegetation => write!(f, "Vegetation"),
-            Self::Vehicles => write!(f, "Vehicles"),
+            Self::Buildings => write!(f, "Buildings"),
             Self::Walls => write!(f, "Walls"),
+            Self::Fences => write!(f, "Fences"),
+            Self::Poles => write!(f, "Poles"),
+            Self::TrafficLight => write!(f, "TrafficLight"),
             Self::TrafficSigns => write!(f, "TrafficSigns"),
+            Self::Vegetation => write!(f, "Vegetation"),
+            Self::Terrain => write!(f, "Terrain"),
             Self::Sky => write!(f, "Sky"),
+            Self::Pedestrians => write!(f, "Pedestrians"),
+            Self::Rider => write!(f, "Rider"),
+            Self::Car => write!(f, "Car"),
+            Self::Truck => write!(f, "Truck"),
+            Self::Bus => write!(f, "Bus"),
+            Self::Train => write!(f, "Train"),
+            Self::Motorcycle => write!(f, "Motorcycle"),
+            Self::Bicycle => write!(f, "Bicycle"),
+            Self::Static => write!(f, "Static"),
+            Self::Dynamic => write!(f, "Dynamic"),
+            Self::Other => write!(f, "Other"),
+            Self::Water => write!(f, "Water"),
+            Self::RoadLines => write!(f, "RoadLines"),
             Self::Ground => write!(f, "Ground"),
             Self::Bridge => write!(f, "Bridge"),
             Self::RailTrack => write!(f, "RailTrack"),
             Self::GuardRail => write!(f, "GuardRail"),
-            Self::TrafficLight => write!(f, "TrafficLight"),
-            Self::Static => write!(f, "Static"),
-            Self::Dynamic => write!(f, "Dynamic"),
-            Self::Water => write!(f, "Water"),
-            Self::Terrain => write!(f, "Terrain"),
             Self::Any => write!(f, "Any"),
         }
     }
 }
+
 
 // carla_rust::rpc
 unsafe impl Send for crate::carla_rust::rpc::FfiLabelledPoint {}

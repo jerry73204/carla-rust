@@ -68,7 +68,7 @@ namespace carla_rust
                 inner_->SetColor(lights.inner(), colors);
             }
 
-            std::vector<Color> GetColor(std::vector<Light>& lights) const {
+            std::vector<Color> GetColorList(std::vector<Light>& lights) const {
                 return inner_->GetColor(lights);
             }
 
