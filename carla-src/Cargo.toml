@@ -1,6 +1,6 @@
 [package]
 name = "carla-src"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "A utility crate that prepares Carla simulator source code"
 edition = "2021"
