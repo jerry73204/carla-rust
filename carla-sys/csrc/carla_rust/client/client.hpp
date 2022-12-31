@@ -5,6 +5,7 @@
 #include "carla/client/Client.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
 #include "carla/rpc/MapLayer.h"
+#include "carla_rust/traffic_manager/traffic_manager.hpp"
 
 namespace carla_rust
 {
@@ -13,6 +14,7 @@ namespace carla_rust
         using carla::client::Client;
         using carla::rpc::OpendriveGenerationParameters;
         using carla::rpc::MapLayer;
+        using carla_rust::traffic_manager::FfiTrafficManager;
 
         class FfiClient {
         public:
@@ -73,6 +75,12 @@ namespace carla_rust
                 auto world = inner_.GetWorld();
                 return FfiWorld(std::move(world));
             }
+
+            FfiTrafficManager GetInstanceTM(uint16_t port) const {
+                auto orig = inner_.GetInstanceTM(port);
+                return FfiTrafficManager(std::move(orig));
+            }
+
 
         private:
             Client inner_;

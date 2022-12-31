@@ -1,5 +1,8 @@
 use super::World;
-use crate::rpc::OpendriveGenerationParameters;
+use crate::{
+    rpc::OpendriveGenerationParameters,
+    traffic_manager::{constants::Networking::TM_DEFAULT_PORT, TrafficManager},
+};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiClient;
 use cxx::{let_cxx_string, UniquePtr};
@@ -91,6 +94,15 @@ impl Client {
     pub fn world(&self) -> World {
         let world = self.inner.GetWorld().within_unique_ptr();
         World::from_cxx(world).unwrap()
+    }
+
+    pub fn instance_tm<P>(&self, port: P) -> TrafficManager
+    where
+        P: Into<Option<u16>>,
+    {
+        let port = port.into().unwrap_or(TM_DEFAULT_PORT);
+        let ptr = self.inner.GetInstanceTM(port).within_unique_ptr();
+        TrafficManager::from_cxx(ptr).unwrap()
     }
 }
 

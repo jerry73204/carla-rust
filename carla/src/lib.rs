@@ -3,6 +3,7 @@ pub mod geom;
 pub mod road;
 pub mod rpc;
 pub mod sensor;
+pub mod traffic_manager;
 mod utils;
 
 pub mod prelude {

@@ -9,3 +9,4 @@
 #include "sensor/mod.hpp"
 #include "road.hpp"
 #include "utils.hpp"
+#include "traffic_manager/mod.hpp"
