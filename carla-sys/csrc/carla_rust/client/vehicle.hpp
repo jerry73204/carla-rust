@@ -3,11 +3,13 @@
 #include <memory>
 #include "carla/Memory.h"
 #include "carla/client/Vehicle.h"
+#include "carla/rpc/AckermannControllerSettings.h"
 #include "carla/rpc/VehicleControl.h"
 #include "carla/rpc/VehiclePhysicsControl.h"
 #include "carla/rpc/VehicleDoor.h"
 #include "carla/rpc/VehicleLightState.h"
 #include "carla/rpc/VehicleWheels.h"
+#include "carla/rpc/VehicleAckermannControl.h"
 #include "carla/rpc/TrafficLightState.h"
 #include "carla_rust/rpc/vehicle_physics_control.hpp"
 
@@ -16,12 +18,14 @@ namespace carla_rust
     namespace client {
         using carla::SharedPtr;
         using carla::client::Vehicle;
+        using carla::rpc::AckermannControllerSettings;
         using carla::rpc::VehicleControl;
         using carla::rpc::VehiclePhysicsControl;
         using carla::rpc::VehicleDoor;
         using carla::rpc::VehicleLightState;
         using carla::rpc::VehicleWheelLocation;
         using carla::rpc::TrafficLightState;
+        using carla::rpc::VehicleAckermannControl;
         using carla_rust::rpc::FfiVehiclePhysicsControl;
 
         // Vehicle
@@ -44,8 +48,20 @@ namespace carla_rust
                 inner_->ApplyControl(control);
             }
 
+            void ApplyAckermannControl(const VehicleAckermannControl &control) const {
+                inner_->ApplyAckermannControl(control);
+            }
+
             void ApplyPhysicsControl(const FfiVehiclePhysicsControl &physics_control) const {
                 inner_->ApplyPhysicsControl(physics_control.inner());
+            }
+
+            AckermannControllerSettings GetAckermannControllerSettings() const {
+                return inner_->GetAckermannControllerSettings();
+            }
+
+            void ApplyAckermannControllerSettings(const AckermannControllerSettings &settings) const {
+                inner_->ApplyAckermannControllerSettings(settings);
             }
 
             void OpenDoor(const VehicleDoor door_idx) const {

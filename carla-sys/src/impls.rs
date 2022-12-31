@@ -201,7 +201,6 @@ impl Debug for crate::carla::rpc::CityObjectLabel {
     }
 }
 
-
 // carla_rust::rpc
 unsafe impl Send for crate::carla_rust::rpc::FfiLabelledPoint {}
 unsafe impl Send for crate::carla_rust::rpc::FfiEpisodeSettings {}

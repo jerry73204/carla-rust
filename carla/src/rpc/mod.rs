@@ -7,8 +7,9 @@ mod vehicle_physics_control;
 
 pub use carla_sys::{
     carla::rpc::{
-        AttachmentType, GearPhysicsControl, LightState_LightGroup as LightGroup,
-        OpendriveGenerationParameters, TrafficLightState, VehicleControl, VehicleDoor,
+        AckermannControllerSettings, AttachmentType, GearPhysicsControl,
+        LightState_LightGroup as LightGroup, OpendriveGenerationParameters, TrafficLightState,
+        VehicleAckermannControl, VehicleControl, VehicleDoor,
         VehicleLightState_LightState as VehicleLightState, VehicleWheelLocation, WeatherParameters,
         WheelPhysicsControl,
     },

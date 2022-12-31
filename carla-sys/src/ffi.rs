@@ -19,6 +19,7 @@ include_cpp! {
     #include "carla/rpc/VehicleLightState.h"
     #include "carla/rpc/VehicleDoor.h"
     #include "carla/rpc/VehicleWheels.h"
+    #include "carla/rpc/VehicleAckermannControl.h"
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
     #include "carla/rpc/GearPhysicsControl.h"
@@ -99,6 +100,8 @@ include_cpp! {
     generate!("carla::rpc::OpendriveGenerationParameters")
     generate_pod!("carla::rpc::AttachmentType")
     generate_pod!("carla::rpc::VehicleControl")
+    generate_pod!("carla::rpc::VehicleAckermannControl")
+    generate_pod!("carla::rpc::AckermannControllerSettings")
     generate!("carla::rpc::VehicleLightState")
     generate_pod!("carla::rpc::VehicleDoor")
     generate_pod!("carla::rpc::VehicleWheelLocation")

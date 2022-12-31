@@ -1,7 +1,7 @@
 use super::{Actor, ActorBase};
 use crate::rpc::{
-    TrafficLightState, VehicleControl, VehicleDoor, VehicleLightState, VehiclePhysicsControl,
-    VehicleWheelLocation,
+    AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
+    VehicleDoor, VehicleLightState, VehiclePhysicsControl, VehicleWheelLocation,
 };
 use autocxx::prelude::*;
 use carla_sys::{
@@ -37,9 +37,29 @@ impl Vehicle {
         self.inner.ApplyControl(control);
     }
 
+    pub fn control(&self) -> VehicleControl {
+        self.inner.GetControl()
+    }
+
     pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
         let control = control.to_cxx();
         self.inner.ApplyPhysicsControl(&control);
+    }
+
+    pub fn physics_control(&self) -> VehiclePhysicsControl {
+        VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
+    }
+
+    pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) {
+        self.inner.ApplyAckermannControl(control);
+    }
+
+    pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) {
+        self.inner.ApplyAckermannControllerSettings(settings)
+    }
+
+    pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
+        self.inner.GetAckermannControllerSettings()
     }
 
     pub fn open_door(&self, door: VehicleDoor) {
@@ -50,7 +70,7 @@ impl Vehicle {
         self.inner.CloseDoor(door);
     }
 
-    pub fn set_light_state(&mut self, light_state: &VehicleLightState) {
+    pub fn set_light_state(&self, light_state: &VehicleLightState) {
         self.inner.SetLightState(light_state);
     }
 
@@ -60,14 +80,6 @@ impl Vehicle {
 
     pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         self.inner.GetWheelSteerAngle(wheel_location)
-    }
-
-    pub fn control(&self) -> VehicleControl {
-        self.inner.GetControl()
-    }
-
-    pub fn physics_control(&self) -> VehiclePhysicsControl {
-        VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
     }
 
     pub fn light_state(&self) -> VehicleLightState {
