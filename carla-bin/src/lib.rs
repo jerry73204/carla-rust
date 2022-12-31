@@ -1,6 +1,7 @@
 use anyhow::{ensure, Context, Result};
 use carla_src::{libcarla_client, probe};
-use once_cell::sync::OnceCell;
+use once_cell::sync::{Lazy, OnceCell};
+use serde::Deserialize;
 use std::{
     fs::{self, OpenOptions},
     io::{self, BufReader},
@@ -14,13 +15,21 @@ pub struct CarlaBuild {
     pub lib_dirs: Vec<PathBuf>,
 }
 
-const PREBUILD_DIR_NAME: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/PREBUILD_DIR_NAME"));
-const DOWNLOAD_URL: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/DOWNLOAD_URL"));
+#[derive(Deserialize)]
+struct PrebuildConfig {
+    pub url: String,
+    pub dir_name: PathBuf,
+}
+
 const OUT_DIR: &str = env!("OUT_DIR");
 const TAG: &str = include_str!(concat!(env!("OUT_DIR"), "/TAG"));
 const BUILD_READY_FILE: &str = concat!(env!("OUT_DIR"), "/BUILD_READY");
 const DOWNLOAD_READY_FILE: &str = concat!(env!("OUT_DIR"), "/DOWNLOAD_READY");
+
+static PREBUILD_CONFIG: Lazy<PrebuildConfig> = Lazy::new(|| {
+    let text = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/prebuild.json5"));
+    json5::from_str(text).unwrap()
+});
 
 /// Prepares the Carla simulator source code and build client library
 /// when called.
@@ -91,22 +100,24 @@ fn download_prebuild() -> Result<()> {
     }
 
     // Download and extract to prebuild_dir
-    let reader = ureq::get(DOWNLOAD_URL)
+    let PrebuildConfig { url, .. } = &*PREBUILD_CONFIG;
+
+    let reader = ureq::get(url)
         .call()
-        .with_context(|| format!("Failed to download from URL '{}'", DOWNLOAD_URL))?
+        .with_context(|| format!("Failed to download from URL '{}'", url))?
         .into_reader();
     let reader = BufReader::new(reader);
     let mut archive = Archive::new(XzDecoder::new(reader));
     archive
         .unpack(OUT_DIR)
-        .with_context(|| format!("Failed to unpack file downloaded from '{}'", DOWNLOAD_URL))?;
+        .with_context(|| format!("Failed to unpack file downloaded from '{}'", url))?;
 
     // Check if desired extracted files exist
     ensure!(
         prebuild_dir.is_dir(),
         "'{}' does not exist. Is the URL '{}' correct?",
         prebuild_dir.display(),
-        DOWNLOAD_URL
+        url
     );
 
     Ok(())
@@ -130,7 +141,7 @@ fn touch(path: &Path) -> Result<()> {
 }
 
 fn prebuild_dir() -> PathBuf {
-    Path::new(OUT_DIR).join(PREBUILD_DIR_NAME)
+    Path::new(OUT_DIR).join(&PREBUILD_CONFIG.dir_name)
 }
 
 fn install_dir() -> PathBuf {

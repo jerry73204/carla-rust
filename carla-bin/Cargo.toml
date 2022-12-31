@@ -13,6 +13,8 @@ documentation = "https://docs.rs/carla-bin/"
 [build-dependencies]
 carla-src = { version = "0.3.0", path = "../carla-src" }
 cfg-if = "1.0.0"
+json5 = "0.4.1"
+serde = { version = "1.0.152", features = ["derive"] }
 
 [dependencies]
 anyhow = "1.0.66"
@@ -21,6 +23,8 @@ carla-src = { version = "0.3.0", path = "../carla-src" }
 ureq = "2.5.0"
 tar = "0.4.38"
 xz = "0.1.0"
+json5 = "0.4.1"
+serde = { version = "1.0.152", features = ["derive"] }
 
 [features]
 force-rebuild = []
