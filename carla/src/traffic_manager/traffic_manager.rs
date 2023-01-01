@@ -1,5 +1,6 @@
+use super::{Action, ActionBuffer, PrivateAction};
 use crate::{
-    client::{Actor, ActorBase},
+    client::ActorBase,
     geom::{Location, LocationExt},
     rpc::ActorId,
     utils::CxxVectorExt,
@@ -11,8 +12,6 @@ use derivative::Derivative;
 use nalgebra::Point3;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
-
-use super::{Action, ActionBuffer, PrivateAction};
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -35,8 +34,9 @@ impl TrafficManager {
         self.inner.pin_mut().SetOSMMode(yes);
     }
 
-    pub fn set_custom_path<P>(&mut self, actor: &Actor, path: &[P], empty_buffer: bool)
+    pub fn set_custom_path<A, P>(&mut self, actor: &A, path: &[P], empty_buffer: bool)
     where
+        A: ActorBase,
         P: AsRef<Point3<f32>>,
     {
         let path = path.iter().fold(CxxVector::new_typed(), |mut vec, point| {
@@ -45,9 +45,11 @@ impl TrafficManager {
             vec
         });
 
-        self.inner
-            .pin_mut()
-            .SetCustomPath(&actor.inner, &path, empty_buffer);
+        self.inner.pin_mut().SetCustomPath(
+            actor.cxx_actor().as_ref().unwrap(),
+            &path,
+            empty_buffer,
+        );
     }
 
     pub fn remove_upload_path(&mut self, actor_id: ActorId, remove_path: bool) {
