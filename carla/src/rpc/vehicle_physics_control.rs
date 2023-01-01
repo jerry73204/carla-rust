@@ -60,7 +60,7 @@ impl VehiclePhysicsControl {
             .iter()
             .map(Vector2D::from_na)
             .collect_cxx_vector();
-        let mut center_of_mass = Box::pin(Location::from_na(center_of_mass));
+        let mut center_of_mass = Box::pin(Location::from_na_translation(center_of_mass));
         let mut forward_gears = forward_gears.iter().cloned().collect_cxx_vector();
         let mut wheels = wheels.iter().cloned().collect_cxx_vector();
 
@@ -103,7 +103,7 @@ impl VehiclePhysicsControl {
             forward_gears: from.forward_gears().iter().cloned().collect(),
             mass: from.mass(),
             drag_coefficient: from.drag_coefficient(),
-            center_of_mass: from.center_of_mass().to_na(),
+            center_of_mass: from.center_of_mass().to_na_translation(),
             steering_curve: from.steering_curve().iter().map(|v| v.to_na()).collect(),
             wheels: from.wheels().iter().cloned().collect(),
             use_sweep_wheel_collision: from.use_sweep_wheel_collision(),

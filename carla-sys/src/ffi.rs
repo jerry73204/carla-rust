@@ -23,12 +23,12 @@ include_cpp! {
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
     #include "carla/rpc/GearPhysicsControl.h"
-    // #include "carla/rpc/MapLayer.h"
     #include "carla/rpc/WeatherParameters.h"
     #include "carla/rpc/ObjectLabel.h"
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
+    #include "carla/trafficmanager/SimpleWaypoint.h"
 
     #include "carla/client/Waypoint.h"
     #include "carla/client/Sensor.h"
@@ -111,7 +111,6 @@ include_cpp! {
     generate_pod!("carla::rpc::ActorAttributeType")
     generate_pod!("carla::rpc::GearPhysicsControl")
     generate_pod!("carla::rpc::WheelPhysicsControl")
-    // generate_pod!("carla::rpc::MapLayer")
     generate_pod!("carla::rpc::WeatherParameters")
     generate_pod!("carla::rpc::CityObjectLabel")
     generate_pod!("carla::rpc::ActorState")
@@ -119,7 +118,6 @@ include_cpp! {
     generate_pod!("carla::rpc::LightId")
 
     // carla::client
-    generate!("carla::client::Waypoint")
     generate!("carla::client::Vehicle")
     generate!("carla::client::Walker")
     generate!("carla::client::TrafficLight")
@@ -150,6 +148,9 @@ include_cpp! {
     generate!("carla::sensor::data::SemanticLidarData")
     generate!("carla::sensor::data::IMUMeasurement")
     generate!("carla::sensor::data::GnssMeasurement")
+
+    // carla::traffic_manager
+    generate!("carla::traffic_manager::RoadOption")
 
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")

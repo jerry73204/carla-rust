@@ -8,8 +8,12 @@ use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
 
-pub trait ActorBase {
+pub trait ActorBase: Clone {
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
+
+    fn into_actor(self) -> Actor {
+        Actor::from_cxx(self.cxx_actor()).unwrap()
+    }
 
     fn id(&self) -> ActorId {
         self.cxx_actor().GetId()
@@ -45,7 +49,7 @@ pub trait ActorBase {
     }
 
     fn location(&self) -> Translation3<f32> {
-        self.cxx_actor().GetLocation().to_na()
+        self.cxx_actor().GetLocation().to_na_translation()
     }
 
     fn transform(&self) -> Isometry3<f32> {
@@ -65,7 +69,8 @@ pub trait ActorBase {
     }
 
     fn set_location(&self, location: &Translation3<f32>) {
-        self.cxx_actor().SetLocation(&Location::from_na(location))
+        self.cxx_actor()
+            .SetLocation(&Location::from_na_translation(location))
     }
 
     fn set_transform(&self, transform: &Isometry3<f32>) {

@@ -44,7 +44,7 @@ impl Map {
         project_to_road: bool,
         lane_type: LaneType,
     ) -> Option<Waypoint> {
-        let location = Location::from_na(location);
+        let location = Location::from_na_translation(location);
         let ptr = self
             .inner
             .GetWaypoint(&location, project_to_road, lane_type as i32);

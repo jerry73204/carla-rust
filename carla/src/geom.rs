@@ -1,5 +1,5 @@
 use carla_sys::carla_rust::geom::FfiBoundingBox as NativeBoundingBox;
-use nalgebra::{Isometry3, Translation3, UnitQuaternion, Vector2, Vector3};
+use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector2, Vector3};
 use static_assertions::assert_impl_all;
 
 pub use carla_sys::{
@@ -47,12 +47,14 @@ impl Vector3DExt for Vector3D {
 }
 
 pub trait LocationExt {
-    fn from_na(from: &Translation3<f32>) -> Self;
-    fn to_na(&self) -> Translation3<f32>;
+    fn from_na_translation(from: &Translation3<f32>) -> Self;
+    fn from_na_point(from: &Point3<f32>) -> Self;
+    fn to_na_translation(&self) -> Translation3<f32>;
+    fn to_na_point(&self) -> Point3<f32>;
 }
 
 impl LocationExt for Location {
-    fn from_na(from: &Translation3<f32>) -> Self {
+    fn from_na_translation(from: &Translation3<f32>) -> Self {
         Self {
             x: from.x,
             y: from.y,
@@ -60,9 +62,22 @@ impl LocationExt for Location {
         }
     }
 
-    fn to_na(&self) -> Translation3<f32> {
+    fn from_na_point(from: &Point3<f32>) -> Self {
+        Self {
+            x: from.x,
+            y: from.y,
+            z: from.z,
+        }
+    }
+
+    fn to_na_translation(&self) -> Translation3<f32> {
         let Self { x, y, z } = *self;
         Translation3::new(x, y, z)
+    }
+
+    fn to_na_point(&self) -> Point3<f32> {
+        let Self { x, y, z } = *self;
+        Point3::new(x, y, z)
     }
 }
 
@@ -98,7 +113,7 @@ impl TransformExt for Transform {
             rotation,
             translation,
         } = pose;
-        let location = Location::from_na(translation);
+        let location = Location::from_na_translation(translation);
         let rotation = Rotation::from_na(rotation);
         Self { location, rotation }
     }
@@ -106,7 +121,7 @@ impl TransformExt for Transform {
     fn to_na(&self) -> Isometry3<f32> {
         Isometry3 {
             rotation: self.rotation.to_na(),
-            translation: self.location.to_na(),
+            translation: self.location.to_na_translation(),
         }
     }
 }
@@ -121,7 +136,7 @@ impl BoundingBox<f32> {
     pub fn to_native(&self) -> NativeBoundingBox {
         let Self { transform, extent } = self;
         NativeBoundingBox {
-            location: Location::from_na(&transform.translation),
+            location: Location::from_na_translation(&transform.translation),
             rotation: Rotation::from_na(&transform.rotation),
             extent: Vector3D::from_na(extent),
         }
@@ -136,7 +151,7 @@ impl BoundingBox<f32> {
         Self {
             transform: Isometry3 {
                 rotation: rotation.to_na(),
-                translation: location.to_na(),
+                translation: location.to_na_translation(),
             },
             extent: extent.to_na(),
         }
@@ -148,7 +163,7 @@ impl BoundingBox<f32> {
         in_bbox_to_world_transform: &Isometry3<f32>,
     ) -> bool {
         self.to_native().Contains(
-            &Location::from_na(in_world_point),
+            &Location::from_na_translation(in_world_point),
             &Transform::from_na(in_bbox_to_world_transform),
         )
     }
@@ -157,7 +172,7 @@ impl BoundingBox<f32> {
         self.to_native()
             .GetLocalVertices()
             .iter()
-            .map(|loc| loc.to_na())
+            .map(|loc| loc.to_na_translation())
             .collect()
     }
 
@@ -165,7 +180,7 @@ impl BoundingBox<f32> {
         self.to_native()
             .GetWorldVertices(&Transform::from_na(in_bbox_to_world_tr))
             .iter()
-            .map(|loc| loc.to_na())
+            .map(|loc| loc.to_na_translation())
             .collect()
     }
 }

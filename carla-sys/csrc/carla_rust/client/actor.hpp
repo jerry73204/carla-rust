@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <carla/Memory.h>
+#include "carla/Memory.h"
 #include "carla/client/Actor.h"
 #include "carla/client/Vehicle.h"
 #include "carla/client/Sensor.h"
@@ -177,6 +177,10 @@ namespace carla_rust
 
             bool IsActive() const {
                 return inner_->IsActive();
+            }
+
+            const SharedPtr<Actor>& as_builtin() const {
+                return inner_;
             }
 
             std::shared_ptr<FfiVehicle> to_vehicle() const {

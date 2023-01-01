@@ -1,16 +1,85 @@
 #pragma once
 
+#include <iterator>
 #include <memory>
+#include <vector>
 #include "carla/Time.h"
+#include "carla/trafficmanager/SimpleWaypoint.h"
 #include "carla/trafficmanager/TrafficManager.h"
+#include "carla/trafficmanager/TrafficManagerBase.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
 #include "carla/rpc/MapLayer.h"
+#include "carla/geom/Location.h"
+#include "carla_rust/client/actor.hpp"
+#include "carla_rust/client/waypoint.hpp"
+#include "carla_rust/geom.hpp"
+#include "carla_rust/rpc/actor_id.hpp"
 
 namespace carla_rust
 {
     namespace traffic_manager {
+        using carla::SharedPtr;
+        using carla::client::Actor;
+        using carla::geom::Location;
+        using carla::traffic_manager::RoadOption;
         using carla::traffic_manager::TrafficManager;
+        using carla::traffic_manager::Action;
+        using carla::traffic_manager::ActionBuffer;
+        using carla::traffic_manager::WaypointPtr;
+        using carla::traffic_manager::ActorPtr;
+        using carla_rust::client::FfiActor;
+        using carla_rust::client::FfiWaypoint;
+        using carla_rust::geom::FfiLocation;
+        using carla_rust::rpc::FfiActorId;
+        using FfiPath = std::vector<FfiLocation>;
+        using FfiRoute = std::vector<uint8_t>;
 
+        // Action
+        class FfiAction {
+        public:
+            FfiAction(Action &&base)
+                : inner_(base)
+            {}
+
+            RoadOption road_option() const {
+                return inner_.first;
+            }
+
+            std::shared_ptr<FfiWaypoint> waypoint() const {
+                WaypointPtr waypoint = inner_.second;
+                return std::make_shared<FfiWaypoint>(std::move(waypoint));
+            }
+
+        private:
+            Action inner_;
+        };
+
+        static_assert(sizeof(FfiAction) == sizeof(Action), "FfiAction is incorrect");
+
+        // ActionBuffer
+        class FfiActionBuffer {
+        public:
+            FfiActionBuffer(ActionBuffer &&base)
+                : inner_(base)
+            {}
+
+            size_t size() const {
+                return inner_.size();
+            }
+
+            const FfiAction* as_ptr() const {
+                const Action* ptr = inner_.data();
+                return reinterpret_cast<const FfiAction*>(ptr);
+            }
+
+        private:
+            ActionBuffer inner_;
+        };
+
+        static_assert(sizeof(FfiActionBuffer) == sizeof(ActionBuffer), "FfiActionBuffer is incorrect");
+
+
+        // TrafficManager
         class FfiTrafficManager {
         public:
             FfiTrafficManager(TrafficManager &&base)
@@ -29,44 +98,41 @@ namespace carla_rust
                 inner_.SetOSMMode(mode_switch);
             }
 
-            // void SetCustomPath(const ActorPtr &actor, const Path path, const bool empty_buffer) {
-            //     return inner_.SetOSMMode();
-            // }
+            void SetCustomPath(const FfiActor &actor, const FfiPath &path, const bool empty_buffer) {
+                std::vector<Location> casted_path;
 
-            // void RemoveUploadPath(const ActorId &actor_id, const bool remove_path) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         tm_ptr->RemoveUploadPath(actor_id, remove_path);
-            //     }
-            // }
+                for (const auto& orig : path) {
+                    casted_path.push_back(orig.as_native());
+                }
 
-            // void UpdateUploadPath(const ActorId &actor_id, const Path path) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         tm_ptr->UpdateUploadPath(actor_id, path);
-            //     }
-            // }
+                inner_.SetCustomPath(actor.inner(), casted_path, empty_buffer);
+            }
 
-            // void SetImportedRoute(const ActorPtr &actor, const Route route, const bool empty_buffer) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         tm_ptr->SetImportedRoute(actor, route, empty_buffer);
-            //     }
-            // }
+            void RemoveUploadPath(const FfiActorId &actor_id, const bool remove_path) {
+                inner_.RemoveUploadPath(actor_id, remove_path);
+            }
 
-            // void RemoveImportedRoute(const ActorId &actor_id, const bool remove_path) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         tm_ptr->RemoveImportedRoute(actor_id, remove_path);
-            //     }
-            // }
+            void UpdateUploadPath(const FfiActorId &actor_id, const FfiPath &path) {
+                std::vector<Location> casted_path;
 
-            // void UpdateImportedRoute(const ActorId &actor_id, const Route route) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         tm_ptr->UpdateImportedRoute(actor_id, route);
-            //     }
-            // }
+                for (const auto& orig : path) {
+                    casted_path.push_back(orig.as_native());
+                }
+
+                inner_.UpdateUploadPath(actor_id, casted_path);
+            }
+
+            void SetImportedRoute(const FfiActor &actor, const FfiRoute route, const bool empty_buffer) {
+                inner_.SetImportedRoute(actor.as_builtin(), route, empty_buffer);
+            }
+
+            void RemoveImportedRoute(const FfiActorId &actor_id, const bool remove_path) {
+                inner_.RemoveImportedRoute(actor_id, remove_path);
+            }
+
+            void UpdateImportedRoute(const FfiActorId &actor_id, const FfiRoute route) {
+                inner_.UpdateImportedRoute(actor_id, route);
+            }
 
             void SetRespawnDormantVehicles(const bool mode_switch) {
                 inner_.SetRespawnDormantVehicles(mode_switch);
@@ -88,42 +154,37 @@ namespace carla_rust
                 inner_.SetHybridPhysicsRadius(radius);
             }
 
-            // void RegisterVehicles(const std::vector<ActorPtr> &actor_list) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->RegisterVehicles(actor_list);
-            //     }
-            // }
+            void RegisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size) {
+                std::vector<ActorPtr> new_list;
+                for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size; ptr += 1) {
+                    new_list.push_back((*ptr)->as_builtin());
+                }
 
-            // void UnregisterVehicles(const std::vector<ActorPtr> &actor_list) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->UnregisterVehicles(actor_list);
-            //     }
-            // }
+                inner_.RegisterVehicles(new_list);
+            }
 
-            // void SetPercentageSpeedDifference(const ActorPtr &actor, const float percentage) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetPercentageSpeedDifference(actor, percentage);
-            //     }
-            // }
+            void UnregisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size) {
+                std::vector<ActorPtr> new_list;
+                for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size; ptr += 1) {
+                    new_list.push_back((*ptr)->as_builtin());
+                }
 
-            // void SetLaneOffset(const ActorPtr &actor, const float offset) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetLaneOffset(actor, offset);
-            //     }
-            // }
+                inner_.UnregisterVehicles(new_list);
+            }
 
-            // void SetDesiredSpeed(const ActorPtr &actor, const float value) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetDesiredSpeed(actor, value);
-            //     }
-            // }
+            void SetPercentageSpeedDifference(const FfiActor &actor, const float percentage) {
+                inner_.SetPercentageSpeedDifference(actor.as_builtin(), percentage);
+            }
 
-            void SetGlobalPercentageSpeedDifference(float const percentage){
+            void SetLaneOffset(const FfiActor &actor, const float offset) {
+                inner_.SetLaneOffset(actor.as_builtin(), offset);
+            }
+
+            void SetDesiredSpeed(const FfiActor &actor, const float value) {
+                inner_.SetDesiredSpeed(actor.as_builtin(), value);
+            }
+
+            void SetGlobalPercentageSpeedDifference(float const percentage) {
                 inner_.SetGlobalPercentageSpeedDifference(percentage);
             }
 
@@ -131,68 +192,41 @@ namespace carla_rust
                 inner_.SetGlobalLaneOffset(offset);
             }
 
-            // void SetUpdateVehicleLights(const ActorPtr &actor, const bool do_update){
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetUpdateVehicleLights(actor, do_update);
-            //     }
-            // }
+            void SetUpdateVehicleLights(const FfiActor &actor, const bool do_update){
+                inner_.SetUpdateVehicleLights(actor.as_builtin(), do_update);
+            }
 
-            // void SetCollisionDetection(const ActorPtr &reference_actor, const ActorPtr &other_actor, const bool detect_collision) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetCollisionDetection(reference_actor, other_actor, detect_collision);
-            //     }
-            // }
+            void SetCollisionDetection(const FfiActor &reference_actor, const FfiActor &other_actor, const bool detect_collision) {
+                inner_.SetCollisionDetection(reference_actor.as_builtin(), other_actor.as_builtin(), detect_collision);
+            }
 
-            // void SetForceLaneChange(const ActorPtr &actor, const bool direction) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetForceLaneChange(actor, direction);
-            //     }
-            // }
+            void SetForceLaneChange(const FfiActor &actor, const bool direction) {
+                inner_.SetForceLaneChange(actor.as_builtin(), direction);
+            }
 
-            // void SetAutoLaneChange(const ActorPtr &actor, const bool enable) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetAutoLaneChange(actor, enable);
-            //     }
-            // }
+            void SetAutoLaneChange(const FfiActor &actor, const bool enable) {
+                inner_.SetAutoLaneChange(actor.as_builtin(), enable);
+            }
 
-            // void SetDistanceToLeadingVehicle(const ActorPtr &actor, const float distance) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetDistanceToLeadingVehicle(actor, distance);
-            //     }
-            // }
+            void SetDistanceToLeadingVehicle(const FfiActor &actor, const float distance) {
+                inner_.SetDistanceToLeadingVehicle(actor.as_builtin(), distance);
+            }
 
-            // void SetPercentageIgnoreWalkers(const ActorPtr &actor, const float perc) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetPercentageIgnoreWalkers(actor, perc);
-            //     }
-            // }
+            void SetPercentageIgnoreWalkers(const FfiActor &actor, const float perc) {
+                inner_.SetPercentageIgnoreWalkers(actor.as_builtin(), perc);
+            }
 
-            // void SetPercentageIgnoreVehicles(const ActorPtr &actor, const float perc) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetPercentageIgnoreVehicles(actor, perc);
-            //     }
-            // }
+            void SetPercentageIgnoreVehicles(const FfiActor &actor, const float perc) {
+                inner_.SetPercentageIgnoreVehicles(actor.as_builtin(), perc);
+            }
 
-            // void SetPercentageRunningSign(const ActorPtr &actor, const float perc) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetPercentageRunningSign(actor, perc);
-            //     }
-            // }
+            void SetPercentageRunningSign(const FfiActor &actor, const float perc) {
+                inner_.SetPercentageRunningSign(actor.as_builtin(), perc);
+            }
 
-            // void SetPercentageRunningLight(const ActorPtr &actor, const float perc){
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetPercentageRunningLight(actor, perc);
-            //     }
-            // }
+            void SetPercentageRunningLight(const FfiActor &actor, const float perc){
+                inner_.SetPercentageRunningLight(actor.as_builtin(), perc);
+            }
 
             void SetSynchronousMode(bool mode) {
                 inner_.SetSynchronousMode(mode);
@@ -210,28 +244,18 @@ namespace carla_rust
                 inner_.SetGlobalDistanceToLeadingVehicle(distance);
             }
 
-            // void SetKeepRightPercentage(const ActorPtr &actor, const float percentage) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetKeepRightPercentage(actor, percentage);
-            //     }
-            // }
+            void SetKeepRightPercentage(const FfiActor &actor, const float percentage) {
+                inner_.SetKeepRightPercentage(actor.as_builtin(), percentage);
+            }
 
-            // void SetRandomLeftLaneChangePercentage(const ActorPtr &actor, const float percentage) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetRandomLeftLaneChangePercentage(actor, percentage);
-            //     }
-            // }
+            void SetRandomLeftLaneChangePercentage(const FfiActor &actor, const float percentage) {
+                inner_.SetRandomLeftLaneChangePercentage(actor.as_builtin(), percentage);
+            }
 
-            // void SetRandomRightLaneChangePercentage(const ActorPtr &actor, const float percentage) {
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if(tm_ptr != nullptr){
-            //         tm_ptr->SetRandomRightLaneChangePercentage(actor, percentage);
-            //     }
-            // }
+            void SetRandomRightLaneChangePercentage(const FfiActor &actor, const float percentage) {
+                inner_.SetRandomRightLaneChangePercentage(actor.as_builtin(), percentage);
+            }
 
-            /// Method to set randomization seed.
             void SetRandomDeviceSeed(const uint64_t seed) {
                 inner_.SetRandomDeviceSeed(seed);
             }
@@ -240,27 +264,15 @@ namespace carla_rust
                 inner_.ShutDown();
             }
 
-            // Action GetNextAction(const ActorId &actor_id) {
-            //     Action next_action;
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         next_action = tm_ptr->GetNextAction(actor_id);
-            //         return next_action;
-            //     }
-            //     return next_action;
-            // }
+            FfiAction GetNextAction(const FfiActorId &actor_id) {
+                auto orig = inner_.GetNextAction(actor_id);
+                return FfiAction(std::move(orig));
+            }
 
-            // ActionBuffer GetActionBuffer(const ActorId &actor_id) {
-            //     ActionBuffer action_buffer;
-            //     TrafficManagerBase* tm_ptr = GetTM(_port);
-            //     if (tm_ptr != nullptr) {
-            //         action_buffer = tm_ptr->GetActionBuffer(actor_id);
-            //         return action_buffer;
-            //     }
-            //     return action_buffer;
-            // }
-
-
+            FfiActionBuffer GetActionBuffer(const FfiActorId &actor_id) {
+                auto orig = inner_.GetActionBuffer(actor_id);
+                return FfiActionBuffer(std::move(orig));
+            }
 
         private:
             TrafficManager inner_;

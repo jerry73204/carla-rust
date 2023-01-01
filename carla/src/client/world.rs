@@ -10,14 +10,12 @@ use crate::{
         ActorId, AttachmentType, EpisodeSettings, LabelledPoint, MapLayer, VehicleLightStateList,
         WeatherParameters,
     },
+    utils::CxxVectorExt,
 };
 use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
-use carla_sys::carla_rust::{
-    client::{FfiActor, FfiWorld},
-    utils::new_vector_uint32_t,
-};
-use cxx::{let_cxx_string, UniquePtr};
+use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
+use cxx::{let_cxx_string, CxxVector, UniquePtr};
 use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3, Vector3};
 use static_assertions::assert_impl_all;
@@ -66,7 +64,9 @@ impl World {
     }
 
     pub fn random_location_from_navigation(&self) -> Translation3<f32> {
-        self.inner.GetRandomLocationFromNavigation().to_na()
+        self.inner
+            .GetRandomLocationFromNavigation()
+            .to_na_translation()
     }
 
     pub fn spectator(&self) -> Actor {
@@ -103,7 +103,7 @@ impl World {
     }
 
     pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
-        let mut vec = new_vector_uint32_t();
+        let mut vec = CxxVector::new_typed();
         ids.iter().cloned().for_each(|id| {
             vec.pin_mut().push(id);
         });
@@ -269,7 +269,7 @@ impl World {
         search_distance: f32,
     ) -> Option<LabelledPoint> {
         let ptr = self.inner.ProjectPoint(
-            Location::from_na(location),
+            Location::from_na_translation(location),
             Vector3D::from_na(direction),
             search_distance,
         );
@@ -288,7 +288,7 @@ impl World {
     ) -> Option<LabelledPoint> {
         let ptr = self
             .inner
-            .GroundProjection(Location::from_na(location), search_distance);
+            .GroundProjection(Location::from_na_translation(location), search_distance);
 
         if ptr.is_null() {
             None
@@ -304,7 +304,10 @@ impl World {
     ) -> LabelledPointList {
         let ptr = self
             .inner
-            .CastRay(Location::from_na(start), Location::from_na(end))
+            .CastRay(
+                Location::from_na_translation(start),
+                Location::from_na_translation(end),
+            )
             .within_unique_ptr();
         LabelledPointList::from_cxx(ptr).unwrap()
     }

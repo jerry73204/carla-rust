@@ -19,10 +19,6 @@ namespace carla_rust
         using carla::geom::Vector2D;
         using carla::geom::BoundingBox;
 
-        std::vector<Vector2D> new_vector_2d_vector() {
-            return std::vector<Vector2D> {};
-        }
-
         // Location
         class FfiLocation {
         public:

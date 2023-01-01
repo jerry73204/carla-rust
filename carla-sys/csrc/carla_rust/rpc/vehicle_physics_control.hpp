@@ -17,15 +17,6 @@ namespace carla_rust
         using carla::geom::Location;
         using carla_rust::geom::FfiLocation;
 
-        std::vector<GearPhysicsControl> new_gear_physics_control_vector() {
-            return std::vector<GearPhysicsControl> {};
-        }
-
-        std::vector<WheelPhysicsControl> new_wheel_physics_control_vector() {
-            return std::vector<WheelPhysicsControl> {};
-        }
-
-
         class FfiVehiclePhysicsControl {
         public:
             FfiVehiclePhysicsControl() = default;

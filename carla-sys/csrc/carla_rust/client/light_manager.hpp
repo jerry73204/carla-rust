@@ -93,7 +93,7 @@ namespace carla_rust
             }
 
             std::vector<carla::rpc::LightState::LightGroup> GetLightGroupList(FfiLightList& lights) const {
-                inner_->GetLightGroup(lights.inner());
+                return inner_->GetLightGroup(lights.inner());
             }
 
             void SetLightStateList1(FfiLightList& lights, FfiLightState state) const {

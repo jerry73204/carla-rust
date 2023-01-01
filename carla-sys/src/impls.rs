@@ -315,3 +315,5 @@ unsafe impl Sync for crate::carla_rust::sensor::data::FfiSemanticLidarMeasuremen
 
 // carla_rust::traffic_manager
 unsafe impl Send for crate::carla_rust::traffic_manager::FfiTrafficManager {}
+unsafe impl Send for crate::carla_rust::traffic_manager::FfiAction {}
+unsafe impl Send for crate::carla_rust::traffic_manager::FfiActionBuffer {}
