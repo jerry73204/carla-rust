@@ -1,7 +1,7 @@
 # Carla Simulator Client Library in Rust
 
 Rust client library for Carla simulator. It is compatible with
-simulator version 0.9.13.
+simulator version 0.9.14.
 
 ## Documentation
 
