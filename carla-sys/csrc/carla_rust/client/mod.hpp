@@ -28,3 +28,5 @@
 #include "light.hpp"
 #include "light_state.hpp"
 #include "light_list.hpp"
+#include "junction.hpp"
+#include "waypoint_pair.hpp"

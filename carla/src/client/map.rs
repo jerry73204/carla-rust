@@ -1,12 +1,12 @@
 use core::slice;
 
-use super::{Landmark, Waypoint};
+use super::{Landmark, LandmarkList, Waypoint};
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt},
     road::{LaneId, LaneType, RoadId},
 };
 use autocxx::WithinUniquePtr;
-use carla_sys::carla_rust::client::{FfiLandmarkList, FfiMap, FfiTransformList};
+use carla_sys::carla_rust::client::{FfiMap, FfiTransformList};
 use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3};
@@ -126,45 +126,6 @@ impl RecommendedSpawnPoints {
     }
 
     fn from_cxx(ptr: UniquePtr<FfiTransformList>) -> Option<Self> {
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Self { inner: ptr })
-        }
-    }
-}
-
-#[derive(Derivative)]
-#[derivative(Debug)]
-#[repr(transparent)]
-pub struct LandmarkList {
-    #[derivative(Debug = "ignore")]
-    inner: UniquePtr<FfiLandmarkList>,
-}
-
-impl LandmarkList {
-    pub fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn get(&self, index: usize) -> Option<Landmark> {
-        if index >= self.len() {
-            return None;
-        }
-        let ptr = self.inner.get(index);
-        Some(Landmark::from_cxx(ptr).unwrap())
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = Landmark> + Send + '_ {
-        (0..self.len()).map(move |index| self.get(index).unwrap())
-    }
-
-    fn from_cxx(ptr: UniquePtr<FfiLandmarkList>) -> Option<Self> {
         if ptr.is_null() {
             None
         } else {
