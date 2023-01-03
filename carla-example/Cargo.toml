@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
-carla = { version = "0.6.0", path = "../carla" }
+carla = { version = "0.7.0", path = "../carla" }
 clap = { version = "4.0.29", features = ["derive"] }
 nalgebra = { version = "0.31.4", features = ["serde-serialize"] }
 serde = { version = "1.0.149", features = ["derive"] }
