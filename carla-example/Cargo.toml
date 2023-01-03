@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.66"
+anyhow = "1.0.68"
 carla = { version = "0.8.0", path = "../carla" }
-clap = { version = "4.0.29", features = ["derive"] }
+clap = { version = "4.0.32", features = ["derive"] }
 nalgebra = { version = "0.31.4", features = ["serde-serialize"] }
-serde = { version = "1.0.149", features = ["derive"] }
-serde_json = "1.0.89"
-serde_yaml = "0.9.14"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+serde_yaml = "0.9.16"
