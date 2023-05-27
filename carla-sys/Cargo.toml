@@ -12,11 +12,11 @@ repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla-sys/"
 
 [dependencies]
-autocxx = { version = "0.23.1" }
-cxx = "1.0.85"
+autocxx = { version = "0.25.0" }
+cxx = "1.0.95"
 
 [build-dependencies]
-autocxx-build = { version = "0.23.1" }
+autocxx-build = { version = "0.25.0" }
 carla-bin = { version = "0.3.0", path = "../carla-bin" }
 carla-src = { version = "0.4.0", path = "../carla-src" }
 
