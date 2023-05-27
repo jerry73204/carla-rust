@@ -20,6 +20,21 @@ longer time to generate Rust bindings in the first build.
 If you prefer to manually build Carla C++ client library. Please read
  [this guide](doc/use_prebuilt_client_lib.md) to learn instructions.
 
+## Troubleshooting
+
+### Build failed with clang >= 14
+
+Currently `carla-sys` is unable to build with newer clang version >= 14.
+If you are Ubuntu users, it's recommended to configure
+clang-sys to use clang 12.
+
+```sh
+sudo apt install clang-12 libclang-12-dev
+export LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
+export LIBCLANG_PATH=/usr/lib/llvm-12/lib
+export LIBCLANG_STATIC_PATH=/usr/lib/llvm-12/lib
+export CLANG_PATH=/usr/bin/clang-12
+```
 
 ## License
 
