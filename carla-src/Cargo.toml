@@ -11,19 +11,19 @@ repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla-src/"
 
 [dependencies]
-anyhow = "1.0.71"
+anyhow = "1.0.75"
 autotools = "0.2.6"
 cfg-if = "1.0.0"
 cmake = "0.1.50"
-flate2 = "1.0.26"
+flate2 = "1.0.27"
 fs_extra = "1.3.0"
 hex = { version = "0.4.3", features = ["serde"] }
-itertools = "0.10.5"
+itertools = "0.11.0"
 json5 = "0.4.1"
-log = "0.4.17"
+log = "0.4.20"
 native-tls = "0.2.11"
 safe-transmute = "0.11.2"
-serde = { version = "1.0.163", features = ["derive"] }
-sha2 = "0.10.6"
-tar = "0.4.38"
-ureq = { version = "2.6.2", features = ["native-tls"] }
+serde = { version = "1.0.188", features = ["derive"] }
+sha2 = "0.10.7"
+tar = "0.4.40"
+ureq = { version = "2.7.1", features = ["native-tls"] }
