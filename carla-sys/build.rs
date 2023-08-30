@@ -8,7 +8,7 @@ use std::{
 fn main() {
     // Set rerun triggers
     println!("cargo:rerun-if-changed=src/ffi.rs");
-    println!("cargo:rerun-if-env-changed=CARLA_CIR");
+    println!("cargo:rerun-if-env-changed=CARLA_DIR");
 
     // Skip build if docs-only feature presents.
     #[cfg(feature = "docs-only")]
