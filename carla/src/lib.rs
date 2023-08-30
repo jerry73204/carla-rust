@@ -13,7 +13,7 @@ pub mod prelude {
             LocationExt as _, RotationExt as _, TransformExt as _, Vector2DExt as _,
             Vector3DExt as _,
         },
-        sensor::SensorData as _,
+        sensor::SensorDataBase as _,
     };
 }
 
