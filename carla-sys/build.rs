@@ -1,9 +1,8 @@
 use carla_bin::CarlaBuild;
 use carla_src::probe;
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+#[allow(unused)]
+use std::path::Path;
+use std::{env, path::PathBuf};
 
 fn main() {
     // Set rerun triggers
@@ -55,7 +54,6 @@ fn main() {
         carla_include_dirs
     };
 
-    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
         .build()
         .unwrap()
@@ -63,11 +61,14 @@ fn main() {
         .compile("carla_rust");
 
     // Save generated bindings
-    save_bindings(&out_dir, &manifest_dir);
+    #[cfg(feature = "save-bindgen")]
+    save_bindings(manifest_dir);
 }
 
-fn save_bindings(out_dir: &Path, manifest_dir: &Path) {
+#[cfg(feature = "save-bindgen")]
+fn save_bindings(manifest_dir: &Path) {
     use std::fs;
+    let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     let src_file = out_dir.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
     let tgt_dir = manifest_dir.join("generated");
     let tgt_file = tgt_dir.join("bindings.rs");
