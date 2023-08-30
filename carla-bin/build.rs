@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct PrebuildConfig {
+    #[allow(unused)]
     pub dir_name: PathBuf,
 }
 
