@@ -41,7 +41,6 @@ pub fn build_carla() -> Result<&'static CarlaBuild> {
 
 fn cached_or_build() -> Result<CarlaBuild> {
     // Try to use cached files
-    #[cfg(not(feature = "force-rebuild"))]
     if let Some(build) = load_cache()? {
         return Ok(build);
     }

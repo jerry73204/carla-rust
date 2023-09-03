@@ -27,5 +27,4 @@ json5 = "0.4.1"
 serde = { version = "1.0.188", features = ["derive"] }
 
 [features]
-force-rebuild = []
 generate-prebuild = []
