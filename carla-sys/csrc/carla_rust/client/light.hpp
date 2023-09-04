@@ -15,7 +15,7 @@ namespace carla_rust
         using carla::client::Light;
         using LightId = carla::client::LightId;
         using carla::client::LightState;
-        using carla_rust::client::FfiClientLightState;
+        using carla_rust::client::FfiLightState;
         using carla_rust::sensor::data::FfiColor;
 
         class FfiLightRef {
@@ -47,9 +47,9 @@ namespace carla_rust
                 return inner_.GetLightGroup();
             }
 
-            std::unique_ptr<FfiClientLightState> GetLightState() const {
+            FfiLightState GetLightState() const {
                 LightState orig = inner_.GetLightState();
-                return std::make_unique<FfiClientLightState>(std::move(orig));
+                return FfiLightState(std::move(orig));
             }
 
             bool IsOn() const {
@@ -72,7 +72,7 @@ namespace carla_rust
                 inner_.SetLightGroup(group);
             }
 
-            void SetLightState(const FfiClientLightState& state) {
+            void SetLightState(const FfiLightState& state) {
                 inner_.SetLightState(state.as_builtin());
             }
 

@@ -14,14 +14,14 @@ namespace carla_rust
         using carla::client::LightState;
         using carla_rust::sensor::data::FfiColor;
 
-        class FfiClientLightState {
+        class FfiLightState {
         public:
             float intensity;
             FfiColor color;
             carla::rpc::LightState::LightGroup group;
             bool active;
 
-            FfiClientLightState(LightState &&base) :
+            FfiLightState(LightState &&base) :
                 intensity(std::move(base._intensity)),
                 color(std::move(base._color)),
                 group(std::move(base._group)),
@@ -33,6 +33,6 @@ namespace carla_rust
             }
         };
 
-        static_assert(sizeof(FfiClientLightState) == sizeof(LightState), "FfiClientLightState size is not correct");
+        static_assert(sizeof(FfiLightState) == sizeof(LightState), "FfiLightState size is not correct");
     }
 }

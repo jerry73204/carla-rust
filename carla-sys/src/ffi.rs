@@ -66,7 +66,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
-    generate_pod!("carla_rust::client::FfiClientLightState")
+    generate_pod!("carla_rust::client::FfiLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
     generate_pod!("carla_rust::geom::FfiBoundingBox")
