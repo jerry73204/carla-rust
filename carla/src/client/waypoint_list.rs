@@ -2,6 +2,7 @@ use super::Waypoint;
 use carla_sys::carla_rust::client::FfiWaypointList;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -41,3 +42,5 @@ impl WaypointList {
         }
     }
 }
+
+assert_impl_all!(WaypointList: Send, Sync);
