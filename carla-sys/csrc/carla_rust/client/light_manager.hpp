@@ -18,7 +18,7 @@ namespace carla_rust
         using carla::client::LightId;
         using carla::client::LightManager;
         using carla::client::LightState;
-        using carla_rust::client::FfiLightState;
+        using carla_rust::client::FfiClientLightState;
         using carla_rust::sensor::data::FfiColor;
 
         class FfiLightManager {
@@ -96,18 +96,18 @@ namespace carla_rust
                 return inner_->GetLightGroup(lights.inner());
             }
 
-            void SetLightStateList1(FfiLightList& lights, FfiLightState state) const {
+            void SetLightStateList1(FfiLightList& lights, FfiClientLightState state) const {
                 inner_->SetLightState(lights.inner(), state.as_builtin());
             }
 
-            void SetLightStateList2(FfiLightList& lights, std::vector<FfiLightState>& states) {
+            void SetLightStateList2(FfiLightList& lights, std::vector<FfiClientLightState>& states) {
                 std::vector<LightState>& casted = reinterpret_cast<std::vector<LightState>&>(states);
                 inner_->SetLightState(lights.inner(), casted);
             }
 
-            std::vector<FfiLightState> GetLightStateList(FfiLightList& lights) const {
+            std::vector<FfiClientLightState> GetLightStateList(FfiLightList& lights) const {
                 auto orig = inner_->GetLightState(lights.inner());
-                std::vector<FfiLightState> vec;
+                std::vector<FfiClientLightState> vec;
 
                 for (auto&& item: orig) {
                     vec.push_back(std::move(item));
@@ -125,9 +125,9 @@ namespace carla_rust
                 return inner_->GetIntensity(id);
             }
 
-            FfiLightState GetLightState(uint32_t id) const {
+            std::unique_ptr<FfiClientLightState> GetLightState(uint32_t id) const {
                 auto orig = inner_->GetLightState(id);
-                return FfiLightState(std::move(orig));
+                return std::make_unique<FfiClientLightState>(std::move(orig));
             }
 
             carla::rpc::LightState::LightGroup GetLightGroup(uint32_t id) const {
@@ -150,7 +150,7 @@ namespace carla_rust
                 inner_->SetIntensity(id, intensity);
             }
 
-            void SetLightState(uint32_t id, const FfiLightState& new_state) const {
+            void SetLightState(uint32_t id, const FfiClientLightState& new_state) const {
                 inner_->SetLightState(id, new_state.as_builtin());
             }
 

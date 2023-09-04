@@ -31,7 +31,8 @@ impl LightManager {
     }
 
     pub fn light_state(&self, id: LightId) -> LightState {
-        self.inner.GetLightState(id)
+        let ptr = self.inner.GetLightState(id);
+        LightState::from_cxx(ptr).unwrap()
     }
 
     pub fn light_group(&self, id: LightId) -> LightGroup {
@@ -55,7 +56,7 @@ impl LightManager {
     }
 
     pub fn set_light_state(&self, id: LightId, state: &LightState) {
-        self.inner.SetLightState(id, state);
+        self.inner.SetLightState(id, &state.inner);
     }
 
     pub fn set_light_group(&self, id: LightId, group: LightGroup) {

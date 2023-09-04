@@ -40,7 +40,7 @@ impl<'a> LightMut<'a> {
     }
 
     pub fn light_state(&self) -> LightState {
-        self.inner.GetLightState()
+        LightState::from_cxx(self.inner.GetLightState()).unwrap()
     }
 
     pub fn is_on(&self) -> bool {
@@ -64,7 +64,7 @@ impl<'a> LightMut<'a> {
     }
 
     pub fn set_light_state(&mut self, state: &LightState) {
-        self.inner.pin_mut().SetLightState(state);
+        self.inner.pin_mut().SetLightState(&state.inner);
     }
 
     pub fn turn_on(&mut self) {
