@@ -10,13 +10,18 @@
 
 namespace carla_rust
 {
+    namespace rpc {
+        enum class FfiRpcLightGroup : uint8_t;
+    }
+
     namespace client {
         using carla::SharedPtr;
         using carla::client::Light;
         using LightId = carla::client::LightId;
         using carla::client::LightState;
-        using carla_rust::client::FfiLightState;
+        using carla_rust::client::FfiClientLightState;
         using carla_rust::sensor::data::FfiColor;
+        using carla_rust::rpc::FfiRpcLightGroup;
 
         class FfiLightRef {
         public:
@@ -43,13 +48,14 @@ namespace carla_rust
                 return FfiLocation(std::move(orig));
             }
 
-            carla::rpc::LightState::LightGroup GetLightGroup() const {
-                return inner_.GetLightGroup();
+            FfiRpcLightGroup GetLightGroup() const {
+                auto group = inner_.GetLightGroup();
+                return static_cast<FfiRpcLightGroup>(group);
             }
 
-            FfiLightState GetLightState() const {
+            FfiClientLightState GetLightState() const {
                 LightState orig = inner_.GetLightState();
-                return FfiLightState(std::move(orig));
+                return FfiClientLightState(std::move(orig));
             }
 
             bool IsOn() const {
@@ -68,11 +74,12 @@ namespace carla_rust
                 inner_.SetIntensity(intensity);
             }
 
-            void SetLightGroup(carla::rpc::LightState::LightGroup group) {
-                inner_.SetLightGroup(group);
+            void SetLightGroup(FfiRpcLightGroup group) {
+                auto group_ = static_cast<carla::rpc::LightState::LightGroup>(group);
+                inner_.SetLightGroup(group_);
             }
 
-            void SetLightState(const FfiLightState& state) {
+            void SetLightState(const FfiClientLightState& state) {
                 inner_.SetLightState(state.as_builtin());
             }
 

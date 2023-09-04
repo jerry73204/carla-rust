@@ -9,6 +9,7 @@
 #include "carla_rust/client/light_state.hpp"
 #include "carla_rust/client/light_list.hpp"
 #include "carla_rust/sensor/data/color.hpp"
+#include "light.hpp"
 
 namespace carla_rust
 {
@@ -18,8 +19,9 @@ namespace carla_rust
         using carla::client::LightId;
         using carla::client::LightManager;
         using carla::client::LightState;
-        using carla_rust::client::FfiLightState;
+        using carla_rust::client::FfiClientLightState;
         using carla_rust::sensor::data::FfiColor;
+        using carla_rust::rpc::FfiRpcLightGroup;
 
         class FfiLightManager {
         public:
@@ -29,8 +31,9 @@ namespace carla_rust
                 : inner_(std::move(base))
             {}
 
-            FfiLightList GetAllLights(carla::rpc::LightState::LightGroup type) const {
-                auto orig = inner_->GetAllLights(type);
+            FfiLightList GetAllLights(FfiRpcLightGroup type) const {
+                auto type_ = static_cast<LightGroup>(type);
+                auto orig = inner_->GetAllLights(type_);
                 return FfiLightList(std::move(orig));
             }
 
@@ -50,13 +53,15 @@ namespace carla_rust
                 return inner_->IsActive(lights.inner());
             }
 
-            FfiLightList GetTurnedOnLights(carla::rpc::LightState::LightGroup type) const {
-                auto orig = inner_->GetTurnedOnLights(type);
+            FfiLightList GetTurnedOnLights(FfiRpcLightGroup type) const {
+                auto type_ = static_cast<LightGroup>(type);
+                auto orig = inner_->GetTurnedOnLights(type_);
                 return FfiLightList(std::move(orig));
             }
 
-            FfiLightList GetTurnedOffLights(carla::rpc::LightState::LightGroup type) const {
-                auto orig = inner_->GetTurnedOffLights(type);
+            FfiLightList GetTurnedOffLights(FfiRpcLightGroup type) const {
+                auto type_ = static_cast<LightGroup>(type);
+                auto orig = inner_->GetTurnedOffLights(type_);
                 return FfiLightList(std::move(orig));
             }
 
@@ -84,30 +89,45 @@ namespace carla_rust
                 return inner_->GetIntensity(lights.inner());
             }
 
-            void SetLightGroupList1(FfiLightList& lights, carla::rpc::LightState::LightGroup group) const {
-                inner_->SetLightGroup(lights.inner(), group);
+            void SetLightGroupList1(FfiLightList& lights, FfiRpcLightGroup group) const {
+                auto group_ = static_cast<LightGroup>(group);
+                inner_->SetLightGroup(lights.inner(), group_);
             }
 
-            void SetLightGroupList2(FfiLightList& lights, std::vector<carla::rpc::LightState::LightGroup>& groups) const {
-                inner_->SetLightGroup(lights.inner(), groups);
+            void SetLightGroupList2(FfiLightList& lights, std::vector<FfiRpcLightGroup>& groups) const {
+                std::vector<LightGroup> groups_;
+
+                for (auto g : groups) {
+                    groups_.push_back(static_cast<LightGroup>(g));
+                }
+
+                inner_->SetLightGroup(lights.inner(), groups_);
             }
 
-            std::vector<carla::rpc::LightState::LightGroup> GetLightGroupList(FfiLightList& lights) const {
-                return inner_->GetLightGroup(lights.inner());
+            std::vector<FfiRpcLightGroup> GetLightGroupList(FfiLightList& lights) const {
+                auto groups = inner_->GetLightGroup(lights.inner());
+
+                std::vector<FfiRpcLightGroup> groups_;
+
+                for (auto g : groups) {
+                    groups_.push_back(static_cast<FfiRpcLightGroup>(g));
+                }
+
+                return groups_;
             }
 
-            void SetLightStateList1(FfiLightList& lights, FfiLightState state) const {
+            void SetLightStateList1(FfiLightList& lights, FfiClientLightState state) const {
                 inner_->SetLightState(lights.inner(), state.as_builtin());
             }
 
-            void SetLightStateList2(FfiLightList& lights, std::vector<FfiLightState>& states) {
+            void SetLightStateList2(FfiLightList& lights, std::vector<FfiClientLightState>& states) {
                 std::vector<LightState>& casted = reinterpret_cast<std::vector<LightState>&>(states);
                 inner_->SetLightState(lights.inner(), casted);
             }
 
-            std::vector<FfiLightState> GetLightStateList(FfiLightList& lights) const {
+            std::vector<FfiClientLightState> GetLightStateList(FfiLightList& lights) const {
                 auto orig = inner_->GetLightState(lights.inner());
-                std::vector<FfiLightState> vec;
+                std::vector<FfiClientLightState> vec;
 
                 for (auto&& item: orig) {
                     vec.push_back(std::move(item));
@@ -125,13 +145,14 @@ namespace carla_rust
                 return inner_->GetIntensity(id);
             }
 
-            FfiLightState GetLightState(uint32_t id) const {
+            FfiClientLightState GetLightState(uint32_t id) const {
                 auto orig = inner_->GetLightState(id);
-                return FfiLightState(std::move(orig));
+                return FfiClientLightState(std::move(orig));
             }
 
-            carla::rpc::LightState::LightGroup GetLightGroup(uint32_t id) const {
-                return inner_->GetLightGroup(id);
+            FfiRpcLightGroup GetLightGroup(uint32_t id) const {
+                auto group = inner_->GetLightGroup(id);
+                return static_cast<FfiRpcLightGroup>(group);
             }
 
             bool IsActive(uint32_t id) const {
@@ -150,12 +171,13 @@ namespace carla_rust
                 inner_->SetIntensity(id, intensity);
             }
 
-            void SetLightState(uint32_t id, const FfiLightState& new_state) const {
+            void SetLightState(uint32_t id, const FfiClientLightState& new_state) const {
                 inner_->SetLightState(id, new_state.as_builtin());
             }
 
-            void SetLightGroup(uint32_t id, carla::rpc::LightState::LightGroup group) const {
-                inner_->SetLightGroup(id, group);
+            void SetLightGroup(uint32_t id, FfiRpcLightGroup group) const {
+                auto group_ = static_cast<LightGroup>(group);
+                inner_->SetLightGroup(id, group_);
             }
 
 

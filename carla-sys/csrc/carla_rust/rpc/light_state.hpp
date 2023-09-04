@@ -18,12 +18,20 @@ namespace carla_rust
 
         using FfiLightId = uint32_t;
 
+        enum class FfiRpcLightGroup : uint8_t {
+            None = 0,
+            Vehicle,
+            Street,
+            Building,
+            Other
+        };
+
         class FfiRpcLightState {
         public:
             FfiLocation location;
             float intensity;
             FfiLightId id;
-            LightState::LightGroup group;
+            FfiRpcLightGroup group;
             FfiRpcColor color;
             bool active;
 
@@ -31,7 +39,7 @@ namespace carla_rust
                 location(std::move(base._location)),
                 intensity(std::move(base._intensity)),
                 id(std::move(base._id)),
-                group(static_cast<LightState::LightGroup>(base._group)),
+                group(static_cast<FfiRpcLightGroup>(base._group)),
                 color(std::move(base._color)),
                 active(std::move(base._active))
             {}

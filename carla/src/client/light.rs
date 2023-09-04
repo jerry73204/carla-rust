@@ -1,13 +1,10 @@
-use crate::{
-    client::LightState,
-    geom::Location,
-    rpc::{LightGroup, LightId},
-    sensor::data::Color,
-};
+use crate::{client::LightState, geom::Location, rpc::LightId, sensor::data::Color};
 use carla_sys::carla_rust::client::FfiLightRef;
 use cxx::UniquePtr;
 use derivative::Derivative;
-use std::marker::PhantomData;
+use std::{marker::PhantomData, mem};
+
+pub use crate::rpc::LightGroup;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -36,7 +33,8 @@ impl<'a> LightMut<'a> {
     }
 
     pub fn light_group(&self) -> LightGroup {
-        self.inner.GetLightGroup()
+        let group = self.inner.GetLightGroup();
+        unsafe { mem::transmute(group) }
     }
 
     pub fn light_state(&self) -> LightState {

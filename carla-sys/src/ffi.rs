@@ -66,7 +66,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
-    generate_pod!("carla_rust::client::FfiLightState")
+    generate_pod!("carla_rust::client::FfiClientLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
     generate_pod!("carla_rust::geom::FfiBoundingBox")
@@ -76,6 +76,7 @@ include_cpp! {
     generate_pod!("carla_rust::rpc::FfiLabelledPoint")
     generate_pod!("carla_rust::rpc::FfiRpcColor")
     generate_pod!("carla_rust::rpc::FfiRpcLightState")
+    generate_pod!("carla_rust::rpc::FfiRpcLightGroup")
 
     // carla
     generate!("carla::SharedPtr")
@@ -114,7 +115,6 @@ include_cpp! {
     generate_pod!("carla::rpc::WeatherParameters")
     generate_pod!("carla::rpc::CityObjectLabel")
     generate_pod!("carla::rpc::ActorState")
-    generate_pod!("carla::rpc::LightState_LightGroup")
     generate_pod!("carla::rpc::LightId")
 
     // carla::client

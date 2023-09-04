@@ -62,4 +62,4 @@ pub use waypoint_list::*;
 pub use world::*;
 pub use world_snapshot::*;
 
-pub use carla_sys::carla_rust::client::FfiLightState as LightState;
+pub use carla_sys::carla_rust::client::FfiClientLightState as LightState;

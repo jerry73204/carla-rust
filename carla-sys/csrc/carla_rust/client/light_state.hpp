@@ -10,21 +10,26 @@
 
 namespace carla_rust
 {
+    namespace rpc {
+        enum class FfiRpcLightGroup : uint8_t;
+    }
+
     namespace client {
         using carla::client::LightState;
         using carla_rust::sensor::data::FfiColor;
+        using carla_rust::rpc::FfiRpcLightGroup;
 
-        class FfiLightState {
+        class FfiClientLightState {
         public:
             float intensity;
             FfiColor color;
-            carla::rpc::LightState::LightGroup group;
+            FfiRpcLightGroup group;
             bool active;
 
-            FfiLightState(LightState &&base) :
+            FfiClientLightState(LightState &&base) :
                 intensity(std::move(base._intensity)),
                 color(std::move(base._color)),
-                group(std::move(base._group)),
+                group(std::move(static_cast<FfiRpcLightGroup>(base._group))),
                 active(std::move(base._active))
             {}
 
@@ -33,6 +38,6 @@ namespace carla_rust
             }
         };
 
-        static_assert(sizeof(FfiLightState) == sizeof(LightState), "FfiLightState size is not correct");
+        static_assert(sizeof(FfiClientLightState) == sizeof(LightState), "FfiClientLightState size is not correct");
     }
 }

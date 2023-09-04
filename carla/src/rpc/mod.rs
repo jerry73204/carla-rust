@@ -8,12 +8,14 @@ mod vehicle_physics_control;
 pub use carla_sys::{
     carla::rpc::{
         AckermannControllerSettings, AttachmentType, GearPhysicsControl,
-        LightState_LightGroup as LightGroup, OpendriveGenerationParameters, TrafficLightState,
-        VehicleAckermannControl, VehicleControl, VehicleDoor,
-        VehicleLightState_LightState as VehicleLightState, VehicleWheelLocation, WeatherParameters,
-        WheelPhysicsControl,
+        OpendriveGenerationParameters, TrafficLightState, VehicleAckermannControl, VehicleControl,
+        VehicleDoor, VehicleLightState_LightState as VehicleLightState, VehicleWheelLocation,
+        WeatherParameters, WheelPhysicsControl,
     },
-    carla_rust::rpc::{FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint},
+    carla_rust::rpc::{
+        FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint, FfiRpcLightGroup as LightGroup,
+        FfiRpcLightState as LightState,
+    },
 };
 pub use environment_object::*;
 pub use episode_settings::*;
