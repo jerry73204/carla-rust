@@ -42,7 +42,7 @@ impl Waypoint {
         self.inner.GetDistance()
     }
 
-    pub fn transofrm(&self) -> Isometry3<f32> {
+    pub fn transform(&self) -> Isometry3<f32> {
         self.inner.GetTransform().to_na()
     }
 
