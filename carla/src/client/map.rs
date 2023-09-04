@@ -1,6 +1,6 @@
 use core::slice;
 
-use super::{Landmark, LandmarkList, Waypoint};
+use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt},
     road::{LaneId, LaneType, RoadId},
@@ -59,6 +59,16 @@ impl Map {
     ) -> Option<Waypoint> {
         let ptr = self.inner.GetWaypointXODR(road_id, lane_id, distance);
         Waypoint::from_cxx(ptr)
+    }
+
+    pub fn generate_waypoints(&self, distance: f64) -> WaypointList {
+        let waypoints = self.inner.GenerateWaypoints(distance);
+        WaypointList::from_cxx(waypoints).unwrap()
+    }
+
+    pub fn junction(&self, waypoint: &Waypoint) -> Junction {
+        let junction = self.inner.GetJunction(&waypoint.inner);
+        Junction::from_cxx(junction).unwrap()
     }
 
     pub fn all_landmarks(&self) -> LandmarkList {
