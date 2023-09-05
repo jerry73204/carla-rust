@@ -7,7 +7,9 @@ unsafe impl Send for crate::carla::client::WorldSnapshot {}
 
 // carla_rust::client
 unsafe impl Send for crate::carla_rust::client::FfiClient {}
+unsafe impl Sync for crate::carla_rust::client::FfiClient {}
 unsafe impl Send for crate::carla_rust::client::FfiWorld {}
+unsafe impl Sync for crate::carla_rust::client::FfiWorld {}
 unsafe impl Send for crate::carla_rust::client::FfiActor {}
 unsafe impl Sync for crate::carla_rust::client::FfiActor {}
 unsafe impl Send for crate::carla_rust::client::FfiBlueprintLibrary {}

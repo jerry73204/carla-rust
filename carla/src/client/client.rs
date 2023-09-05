@@ -112,4 +112,4 @@ impl Default for Client {
     }
 }
 
-assert_impl_all!(Client: Send);
+assert_impl_all!(Client: Sync, Send);

@@ -327,4 +327,4 @@ impl Clone for World {
     }
 }
 
-assert_impl_all!(World: Send);
+assert_impl_all!(World: Sync, Send);
