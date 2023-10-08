@@ -62,7 +62,7 @@ fn main() {
 
     // Save generated bindings
     #[cfg(feature = "save-bindgen")]
-    save_bindings(manifest_dir);
+    save_bindings(&manifest_dir);
 }
 
 #[cfg(feature = "save-bindgen")]
