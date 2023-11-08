@@ -25,6 +25,7 @@ tar = "0.4.40"
 xz = "0.1.0"
 json5 = "0.4.1"
 serde = { version = "1.0.188", features = ["derive"] }
+fs_extra = "1.2.0" 
 
 [features]
 generate-prebuild = []
