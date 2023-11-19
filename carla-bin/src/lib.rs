@@ -6,9 +6,11 @@ use std::{
     fs::{self, OpenOptions},
     io::{self, BufReader},
     path::{Path, PathBuf},
+    env,
 };
 use tar::Archive;
 use xz::bufread::XzDecoder;
+use fs_extra::dir::{self, CopyOptions};
 
 pub struct CarlaBuild {
     pub include_dirs: Vec<PathBuf>,
@@ -87,6 +89,38 @@ fn cached_or_download() -> Result<()> {
     Ok(())
 }
 
+fn validate_path(path: &Path) -> Result<()> {
+    if !path.exists() {
+        anyhow::bail!("Path does not exist: {}", path.display());
+    }
+    
+    if !path.is_dir() {
+        anyhow::bail!("Path is not a directory: {}", path.display());
+    }
+    
+    Ok(())
+}
+
+fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
+    validate_path(src)
+        .context("Failed to validate source path")?;
+
+    if !dst.exists() {
+        std::fs::create_dir_all(dst)
+            .context("Failed to create destination directory")?;
+    }
+
+    let mut options = CopyOptions::new();
+    options.copy_inside = true;
+    options.overwrite = true;
+
+    dir::copy(src, dst, &options)
+        .map_err(anyhow::Error::new)
+        .context("Failed to copy directory")?;
+
+    Ok(())
+}
+
 fn download_prebuild() -> Result<()> {
     let prebuild_dir = prebuild_dir();
 
@@ -101,15 +135,23 @@ fn download_prebuild() -> Result<()> {
     // Download and extract to prebuild_dir
     let PrebuildConfig { url, .. } = &*PREBUILD_CONFIG;
 
-    let reader = ureq::get(url)
-        .call()
-        .with_context(|| format!("Failed to download from URL '{}'", url))?
-        .into_reader();
-    let reader = BufReader::new(reader);
-    let mut archive = Archive::new(XzDecoder::new(reader));
-    archive
-        .unpack(OUT_DIR)
-        .with_context(|| format!("Failed to unpack file downloaded from '{}'", url))?;
+    if let Some(prebuild_dir_value) = env::var_os("PREBUILD_DIR") {
+        let prebuild_dir = PathBuf::from(prebuild_dir_value);
+
+        validate_path(&prebuild_dir)?;
+        copy_directory(prebuild_dir.as_path(), Path::new(OUT_DIR))?
+
+    } else {
+        let reader = ureq::get(url)
+            .call()
+            .with_context(|| format!("Failed to download from URL '{}'", url))?
+            .into_reader();
+        let reader = BufReader::new(reader);
+        let mut archive = Archive::new(XzDecoder::new(reader));
+        archive
+            .unpack(OUT_DIR)
+            .with_context(|| format!("Failed to unpack file downloaded from '{}'", url))?;
+    }
 
     // Check if desired extracted files exist
     ensure!(
