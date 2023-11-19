@@ -2,6 +2,7 @@ use std::time::Duration;
 
 pub use carla_sys::carla::client::Timestamp;
 
+/// Extension trait to the [Timestamp] type.
 pub trait TimestampExt {
     fn elapsed_duration(&self) -> Duration;
     fn delta_duration(&self) -> Duration;

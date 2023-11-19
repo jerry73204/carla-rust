@@ -1,3 +1,5 @@
+//! Geometry types and utilities.
+
 use carla_sys::carla_rust::geom::FfiBoundingBox as NativeBoundingBox;
 use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector2, Vector3};
 use static_assertions::assert_impl_all;
@@ -7,8 +9,11 @@ pub use carla_sys::{
     carla_rust::geom::{FfiLocation as Location, FfiTransform as Transform},
 };
 
+/// Extension trait for [Vector2D].
 pub trait Vector2DExt {
+    /// Create from a nalgebra vector.
     fn from_na(from: &Vector2<f32>) -> Self;
+    /// Convert to a nalgebra vector.
     fn to_na(&self) -> Vector2<f32>;
 }
 
@@ -26,8 +31,11 @@ impl Vector2DExt for Vector2D {
     }
 }
 
+/// Extension trait for [Vector3D].
 pub trait Vector3DExt {
+    /// Create from a nalgebra vector.
     fn from_na(from: &Vector3<f32>) -> Self;
+    /// Convert to a nalgebra vector.
     fn to_na(&self) -> Vector3<f32>;
 }
 
@@ -46,10 +54,15 @@ impl Vector3DExt for Vector3D {
     }
 }
 
+/// Extension trait for [Location].
 pub trait LocationExt {
+    /// Create from a nalgebra translation object.
     fn from_na_translation(from: &Translation3<f32>) -> Self;
+    /// Create from a nalgebra point.
     fn from_na_point(from: &Point3<f32>) -> Self;
+    /// Convert to a nalgebra translation object.
     fn to_na_translation(&self) -> Translation3<f32>;
+    /// Convert to a nalgebra point.
     fn to_na_point(&self) -> Point3<f32>;
 }
 
@@ -81,8 +94,11 @@ impl LocationExt for Location {
     }
 }
 
+/// Extension trait for [Rotation].
 pub trait RotationExt {
+    /// Create from a nalgebra quaternion vector.
     fn from_na(from: &UnitQuaternion<f32>) -> Self;
+    /// Convert to a nalgebra quaternion vector.
     fn to_na(&self) -> UnitQuaternion<f32>;
 }
 
@@ -102,8 +118,11 @@ impl RotationExt for Rotation {
     }
 }
 
+/// Extension trait for [Transform].
 pub trait TransformExt {
+    /// Create from a nalgebra isometry object.
     fn from_na(pose: &Isometry3<f32>) -> Self;
+    /// Convert to a nalgebra isometry object.
     fn to_na(&self) -> Isometry3<f32>;
 }
 
@@ -126,13 +145,18 @@ impl TransformExt for Transform {
     }
 }
 
+/// A bounding box geometry object converted from CARLA native
+/// bounding box type.
 #[derive(Debug, Clone)]
 pub struct BoundingBox<T> {
+    /// The pose of the center point.
     pub transform: Isometry3<T>,
+    /// The lengths of box sides.
     pub extent: Vector3<T>,
 }
 
 impl BoundingBox<f32> {
+    /// Convert to a CARLA's native C++ bounding box.
     pub fn to_native(&self) -> NativeBoundingBox {
         let Self { transform, extent } = self;
         NativeBoundingBox {
@@ -142,6 +166,7 @@ impl BoundingBox<f32> {
         }
     }
 
+    /// Create from a CARLA's native C++ bounding box.
     pub fn from_native(bbox: &NativeBoundingBox) -> Self {
         let NativeBoundingBox {
             location,

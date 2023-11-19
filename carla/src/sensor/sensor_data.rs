@@ -5,22 +5,29 @@ use derivative::Derivative;
 use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
+/// The base trait for sensor data types.
 pub trait SensorDataBase {
+    /// Gets the native C++ object.
     fn cxx_sensor_data(&self) -> SharedPtr<FfiSensorData>;
 
+    /// Gets the frame number of the data.
     fn frame(&self) -> usize {
         self.cxx_sensor_data().GetFrame()
     }
 
+    /// Gets the timestamp of the data.
     fn timestamp(&self) -> f64 {
         self.cxx_sensor_data().GetTimestamp()
     }
 
+    /// Gets the transformation of the sensor where the data was
+    /// perceived.
     fn sensor_transform(&self) -> Isometry3<f32> {
         self.cxx_sensor_data().GetSensorTransform().to_na()
     }
 }
 
+/// The base sensor data type.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

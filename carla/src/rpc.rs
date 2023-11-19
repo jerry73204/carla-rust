@@ -1,3 +1,5 @@
+//! Defines message types used for communication.
+
 mod environment_object;
 mod episode_settings;
 mod light_id;

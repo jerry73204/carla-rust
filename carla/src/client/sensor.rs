@@ -12,6 +12,8 @@ use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
+/// Represents a sensor in the simulation, corresponding to
+/// `carla.Sensor` in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

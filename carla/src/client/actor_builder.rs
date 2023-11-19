@@ -4,6 +4,7 @@ use carla_sys::carla::rpc::AttachmentType;
 use itertools::chain;
 use nalgebra::Isometry3;
 
+/// The builder is used to construct an actor with customized options.
 #[derive(Debug)]
 pub struct ActorBuilder<'a> {
     world: &'a mut World,

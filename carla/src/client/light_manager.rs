@@ -8,6 +8,7 @@ use carla_sys::carla_rust::client::FfiLightManager;
 use cxx::SharedPtr;
 use derivative::Derivative;
 
+/// Manages the states of lights in the simulation.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

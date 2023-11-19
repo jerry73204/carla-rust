@@ -3,6 +3,7 @@ use carla_sys::carla_rust::client::FfiTrafficLightList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
+/// A list of traffic lights.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

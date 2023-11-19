@@ -13,6 +13,7 @@ use derivative::Derivative;
 use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
+/// A waypoint on a map.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

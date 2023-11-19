@@ -6,6 +6,8 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// Represents a traffic light in the simulation, corresponding to
+/// `carla.TrafficLight` in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct TrafficLight {

@@ -1,3 +1,5 @@
+//! Internal utilities.
+
 use crate::geom::Location;
 use carla_sys::{
     carla::{

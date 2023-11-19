@@ -1,3 +1,6 @@
+//! The traffic manager manages groups of autopilot vehicles with
+//! user-customized options.
+
 mod action;
 mod action_buffer;
 mod traffic_manager;

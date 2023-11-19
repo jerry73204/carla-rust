@@ -5,6 +5,8 @@ use cxx::{let_cxx_string, SharedPtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// Provides blueprints used to spawn actors, corresponding to
+/// `carla.BlueprintLibrary` in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

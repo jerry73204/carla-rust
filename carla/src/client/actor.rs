@@ -6,6 +6,8 @@ use static_assertions::assert_impl_all;
 
 use super::{ActorBase, ActorKind, TrafficLight, TrafficSign};
 
+/// A base actor that represents a movable object in the simulation,
+/// corresponding to `carla.Actor` in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -15,6 +17,7 @@ pub struct Actor {
 }
 
 impl Actor {
+    /// Classify the actor into variants.
     pub fn into_kinds(self) -> ActorKind {
         let me = self;
         let me = match Vehicle::try_from(me) {

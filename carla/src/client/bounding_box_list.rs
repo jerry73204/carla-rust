@@ -5,6 +5,7 @@ use cxx::UniquePtr;
 use derivative::Derivative;
 use std::mem;
 
+/// A list of bounding boxes.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

@@ -1,3 +1,7 @@
+//! Rust client library for Carla simulator.
+//!
+//! It works with CARLA simulator version 0.9.14.
+
 pub mod client;
 pub mod geom;
 pub mod road;

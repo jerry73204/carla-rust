@@ -5,6 +5,8 @@ use cxx::UniquePtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// Provides information for every actor at a certain moment of time,
+/// corresponding to `carla.WorldSnapshot` in Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

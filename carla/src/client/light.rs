@@ -6,6 +6,7 @@ use std::{marker::PhantomData, mem};
 
 pub use crate::rpc::LightGroup;
 
+/// A light object in the simulation.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

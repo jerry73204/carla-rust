@@ -5,6 +5,7 @@ use derivative::Derivative;
 
 use super::LightMut;
 
+/// A list of lights.
 #[derive(Derivative)]
 #[repr(transparent)]
 pub struct LightList {

@@ -3,6 +3,7 @@ use carla_sys::carla_rust::client::FfiActorVec;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
+/// A vector containing a list of actors.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

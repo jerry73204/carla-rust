@@ -5,6 +5,7 @@ use carla_sys::carla_rust::client::FfiLabelledPointList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
+/// A list of labeled points.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

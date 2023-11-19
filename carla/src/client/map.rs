@@ -12,6 +12,8 @@ use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3};
 use static_assertions::assert_impl_all;
 
+/// Represents the map of the simulation, corresponding to `carla.Map`
+/// in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

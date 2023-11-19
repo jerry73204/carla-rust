@@ -1,3 +1,5 @@
+//! Client library for the CARLA simulator.
+
 mod actor;
 mod actor_attribute;
 mod actor_attribute_value_list;

@@ -6,6 +6,7 @@ use static_assertions::assert_impl_all;
 
 use super::Actor;
 
+/// A list of actors in the simulation.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

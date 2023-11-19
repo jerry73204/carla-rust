@@ -1,6 +1,8 @@
 use autocxx::prelude::*;
 use carla_sys::carla_rust::rpc::FfiEpisodeSettings;
 
+/// A collection of configuration options, corresponding to
+/// `carla.WorldSettings` in Python API.
 #[derive(Debug, Clone)]
 pub struct EpisodeSettings {
     pub synchronous_mode: bool,

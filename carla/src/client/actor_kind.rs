@@ -1,5 +1,6 @@
 use super::{Actor, Sensor, TrafficLight, TrafficSign, Vehicle};
 
+/// Variants of actors.
 #[derive(Debug, Clone)]
 pub enum ActorKind {
     Vehicle(Vehicle),

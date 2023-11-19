@@ -1,3 +1,5 @@
+/// Represents each manageable layer of the map, corresponding to
+/// `carla.MapLayer` in Python API.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum MapLayer {

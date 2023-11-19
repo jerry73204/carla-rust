@@ -13,6 +13,8 @@ use nalgebra::Point3;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
 
+/// Handle groups of autopilot vehicles with realistic urban traffic
+/// conditions, corresponding to `carla.TrafficManager` in Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

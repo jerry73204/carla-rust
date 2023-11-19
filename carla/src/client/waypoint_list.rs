@@ -4,6 +4,7 @@ use cxx::UniquePtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// A list of waypoints.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

@@ -1,16 +1,18 @@
+//! This crate intended for shipping pre-built libcarla\_client library.
+
 use anyhow::{ensure, Context, Result};
 use carla_src::{libcarla_client, probe};
+use fs_extra::dir::{self, CopyOptions};
 use once_cell::sync::{Lazy, OnceCell};
 use serde::Deserialize;
 use std::{
+    env,
     fs::{self, OpenOptions},
     io::{self, BufReader},
     path::{Path, PathBuf},
-    env,
 };
 use tar::Archive;
 use xz::bufread::XzDecoder;
-use fs_extra::dir::{self, CopyOptions};
 
 pub struct CarlaBuild {
     pub include_dirs: Vec<PathBuf>,
@@ -93,21 +95,19 @@ fn validate_path(path: &Path) -> Result<()> {
     if !path.exists() {
         anyhow::bail!("Path does not exist: {}", path.display());
     }
-    
+
     if !path.is_dir() {
         anyhow::bail!("Path is not a directory: {}", path.display());
     }
-    
+
     Ok(())
 }
 
 fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
-    validate_path(src)
-        .context("Failed to validate source path")?;
+    validate_path(src).context("Failed to validate source path")?;
 
     if !dst.exists() {
-        std::fs::create_dir_all(dst)
-            .context("Failed to create destination directory")?;
+        std::fs::create_dir_all(dst).context("Failed to create destination directory")?;
     }
 
     let mut options = CopyOptions::new();
@@ -140,7 +140,6 @@ fn download_prebuild() -> Result<()> {
 
         validate_path(&prebuild_dir)?;
         copy_directory(prebuild_dir.as_path(), Path::new(OUT_DIR))?
-
     } else {
         let reader = ureq::get(url)
             .call()

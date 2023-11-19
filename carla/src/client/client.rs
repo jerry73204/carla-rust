@@ -10,6 +10,8 @@ use derivative::Derivative;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
 
+/// The client maintains the connection to the CARLA simulator server,
+/// corresponding to `carla.Client` in Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

@@ -5,6 +5,8 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// Represents a traffic sign in the simulation, corresponding to
+/// `carla.TrafficSign` in Python API.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct TrafficSign {

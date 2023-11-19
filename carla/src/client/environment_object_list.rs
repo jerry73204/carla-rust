@@ -5,6 +5,7 @@ use derivative::Derivative;
 
 use crate::rpc::EnvironmentObjectRef;
 
+/// A list of environment objects.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

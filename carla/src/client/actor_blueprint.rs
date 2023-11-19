@@ -6,6 +6,8 @@ use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
+/// A template that is used to construct an actor, corresponding to
+/// `carla.ActorBlueprint` in Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

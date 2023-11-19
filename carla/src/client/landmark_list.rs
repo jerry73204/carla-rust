@@ -4,6 +4,7 @@ use derivative::Derivative;
 
 use super::Landmark;
 
+/// A list of landmarks.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

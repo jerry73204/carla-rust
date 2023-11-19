@@ -23,6 +23,8 @@ use std::{ptr, time::Duration};
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
+/// The world contains the map and assets of a simulation,
+/// corresponding to `carla.World` in Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

@@ -8,6 +8,7 @@ use derivative::Derivative;
 
 use super::Waypoint;
 
+/// Represents a junction in the simulation.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

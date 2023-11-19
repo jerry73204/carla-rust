@@ -4,6 +4,7 @@ use crate::sensor::data::Color;
 use carla_sys::{carla::rpc::ActorAttributeType, carla_rust::client::FfiActorAttributeValue};
 use derivative::Derivative;
 
+/// The untyped value of an attribute on an actor.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -39,6 +40,7 @@ impl ActorAttributeValue {
     }
 }
 
+/// The typed value of an attribute on an actor.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub enum ActorAttributeValueKind {

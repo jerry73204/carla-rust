@@ -10,6 +10,7 @@ use static_assertions::assert_impl_all;
 
 use super::Waypoint;
 
+/// Represents a landmark in the simulation.
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

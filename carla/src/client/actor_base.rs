@@ -8,6 +8,8 @@ use carla_sys::carla_rust::client::FfiActor;
 use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
 
+/// This trait defines a basic actor in the simulation. It is
+/// implemented on all actor type variants.
 pub trait ActorBase: Clone {
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
 

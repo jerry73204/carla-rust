@@ -7,6 +7,7 @@ use derivative::Derivative;
 
 use super::ActorAttributeValue;
 
+/// The list of actor attribute values on an actor.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
