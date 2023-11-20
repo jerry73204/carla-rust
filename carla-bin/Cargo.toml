@@ -14,18 +14,18 @@ documentation = "https://docs.rs/carla-bin/"
 carla-src = { version = "0.4.1", path = "../carla-src" }
 cfg-if = "1.0.0"
 json5 = "0.4.1"
-serde = { version = "1.0.188", features = ["derive"] }
+serde = { version = "1.0.192", features = ["derive"] }
 
 [dependencies]
 anyhow = "1.0.75"
 once_cell = "1.18.0"
 carla-src = { version = "0.4.1", path = "../carla-src" }
-ureq = "2.7.1"
+ureq = "2.8.0"
 tar = "0.4.40"
 xz = "0.1.0"
 json5 = "0.4.1"
-serde = { version = "1.0.188", features = ["derive"] }
-fs_extra = "1.2.0" 
+serde = { version = "1.0.192", features = ["derive"] }
+fs_extra = "1.3.0"
 
 [features]
 generate-prebuild = []
