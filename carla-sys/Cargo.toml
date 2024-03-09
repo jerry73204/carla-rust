@@ -17,11 +17,14 @@ cxx = "1.0.119"
 
 [build-dependencies]
 autocxx-build = { version = "0.26.0" }
-carla-bin = { version = "0.3.2", path = "../carla-bin" }
 carla-src = { version = "0.4.1", path = "../carla-src" }
+once_cell = "1.19.0"
+tar = "0.4.40"
+zstd = "0.13.0"
 
 [features]
 docs-only = []
+save-built-lib = []
 save-bindgen = []
 
 [package.metadata.docs.rs]
