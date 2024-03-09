@@ -13,8 +13,17 @@ pub const LIBS: &[&str] = &[
     "static=boost_filesystem",
 ];
 
-pub fn build(src_dir: &Path) -> Result<()> {
-    let err = || format!("`make LibCarla.client` failed in {}", src_dir.display());
+pub fn build<P>(src_dir: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let src_dir = src_dir.as_ref();
+    let err = || {
+        format!(
+            "`make LibCarla.client.release` failed in {}",
+            src_dir.display()
+        )
+    };
 
     // make LibCarla.client.release
     let status = Command::new("make")
@@ -30,7 +39,13 @@ pub fn build(src_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn install(src_dir: &Path, tgt_dir: &Path) -> Result<()> {
+pub fn install<S, T>(src_dir: S, tgt_dir: T) -> Result<()>
+where
+    S: AsRef<Path>,
+    T: AsRef<Path>,
+{
+    let tgt_dir = tgt_dir.as_ref();
+
     let Probe {
         include_dirs,
         lib_dirs,
@@ -93,6 +108,32 @@ pub fn install(src_dir: &Path, tgt_dir: &Path) -> Result<()> {
                 )
             })?;
         }
+    }
+
+    Ok(())
+}
+
+pub fn clean<P>(src_dir: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let src_dir = src_dir.as_ref();
+    let build_dir = src_dir.join("Build");
+    let err = || format!("`make clean.LibCarla` failed in {}", src_dir.display());
+
+    if build_dir.exists() {
+        fs::remove_dir_all(build_dir)?;
+    }
+
+    // make LibCarla.client.release
+    let status = Command::new("make")
+        .arg("clean.LibCarla")
+        .current_dir(src_dir)
+        .status()
+        .with_context(err)?;
+
+    if !status.success() {
+        bail!("{}", err());
     }
 
     Ok(())

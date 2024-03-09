@@ -60,7 +60,11 @@ impl LibDirs {
     }
 }
 
-pub fn probe(carla_src_dir: &Path) -> Probe {
+pub fn probe<P>(carla_src_dir: P) -> Probe
+where
+    P: AsRef<Path>,
+{
+    let carla_src_dir = carla_src_dir.as_ref();
     let carla_source_dir = carla_src_dir.join("LibCarla").join("source");
     let carla_third_party_dir = carla_source_dir.join("third-party");
     let build_dir = carla_src_dir.join("Build");
