@@ -13,7 +13,7 @@ documentation = "https://docs.rs/carla-sys/"
 
 [dependencies]
 autocxx = { version = "0.26.0" }
-cxx = "1.0.110"
+cxx = "1.0.119"
 
 [build-dependencies]
 autocxx-build = { version = "0.26.0" }
