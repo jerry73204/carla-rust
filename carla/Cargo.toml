@@ -24,6 +24,8 @@ static_assertions = "1.1.0"
 
 [features]
 docs-only = ["carla-sys/docs-only"]
+build-lib = ["carla-sys/build-lib"]
+save-lib = ["carla-sys/save-lib"]
 save-bindgen = ["carla-sys/save-bindgen"]
 
 [package.metadata.docs.rs]
