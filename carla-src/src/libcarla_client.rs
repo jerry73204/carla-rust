@@ -52,7 +52,7 @@ where
         include_dirs,
         lib_dirs,
         ..
-    } = probe(src_dir);
+    } = probe(src_dir)?;
 
     {
         let tgt_include_dir = tgt_dir.join("include");
