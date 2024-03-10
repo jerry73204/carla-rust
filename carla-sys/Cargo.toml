@@ -1,6 +1,6 @@
 [package]
 name = "carla-sys"
-version = "0.10.1"
+version = "0.11.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "FFI bindings for Carla simulator"
 edition = "2021"
@@ -18,7 +18,7 @@ cxx = "1.0.119"
 [build-dependencies]
 anyhow = { version = "1.0.80", features = ["backtrace"] }
 autocxx-build = { version = "0.26.0" }
-carla-src = { version = "0.4.1", path = "../carla-src" }
+carla-src = { version = "0.11.0", path = "../carla-src" }
 json5 = "0.4.1"
 once_cell = "1.19.0"
 serde = { version = "1.0.197", features = ["derive"] }
