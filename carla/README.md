@@ -6,4 +6,5 @@ more about this crate, please read the
 
 ## License
 
-MIT license
+It is distributed under MIT license. Please see
+[LICENSE.txt](../LICENSE.txt) file for full license text.
