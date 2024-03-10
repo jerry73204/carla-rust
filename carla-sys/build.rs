@@ -21,11 +21,17 @@ static TAG: Lazy<String> = Lazy::new(|| {
 });
 static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| PathBuf::from(env::var_os("OUT_DIR").unwrap()));
 static PREBUILD_NAME: Lazy<String> = Lazy::new(|| format!("libcarla_client.{}", *TAG));
-static PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
+#[cfg(feature = "save-lib")]
+static SAVE_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
-    CARGO_MANIFEST_DIR.join("generated").join(file_name)
+    GENERATED_DIR.join(file_name)
+});
+static DOWNLOAD_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
+    let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
+    OUT_DIR.join(file_name)
 });
 static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANIFEST_DIR")));
+static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("generated"));
 
 fn main() -> Result<()> {
     // Set rerun triggers
@@ -42,7 +48,7 @@ fn main() -> Result<()> {
     let carla_include_dir = install_dir.join("include");
 
     #[cfg(feature = "save-lib")]
-    create_tarball(&install_dir, &*PREBUILT_TARBALL)?;
+    create_tarball(&install_dir, &*SAVE_PREBUILT_TARBALL)?;
 
     // return;
 
@@ -192,9 +198,9 @@ fn download_tarball() -> Result<Option<PathBuf>> {
     };
 
     let mut reader = ureq::get(url).call()?.into_reader();
-    let mut writer = BufWriter::new(File::create(&*PREBUILT_TARBALL)?);
+    let mut writer = BufWriter::new(File::create(&*DOWNLOAD_PREBUILT_TARBALL)?);
     io::copy(&mut reader, &mut writer)?;
     writer.flush()?;
 
-    Ok(Some(PREBUILT_TARBALL.to_path_buf()))
+    Ok(Some(DOWNLOAD_PREBUILT_TARBALL.to_path_buf()))
 }
