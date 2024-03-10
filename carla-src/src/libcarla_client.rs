@@ -3,6 +3,8 @@ use anyhow::{bail, Context, Result};
 use fs_extra::dir::CopyOptions;
 use std::{fs, path::Path, process::Command};
 
+pub const VERSION: &str = "0.9.14";
+
 pub const LIBS: &[&str] = &[
     "static=carla_client",
     "static=Recast",
