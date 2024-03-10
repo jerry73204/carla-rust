@@ -65,7 +65,7 @@ fn main() -> Result<()> {
 
     // Save generated bindings
     #[cfg(feature = "save-bindgen")]
-    save_bindings();
+    save_bindings()?;
 
     Ok(())
 }
