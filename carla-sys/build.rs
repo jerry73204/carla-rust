@@ -1,38 +1,33 @@
-use carla_src::{libcarla_client, probe};
+use anyhow::{anyhow, Result};
+use carla_src::libcarla_client;
 use once_cell::sync::Lazy;
 #[allow(unused)]
 use std::path::Path;
 use std::{
+    collections::HashMap,
     env, fs,
     fs::File,
-    io::{BufReader, BufWriter},
+    io::{self, BufReader},
     path::PathBuf,
 };
 use tar::Archive;
 
 static TAG: Lazy<String> = Lazy::new(|| {
     format!(
-        "{}.{}.{}",
-        env::var("CARGO_PKG_VERSION").unwrap(),
+        "{}-{}",
+        libcarla_client::VERSION,
         env::var("TARGET").unwrap(),
-        env::var("PROFILE").unwrap()
     )
 });
 static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| PathBuf::from(env::var_os("OUT_DIR").unwrap()));
+static PREBUILD_NAME: Lazy<String> = Lazy::new(|| format!("libcarla_client.{}", *TAG));
 static PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
-    let file_name = format!("prebuild.{}.tar.zstd", *TAG);
-    Path::new(CARGO_MANIFEST_DIR)
-        .join("generated")
-        .join(file_name)
+    let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
+    CARGO_MANIFEST_DIR.join("generated").join(file_name)
 });
-const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANIFEST_DIR")));
 
-struct CarlaDirs {
-    pub include_dirs: Vec<PathBuf>,
-    pub lib_dirs: Vec<PathBuf>,
-}
-
-fn main() {
+fn main() -> Result<()> {
     // Set rerun triggers
     println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-env-changed=CARLA_DIR");
@@ -41,121 +36,165 @@ fn main() {
     #[cfg(feature = "docs-only")]
     return;
 
-    // Prepare Carla source code
-    let CarlaDirs {
-        include_dirs,
-        lib_dirs,
-    } = load_carla_dirs();
+    // Prepare CARLA installation
+    let install_dir = load_carla_install_dir()?;
+    let carla_lib_dir = install_dir.join("lib");
+    let carla_include_dir = install_dir.join("include");
+
+    #[cfg(feature = "save-lib")]
+    create_tarball(&install_dir, &*PREBUILT_TARBALL)?;
+
+    // return;
 
     // Add library search paths
-    for dir in &lib_dirs {
-        println!("cargo:rustc-link-search=native={}", dir.to_str().unwrap());
-    }
+    println!("cargo:rustc-link-search=native={}", carla_lib_dir.display());
 
     // Link libraries
-    for lib in carla_src::libcarla_client::LIBS {
+    for lib in libcarla_client::LIBS {
         println!("cargo:rustc-link-lib={lib}");
     }
 
     // Generate bindings
-    let csrc_dir = Path::new(CARGO_MANIFEST_DIR).join("csrc");
-    let include_dirs = {
-        let mut carla_include_dirs = include_dirs;
-        carla_include_dirs.push(csrc_dir);
-        carla_include_dirs
-    };
+    let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
+    let include_dirs = [carla_include_dir, csrc_dir];
 
     autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
-        .build()
-        .unwrap()
+        .build()?
         .flag_if_supported("-std=c++14")
         .compile("carla_rust");
 
     // Save generated bindings
     #[cfg(feature = "save-bindgen")]
     save_bindings();
-}
 
-fn load_carla_dirs() -> CarlaDirs {
-    let install_dir = match env::var_os("CARLA_DIR") {
-        Some(dir) => PathBuf::from(dir),
-
-        #[cfg(feature = "save-built-lib")]
-        None => {
-            let dir = build_libcarla_client();
-            create_tarball(&dir, &PREBUILT_TARBALL).unwrap();
-            dir
-        }
-
-        #[cfg(not(feature = "save-built-lib"))]
-        None => match extract_prebuilt_libcarla_client() {
-            Some(dir) => dir,
-            None => build_libcarla_client(),
-        },
-    };
-
-    probe_install_dir(&install_dir)
-}
-
-fn probe_install_dir(install_dir: &Path) -> CarlaDirs {
-    // If CARLA_DIR env var is set, set the rerun checkpoint on the directory.
-    let src_dir = PathBuf::from(install_dir);
-    println!("cargo:rerun-if-changed={}", src_dir.display());
-
-    let probe = probe(&src_dir);
-    let include_dirs = probe.include_dirs.into_vec();
-    let lib_dirs = probe.lib_dirs.into_vec();
-
-    CarlaDirs {
-        include_dirs,
-        lib_dirs,
-    }
-}
-
-fn extract_prebuilt_libcarla_client() -> Option<PathBuf> {
-    if !PREBUILT_TARBALL.exists() {
-        return None;
-    }
-    let tgt_dir = OUT_DIR.join("prebuild");
-    extract_tarball(&PREBUILT_TARBALL, &tgt_dir).unwrap();
-    Some(tgt_dir)
-}
-
-fn build_libcarla_client() -> PathBuf {
-    let cargo_manifest_dir = Path::new(CARGO_MANIFEST_DIR);
-    let src_dir = cargo_manifest_dir.join("..").join("carla-simulator");
-    let install_dir = cargo_manifest_dir
-        .join("generated")
-        .join("libcarla_install");
-    fs::create_dir_all(&install_dir).unwrap();
-    libcarla_client::clean(&src_dir).unwrap();
-    libcarla_client::build(&src_dir).unwrap();
-    libcarla_client::install(&src_dir, &install_dir).unwrap();
-    install_dir
-}
-
-fn extract_tarball(src_dir: &Path, tarball: &Path) -> std::io::Result<()> {
-    let writer = BufWriter::new(File::create(tarball)?);
-    let enc = zstd::Encoder::new(writer, 4)?.finish()?;
-    let mut tar = tar::Builder::new(enc);
-    tar.append_dir_all(".", src_dir)?;
     Ok(())
 }
 
-fn create_tarball(tarball: &Path, tgt_dir: &Path) -> std::io::Result<()> {
+fn load_carla_install_dir() -> Result<PathBuf> {
+    #[cfg(feature = "build-lib")]
+    let install_dir = {
+        let src_dir = env::var_os("CARLA_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| CARGO_MANIFEST_DIR.join("..").join("carla-simulator"));
+        build_libcarla_client(&src_dir)?;
+        install_libcarla_client(&src_dir)?
+    };
+
+    #[cfg(not(feature = "build-lib"))]
+    let install_dir = {
+        match env::var_os("CARLA_DIR") {
+            Some(src_dir) => install_libcarla_client(src_dir)?,
+            None => {
+                extract_prebuilt_libcarla_client()?
+                    .ok_or_else(|| anyhow!("No prebuild binaries for profile {}. \
+                                            Please use 'build-lib' feature to compile from source code", *TAG))?
+            }
+        }
+    };
+
+    Ok(install_dir)
+}
+
+#[cfg(not(feature = "build-lib"))]
+fn extract_prebuilt_libcarla_client() -> Result<Option<PathBuf>> {
+    let Some(tarball) = download_tarball()? else {
+        return Ok(None);
+    };
+    let tgt_dir = OUT_DIR.join("libcarla_client");
+    extract_tarball(&tarball, &tgt_dir)?;
+
+    let install_dir = tgt_dir.join(&*PREBUILD_NAME);
+    Ok(Some(install_dir))
+}
+
+#[cfg(feature = "build-lib")]
+fn build_libcarla_client(src_dir: impl AsRef<Path>) -> Result<()> {
+    libcarla_client::clean(&src_dir)?;
+    libcarla_client::build(&src_dir)?;
+    Ok(())
+}
+
+fn install_libcarla_client(src_dir: impl AsRef<Path>) -> Result<PathBuf> {
+    let install_dir = CARGO_MANIFEST_DIR.join("generated").join(&*PREBUILD_NAME);
+    fs::create_dir_all(&install_dir)?;
+    libcarla_client::install(&src_dir, &install_dir)?;
+    Ok(install_dir)
+}
+
+#[cfg(not(feature = "build-lib"))]
+fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     let reader = BufReader::new(File::open(tarball)?);
-    let tar = zstd::Decoder::new(reader)?.finish();
-    let mut archive = Archive::new(tar);
+    let dec = zstd::Decoder::new(reader)?;
+    let mut archive = Archive::new(dec);
     archive.unpack(tgt_dir)?;
     Ok(())
 }
 
 #[cfg(feature = "save-bindgen")]
-fn save_bindings() {
-    use std::fs;
+fn save_bindings() -> Result<()> {
     let src_file = OUT_DIR.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
-    let tgt_dir = CARGO_MAMIFEST_DIR.join("generated");
+    let tgt_dir = CARGO_MANIFEST_DIR.join("generated");
     let tgt_file = tgt_dir.join("bindings.rs");
-    fs::create_dir_all(&tgt_dir).unwrap();
-    fs::copy(src_file, tgt_file).unwrap();
+    fs::create_dir_all(&tgt_dir)?;
+    fs::copy(src_file, tgt_file)?;
+    Ok(())
+}
+
+#[cfg(feature = "save-lib")]
+fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
+    use std::io::BufWriter;
+
+    let prefix = {
+        macro_rules! invalid_file_name {
+            ($reason:expr) => {
+                anyhow!("Invalid tarlball path '{}'. {}", tarball.display(), $reason)
+            };
+        }
+
+        let file_name = tarball
+            .file_name()
+            .ok_or_else(|| invalid_file_name!("It does not have a file name."))?;
+        let file_name = file_name.to_str().ok_or_else(|| {
+            invalid_file_name!("The file name should only contains ASCII characters.")
+        })?;
+        file_name
+            .strip_suffix(".tar.zstd")
+            .ok_or_else(|| anyhow!("The path does not ends in .tar.zstd"))?
+    };
+
+    let file_writer = BufWriter::new(File::create(tarball)?);
+
+    let n_threads = std::thread::available_parallelism()?.get();
+
+    let enc = {
+        let mut enc = zstd::Encoder::new(file_writer, 3)?;
+        enc.include_checksum(true)?;
+        enc.multithread(n_threads as u32)?;
+        enc.auto_finish()
+    };
+    let mut tar = tar::Builder::new(enc);
+    tar.append_dir_all(format!("{prefix}/"), src_dir)?;
+    tar.finish()?;
+
+    Ok(())
+}
+
+#[cfg(not(feature = "build-lib"))]
+fn download_tarball() -> Result<Option<PathBuf>> {
+    use std::io::{prelude::*, BufWriter};
+
+    let index_file = CARGO_MANIFEST_DIR.join("index.json5");
+
+    let text = fs::read_to_string(index_file)?;
+    let index: HashMap<String, String> = json5::from_str(&text)?;
+    let Some(url) = index.get(&*TAG) else {
+        return Ok(None);
+    };
+
+    let mut reader = ureq::get(url).call()?.into_reader();
+    let mut writer = BufWriter::new(File::create(&*PREBUILT_TARBALL)?);
+    io::copy(&mut reader, &mut writer)?;
+    writer.flush()?;
+
+    Ok(Some(PREBUILT_TARBALL.to_path_buf()))
 }
