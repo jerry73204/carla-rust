@@ -1,6 +1,6 @@
 [package]
 name = "carla-sys"
-version = "0.11.0"
+version = "0.11.1"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "FFI bindings for Carla simulator"
 edition = "2021"
