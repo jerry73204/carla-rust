@@ -40,7 +40,7 @@ fn main() -> Result<()> {
 
     // Skip build if docs-only feature presents.
     #[cfg(feature = "docs-only")]
-    return;
+    return Ok(());
 
     // Prepare CARLA installation
     let install_dir = load_carla_install_dir()?;
