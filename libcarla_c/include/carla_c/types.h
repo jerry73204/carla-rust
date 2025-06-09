@@ -595,7 +595,6 @@ typedef struct {
   carla_vector3d_t center_of_mass; // Center of mass offset
 } carla_vehicle_physics_state_t;
 
-
 // Optical flow image data structure
 typedef struct {
   uint32_t width;
@@ -643,6 +642,223 @@ typedef void (*carla_actor_destroy_callback_t)(carla_actor_t *actor,
 
 // Utility functions
 const char *carla_error_to_string(carla_error_t error);
+
+// Detection sensor processing types
+
+// Lane marking types enumeration
+typedef enum {
+  CARLA_LANE_MARKING_OTHER = 0,
+  CARLA_LANE_MARKING_BROKEN,
+  CARLA_LANE_MARKING_SOLID,
+  CARLA_LANE_MARKING_SOLID_SOLID,
+  CARLA_LANE_MARKING_SOLID_BROKEN,
+  CARLA_LANE_MARKING_BROKEN_SOLID,
+  CARLA_LANE_MARKING_BROKEN_BROKEN,
+  CARLA_LANE_MARKING_BOTTS_DOTS,
+  CARLA_LANE_MARKING_GRASS,
+  CARLA_LANE_MARKING_CURB,
+  CARLA_LANE_MARKING_NONE
+} carla_lane_marking_type_t;
+
+// Lane marking color enumeration
+typedef enum {
+  CARLA_LANE_MARKING_COLOR_STANDARD = 0, // White
+  CARLA_LANE_MARKING_COLOR_BLUE = 1,
+  CARLA_LANE_MARKING_COLOR_GREEN = 2,
+  CARLA_LANE_MARKING_COLOR_RED = 3,
+  CARLA_LANE_MARKING_COLOR_WHITE = 0,
+  CARLA_LANE_MARKING_COLOR_YELLOW = 4,
+  CARLA_LANE_MARKING_COLOR_OTHER = 5
+} carla_lane_marking_color_t;
+
+// Lane change permission enumeration (bitflags)
+typedef enum {
+  CARLA_LANE_CHANGE_NONE = 0x00,  // No lane change allowed
+  CARLA_LANE_CHANGE_RIGHT = 0x01, // Right lane change allowed
+  CARLA_LANE_CHANGE_LEFT = 0x02,  // Left lane change allowed
+  CARLA_LANE_CHANGE_BOTH = 0x03   // Both directions allowed
+} carla_lane_change_t;
+
+// Lane marking structure
+typedef struct {
+  carla_lane_marking_type_t type;   // Type of lane marking
+  carla_lane_marking_color_t color; // Color of lane marking
+  carla_lane_change_t lane_change;  // Lane change permissions
+  double width;                     // Width of the marking in meters
+} carla_lane_marking_t;
+
+// Collision severity enumeration
+typedef enum {
+  CARLA_COLLISION_SEVERITY_UNKNOWN = 0,
+  CARLA_COLLISION_SEVERITY_MINOR,    // Low impact collision
+  CARLA_COLLISION_SEVERITY_MODERATE, // Medium impact collision
+  CARLA_COLLISION_SEVERITY_MAJOR,    // High impact collision
+  CARLA_COLLISION_SEVERITY_CRITICAL  // Very high impact collision
+} carla_collision_severity_t;
+
+// Collision type enumeration
+typedef enum {
+  CARLA_COLLISION_TYPE_UNKNOWN = 0,
+  CARLA_COLLISION_TYPE_VEHICLE_VEHICLE, // Vehicle to vehicle collision
+  CARLA_COLLISION_TYPE_VEHICLE_STATIC,  // Vehicle to static object
+  CARLA_COLLISION_TYPE_VEHICLE_WALKER,  // Vehicle to pedestrian
+  CARLA_COLLISION_TYPE_WALKER_STATIC,   // Pedestrian to static object
+  CARLA_COLLISION_TYPE_WALKER_WALKER    // Pedestrian to pedestrian
+} carla_collision_type_t;
+
+// Enhanced collision event structure with analysis
+typedef struct {
+  carla_actor_t *self_actor;          // Actor that detected the collision
+  carla_actor_t *other_actor;         // Actor involved in collision
+  carla_vector3d_t normal_impulse;    // Normal impulse vector (N⋅s)
+  carla_vector3d_t impact_location;   // Location of impact in world coordinates
+  carla_vector3d_t relative_velocity; // Relative velocity at impact (m/s)
+  float impact_speed;                 // Speed at impact (m/s)
+  float impact_energy;                // Estimated kinetic energy (J)
+  carla_collision_severity_t severity;   // Collision severity assessment
+  carla_collision_type_t collision_type; // Type of collision
+  double timestamp;                      // Timestamp of collision
+  uint64_t frame_number;                 // Frame number when collision occurred
+} carla_collision_event_t;
+
+// Enhanced lane invasion event structure with analysis
+typedef struct {
+  carla_actor_t *actor;                   // Actor that invaded the lane
+  carla_lane_marking_t *crossed_markings; // Array of crossed lane markings
+  size_t marking_count;                   // Number of crossed markings
+  carla_vector3d_t invasion_location;     // Location where invasion occurred
+  carla_vector3d_t invasion_velocity;     // Velocity at time of invasion
+  float invasion_angle;                   // Angle of invasion (radians)
+  float lateral_displacement; // Lateral displacement from lane center
+  double invasion_duration;   // Duration of invasion (seconds)
+  bool intentional;           // Whether invasion appears intentional
+  double timestamp;           // Timestamp of invasion
+  uint64_t frame_number;      // Frame number when invasion occurred
+} carla_lane_invasion_event_t;
+
+// Obstacle detection classification
+typedef enum {
+  CARLA_OBSTACLE_UNKNOWN = 0,
+  CARLA_OBSTACLE_VEHICLE,      // Another vehicle
+  CARLA_OBSTACLE_PEDESTRIAN,   // Pedestrian or walker
+  CARLA_OBSTACLE_CYCLIST,      // Bicycle or motorcycle
+  CARLA_OBSTACLE_STATIC,       // Static object (building, pole, etc.)
+  CARLA_OBSTACLE_TRAFFIC_SIGN, // Traffic sign or signal
+  CARLA_OBSTACLE_DEBRIS        // Road debris or temporary obstacle
+} carla_obstacle_type_t;
+
+// Obstacle detection threat level
+typedef enum {
+  CARLA_THREAT_NONE = 0, // No threat detected
+  CARLA_THREAT_LOW,      // Low threat level
+  CARLA_THREAT_MEDIUM,   // Medium threat level
+  CARLA_THREAT_HIGH,     // High threat level
+  CARLA_THREAT_CRITICAL  // Critical threat requiring immediate action
+} carla_threat_level_t;
+
+// Enhanced obstacle detection event structure
+typedef struct {
+  carla_actor_t *self_actor;           // Actor that detected the obstacle
+  carla_actor_t *obstacle_actor;       // Detected obstacle actor
+  float distance;                      // Distance to obstacle (meters)
+  carla_vector3d_t obstacle_location;  // Obstacle location in world coordinates
+  carla_vector3d_t obstacle_velocity;  // Obstacle velocity (m/s)
+  carla_vector3d_t relative_position;  // Relative position vector
+  carla_vector3d_t relative_velocity;  // Relative velocity vector
+  float closing_speed;                 // Speed at which objects are approaching
+  float time_to_collision;             // Estimated time to collision (seconds)
+  carla_obstacle_type_t obstacle_type; // Type of detected obstacle
+  carla_threat_level_t threat_level;   // Assessed threat level
+  float detection_confidence;          // Confidence in detection (0-1)
+  bool in_path;                        // Whether obstacle is in travel path
+  double timestamp;                    // Timestamp of detection
+  uint64_t frame_number;               // Frame number when detected
+} carla_obstacle_detection_event_t;
+
+// Detection event filter criteria
+typedef struct {
+  bool filter_by_actor_type;     // Enable actor type filtering
+  uint32_t *allowed_actor_types; // Array of allowed actor type IDs
+  size_t actor_type_count;       // Number of allowed actor types
+
+  bool filter_by_distance; // Enable distance filtering
+  float min_distance;      // Minimum detection distance
+  float max_distance;      // Maximum detection distance
+
+  bool filter_by_speed; // Enable speed filtering
+  float min_speed;      // Minimum speed threshold
+  float max_speed;      // Maximum speed threshold
+
+  bool filter_by_threat_level;           // Enable threat level filtering
+  carla_threat_level_t min_threat_level; // Minimum threat level
+
+  bool filter_by_location;        // Enable location-based filtering
+  carla_vector3d_t filter_center; // Center point for location filter
+  float filter_radius;            // Radius for location filter
+
+  bool filter_by_time;      // Enable time-based filtering
+  double time_window_start; // Start of time window
+  double time_window_end;   // End of time window
+} carla_detection_filter_t;
+
+// Detection statistics structure
+typedef struct {
+  uint32_t total_collisions;          // Total collision events
+  uint32_t total_lane_invasions;      // Total lane invasion events
+  uint32_t total_obstacle_detections; // Total obstacle detection events
+
+  // Collision statistics
+  uint32_t collisions_by_severity[5]; // Count by severity level
+  uint32_t collisions_by_type[6];     // Count by collision type
+  float avg_collision_speed;          // Average collision speed
+  float max_collision_speed;          // Maximum collision speed
+
+  // Lane invasion statistics
+  uint32_t invasions_by_marking_type[11]; // Count by lane marking type
+  float avg_invasion_angle;               // Average invasion angle
+  float avg_lateral_displacement;         // Average lateral displacement
+
+  // Obstacle detection statistics
+  uint32_t detections_by_type[7];   // Count by obstacle type
+  uint32_t detections_by_threat[5]; // Count by threat level
+  float avg_detection_distance;     // Average detection distance
+  float min_time_to_collision;      // Minimum time to collision observed
+
+  double analysis_start_time;     // Start time of analysis period
+  double analysis_end_time;       // End time of analysis period
+  double total_analysis_duration; // Total duration analyzed
+} carla_detection_statistics_t;
+
+// Detection event history structure for trend analysis
+typedef struct {
+  carla_collision_event_t *collision_events; // Array of collision events
+  size_t collision_count;                    // Number of collision events
+  size_t collision_capacity;                 // Capacity of collision array
+
+  carla_lane_invasion_event_t
+      *lane_invasion_events;     // Array of lane invasion events
+  size_t lane_invasion_count;    // Number of lane invasion events
+  size_t lane_invasion_capacity; // Capacity of lane invasion array
+
+  carla_obstacle_detection_event_t
+      *obstacle_events;     // Array of obstacle detection events
+  size_t obstacle_count;    // Number of obstacle events
+  size_t obstacle_capacity; // Capacity of obstacle array
+
+  bool auto_resize;           // Whether to auto-resize arrays
+  size_t max_events_per_type; // Maximum events to store per type
+} carla_detection_history_t;
+
+// Detection sensor configuration
+typedef struct {
+  float detection_range;                   // Maximum detection range (meters)
+  float detection_angle;                   // Detection cone angle (radians)
+  float update_frequency;                  // Update frequency (Hz)
+  bool enable_collision_prediction;        // Enable collision prediction
+  bool enable_threat_assessment;           // Enable threat level assessment
+  float collision_prediction_horizon;      // Prediction time horizon (seconds)
+  carla_detection_filter_t default_filter; // Default filter settings
+} carla_detection_sensor_config_t;
 
 // Memory management helpers
 void carla_free_string(char *str);
