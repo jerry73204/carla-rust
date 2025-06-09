@@ -22,6 +22,7 @@ typedef struct carla_waypoint carla_waypoint_t;
 typedef struct carla_waypoint_list carla_waypoint_list_t;
 typedef struct carla_transform_list carla_transform_list_t;
 typedef struct carla_string_list carla_string_list_t;
+typedef struct carla_sensor_data carla_sensor_data_t;
 
 // Error handling
 typedef enum {
@@ -154,6 +155,142 @@ typedef enum {
     CARLA_TRAFFIC_LIGHT_OFF,
     CARLA_TRAFFIC_LIGHT_UNKNOWN
 } carla_traffic_light_state_t;
+
+// Sensor data types enum
+typedef enum {
+    CARLA_SENSOR_DATA_UNKNOWN = 0,
+    CARLA_SENSOR_DATA_IMAGE,
+    CARLA_SENSOR_DATA_LIDAR,
+    CARLA_SENSOR_DATA_SEMANTIC_LIDAR,
+    CARLA_SENSOR_DATA_RADAR,
+    CARLA_SENSOR_DATA_IMU,
+    CARLA_SENSOR_DATA_GNSS,
+    CARLA_SENSOR_DATA_COLLISION,
+    CARLA_SENSOR_DATA_LANE_INVASION,
+    CARLA_SENSOR_DATA_OBSTACLE_DETECTION,
+    CARLA_SENSOR_DATA_DVS_EVENT_ARRAY,
+    CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE,
+    CARLA_SENSOR_DATA_NORMALS_IMAGE
+} carla_sensor_data_type_t;
+
+// Basic sensor data properties (common to all sensor data)
+typedef struct {
+    uint64_t frame;
+    double timestamp;
+    carla_transform_t sensor_transform;
+} carla_sensor_data_info_t;
+
+// Image data structure
+typedef struct {
+    uint32_t width;
+    uint32_t height;
+    uint32_t fov;
+    const uint8_t* raw_data;
+    size_t raw_data_size;
+} carla_image_data_t;
+
+// LiDAR point structure
+typedef struct {
+    float x;
+    float y; 
+    float z;
+    float intensity;
+} carla_lidar_detection_t;
+
+// LiDAR data structure
+typedef struct {
+    const carla_lidar_detection_t* points;
+    size_t point_count;
+    uint32_t horizontal_angle;
+    uint32_t channels;
+} carla_lidar_data_t;
+
+// Semantic LiDAR point structure
+typedef struct {
+    float x;
+    float y;
+    float z;
+    float cos_inc_angle;
+    uint32_t object_idx;
+    uint32_t object_tag;
+} carla_semantic_lidar_detection_t;
+
+// Semantic LiDAR data structure
+typedef struct {
+    const carla_semantic_lidar_detection_t* points;
+    size_t point_count;
+    uint32_t horizontal_angle;
+    uint32_t channels;
+} carla_semantic_lidar_data_t;
+
+// Radar detection structure
+typedef struct {
+    float velocity;
+    float azimuth;
+    float altitude;
+    float depth;
+} carla_radar_detection_t;
+
+// Radar data structure
+typedef struct {
+    const carla_radar_detection_t* detections;
+    size_t detection_count;
+} carla_radar_data_t;
+
+// IMU measurement structure
+typedef struct {
+    carla_vector3d_t accelerometer;  // m/s²
+    carla_vector3d_t gyroscope;      // rad/s
+    float compass;                   // radians
+} carla_imu_data_t;
+
+// GNSS measurement structure
+typedef struct {
+    double latitude;   // degrees
+    double longitude;  // degrees
+    double altitude;   // meters
+} carla_gnss_data_t;
+
+// Collision event structure
+typedef struct {
+    carla_actor_t* actor;
+    carla_actor_t* other_actor;
+    carla_vector3d_t normal_impulse;
+} carla_collision_data_t;
+
+// Lane invasion event structure
+typedef struct {
+    carla_actor_t* actor;
+    // Array of crossed lane markings (simplified for now)
+    size_t crossed_lane_markings_count;
+} carla_lane_invasion_data_t;
+
+// Obstacle detection event structure
+typedef struct {
+    carla_actor_t* actor;
+    carla_actor_t* other_actor;
+    float distance;
+} carla_obstacle_detection_data_t;
+
+// DVS event structure
+typedef struct {
+    uint16_t x;
+    uint16_t y;
+    int64_t t;    // timestamp
+    bool pol;     // polarity
+} carla_dvs_event_t;
+
+// DVS event array structure
+typedef struct {
+    const carla_dvs_event_t* events;
+    size_t event_count;
+    uint32_t width;
+    uint32_t height;
+    uint64_t fov_angle;
+} carla_dvs_event_array_data_t;
+
+// Sensor callback function type
+typedef void (*carla_sensor_callback_t)(carla_sensor_data_t* data, void* user_data);
 
 // Callback function types
 typedef void (*carla_actor_destroy_callback_t)(carla_actor_t* actor, void* user_data);
