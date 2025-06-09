@@ -977,6 +977,293 @@ typedef struct {
 #define CARLA_TM_MAX_VEHICLES_PER_TM 500
 #define CARLA_TM_DEFAULT_SYNC_TIMEOUT_MS 2000.0
 
+// OpenDRIVE generation and road network types
+
+// Forward declarations for OpenDRIVE
+typedef struct carla_opendrive_map carla_opendrive_map_t;
+typedef struct carla_road carla_road_t;
+typedef struct carla_lane carla_lane_t;
+typedef struct carla_junction carla_junction_t;
+typedef struct carla_road_geometry carla_road_geometry_t;
+
+// OpenDRIVE generation parameters
+typedef struct {
+  double vertex_distance;            // Distance between vertices in meters
+  double max_road_length;            // Maximum road length for chunking
+  double wall_height;                // Height of generated walls
+  double additional_width;           // Additional width for roads
+  double vertex_width_resolution;    // Resolution for width calculations
+  float simplification_percentage;   // Mesh simplification percentage (0-100)
+  bool smooth_junctions;             // Enable junction smoothing
+  bool enable_mesh_visibility;       // Enable mesh visibility optimization
+  bool enable_pedestrian_navigation; // Enable pedestrian navigation mesh
+} carla_opendrive_generation_params_t;
+
+// Road and lane identification types
+typedef uint32_t carla_road_id_t;
+typedef int32_t carla_junction_id_t;
+typedef int32_t carla_lane_id_t;
+typedef uint32_t carla_section_id_t;
+typedef uint32_t carla_connection_id_t;
+
+// Road geometry types
+typedef enum {
+  CARLA_GEOMETRY_LINE = 0,      // Straight line geometry
+  CARLA_GEOMETRY_ARC = 1,       // Circular arc geometry
+  CARLA_GEOMETRY_SPIRAL = 2,    // Clothoid spiral geometry
+  CARLA_GEOMETRY_POLY3 = 3,     // Cubic polynomial geometry
+  CARLA_GEOMETRY_POLY3PARAM = 4 // Parametric cubic polynomial
+} carla_road_geometry_type_t;
+
+// Lane types (bitflags)
+typedef enum {
+  CARLA_LANE_TYPE_NONE = 0x1,            // No specific lane type
+  CARLA_LANE_TYPE_DRIVING = 0x2,         // Driving lane
+  CARLA_LANE_TYPE_STOP = 0x4,            // Stop lane
+  CARLA_LANE_TYPE_SHOULDER = 0x8,        // Shoulder lane
+  CARLA_LANE_TYPE_BIKING = 0x10,         // Bicycle lane
+  CARLA_LANE_TYPE_SIDEWALK = 0x20,       // Sidewalk
+  CARLA_LANE_TYPE_BORDER = 0x40,         // Border lane
+  CARLA_LANE_TYPE_RESTRICTED = 0x80,     // Restricted access lane
+  CARLA_LANE_TYPE_PARKING = 0x100,       // Parking lane
+  CARLA_LANE_TYPE_BIDIRECTIONAL = 0x200, // Bidirectional lane
+  CARLA_LANE_TYPE_MEDIAN = 0x400,        // Median strip
+  CARLA_LANE_TYPE_SPECIAL1 = 0x800,      // Special purpose lane 1
+  CARLA_LANE_TYPE_SPECIAL2 = 0x1000,     // Special purpose lane 2
+  CARLA_LANE_TYPE_SPECIAL3 = 0x2000,     // Special purpose lane 3
+  CARLA_LANE_TYPE_ROAD_WORKS = 0x4000,   // Road works lane
+  CARLA_LANE_TYPE_TRAM = 0x8000,         // Tram lane
+  CARLA_LANE_TYPE_RAIL = 0x10000,        // Railway
+  CARLA_LANE_TYPE_ENTRY = 0x20000,       // Highway entry lane
+  CARLA_LANE_TYPE_EXIT = 0x40000,        // Highway exit lane
+  CARLA_LANE_TYPE_OFF_RAMP = 0x80000,    // Off-ramp
+  CARLA_LANE_TYPE_ON_RAMP = 0x100000,    // On-ramp
+  CARLA_LANE_TYPE_ANY = -2               // Any lane type (used for queries)
+} carla_lane_type_t;
+
+// OpenDRIVE lane marking types (separate from detection sensor types)
+typedef enum {
+  CARLA_OPENDRIVE_LANE_MARKING_NONE = 0,
+  CARLA_OPENDRIVE_LANE_MARKING_SOLID,
+  CARLA_OPENDRIVE_LANE_MARKING_BROKEN,
+  CARLA_OPENDRIVE_LANE_MARKING_SOLID_SOLID,
+  CARLA_OPENDRIVE_LANE_MARKING_SOLID_BROKEN,
+  CARLA_OPENDRIVE_LANE_MARKING_BROKEN_SOLID,
+  CARLA_OPENDRIVE_LANE_MARKING_BROKEN_BROKEN,
+  CARLA_OPENDRIVE_LANE_MARKING_BOTTS_DOTS,
+  CARLA_OPENDRIVE_LANE_MARKING_GRASS,
+  CARLA_OPENDRIVE_LANE_MARKING_CURB
+} carla_opendrive_lane_marking_type_t;
+
+// OpenDRIVE lane marking color (separate from detection sensor types)
+typedef enum {
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_STANDARD = 0, // White
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_BLUE = 1,
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_GREEN = 2,
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_RED = 3,
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_WHITE = 4,
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_YELLOW = 5,
+  CARLA_OPENDRIVE_LANE_MARKING_COLOR_OTHER = 6
+} carla_opendrive_lane_marking_color_t;
+
+// Road geometry structure
+typedef struct {
+  carla_road_geometry_type_t type; // Type of geometry
+  double s;                        // Start position along road
+  double x, y;                     // Start coordinates
+  double hdg;                      // Start heading (radians)
+  double length;                   // Length of geometry
+
+  // Geometry-specific parameters
+  union {
+    struct {
+      // No additional parameters for line
+    } line;
+
+    struct {
+      double curvature; // Curvature (1/radius)
+    } arc;
+
+    struct {
+      double curv_start; // Start curvature
+      double curv_end;   // End curvature
+    } spiral;
+
+    struct {
+      double a, b, c, d; // Polynomial coefficients
+    } poly3;
+  } params;
+} carla_road_geometry_data_t;
+
+// OpenDRIVE lane marking structure
+typedef struct {
+  carla_opendrive_lane_marking_type_t type;   // Type of lane marking
+  carla_opendrive_lane_marking_color_t color; // Color of lane marking
+  double width;                               // Width of marking in meters
+  double s_offset;                            // Offset along lane centerline
+  double t_offset; // Lateral offset from lane centerline
+} carla_lane_marking_data_t;
+
+// Lane width entry structure
+typedef struct {
+  double s_offset;   // Position along lane where width applies
+  double a, b, c, d; // Width polynomial coefficients
+} carla_lane_width_data_t;
+
+// Lane data structure
+typedef struct {
+  carla_lane_id_t id;          // Lane ID
+  carla_lane_type_t type;      // Lane type
+  bool level;                  // Whether lane is level
+  carla_lane_id_t predecessor; // Predecessor lane ID
+  carla_lane_id_t successor;   // Successor lane ID
+
+  // Lane markings (left and right)
+  carla_lane_marking_data_t left_marking;
+  carla_lane_marking_data_t right_marking;
+
+  // Lane width information
+  carla_lane_width_data_t *width_entries;
+  size_t width_entry_count;
+
+  // Speed restrictions
+  double speed_limit; // Speed limit in m/s (0 = no limit)
+} carla_lane_data_t;
+
+// Lane section structure
+typedef struct {
+  carla_section_id_t id;    // Section ID
+  double s;                 // Start position along road
+  carla_lane_data_t *lanes; // Array of lanes in section
+  size_t lane_count;        // Number of lanes
+} carla_lane_section_data_t;
+
+// Road structure
+typedef struct {
+  carla_road_id_t id;              // Road ID
+  char *name;                      // Road name
+  double length;                   // Total road length
+  carla_junction_id_t junction_id; // Junction ID (or -1 if not in junction)
+
+  // Road geometry
+  carla_road_geometry_data_t *geometries;
+  size_t geometry_count;
+
+  // Lane sections
+  carla_lane_section_data_t *sections;
+  size_t section_count;
+
+  // Road links
+  carla_road_id_t predecessor; // Predecessor road ID
+  carla_road_id_t successor;   // Successor road ID
+} carla_road_data_t;
+
+// Lane link for junctions
+typedef struct {
+  carla_lane_id_t from; // Source lane ID
+  carla_lane_id_t to;   // Target lane ID
+} carla_lane_link_t;
+
+// Junction connection
+typedef struct {
+  carla_connection_id_t id;        // Connection ID
+  carla_road_id_t incoming_road;   // Incoming road ID
+  carla_road_id_t connecting_road; // Connecting road ID
+  carla_lane_link_t *lane_links;   // Array of lane links
+  size_t lane_link_count;          // Number of lane links
+} carla_junction_connection_t;
+
+// Junction structure
+typedef struct {
+  carla_junction_id_t id;                   // Junction ID
+  char *name;                               // Junction name
+  carla_junction_connection_t *connections; // Array of connections
+  size_t connection_count;                  // Number of connections
+} carla_junction_data_t;
+
+// OpenDRIVE map data structure
+typedef struct {
+  char *name;     // Map name
+  double version; // OpenDRIVE version
+
+  // Map bounds
+  carla_vector3d_t min_bounds; // Minimum coordinates
+  carla_vector3d_t max_bounds; // Maximum coordinates
+
+  // Road network elements
+  carla_road_data_t *roads; // Array of roads
+  size_t road_count;        // Number of roads
+
+  carla_junction_data_t *junctions; // Array of junctions
+  size_t junction_count;            // Number of junctions
+
+  // Raw OpenDRIVE content
+  char *opendrive_content; // Full OpenDRIVE XML content
+  size_t content_length;   // Length of content
+} carla_opendrive_map_data_t;
+
+// Waypoint structure for navigation
+typedef struct {
+  carla_road_id_t road_id;       // Road ID
+  carla_section_id_t section_id; // Section ID
+  carla_lane_id_t lane_id;       // Lane ID
+  double s;                      // Position along road (meters)
+  carla_transform_t transform;   // World transform at waypoint
+  bool is_junction;              // Whether waypoint is in junction
+} carla_waypoint_data_t;
+
+// Waypoint list for navigation paths
+typedef struct {
+  carla_waypoint_data_t *waypoints; // Array of waypoints
+  size_t waypoint_count;            // Number of waypoints
+  double total_distance;            // Total path distance
+} carla_waypoint_path_t;
+
+// Topology pair (waypoint connection)
+typedef struct {
+  carla_waypoint_data_t from; // Start waypoint
+  carla_waypoint_data_t to;   // End waypoint
+} carla_topology_pair_t;
+
+// Map topology structure
+typedef struct {
+  carla_topology_pair_t *pairs; // Array of topology pairs
+  size_t pair_count;            // Number of pairs
+} carla_map_topology_t;
+
+// Mesh generation options
+typedef struct {
+  double vertex_distance;      // Distance between mesh vertices
+  float extra_width;           // Extra width for road mesh
+  bool smooth_junctions;       // Smooth junction transitions
+  bool generate_walls;         // Generate side walls
+  double wall_height;          // Height of walls
+  bool generate_crosswalks;    // Generate crosswalk meshes
+  bool generate_line_markings; // Generate lane marking meshes
+} carla_mesh_generation_options_t;
+
+// Mesh data structure (simplified)
+typedef struct {
+  carla_vector3d_t *vertices;  // Array of vertices
+  size_t vertex_count;         // Number of vertices
+  uint32_t *indices;           // Array of triangle indices
+  size_t index_count;          // Number of indices
+  carla_vector3d_t *normals;   // Array of vertex normals
+  carla_vector3d_t bounds_min; // Minimum bounds
+  carla_vector3d_t bounds_max; // Maximum bounds
+} carla_mesh_data_t;
+
+// OpenDRIVE constants
+#define CARLA_OPENDRIVE_DEFAULT_VERTEX_DISTANCE 2.0
+#define CARLA_OPENDRIVE_DEFAULT_MAX_ROAD_LENGTH 50.0
+#define CARLA_OPENDRIVE_DEFAULT_WALL_HEIGHT 1.0
+#define CARLA_OPENDRIVE_DEFAULT_ADDITIONAL_WIDTH 0.6
+#define CARLA_OPENDRIVE_DEFAULT_VERTEX_WIDTH_RESOLUTION 4.0
+#define CARLA_OPENDRIVE_DEFAULT_SIMPLIFICATION_PERCENTAGE 20.0
+#define CARLA_OPENDRIVE_INVALID_ROAD_ID ((carla_road_id_t)-1)
+#define CARLA_OPENDRIVE_INVALID_JUNCTION_ID ((carla_junction_id_t)-1)
+#define CARLA_OPENDRIVE_INVALID_LANE_ID ((carla_lane_id_t)0)
+
 // Memory management helpers
 void carla_free_string(char *str);
 void carla_free_string_list(carla_string_list_t *list);
