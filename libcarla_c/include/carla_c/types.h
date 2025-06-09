@@ -1264,6 +1264,291 @@ typedef struct {
 #define CARLA_OPENDRIVE_INVALID_JUNCTION_ID ((carla_junction_id_t)-1)
 #define CARLA_OPENDRIVE_INVALID_LANE_ID ((carla_lane_id_t)0)
 
+// Multi-sensor fusion types
+
+// Forward declarations for sensor fusion
+typedef struct carla_sensor_fusion_system carla_sensor_fusion_system_t;
+typedef struct carla_sensor_sync_buffer carla_sensor_sync_buffer_t;
+typedef struct carla_sensor_calibration carla_sensor_calibration_t;
+typedef struct carla_fused_object carla_fused_object_t;
+typedef struct carla_fused_object_list carla_fused_object_list_t;
+
+// Sensor fusion algorithm types
+typedef enum {
+  CARLA_FUSION_ALGORITHM_NAIVE = 0,        // Simple concatenation
+  CARLA_FUSION_ALGORITHM_KALMAN_FILTER,    // Kalman filter fusion
+  CARLA_FUSION_ALGORITHM_PARTICLE_FILTER,  // Particle filter fusion
+  CARLA_FUSION_ALGORITHM_WEIGHTED_AVERAGE, // Weighted average fusion
+  CARLA_FUSION_ALGORITHM_BAYESIAN,         // Bayesian fusion
+  CARLA_FUSION_ALGORITHM_NEURAL_NETWORK    // Neural network fusion
+} carla_fusion_algorithm_t;
+
+// Sensor fusion quality metrics
+typedef enum {
+  CARLA_FUSION_QUALITY_UNKNOWN = 0,
+  CARLA_FUSION_QUALITY_POOR,     // Low confidence fusion
+  CARLA_FUSION_QUALITY_FAIR,     // Moderate confidence fusion
+  CARLA_FUSION_QUALITY_GOOD,     // High confidence fusion
+  CARLA_FUSION_QUALITY_EXCELLENT // Very high confidence fusion
+} carla_fusion_quality_t;
+
+// Sensor synchronization method
+typedef enum {
+  CARLA_SYNC_METHOD_EXACT_TIME = 0, // Exact timestamp match
+  CARLA_SYNC_METHOD_NEAREST_TIME,   // Nearest timestamp within tolerance
+  CARLA_SYNC_METHOD_INTERPOLATION,  // Linear interpolation between frames
+  CARLA_SYNC_METHOD_EXTRAPOLATION,  // Extrapolation beyond available data
+  CARLA_SYNC_METHOD_FRAME_NUMBER    // Frame number-based synchronization
+} carla_sync_method_t;
+
+// Sensor calibration status
+typedef enum {
+  CARLA_CALIBRATION_STATUS_UNKNOWN = 0,
+  CARLA_CALIBRATION_STATUS_UNCALIBRATED,
+  CARLA_CALIBRATION_STATUS_MANUAL,    // Manually set calibration
+  CARLA_CALIBRATION_STATUS_AUTO,      // Automatically computed calibration
+  CARLA_CALIBRATION_STATUS_VALIDATED, // Calibration validated
+  CARLA_CALIBRATION_STATUS_INVALID    // Calibration invalid/outdated
+} carla_calibration_status_t;
+
+// Fused object classification
+typedef enum {
+  CARLA_FUSED_OBJECT_UNKNOWN = 0,
+  CARLA_FUSED_OBJECT_VEHICLE,
+  CARLA_FUSED_OBJECT_PEDESTRIAN,
+  CARLA_FUSED_OBJECT_CYCLIST,
+  CARLA_FUSED_OBJECT_TRAFFIC_SIGN,
+  CARLA_FUSED_OBJECT_TRAFFIC_LIGHT,
+  CARLA_FUSED_OBJECT_BUILDING,
+  CARLA_FUSED_OBJECT_VEGETATION,
+  CARLA_FUSED_OBJECT_ROAD_SURFACE,
+  CARLA_FUSED_OBJECT_OBSTACLE,
+  CARLA_FUSED_OBJECT_DEBRIS
+} carla_fused_object_type_t;
+
+// Sensor modality identification
+typedef enum {
+  CARLA_SENSOR_MODALITY_CAMERA = 0x1,
+  CARLA_SENSOR_MODALITY_LIDAR = 0x2,
+  CARLA_SENSOR_MODALITY_RADAR = 0x4,
+  CARLA_SENSOR_MODALITY_IMU = 0x8,
+  CARLA_SENSOR_MODALITY_GNSS = 0x10,
+  CARLA_SENSOR_MODALITY_COLLISION = 0x20,
+  CARLA_SENSOR_MODALITY_LANE_INVASION = 0x40,
+  CARLA_SENSOR_MODALITY_OBSTACLE_DETECTION = 0x80,
+  CARLA_SENSOR_MODALITY_DVS = 0x100,
+  CARLA_SENSOR_MODALITY_OPTICAL_FLOW = 0x200
+} carla_sensor_modality_t;
+
+// Sensor data synchronization configuration
+typedef struct {
+  double time_tolerance_ms;         // Maximum time difference for sync (ms)
+  carla_sync_method_t sync_method;  // Synchronization method to use
+  uint32_t buffer_size;             // Size of sync buffer per sensor
+  bool enable_interpolation;        // Enable data interpolation
+  bool enable_extrapolation;        // Enable data extrapolation
+  double max_interpolation_gap_ms;  // Maximum gap for interpolation (ms)
+  double max_extrapolation_time_ms; // Maximum extrapolation time (ms)
+  bool drop_late_data;              // Drop data arriving too late
+} carla_sensor_sync_config_t;
+
+// Sensor calibration parameters
+typedef struct {
+  carla_transform_t extrinsic; // Sensor pose relative to vehicle
+  carla_camera_intrinsics_t
+      intrinsic; // Camera intrinsic parameters (if applicable)
+  carla_calibration_status_t status;  // Calibration status
+  double timestamp;                   // Calibration timestamp
+  char *calibration_method;           // Method used for calibration
+  float calibration_error;            // Estimated calibration error
+  carla_vector3d_t mounting_position; // Physical mounting position
+  carla_rotation_t mounting_rotation; // Physical mounting rotation
+} carla_sensor_calibration_data_t;
+
+// Synchronized sensor data packet
+typedef struct {
+  double timestamp;           // Synchronized timestamp
+  uint64_t frame_number;      // Frame number
+  uint32_t sensor_modalities; // Bitmask of available sensor modalities
+
+  // Sensor data pointers (NULL if not available)
+  carla_sensor_data_t *camera_data;
+  carla_sensor_data_t *lidar_data;
+  carla_sensor_data_t *radar_data;
+  carla_sensor_data_t *imu_data;
+  carla_sensor_data_t *gnss_data;
+  carla_sensor_data_t *collision_data;
+  carla_sensor_data_t *lane_invasion_data;
+  carla_sensor_data_t *obstacle_detection_data;
+  carla_sensor_data_t *dvs_data;
+  carla_sensor_data_t *optical_flow_data;
+
+  // Fusion metadata
+  carla_fusion_quality_t fusion_quality;
+  double sync_error_ms;   // Synchronization error
+  size_t dropped_sensors; // Number of sensors dropped due to sync
+} carla_synchronized_sensor_data_t;
+
+// Fused object detection result
+typedef struct {
+  uint32_t object_id;             // Unique object identifier
+  carla_fused_object_type_t type; // Object classification
+  carla_vector3d_t position;      // 3D world position
+  carla_vector3d_t velocity;      // 3D velocity vector
+  carla_vector3d_t size;          // Object bounding box size
+  carla_rotation_t orientation;   // Object orientation
+
+  // Confidence and quality metrics
+  float detection_confidence;            // Overall detection confidence (0-1)
+  float tracking_confidence;             // Tracking confidence (0-1)
+  carla_fusion_quality_t fusion_quality; // Quality of sensor fusion
+
+  // Contributing sensor modalities
+  uint32_t sensor_modalities; // Bitmask of contributing sensors
+  float sensor_weights[10];   // Weight of each sensor modality
+
+  // Temporal information
+  double first_detection_time; // Time of first detection
+  double last_update_time;     // Time of last update
+  uint32_t detection_count;    // Number of detections
+
+  // Additional properties
+  carla_color_t color;           // Object color (from camera)
+  float reflectivity;            // Object reflectivity (from LiDAR/radar)
+  carla_vector3d_t *point_cloud; // Associated point cloud points
+  size_t point_count;            // Number of point cloud points
+} carla_fused_object_data_t;
+
+// Fused object list container
+typedef struct {
+  carla_fused_object_data_t *objects; // Array of fused objects
+  size_t object_count;                // Number of objects
+  size_t capacity;                    // Array capacity
+  double timestamp;                   // Fusion timestamp
+  carla_fusion_algorithm_t algorithm; // Fusion algorithm used
+  uint32_t contributing_sensors;      // Sensors that contributed
+} carla_fused_object_list_data_t;
+
+// Camera-LiDAR fusion configuration
+typedef struct {
+  bool enable_point_colorization; // Colorize point cloud with camera
+  bool enable_depth_completion;   // Complete sparse depth maps
+  bool enable_occlusion_handling; // Handle occlusions between sensors
+  float min_depth_range;          // Minimum depth for fusion (meters)
+  float max_depth_range;          // Maximum depth for fusion (meters)
+  float depth_noise_threshold;    // Depth noise filtering threshold
+  carla_image_roi_t roi;          // Region of interest for fusion
+} carla_camera_lidar_fusion_config_t;
+
+// Camera-LiDAR fusion result
+typedef struct {
+  carla_vector3d_t *colored_points;   // Point cloud with RGB colors
+  size_t point_count;                 // Number of colored points
+  float *depth_map;                   // Dense depth map from LiDAR
+  uint32_t depth_width;               // Depth map width
+  uint32_t depth_height;              // Depth map height
+  carla_image_data_t *enhanced_image; // Enhanced camera image
+  carla_fusion_quality_t quality;     // Fusion quality assessment
+} carla_camera_lidar_fusion_result_t;
+
+// Multi-sensor localization state
+typedef struct {
+  carla_vector3d_t position;         // Estimated position
+  carla_vector3d_t velocity;         // Estimated velocity
+  carla_vector3d_t acceleration;     // Estimated acceleration
+  carla_rotation_t orientation;      // Estimated orientation
+  carla_vector3d_t angular_velocity; // Estimated angular velocity
+
+  // Uncertainty covariance matrices (6x6 for pose, 3x3 for others)
+  float position_covariance[9];    // Position uncertainty (3x3)
+  float orientation_covariance[9]; // Orientation uncertainty (3x3)
+  float velocity_covariance[9];    // Velocity uncertainty (3x3)
+
+  // Quality metrics
+  float localization_confidence; // Overall localization confidence
+  uint32_t contributing_sensors; // Sensors contributing to estimate
+  double timestamp;              // State timestamp
+  uint64_t update_count;         // Number of updates
+} carla_localization_state_t;
+
+// Kalman filter configuration for localization
+typedef struct {
+  float process_noise_position;     // Process noise for position
+  float process_noise_velocity;     // Process noise for velocity
+  float process_noise_acceleration; // Process noise for acceleration
+  float process_noise_orientation;  // Process noise for orientation
+
+  float measurement_noise_gnss;      // GNSS measurement noise
+  float measurement_noise_imu_accel; // IMU acceleration noise
+  float measurement_noise_imu_gyro;  // IMU gyroscope noise
+  float measurement_noise_odometry;  // Odometry measurement noise
+
+  float initial_position_uncertainty; // Initial position uncertainty
+  float initial_velocity_uncertainty; // Initial velocity uncertainty
+
+  bool enable_outlier_rejection; // Enable measurement outlier rejection
+  float outlier_threshold;       // Outlier rejection threshold
+} carla_localization_filter_config_t;
+
+// Sensor fusion system statistics
+typedef struct {
+  uint64_t total_sensor_frames; // Total sensor frames processed
+  uint64_t synchronized_frames; // Successfully synchronized frames
+  uint64_t dropped_frames;      // Frames dropped due to sync issues
+  uint64_t interpolated_frames; // Frames requiring interpolation
+  uint64_t extrapolated_frames; // Frames requiring extrapolation
+
+  double average_sync_error_ms; // Average synchronization error
+  double max_sync_error_ms;     // Maximum synchronization error
+  double min_sync_error_ms;     // Minimum synchronization error
+
+  uint64_t total_fused_objects;  // Total objects detected via fusion
+  double average_fusion_time_ms; // Average fusion computation time
+  double max_fusion_time_ms;     // Maximum fusion computation time
+
+  // Per-sensor statistics
+  uint64_t frames_per_sensor[10];   // Frames per sensor modality
+  double latency_per_sensor[10];    // Average latency per sensor
+  float reliability_per_sensor[10]; // Reliability score per sensor
+} carla_sensor_fusion_stats_t;
+
+// Sensor fusion system configuration
+typedef struct {
+  carla_sensor_sync_config_t sync_config;    // Synchronization configuration
+  carla_fusion_algorithm_t fusion_algorithm; // Primary fusion algorithm
+  carla_camera_lidar_fusion_config_t
+      camera_lidar_config; // Camera-LiDAR fusion config
+  carla_localization_filter_config_t
+      localization_config; // Localization filter config
+
+  bool enable_object_tracking;        // Enable multi-sensor object tracking
+  bool enable_localization_fusion;    // Enable localization fusion
+  bool enable_performance_monitoring; // Enable performance statistics
+
+  float object_association_threshold; // Object association distance threshold
+  float tracking_persistence_time;    // Time to keep lost tracks (seconds)
+  uint32_t max_tracked_objects;       // Maximum number of tracked objects
+
+  char *output_coordinate_frame; // Output coordinate frame ("world", "vehicle",
+                                 // "sensor")
+  bool enable_debug_output;      // Enable debug information output
+} carla_sensor_fusion_config_t;
+
+// Sensor fusion callback function types
+typedef void (*carla_fusion_callback_t)(
+    const carla_synchronized_sensor_data_t *data, void *user_data);
+typedef void (*carla_object_detection_callback_t)(
+    const carla_fused_object_list_data_t *objects, void *user_data);
+typedef void (*carla_localization_callback_t)(
+    const carla_localization_state_t *state, void *user_data);
+
+// Sensor fusion constants
+#define CARLA_FUSION_MAX_SENSORS 10
+#define CARLA_FUSION_DEFAULT_BUFFER_SIZE 100
+#define CARLA_FUSION_DEFAULT_TIME_TOLERANCE_MS 50.0
+#define CARLA_FUSION_MAX_OBJECT_TRACKS 1000
+#define CARLA_FUSION_INVALID_OBJECT_ID ((uint32_t)-1)
+
 // Memory management helpers
 void carla_free_string(char *str);
 void carla_free_string_list(carla_string_list_t *list);
