@@ -385,6 +385,198 @@ typedef struct {
   uint64_t fov_angle;
 } carla_dvs_event_array_data_t;
 
+// Camera and image processing types
+
+// Color pixel structure (BGRA format)
+typedef struct {
+  uint8_t b; // Blue
+  uint8_t g; // Green
+  uint8_t r; // Red
+  uint8_t a; // Alpha
+} carla_color_t;
+
+// Float color pixel structure (for HDR images)
+typedef struct {
+  float r; // Red
+  float g; // Green
+  float b; // Blue
+  float a; // Alpha
+} carla_float_color_t;
+
+// Optical flow pixel structure
+typedef struct {
+  float x; // Horizontal flow
+  float y; // Vertical flow
+} carla_optical_flow_pixel_t;
+
+// Camera types enumeration
+typedef enum {
+  CARLA_CAMERA_RGB = 0,               // RGB camera
+  CARLA_CAMERA_DEPTH,                 // Depth camera
+  CARLA_CAMERA_SEMANTIC_SEGMENTATION, // Semantic segmentation camera
+  CARLA_CAMERA_INSTANCE_SEGMENTATION, // Instance segmentation camera
+  CARLA_CAMERA_DVS,                   // Dynamic Vision Sensor
+  CARLA_CAMERA_OPTICAL_FLOW,          // Optical flow camera
+  CARLA_CAMERA_NORMALS                // Surface normals camera
+} carla_camera_type_t;
+
+// Image format enumeration
+typedef enum {
+  CARLA_IMAGE_FORMAT_COLOR_BGRA = 0,  // 4-channel BGRA (32-bit)
+  CARLA_IMAGE_FORMAT_DEPTH_GRAYSCALE, // 1-channel depth (8-bit grayscale)
+  CARLA_IMAGE_FORMAT_DEPTH_RAW,       // Raw depth (32-bit float)
+  CARLA_IMAGE_FORMAT_SEMANTIC_RAW,    // Raw semantic IDs (32-bit)
+  CARLA_IMAGE_FORMAT_INSTANCE_RAW,    // Raw instance IDs (32-bit)
+  CARLA_IMAGE_FORMAT_OPTICAL_FLOW,    // 2-channel optical flow (64-bit)
+  CARLA_IMAGE_FORMAT_NORMALS_BGRA     // Normals as BGRA (32-bit)
+} carla_image_format_t;
+
+// Image export format
+typedef enum {
+  CARLA_IMAGE_EXPORT_PNG = 0, // PNG format
+  CARLA_IMAGE_EXPORT_JPEG,    // JPEG format
+  CARLA_IMAGE_EXPORT_BMP,     // BMP format
+  CARLA_IMAGE_EXPORT_TGA,     // TGA format
+  CARLA_IMAGE_EXPORT_RAW      // Raw binary format
+} carla_image_export_format_t;
+
+// Color space enumeration
+typedef enum {
+  CARLA_COLOR_SPACE_RGB = 0,  // RGB color space
+  CARLA_COLOR_SPACE_BGR,      // BGR color space
+  CARLA_COLOR_SPACE_HSV,      // HSV color space
+  CARLA_COLOR_SPACE_GRAYSCALE // Grayscale
+} carla_color_space_t;
+
+// Image statistics structure
+typedef struct {
+  uint32_t width;              // Image width in pixels
+  uint32_t height;             // Image height in pixels
+  uint32_t channels;           // Number of color channels
+  size_t pixel_count;          // Total number of pixels
+  float fov_angle;             // Horizontal field of view in degrees
+  carla_image_format_t format; // Image format
+
+  // Color statistics (for RGB/BGRA images)
+  struct {
+    uint8_t min_r, min_g, min_b; // Minimum channel values
+    uint8_t max_r, max_g, max_b; // Maximum channel values
+    float avg_r, avg_g, avg_b;   // Average channel values
+    float brightness;            // Average brightness (0-1)
+    float contrast;              // Contrast measure
+  } color_stats;
+
+  // Depth statistics (for depth images)
+  struct {
+    float min_depth;    // Minimum depth value
+    float max_depth;    // Maximum depth value
+    float avg_depth;    // Average depth value
+    float median_depth; // Median depth value
+  } depth_stats;
+} carla_image_stats_t;
+
+// Image region of interest
+typedef struct {
+  uint32_t x;      // Top-left X coordinate
+  uint32_t y;      // Top-left Y coordinate
+  uint32_t width;  // Region width
+  uint32_t height; // Region height
+} carla_image_roi_t;
+
+// Image filter types
+typedef enum {
+  CARLA_IMAGE_FILTER_NONE = 0,       // No filtering
+  CARLA_IMAGE_FILTER_GAUSSIAN_BLUR,  // Gaussian blur
+  CARLA_IMAGE_FILTER_BOX_BLUR,       // Box blur
+  CARLA_IMAGE_FILTER_MEDIAN,         // Median filter
+  CARLA_IMAGE_FILTER_SHARPEN,        // Sharpening filter
+  CARLA_IMAGE_FILTER_EDGE_DETECTION, // Edge detection
+  CARLA_IMAGE_FILTER_EMBOSS          // Emboss effect
+} carla_image_filter_t;
+
+// Image histogram structure
+typedef struct {
+  uint32_t bins;                 // Number of histogram bins
+  uint32_t *red_histogram;       // Red channel histogram
+  uint32_t *green_histogram;     // Green channel histogram
+  uint32_t *blue_histogram;      // Blue channel histogram
+  uint32_t *grayscale_histogram; // Grayscale histogram
+} carla_image_histogram_t;
+
+// Camera calibration parameters
+typedef struct {
+  float fx, fy;           // Focal lengths
+  float cx, cy;           // Principal point
+  float k1, k2, k3;       // Radial distortion coefficients
+  float p1, p2;           // Tangential distortion coefficients
+  uint32_t width, height; // Image dimensions
+} carla_camera_intrinsics_t;
+
+// Semantic segmentation class information
+typedef struct {
+  uint32_t class_id;      // Semantic class ID
+  const char *class_name; // Human-readable class name
+  carla_color_t color;    // Visualization color
+  uint32_t pixel_count;   // Number of pixels in class
+  float percentage;       // Percentage of image
+} carla_semantic_class_info_t;
+
+// Semantic segmentation analysis result
+typedef struct {
+  carla_semantic_class_info_t *classes; // Array of class information
+  size_t class_count;                   // Number of classes found
+  uint32_t total_pixels;                // Total pixels analyzed
+  uint32_t *class_histogram;            // Histogram of class IDs
+  size_t histogram_size;                // Size of histogram array
+} carla_semantic_analysis_t;
+
+// Instance segmentation result
+typedef struct {
+  uint32_t instance_id;           // Instance identifier
+  uint32_t semantic_class;        // Semantic class of instance
+  carla_image_roi_t bounding_box; // Bounding box of instance
+  uint32_t pixel_count;           // Number of pixels in instance
+  float area_percentage;          // Percentage of image area
+  carla_vector3d_t centroid;      // 3D centroid (if depth available)
+} carla_instance_info_t;
+
+// Instance segmentation analysis result
+typedef struct {
+  carla_instance_info_t *instances; // Array of instance information
+  size_t instance_count;            // Number of instances found
+  uint32_t total_pixels;            // Total pixels analyzed
+} carla_instance_analysis_t;
+
+// Depth image analysis result
+typedef struct {
+  float min_depth, max_depth;    // Depth range
+  float avg_depth, median_depth; // Depth statistics
+  uint32_t *depth_histogram;     // Depth histogram
+  size_t histogram_bins;         // Number of histogram bins
+  uint32_t invalid_pixels;       // Number of invalid depth pixels
+  float depth_density;           // Percentage of valid depth pixels
+} carla_depth_analysis_t;
+
+// Optical flow analysis result
+typedef struct {
+  carla_vector3d_t average_flow; // Average flow vector
+  float magnitude_avg;           // Average flow magnitude
+  float magnitude_max;           // Maximum flow magnitude
+  uint32_t moving_pixels;        // Number of pixels with significant motion
+  float motion_density;          // Percentage of moving pixels
+  carla_vector3d_t dominant_direction; // Dominant motion direction
+} carla_optical_flow_analysis_t;
+
+// DVS event analysis result
+typedef struct {
+  uint32_t positive_events;        // Number of positive events
+  uint32_t negative_events;        // Number of negative events
+  uint32_t total_events;           // Total number of events
+  float event_rate;                // Events per second
+  carla_image_roi_t active_region; // Region with most activity
+  float activity_density;          // Event density
+} carla_dvs_analysis_t;
+
 // Motion processing types
 
 // Actor dynamic state (velocity, acceleration, angular velocity)
@@ -403,11 +595,6 @@ typedef struct {
   carla_vector3d_t center_of_mass; // Center of mass offset
 } carla_vehicle_physics_state_t;
 
-// Optical flow pixel structure
-typedef struct {
-  float u; // Horizontal motion component
-  float v; // Vertical motion component
-} carla_optical_flow_pixel_t;
 
 // Optical flow image data structure
 typedef struct {
