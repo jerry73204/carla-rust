@@ -31,6 +31,7 @@ set(SOURCES
     src/actor.cpp
     src/vehicle.cpp
     src/sensor.cpp
+    src/motion.cpp
     src/common.cpp
 )
 
@@ -54,7 +55,7 @@ target_link_libraries(carla_c
 set_target_properties(carla_c PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 0
-    PUBLIC_HEADER "include/carla_c/client.h;include/carla_c/types.h;include/carla_c/world.h;include/carla_c/map.h;include/carla_c/actor.h;include/carla_c/vehicle.h;include/carla_c/sensor.h"
+    PUBLIC_HEADER "include/carla_c/client.h;include/carla_c/types.h;include/carla_c/world.h;include/carla_c/map.h;include/carla_c/actor.h;include/carla_c/vehicle.h;include/carla_c/sensor.h;include/carla_c/motion.h"
 )
 
 # Installation rules
