@@ -860,6 +860,123 @@ typedef struct {
   carla_detection_filter_t default_filter; // Default filter settings
 } carla_detection_sensor_config_t;
 
+// Traffic Manager types
+
+// Forward declaration of traffic manager
+typedef struct carla_traffic_manager carla_traffic_manager_t;
+
+// Road option enumeration for navigation decisions
+typedef enum {
+  CARLA_ROAD_OPTION_VOID = 0,              // No specific action
+  CARLA_ROAD_OPTION_LEFT = 1,              // Turn left
+  CARLA_ROAD_OPTION_RIGHT = 2,             // Turn right
+  CARLA_ROAD_OPTION_STRAIGHT = 3,          // Go straight
+  CARLA_ROAD_OPTION_LANE_FOLLOW = 4,       // Follow current lane
+  CARLA_ROAD_OPTION_CHANGE_LANE_LEFT = 5,  // Change to left lane
+  CARLA_ROAD_OPTION_CHANGE_LANE_RIGHT = 6, // Change to right lane
+  CARLA_ROAD_OPTION_ROAD_END = 7           // End of road
+} carla_road_option_t;
+
+// Traffic manager action (road option + waypoint)
+typedef struct {
+  carla_road_option_t road_option; // Navigation decision
+  carla_waypoint_t *waypoint;      // Target waypoint (can be NULL)
+} carla_traffic_manager_action_t;
+
+// Traffic manager vehicle configuration
+typedef struct {
+  float speed_percentage_difference; // Speed difference from speed limit (-100
+                                     // to 100%)
+  float desired_speed; // Desired speed in m/s (0 = use percentage)
+  float lane_offset;   // Lane center offset in meters
+  float distance_to_leading_vehicle; // Following distance in meters
+  bool auto_lane_change;             // Enable automatic lane changes
+  bool force_lane_change_direction;  // Force lane change direction (true=left,
+                                     // false=right)
+  bool force_lane_change_active;     // Whether force lane change is active
+  float keep_right_percentage;       // Tendency to keep right (0-100%)
+  float random_left_lane_change_percentage;  // Random left lane change
+                                             // probability (0-100%)
+  float random_right_lane_change_percentage; // Random right lane change
+                                             // probability (0-100%)
+  float percentage_running_light; // Probability of running red lights (0-100%)
+  float percentage_running_sign;  // Probability of ignoring stop signs (0-100%)
+  float
+      percentage_ignore_walkers; // Probability of ignoring pedestrians (0-100%)
+  float percentage_ignore_vehicles; // Probability of ignoring other vehicles
+                                    // (0-100%)
+  bool update_vehicle_lights; // Whether to update vehicle lights automatically
+  bool collision_detection_enabled; // Whether collision detection is enabled
+} carla_traffic_manager_vehicle_config_t;
+
+// Traffic manager global configuration
+typedef struct {
+  float global_speed_percentage_difference; // Global speed difference from
+                                            // speed limit
+  float global_lane_offset;                 // Global lane center offset
+  float global_distance_to_leading_vehicle; // Global following distance
+  bool synchronous_mode;                    // Synchronous execution mode
+  double synchronous_mode_timeout_ms; // Timeout for synchronous operations
+  bool hybrid_physics_mode;           // Enable hybrid physics for optimization
+  float hybrid_physics_radius;        // Radius for hybrid physics mode
+  bool respawn_dormant_vehicles;      // Enable respawning of dormant vehicles
+  float respawn_lower_bound;          // Lower bound for respawn area
+  float respawn_upper_bound;          // Upper bound for respawn area
+  uint64_t random_device_seed;        // Seed for random number generation
+  bool osm_mode;                      // OpenStreetMap mode
+  uint16_t port;                      // Traffic manager port
+} carla_traffic_manager_config_t;
+
+// Custom path (sequence of world locations)
+typedef struct {
+  carla_vector3d_t *locations; // Array of 3D world positions
+  size_t location_count;       // Number of locations in path
+  bool empty_buffer;           // Whether to clear existing buffer
+} carla_traffic_manager_path_t;
+
+// Custom route (sequence of road options)
+typedef struct {
+  carla_road_option_t *road_options; // Array of road options
+  size_t option_count;               // Number of road options in route
+  bool empty_buffer;                 // Whether to clear existing buffer
+} carla_traffic_manager_route_t;
+
+// Action buffer (planned sequence of actions)
+typedef struct {
+  carla_traffic_manager_action_t *actions; // Array of actions
+  size_t action_count;                     // Number of actions in buffer
+  size_t capacity;                         // Capacity of actions array
+} carla_traffic_manager_action_buffer_t;
+
+// Traffic manager instance information
+typedef struct {
+  uint16_t port;                         // Port number
+  bool is_running;                       // Whether TM is running
+  size_t registered_vehicle_count;       // Number of registered vehicles
+  carla_traffic_manager_config_t config; // Current configuration
+} carla_traffic_manager_info_t;
+
+// Traffic manager statistics
+typedef struct {
+  uint32_t total_registered_vehicles;   // Total vehicles ever registered
+  uint32_t active_vehicle_count;        // Currently active vehicles
+  uint32_t total_ticks;                 // Total simulation ticks processed
+  double average_tick_time_ms;          // Average tick processing time
+  uint32_t collision_count;             // Number of collisions detected
+  uint32_t lane_change_count;           // Number of lane changes performed
+  uint32_t traffic_light_violations;    // Number of red light violations
+  uint32_t stop_sign_violations;        // Number of stop sign violations
+  double total_simulation_time_seconds; // Total simulation time
+} carla_traffic_manager_stats_t;
+
+// Traffic manager constants
+#define CARLA_TM_DEFAULT_PORT 8000
+#define CARLA_TM_HYBRID_MODE_DT 0.05f
+#define CARLA_TM_MINIMUM_STOP_TIME 2.0f
+#define CARLA_TM_EXIT_JUNCTION_THRESHOLD 0.0f
+#define CARLA_TM_MAX_VEHICLES_PER_TM 500
+#define CARLA_TM_DEFAULT_SYNC_TIMEOUT_MS 2000.0
+
 // Memory management helpers
 void carla_free_string(char *str);
 void carla_free_string_list(carla_string_list_t *list);
