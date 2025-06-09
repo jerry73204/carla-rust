@@ -41,6 +41,19 @@ set(SOURCES
     src/common.cpp
 )
 
+# Check if ROS2 is available and add conditionally
+if(TARGET carla-ros2-native OR DEFINED WITH_ROS2)
+    list(APPEND SOURCES src/ros2.cpp)
+    set(ROS2_HEADER "include/carla_c/ros2.h")
+    set(WITH_ROS2_ENABLED TRUE)
+    message(STATUS "ROS2 support enabled")
+else()
+    list(APPEND SOURCES src/ros2_stub.cpp)
+    set(ROS2_HEADER "include/carla_c/ros2.h")
+    set(WITH_ROS2_ENABLED FALSE)
+    message(STATUS "ROS2 support disabled (using stub implementation)")
+endif()
+
 # Create shared library for C wrapper
 add_library(carla_c SHARED ${SOURCES})
 
@@ -61,7 +74,7 @@ target_link_libraries(carla_c
 set_target_properties(carla_c PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 0
-    PUBLIC_HEADER "include/carla_c/client.h;include/carla_c/types.h;include/carla_c/world.h;include/carla_c/map.h;include/carla_c/actor.h;include/carla_c/vehicle.h;include/carla_c/sensor.h;include/carla_c/motion.h;include/carla_c/lidar.h;include/carla_c/camera.h;include/carla_c/detection.h;include/carla_c/traffic_manager.h;include/carla_c/opendrive.h;include/carla_c/sensor_fusion.h"
+    PUBLIC_HEADER "include/carla_c/client.h;include/carla_c/types.h;include/carla_c/world.h;include/carla_c/map.h;include/carla_c/actor.h;include/carla_c/vehicle.h;include/carla_c/sensor.h;include/carla_c/motion.h;include/carla_c/lidar.h;include/carla_c/camera.h;include/carla_c/detection.h;include/carla_c/traffic_manager.h;include/carla_c/opendrive.h;include/carla_c/sensor_fusion.h;${ROS2_HEADER}"
 )
 
 # Installation rules

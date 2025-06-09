@@ -31,6 +31,7 @@ typedef enum {
   CARLA_ERROR_TIMEOUT,
   CARLA_ERROR_INVALID_ARGUMENT,
   CARLA_ERROR_NOT_FOUND,
+  CARLA_ERROR_NOT_IMPLEMENTED,
   CARLA_ERROR_UNKNOWN
 } carla_error_t;
 
@@ -1548,6 +1549,308 @@ typedef void (*carla_localization_callback_t)(
 #define CARLA_FUSION_DEFAULT_TIME_TOLERANCE_MS 50.0
 #define CARLA_FUSION_MAX_OBJECT_TRACKS 1000
 #define CARLA_FUSION_INVALID_OBJECT_ID ((uint32_t)-1)
+
+// ROS2 Native Integration Types
+
+// Forward declarations for ROS2
+typedef struct carla_ros2_manager carla_ros2_manager_t;
+typedef struct carla_ros2_publisher carla_ros2_publisher_t;
+typedef struct carla_ros2_subscriber carla_ros2_subscriber_t;
+typedef struct carla_ros2_node carla_ros2_node_t;
+
+// ROS2 Quality of Service policies
+typedef enum {
+  CARLA_ROS2_QOS_RELIABLE = 0,   // Reliable delivery
+  CARLA_ROS2_QOS_BEST_EFFORT = 1 // Best effort delivery
+} carla_ros2_qos_reliability_t;
+
+typedef enum {
+  CARLA_ROS2_QOS_VOLATILE = 0,        // Only latest data
+  CARLA_ROS2_QOS_TRANSIENT_LOCAL = 1, // Keep last value for late joiners
+  CARLA_ROS2_QOS_TRANSIENT = 2,       // Persist across restarts
+  CARLA_ROS2_QOS_PERSISTENT = 3       // Persist to storage
+} carla_ros2_qos_durability_t;
+
+// ROS2 Quality of Service configuration
+typedef struct {
+  carla_ros2_qos_reliability_t reliability; // Reliability policy
+  carla_ros2_qos_durability_t durability;   // Durability policy
+  uint32_t queue_depth;                     // Queue size
+  double deadline_ms;                       // Deadline in milliseconds
+  double lifespan_ms;                       // Lifespan in milliseconds
+  double liveliness_lease_duration_ms;      // Liveliness lease duration
+} carla_ros2_qos_t;
+
+// ROS2 publisher types (corresponding to CARLA sensor types)
+typedef enum {
+  CARLA_ROS2_PUBLISHER_RGB_CAMERA = 0,      // RGB camera publisher
+  CARLA_ROS2_PUBLISHER_DEPTH_CAMERA,        // Depth camera publisher
+  CARLA_ROS2_PUBLISHER_SEMANTIC_CAMERA,     // Semantic segmentation camera
+  CARLA_ROS2_PUBLISHER_INSTANCE_CAMERA,     // Instance segmentation camera
+  CARLA_ROS2_PUBLISHER_NORMALS_CAMERA,      // Surface normals camera
+  CARLA_ROS2_PUBLISHER_OPTICAL_FLOW_CAMERA, // Optical flow camera
+  CARLA_ROS2_PUBLISHER_DVS_CAMERA,          // Dynamic Vision Sensor
+  CARLA_ROS2_PUBLISHER_LIDAR,               // LiDAR point cloud
+  CARLA_ROS2_PUBLISHER_SEMANTIC_LIDAR,      // Semantic LiDAR
+  CARLA_ROS2_PUBLISHER_RADAR,               // Radar sensor
+  CARLA_ROS2_PUBLISHER_IMU,                 // Inertial measurement unit
+  CARLA_ROS2_PUBLISHER_GNSS,                // GPS/GNSS sensor
+  CARLA_ROS2_PUBLISHER_COLLISION,           // Collision sensor
+  CARLA_ROS2_PUBLISHER_LANE_INVASION,       // Lane invasion sensor
+  CARLA_ROS2_PUBLISHER_TRANSFORM,           // Actor transform
+  CARLA_ROS2_PUBLISHER_SPEEDOMETER,         // Vehicle speed
+  CARLA_ROS2_PUBLISHER_CLOCK,               // Simulation clock
+  CARLA_ROS2_PUBLISHER_MAP                  // Map data
+} carla_ros2_publisher_type_t;
+
+// ROS2 subscriber types
+typedef enum {
+  CARLA_ROS2_SUBSCRIBER_VEHICLE_CONTROL = 0, // Vehicle control commands
+  CARLA_ROS2_SUBSCRIBER_GENERIC              // Generic subscriber
+} carla_ros2_subscriber_type_t;
+
+// ROS2 message types
+typedef enum {
+  CARLA_ROS2_MSG_IMAGE = 0,                 // sensor_msgs/Image
+  CARLA_ROS2_MSG_CAMERA_INFO,               // sensor_msgs/CameraInfo
+  CARLA_ROS2_MSG_POINT_CLOUD2,              // sensor_msgs/PointCloud2
+  CARLA_ROS2_MSG_IMU,                       // sensor_msgs/Imu
+  CARLA_ROS2_MSG_NAV_SAT_FIX,               // sensor_msgs/NavSatFix
+  CARLA_ROS2_MSG_TRANSFORM,                 // geometry_msgs/Transform
+  CARLA_ROS2_MSG_TWIST,                     // geometry_msgs/Twist
+  CARLA_ROS2_MSG_CLOCK,                     // rosgraph_msgs/Clock
+  CARLA_ROS2_MSG_CARLA_EGO_VEHICLE_CONTROL, // carla_msgs/CarlaEgoVehicleControl
+  CARLA_ROS2_MSG_CARLA_COLLISION_EVENT,     // carla_msgs/CarlaCollisionEvent
+  CARLA_ROS2_MSG_CARLA_LINE_INVASION        // carla_msgs/CarlaLineInvasion
+} carla_ros2_message_type_t;
+
+// ROS2 vehicle control command structure
+typedef struct {
+  float throttle;              // Throttle pedal (0.0 to 1.0)
+  float steer;                 // Steering angle (-1.0 to 1.0)
+  float brake;                 // Brake pedal (0.0 to 1.0)
+  bool hand_brake;             // Hand brake engaged
+  bool reverse;                // Reverse gear
+  bool manual_gear_shift;      // Manual gear shift mode
+  int32_t gear;                // Current gear
+  double header_stamp_sec;     // ROS2 timestamp seconds
+  double header_stamp_nanosec; // ROS2 timestamp nanoseconds
+  char frame_id[64];           // ROS2 frame ID
+} carla_ros2_vehicle_control_t;
+
+// ROS2 transform message structure
+typedef struct {
+  carla_vector3d_t translation; // Translation vector
+  struct {                      // Quaternion rotation
+    float x, y, z, w;
+  } rotation;
+  double header_stamp_sec;     // ROS2 timestamp seconds
+  double header_stamp_nanosec; // ROS2 timestamp nanoseconds
+  char frame_id[64];           // ROS2 frame ID
+  char child_frame_id[64];     // Child frame ID
+} carla_ros2_transform_t;
+
+// ROS2 twist message structure (velocity)
+typedef struct {
+  carla_vector3d_t linear;     // Linear velocity
+  carla_vector3d_t angular;    // Angular velocity
+  double header_stamp_sec;     // ROS2 timestamp seconds
+  double header_stamp_nanosec; // ROS2 timestamp nanoseconds
+  char frame_id[64];           // ROS2 frame ID
+} carla_ros2_twist_t;
+
+// ROS2 clock message structure
+typedef struct {
+  double clock_sec;     // Simulation time seconds
+  double clock_nanosec; // Simulation time nanoseconds
+} carla_ros2_clock_t;
+
+// ROS2 camera info structure
+typedef struct {
+  uint32_t width;                 // Image width
+  uint32_t height;                // Image height
+  char distortion_model[32];      // Distortion model name
+  double distortion_params[8];    // Distortion parameters
+  double camera_matrix[9];        // 3x3 camera matrix
+  double rectification_matrix[9]; // 3x3 rectification matrix
+  double projection_matrix[12];   // 3x4 projection matrix
+  uint32_t binning_x;             // Binning factor X
+  uint32_t binning_y;             // Binning factor Y
+  struct {                        // Region of interest
+    uint32_t x_offset;
+    uint32_t y_offset;
+    uint32_t width;
+    uint32_t height;
+    bool do_rectify;
+  } roi;
+  double header_stamp_sec;     // ROS2 timestamp seconds
+  double header_stamp_nanosec; // ROS2 timestamp nanoseconds
+  char frame_id[64];           // ROS2 frame ID
+} carla_ros2_camera_info_t;
+
+// ROS2 point cloud field structure
+typedef struct {
+  char name[32];    // Field name
+  uint32_t offset;  // Offset from start of point struct
+  uint8_t datatype; // Data type (see ROS2 sensor_msgs)
+  uint32_t count;   // Number of elements in field
+} carla_ros2_point_field_t;
+
+// ROS2 point cloud2 message structure
+typedef struct {
+  uint32_t width;                   // Width of point cloud
+  uint32_t height;                  // Height of point cloud (1 for unorganized)
+  carla_ros2_point_field_t *fields; // Point field descriptions
+  size_t field_count;               // Number of fields
+  bool is_bigendian;                // Byte order
+  uint32_t point_step;              // Length of point in bytes
+  uint32_t row_step;                // Length of row in bytes
+  uint8_t *data;                    // Point cloud data
+  size_t data_size;                 // Size of data array
+  bool is_dense;                    // True if no invalid points
+  double header_stamp_sec;          // ROS2 timestamp seconds
+  double header_stamp_nanosec;      // ROS2 timestamp nanoseconds
+  char frame_id[64];                // ROS2 frame ID
+} carla_ros2_point_cloud2_t;
+
+// ROS2 IMU message structure
+typedef struct {
+  struct { // Quaternion orientation
+    float x, y, z, w;
+  } orientation;
+  double orientation_covariance[9];      // 3x3 orientation covariance
+  carla_vector3d_t angular_velocity;     // Angular velocity (rad/s)
+  double angular_velocity_covariance[9]; // 3x3 angular velocity covariance
+  carla_vector3d_t linear_acceleration;  // Linear acceleration (m/s²)
+  double
+      linear_acceleration_covariance[9]; // 3x3 linear acceleration covariance
+  double header_stamp_sec;               // ROS2 timestamp seconds
+  double header_stamp_nanosec;           // ROS2 timestamp nanoseconds
+  char frame_id[64];                     // ROS2 frame ID
+} carla_ros2_imu_t;
+
+// ROS2 NavSatFix message structure (GNSS)
+typedef struct {
+  double latitude;                  // Latitude in degrees
+  double longitude;                 // Longitude in degrees
+  double altitude;                  // Altitude in meters
+  double position_covariance[9];    // 3x3 position covariance
+  uint8_t position_covariance_type; // Covariance type
+  uint8_t status;                   // GPS fix status
+  uint16_t service;                 // GPS service flags
+  double header_stamp_sec;          // ROS2 timestamp seconds
+  double header_stamp_nanosec;      // ROS2 timestamp nanoseconds
+  char frame_id[64];                // ROS2 frame ID
+} carla_ros2_nav_sat_fix_t;
+
+// ROS2 image encoding constants
+#define CARLA_ROS2_IMAGE_ENCODING_RGB8 "rgb8"
+#define CARLA_ROS2_IMAGE_ENCODING_RGBA8 "rgba8"
+#define CARLA_ROS2_IMAGE_ENCODING_BGR8 "bgr8"
+#define CARLA_ROS2_IMAGE_ENCODING_BGRA8 "bgra8"
+#define CARLA_ROS2_IMAGE_ENCODING_MONO8 "mono8"
+#define CARLA_ROS2_IMAGE_ENCODING_32FC1 "32FC1"
+
+// ROS2 image message structure
+typedef struct {
+  uint32_t width;              // Image width
+  uint32_t height;             // Image height
+  char encoding[32];           // Image encoding
+  uint8_t is_bigendian;        // Byte order
+  uint32_t step;               // Row stride in bytes
+  uint8_t *data;               // Image data
+  size_t data_size;            // Size of data array
+  double header_stamp_sec;     // ROS2 timestamp seconds
+  double header_stamp_nanosec; // ROS2 timestamp nanoseconds
+  char frame_id[64];           // ROS2 frame ID
+} carla_ros2_image_t;
+
+// ROS2 collision event message structure
+typedef struct {
+  carla_vector3d_t normal_impulse; // Normal impulse vector
+  uint32_t other_actor_id;         // ID of other actor in collision
+  char other_actor_type_id[128];   // Type ID of other actor
+  double header_stamp_sec;         // ROS2 timestamp seconds
+  double header_stamp_nanosec;     // ROS2 timestamp nanoseconds
+  char frame_id[64];               // ROS2 frame ID
+} carla_ros2_collision_event_t;
+
+// ROS2 lane invasion event message structure
+typedef struct {
+  uint32_t *crossed_lane_markings; // Array of crossed lane marking types
+  size_t lane_marking_count;       // Number of crossed markings
+  double header_stamp_sec;         // ROS2 timestamp seconds
+  double header_stamp_nanosec;     // ROS2 timestamp nanoseconds
+  char frame_id[64];               // ROS2 frame ID
+} carla_ros2_lane_invasion_t;
+
+// ROS2 stream configuration for sensors
+typedef struct {
+  carla_ros2_publisher_type_t publisher_type; // Type of publisher
+  bool enabled;                               // Whether stream is enabled
+  char topic_name[256];                       // Custom topic name (optional)
+  carla_ros2_qos_t qos;                       // Quality of service settings
+  double publish_rate_hz;   // Publishing rate in Hz (0 = sensor rate)
+  bool include_camera_info; // Include camera info for cameras
+  char frame_id[64];        // ROS2 frame ID
+  char parent_frame_id[64]; // Parent frame ID for transforms
+} carla_ros2_stream_config_t;
+
+// ROS2 manager configuration
+typedef struct {
+  bool enabled;                 // Whether ROS2 is enabled
+  char node_name[128];          // ROS2 node name
+  char namespace_prefix[128];   // Namespace prefix for topics
+  bool use_simulation_time;     // Use simulation time instead of wall time
+  double clock_publish_rate_hz; // Clock publishing rate
+  bool publish_tf;              // Whether to publish transforms
+  uint32_t ros_domain_id;       // ROS2 domain ID
+  bool verbose_logging;         // Enable verbose logging
+} carla_ros2_config_t;
+
+// ROS2 topic information
+typedef struct {
+  char topic_name[256];                       // Full topic name
+  carla_ros2_message_type_t message_type;     // Message type
+  carla_ros2_publisher_type_t publisher_type; // Publisher type
+  uint32_t subscriber_count;                  // Number of subscribers
+  bool is_active;           // Whether topic is actively publishing
+  double last_publish_time; // Last publish timestamp
+  uint64_t message_count;   // Total messages published
+} carla_ros2_topic_info_t;
+
+// ROS2 statistics
+typedef struct {
+  uint64_t total_messages_published; // Total messages published
+  uint64_t total_messages_received;  // Total messages received
+  uint32_t active_publishers;        // Number of active publishers
+  uint32_t active_subscribers;       // Number of active subscribers
+  double average_publish_rate_hz;    // Average publishing rate
+  double last_activity_time;         // Last activity timestamp
+  uint64_t dropped_messages;         // Number of dropped messages
+} carla_ros2_stats_t;
+
+// ROS2 callback function types
+typedef void (*carla_ros2_vehicle_control_callback_t)(
+    const carla_ros2_vehicle_control_t *control, void *user_data);
+
+typedef void (*carla_ros2_message_callback_t)(const void *message,
+                                              carla_ros2_message_type_t type,
+                                              void *user_data);
+
+typedef void (*carla_ros2_connection_callback_t)(const char *topic_name,
+                                                 bool connected,
+                                                 void *user_data);
+
+// ROS2 constants
+#define CARLA_ROS2_DEFAULT_NODE_NAME "carla_ros2_bridge"
+#define CARLA_ROS2_DEFAULT_NAMESPACE "/carla"
+#define CARLA_ROS2_DEFAULT_DOMAIN_ID 0
+#define CARLA_ROS2_DEFAULT_CLOCK_RATE_HZ 100.0
+#define CARLA_ROS2_MAX_TOPIC_NAME_LENGTH 256
+#define CARLA_ROS2_MAX_FRAME_ID_LENGTH 64
+#define CARLA_ROS2_MAX_PUBLISHERS 50
+#define CARLA_ROS2_MAX_SUBSCRIBERS 10
 
 // Memory management helpers
 void carla_free_string(char *str);
