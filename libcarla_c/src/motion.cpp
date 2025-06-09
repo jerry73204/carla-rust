@@ -1,6 +1,7 @@
 #include "carla_c/motion.h"
 #include "carla/client/Actor.h"
 #include "carla/client/Vehicle.h"
+#include "carla/sensor/data/Image.h"
 #include "carla_c/actor.h"
 #include "internal.h"
 #include <algorithm>
@@ -471,11 +472,29 @@ carla_motion_compensate_gravity(const carla_vector3d_t *raw_acceleration,
   return result;
 }
 
-// Stub implementations for optical flow functions
+// Optical flow functions implementation
 carla_optical_flow_data_t
 carla_sensor_data_get_optical_flow(const carla_sensor_data_t *data) {
   carla_optical_flow_data_t flow_data = {0};
-  // Optical flow implementation would require sensor data structure access
+
+  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+    return flow_data;
+  }
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image) {
+    return flow_data;
+  }
+
+  flow_data.width = image->GetWidth();
+  flow_data.height = image->GetHeight();
+  flow_data.fov = static_cast<uint32_t>(image->GetFOVAngle());
+  flow_data.flow_data =
+      reinterpret_cast<const carla_optical_flow_pixel_t *>(image->data());
+  flow_data.flow_data_size =
+      image->size() / 4; // Convert from RGBA pixels to flow pixels
+
   return flow_data;
 }
 
@@ -483,7 +502,24 @@ carla_optical_flow_pixel_t
 carla_optical_flow_get_pixel(const carla_sensor_data_t *data, uint32_t x,
                              uint32_t y) {
   carla_optical_flow_pixel_t pixel = {0, 0};
-  // Placeholder implementation
+
+  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+    return pixel;
+  }
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image || x >= image->GetWidth() || y >= image->GetHeight()) {
+    return pixel;
+  }
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const size_t pixel_index =
+      (y * image->GetWidth() + x) * 4; // 4 channels (RGBA)
+
+  pixel.x = pixel_data[pixel_index];     // R channel = x flow
+  pixel.y = pixel_data[pixel_index + 1]; // G channel = y flow
+
   return pixel;
 }
 
@@ -492,13 +528,83 @@ carla_optical_flow_get_region_average(const carla_sensor_data_t *data,
                                       uint32_t x, uint32_t y, uint32_t width,
                                       uint32_t height) {
   carla_optical_flow_pixel_t average = {0, 0};
-  // Placeholder implementation
+
+  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+    return average;
+  }
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image) {
+    return average;
+  }
+
+  const uint32_t img_width = image->GetWidth();
+  const uint32_t img_height = image->GetHeight();
+
+  // Clamp region to image bounds
+  const uint32_t end_x = std::min(x + width, img_width);
+  const uint32_t end_y = std::min(y + height, img_height);
+
+  if (x >= img_width || y >= img_height || end_x <= x || end_y <= y) {
+    return average;
+  }
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  float total_x = 0.0f;
+  float total_y = 0.0f;
+  uint32_t pixel_count = 0;
+
+  for (uint32_t row = y; row < end_y; ++row) {
+    for (uint32_t col = x; col < end_x; ++col) {
+      const size_t pixel_index =
+          (row * img_width + col) * 4; // 4 channels (RGBA)
+      total_x += pixel_data[pixel_index];
+      total_y += pixel_data[pixel_index + 1];
+      pixel_count++;
+    }
+  }
+
+  if (pixel_count > 0) {
+    average.x = total_x / pixel_count;
+    average.y = total_y / pixel_count;
+  }
+
   return average;
 }
 
 float carla_optical_flow_get_motion_magnitude(const carla_sensor_data_t *data) {
-  // Placeholder implementation
-  return 0.0f;
+  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+    return 0.0f;
+  }
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image) {
+    return 0.0f;
+  }
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const uint32_t width = image->GetWidth();
+  const uint32_t height = image->GetHeight();
+  const size_t total_pixels = width * height;
+
+  if (total_pixels == 0) {
+    return 0.0f;
+  }
+
+  float total_magnitude = 0.0f;
+
+  for (size_t i = 0; i < total_pixels; ++i) {
+    const size_t pixel_index = i * 4; // 4 channels (RGBA)
+    const float flow_x = pixel_data[pixel_index];
+    const float flow_y = pixel_data[pixel_index + 1];
+
+    const float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
+    total_magnitude += magnitude;
+  }
+
+  return total_magnitude / total_pixels;
 }
 
 // Placeholder implementations for remaining functions

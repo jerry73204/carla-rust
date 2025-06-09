@@ -122,15 +122,25 @@ carla_image_get_optical_flow_at(const carla_sensor_data_t *data, uint32_t x,
                                 uint32_t y) {
   carla_optical_flow_pixel_t result = {0.0f, 0.0f};
 
-  auto image = get_image_data<Image>(data);
+  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+    return result;
+  }
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
   if (!image || x >= image->GetWidth() || y >= image->GetHeight()) {
     return result;
   }
 
-  // Optical flow data is stored as 2-channel float data
-  // For now, return zeros as proper optical flow parsing would need 
-  // specific handling of the raw buffer
-  
+  // Optical flow images store flow as RGBA float pixels
+  // where R=x_flow, G=y_flow, B=unused, A=unused
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const size_t pixel_index =
+      (y * image->GetWidth() + x) * 4; // 4 channels (RGBA)
+
+  result.x = pixel_data[pixel_index];     // R channel = x flow
+  result.y = pixel_data[pixel_index + 1]; // G channel = y flow
+
   return result;
 }
 
@@ -533,11 +543,15 @@ carla_error_t carla_dvs_analyze_events(const carla_sensor_data_t *data,
   if (!data || !analysis)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
-  auto dvs_data = get_image_data<DVSEventArray>(data);
+  if (data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
   if (!dvs_data)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
-  analysis->total_events = dvs_data->size();
+  analysis->total_events = static_cast<uint32_t>(dvs_data->size());
   analysis->positive_events = 0;
   analysis->negative_events = 0;
 
@@ -663,9 +677,79 @@ carla_error_t carla_image_analyze_depth(const carla_sensor_data_t *data,
 carla_error_t
 carla_image_analyze_optical_flow(const carla_sensor_data_t *data,
                                  carla_optical_flow_analysis_t *analysis) {
-  (void)data;
-  (void)analysis;
-  return CARLA_ERROR_NOT_FOUND;
+  if (!data || !analysis)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  if (data->type != CARLA_SENSOR_DATA_IMAGE)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const uint32_t width = image->GetWidth();
+  const uint32_t height = image->GetHeight();
+  const size_t total_pixels = width * height;
+
+  // Initialize analysis results
+  analysis->average_flow = {0, 0, 0};
+  analysis->magnitude_avg = 0.0f;
+  analysis->magnitude_max = 0.0f;
+  analysis->moving_pixels = 0;
+  analysis->motion_density = 0.0f;
+  analysis->dominant_direction = {0, 0, 0};
+
+  if (total_pixels == 0) {
+    return CARLA_ERROR_NONE;
+  }
+
+  float total_flow_x = 0.0f;
+  float total_flow_y = 0.0f;
+  float total_magnitude = 0.0f;
+  const float motion_threshold =
+      0.5f; // Threshold for considering a pixel as "moving"
+
+  // Process each pixel
+  for (size_t i = 0; i < total_pixels; ++i) {
+    const size_t pixel_index = i * 4; // 4 channels (RGBA)
+    const float flow_x = pixel_data[pixel_index];
+    const float flow_y = pixel_data[pixel_index + 1];
+
+    const float magnitude = std::sqrt(flow_x * flow_x + flow_y * flow_y);
+
+    total_flow_x += flow_x;
+    total_flow_y += flow_y;
+    total_magnitude += magnitude;
+
+    if (magnitude > analysis->magnitude_max) {
+      analysis->magnitude_max = magnitude;
+    }
+
+    if (magnitude > motion_threshold) {
+      analysis->moving_pixels++;
+    }
+  }
+
+  // Calculate averages
+  analysis->average_flow.x = total_flow_x / total_pixels;
+  analysis->average_flow.y = total_flow_y / total_pixels;
+  analysis->magnitude_avg = total_magnitude / total_pixels;
+  analysis->motion_density =
+      static_cast<float>(analysis->moving_pixels) / total_pixels;
+
+  // Calculate dominant direction (normalized average flow)
+  const float avg_magnitude =
+      std::sqrt(analysis->average_flow.x * analysis->average_flow.x +
+                analysis->average_flow.y * analysis->average_flow.y);
+  if (avg_magnitude > 0) {
+    analysis->dominant_direction.x = analysis->average_flow.x / avg_magnitude;
+    analysis->dominant_direction.y = analysis->average_flow.y / avg_magnitude;
+    analysis->dominant_direction.z = 0; // 2D flow, no Z component
+  }
+
+  return CARLA_ERROR_NONE;
 }
 
 void carla_instance_analysis_destroy(carla_instance_analysis_t *analysis) {

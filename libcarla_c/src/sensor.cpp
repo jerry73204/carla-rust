@@ -76,8 +76,8 @@ IdentifySensorDataType(const carla::sensor::SensorData &data) {
   const std::type_info &type = typeid(data);
 
   if (type == typeid(carla::sensor::data::Image)) {
-    // Note: Optical flow is also an Image type, but with special encoding
-    // We'll need to check the sensor type or other metadata to distinguish
+    // For now, we'll identify optical flow at runtime in the accessor functions
+    // since we can't easily distinguish the image type here without metadata
     return CARLA_SENSOR_DATA_IMAGE;
   } else if (type == typeid(carla::sensor::data::LidarMeasurement)) {
     return CARLA_SENSOR_DATA_LIDAR;
@@ -663,27 +663,76 @@ float carla_obstacle_detection_data_get_distance(
 carla_dvs_event_array_data_t
 carla_sensor_data_get_dvs_event_array(const carla_sensor_data_t *data) {
   carla_dvs_event_array_data_t dvs_event_array_data = {0};
-  // TODO: Implement DVS event array data access
-  return dvs_event_array_data;
+
+  if (!data || data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY) {
+    return dvs_event_array_data;
+  }
+
+  // Cache DVS data if not already cached
+  if (!data->dvs_event_array_cached) {
+    auto dvs_data =
+        std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+            data->cpp_data);
+    if (dvs_data) {
+      data->dvs_event_array_data.events =
+          reinterpret_cast<const carla_dvs_event_t *>(dvs_data->data());
+      data->dvs_event_array_data.event_count = dvs_data->size();
+      data->dvs_event_array_data.width = dvs_data->GetWidth();
+      data->dvs_event_array_data.height = dvs_data->GetHeight();
+      data->dvs_event_array_data.fov_angle =
+          static_cast<uint64_t>(dvs_data->GetFOVAngle());
+      data->dvs_event_array_cached = true;
+    }
+  }
+
+  return data->dvs_event_array_data;
 }
 
 size_t
 carla_dvs_event_array_data_get_event_count(const carla_sensor_data_t *data) {
-  return 0; // TODO: Implement
+  if (!data || data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY) {
+    return 0;
+  }
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  return dvs_data ? dvs_data->size() : 0;
 }
 
 const carla_dvs_event_t *
 carla_dvs_event_array_data_get_events(const carla_sensor_data_t *data) {
-  return nullptr; // TODO: Implement
+  if (!data || data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY) {
+    return nullptr;
+  }
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  if (!dvs_data) {
+    return nullptr;
+  }
+
+  return reinterpret_cast<const carla_dvs_event_t *>(dvs_data->data());
 }
 
 uint32_t carla_dvs_event_array_data_get_width(const carla_sensor_data_t *data) {
-  return 0; // TODO: Implement
+  if (!data || data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY) {
+    return 0;
+  }
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  return dvs_data ? dvs_data->GetWidth() : 0;
 }
 
 uint32_t
 carla_dvs_event_array_data_get_height(const carla_sensor_data_t *data) {
-  return 0; // TODO: Implement
+  if (!data || data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY) {
+    return 0;
+  }
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  return dvs_data ? dvs_data->GetHeight() : 0;
 }
 
 void carla_sensor_data_destroy(carla_sensor_data_t *data) {
