@@ -223,6 +223,102 @@ typedef struct {
   uint32_t channels;
 } carla_semantic_lidar_data_t;
 
+// LiDAR processing types
+
+// Point cloud bounds structure
+typedef struct {
+  carla_vector3d_t min_point; // Minimum x, y, z coordinates
+  carla_vector3d_t max_point; // Maximum x, y, z coordinates
+  carla_vector3d_t center;    // Center point of the cloud
+  float radius;               // Radius of bounding sphere
+} carla_lidar_bounds_t;
+
+// LiDAR statistics structure
+typedef struct {
+  size_t total_points;
+  float min_intensity;
+  float max_intensity;
+  float avg_intensity;
+  float min_distance;
+  float max_distance;
+  float avg_distance;
+  carla_lidar_bounds_t bounds;
+} carla_lidar_stats_t;
+
+// LiDAR filter criteria
+typedef struct {
+  bool use_intensity_filter;
+  float min_intensity;
+  float max_intensity;
+  bool use_distance_filter;
+  float min_distance;
+  float max_distance;
+  bool use_height_filter;
+  float min_height;
+  float max_height;
+  bool use_channel_filter;
+  uint32_t channel_mask; // Bitmask for channels to include
+} carla_lidar_filter_t;
+
+// Semantic LiDAR filter criteria
+typedef struct {
+  bool use_semantic_filter;
+  uint32_t *allowed_tags; // Array of allowed semantic tags
+  size_t tag_count;
+  bool use_object_filter;
+  uint32_t *allowed_objects; // Array of allowed object indices
+  size_t object_count;
+  carla_lidar_filter_t base_filter; // Base geometric filters
+} carla_semantic_lidar_filter_t;
+
+// Point cloud format for export
+typedef enum {
+  CARLA_LIDAR_FORMAT_PLY = 0, // PLY format
+  CARLA_LIDAR_FORMAT_PCD,     // PCD format (placeholder)
+  CARLA_LIDAR_FORMAT_XYZ,     // Simple XYZ text format
+  CARLA_LIDAR_FORMAT_XYZI     // XYZ with intensity text format
+} carla_lidar_export_format_t;
+
+// Coordinate system for point cloud transformation
+typedef enum {
+  CARLA_LIDAR_COORDS_SENSOR = 0, // Sensor coordinate system
+  CARLA_LIDAR_COORDS_VEHICLE,    // Vehicle coordinate system
+  CARLA_LIDAR_COORDS_WORLD       // World coordinate system
+} carla_lidar_coordinate_system_t;
+
+// Downsampling method
+typedef enum {
+  CARLA_LIDAR_DOWNSAMPLE_UNIFORM = 0, // Uniform random sampling
+  CARLA_LIDAR_DOWNSAMPLE_GRID,        // Grid-based downsampling
+  CARLA_LIDAR_DOWNSAMPLE_DISTANCE     // Distance-based thinning
+} carla_lidar_downsample_method_t;
+
+// Ground segmentation result
+typedef struct {
+  const carla_lidar_detection_t *ground_points;
+  size_t ground_point_count;
+  const carla_lidar_detection_t *non_ground_points;
+  size_t non_ground_point_count;
+  carla_vector3d_t ground_normal; // Normal vector of ground plane
+  float ground_distance;          // Distance from origin to ground plane
+} carla_lidar_ground_segmentation_t;
+
+// Obstacle cluster
+typedef struct {
+  const carla_lidar_detection_t *points;
+  size_t point_count;
+  carla_lidar_bounds_t bounds;
+  carla_vector3d_t centroid;
+  float confidence; // Confidence score for obstacle detection
+} carla_lidar_obstacle_cluster_t;
+
+// Obstacle detection result
+typedef struct {
+  carla_lidar_obstacle_cluster_t *clusters;
+  size_t cluster_count;
+  size_t max_clusters; // Maximum number of clusters allocated
+} carla_lidar_obstacle_detection_t;
+
 // Radar detection structure
 typedef struct {
   float velocity;

@@ -44,7 +44,32 @@ GetSensor(const carla_actor_t *actor) {
   return std::dynamic_pointer_cast<const carla::client::Sensor>(actor->actor);
 }
 
-// Type identification functions
+// Type identification functions moved outside anonymous namespace to be
+// accessible from other files
+
+// Convert transform from CARLA to C
+carla_transform_t ConvertTransform(const carla::geom::Transform &transform) {
+  carla_transform_t result;
+  result.location.x = transform.location.x;
+  result.location.y = transform.location.y;
+  result.location.z = transform.location.z;
+  result.rotation.pitch = transform.rotation.pitch;
+  result.rotation.yaw = transform.rotation.yaw;
+  result.rotation.roll = transform.rotation.roll;
+  return result;
+}
+
+// Convert Vector3D from CARLA to C
+carla_vector3d_t ConvertVector3D(const carla::geom::Vector3D &vector) {
+  carla_vector3d_t result;
+  result.x = vector.x;
+  result.y = vector.y;
+  result.z = vector.z;
+  return result;
+}
+} // namespace
+
+// Type identification function implementation
 carla_sensor_data_type_t
 IdentifySensorDataType(const carla::sensor::SensorData &data) {
   // Use typeid to identify the concrete type
@@ -77,60 +102,7 @@ IdentifySensorDataType(const carla::sensor::SensorData &data) {
   return CARLA_SENSOR_DATA_UNKNOWN;
 }
 
-// Convert transform from CARLA to C
-carla_transform_t ConvertTransform(const carla::geom::Transform &transform) {
-  carla_transform_t result;
-  result.location.x = transform.location.x;
-  result.location.y = transform.location.y;
-  result.location.z = transform.location.z;
-  result.rotation.pitch = transform.rotation.pitch;
-  result.rotation.yaw = transform.rotation.yaw;
-  result.rotation.roll = transform.rotation.roll;
-  return result;
-}
-
-// Convert Vector3D from CARLA to C
-carla_vector3d_t ConvertVector3D(const carla::geom::Vector3D &vector) {
-  carla_vector3d_t result;
-  result.x = vector.x;
-  result.y = vector.y;
-  result.z = vector.z;
-  return result;
-}
-} // namespace
-
-// Sensor data structure that wraps the C++ sensor data
-struct carla_sensor_data {
-  carla::SharedPtr<carla::sensor::SensorData> cpp_data;
-  carla_sensor_data_type_t type;
-
-  // Cached data for C access
-  mutable carla_image_data_t image_data;
-  mutable carla_lidar_data_t lidar_data;
-  mutable carla_semantic_lidar_data_t semantic_lidar_data;
-  mutable carla_radar_data_t radar_data;
-  mutable carla_imu_data_t imu_data;
-  mutable carla_gnss_data_t gnss_data;
-  mutable carla_collision_data_t collision_data;
-  mutable carla_lane_invasion_data_t lane_invasion_data;
-  mutable carla_obstacle_detection_data_t obstacle_detection_data;
-  mutable carla_dvs_event_array_data_t dvs_event_array_data;
-
-  // Flags to track what data has been cached
-  mutable bool image_cached = false;
-  mutable bool lidar_cached = false;
-  mutable bool semantic_lidar_cached = false;
-  mutable bool radar_cached = false;
-  mutable bool imu_cached = false;
-  mutable bool gnss_cached = false;
-  mutable bool collision_cached = false;
-  mutable bool lane_invasion_cached = false;
-  mutable bool obstacle_detection_cached = false;
-  mutable bool dvs_event_array_cached = false;
-
-  explicit carla_sensor_data(carla::SharedPtr<carla::sensor::SensorData> data)
-      : cpp_data(std::move(data)), type(IdentifySensorDataType(*cpp_data)) {}
-};
+// Sensor data structure definition moved to internal.h
 
 extern "C" {
 
