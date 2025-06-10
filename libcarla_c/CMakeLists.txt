@@ -14,6 +14,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Build options
+option(BUILD_EXAMPLES "Build example programs" ON)
+
 # Find the installed CARLA library
 # Users should either:
 # 1. Set CMAKE_PREFIX_PATH to the CARLA installation directory
@@ -99,9 +102,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Add example executable
-add_executable(carla_c_example example.c)
-target_link_libraries(carla_c_example PRIVATE carla_c)
+# Conditionally build examples
+if(BUILD_EXAMPLES)
+    # Example programs
+    add_executable(carla_c_example examples/example.c)
+    target_link_libraries(carla_c_example PRIVATE carla_c)
+
+    add_executable(sensor_fusion_example examples/sensor_fusion_example.c)
+    target_link_libraries(sensor_fusion_example PRIVATE carla_c)
+
+    add_executable(lidar_example examples/lidar_example.c)
+    target_link_libraries(lidar_example PRIVATE carla_c)
+
+    message(STATUS "Building examples: carla_c_example, sensor_fusion_example, lidar_example")
+else()
+    message(STATUS "Examples disabled (BUILD_EXAMPLES=OFF)")
+endif()
 
 # Print configuration summary
 message(STATUS "")
@@ -112,6 +128,7 @@ message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "Parallel jobs: ${CMAKE_BUILD_PARALLEL_LEVEL}")
 message(STATUS "CARLA found at: ${Carla_DIR}")
+message(STATUS "Build examples: ${BUILD_EXAMPLES}")
 message(STATUS "")
 message(STATUS "Build outputs:")
 message(STATUS "  Libraries: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
@@ -122,19 +139,42 @@ message(STATUS "")
 add_custom_target(build-all ALL
     COMMENT "Building libcarla_c and all dependencies..."
 )
-add_dependencies(build-all carla_c carla_c_example)
+add_dependencies(build-all carla_c)
 
-# Add convenience targets
-add_custom_target(run-example
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/carla_c_example
-    DEPENDS carla_c_example
-    COMMENT "Running carla_c example..."
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+# Add example dependencies if building examples
+if(BUILD_EXAMPLES)
+    add_dependencies(build-all carla_c_example sensor_fusion_example lidar_example)
+    
+    # Add convenience targets for running examples
+    add_custom_target(run-example
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/carla_c_example
+        DEPENDS carla_c_example
+        COMMENT "Running basic carla_c example..."
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    
+    add_custom_target(run-sensor-fusion
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sensor_fusion_example
+        DEPENDS sensor_fusion_example
+        COMMENT "Running sensor fusion example..."
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    
+    add_custom_target(run-lidar
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lidar_example
+        DEPENDS lidar_example
+        COMMENT "Running LiDAR example..."
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endif()
 
 # Print build instructions
 message(STATUS "To build: cmake --build . --config Release")
-message(STATUS "To run example: cmake --build . --target run-example")
+if(BUILD_EXAMPLES)
+    message(STATUS "To run basic example: cmake --build . --target run-example")
+    message(STATUS "To run sensor fusion: cmake --build . --target run-sensor-fusion")
+    message(STATUS "To run LiDAR example: cmake --build . --target run-lidar")
+endif()
 message(STATUS "")
 message(STATUS "Build requirements:")
 message(STATUS "  1. CARLA C++ library must be installed first")
@@ -144,6 +184,11 @@ message(STATUS "")
 message(STATUS "Example build commands:")
 message(STATUS "  cmake -B build -S . -DCMAKE_PREFIX_PATH=/path/to/carla/install")
 message(STATUS "  cmake --build build")
+if(BUILD_EXAMPLES)
+    message(STATUS "To disable examples: cmake -B build -S . -DBUILD_EXAMPLES=OFF")
+else()
+    message(STATUS "To enable examples: cmake -B build -S . -DBUILD_EXAMPLES=ON")
+endif()
 message(STATUS "")
 
 # Post-build summary function
@@ -153,7 +198,11 @@ function(print_build_summary)
     message(STATUS "")
     message(STATUS "Quick start commands:")
     message(STATUS "  Build all:     cmake --build ${CMAKE_BINARY_DIR}")
-    message(STATUS "  Run example:   cmake --build ${CMAKE_BINARY_DIR} --target run-example")
+    if(BUILD_EXAMPLES)
+        message(STATUS "  Run basic example: cmake --build ${CMAKE_BINARY_DIR} --target run-example")
+        message(STATUS "  Run sensor fusion: cmake --build ${CMAKE_BINARY_DIR} --target run-sensor-fusion")
+        message(STATUS "  Run LiDAR example: cmake --build ${CMAKE_BINARY_DIR} --target run-lidar")
+    endif()
     message(STATUS "  Install:       cmake --build ${CMAKE_BINARY_DIR} --target install")
     message(STATUS "")
 endfunction()

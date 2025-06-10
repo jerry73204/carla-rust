@@ -3,9 +3,11 @@
 #include "carla_c/lidar.h"
 #include "carla_c/sensor.h"
 #include "carla_c/world.h"
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 // Global variables for demonstration
 static int lidar_data_received = 0;
@@ -89,26 +91,102 @@ void lidar_callback(carla_sensor_data_t *data, void *user_data) {
   carla_sensor_data_destroy(data);
 }
 
+void print_usage(const char *program_name) {
+  printf("Usage: %s [OPTIONS]\n", program_name);
+  printf("\nOptions:\n");
+  printf("  -h, --host HOST      CARLA server host (default: localhost)\n");
+  printf("  -p, --port PORT      CARLA server port (default: 2000)\n");
+  printf("      --help           Show this help message\n");
+  printf("      --version        Show version information\n");
+  printf("\nExamples:\n");
+  printf("  %s                           # Connect to localhost:2000\n",
+         program_name);
+  printf("  %s -h 192.168.1.100         # Connect to remote host\n",
+         program_name);
+  printf("  %s --host 192.168.1.100 --port 2001  # Full specification\n",
+         program_name);
+}
+
 int main(int argc, char *argv[]) {
   printf("CARLA LiDAR Processing Example\n");
   printf("=============================\n\n");
 
-  const char *host = (argc > 1) ? argv[1] : "localhost";
-  int port = (argc > 2) ? atoi(argv[2]) : 2000;
+  // Default values
+  const char *host = "localhost";
+  int port = 2000;
+
+  // Define long options
+  static struct option long_options[] = {{"host", required_argument, 0, 'h'},
+                                         {"port", required_argument, 0, 'p'},
+                                         {"help", no_argument, 0, 'H'},
+                                         {"version", no_argument, 0, 'V'},
+                                         {0, 0, 0, 0}};
+
+  // Parse command line arguments
+  int option_index = 0;
+  int c;
+
+  while ((c = getopt_long(argc, argv, "h:p:", long_options, &option_index)) !=
+         -1) {
+    switch (c) {
+    case 'h':
+      host = optarg;
+      break;
+    case 'p':
+      port = atoi(optarg);
+      if (port <= 0 || port > 65535) {
+        fprintf(stderr,
+                "Error: Invalid port number '%s'. Port must be between 1 and "
+                "65535.\n",
+                optarg);
+        return 1;
+      }
+      break;
+    case 'H':
+      print_usage(argv[0]);
+      return 0;
+    case 'V':
+      printf("CARLA LiDAR Processing Example v0.10.0\n");
+      printf("Compatible with CARLA 0.10.0\n");
+      return 0;
+    case '?':
+      // getopt_long already printed an error message
+      fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
+      return 1;
+    default:
+      fprintf(stderr, "Error: Unknown option.\n");
+      print_usage(argv[0]);
+      return 1;
+    }
+  }
+
+  // Check for unexpected positional arguments
+  if (optind < argc) {
+    fprintf(stderr, "Error: Unexpected arguments:");
+    while (optind < argc) {
+      fprintf(stderr, " %s", argv[optind++]);
+    }
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Try '%s --help' for more information.\n", argv[0]);
+    return 1;
+  }
 
   printf("Connecting to CARLA server at %s:%d...\n", host, port);
 
   // Connect to CARLA
-  carla_client_t *client = carla_client_create(host, port, 5);
+  carla_client_t *client = carla_client_new(host, port, 0);
   if (!client) {
     fprintf(stderr, "Failed to create CARLA client\n");
     return 1;
   }
+  
+  // Set timeout
+  carla_client_set_timeout(client, 10000);
 
   carla_world_t *world = carla_client_get_world(client);
   if (!world) {
     fprintf(stderr, "Failed to get world\n");
-    carla_client_destroy(client);
+    carla_client_free(client);
     return 1;
   }
 
@@ -118,8 +196,8 @@ int main(int argc, char *argv[]) {
   carla_blueprint_library_t *bp_lib = carla_world_get_blueprint_library(world);
   if (!bp_lib) {
     fprintf(stderr, "Failed to get blueprint library\n");
-    carla_world_destroy(world);
-    carla_client_destroy(client);
+    carla_world_free(world);
+    carla_client_free(client);
     return 1;
   }
 
@@ -128,9 +206,9 @@ int main(int argc, char *argv[]) {
       carla_blueprint_library_find(bp_lib, "sensor.lidar.ray_cast");
   if (!lidar_bp) {
     fprintf(stderr, "Failed to find LiDAR sensor blueprint\n");
-    carla_blueprint_library_destroy(bp_lib);
-    carla_world_destroy(world);
-    carla_client_destroy(client);
+    carla_blueprint_library_free(bp_lib);
+    carla_world_free(world);
+    carla_client_free(client);
     return 1;
   }
 
@@ -148,39 +226,36 @@ int main(int argc, char *argv[]) {
   };
 
   carla_spawn_result_t result =
-      carla_world_spawn_actor(world, lidar_bp, &sensor_transform, NULL);
+      carla_world_try_spawn_actor(world, lidar_bp, &sensor_transform, NULL);
   if (result.error != CARLA_ERROR_NONE || !result.actor) {
-    fprintf(stderr, "Failed to spawn LiDAR sensor\n");
-    carla_actor_blueprint_destroy(lidar_bp);
-    carla_blueprint_library_destroy(bp_lib);
-    carla_world_destroy(world);
-    carla_client_destroy(client);
+    fprintf(stderr, "Failed to spawn LiDAR sensor: %s\n", carla_error_to_string(result.error));
+    carla_blueprint_library_free(bp_lib);
+    carla_world_free(world);
+    carla_client_free(client);
     return 1;
   }
 
   printf("LiDAR sensor spawned successfully\n");
 
   // Convert actor to sensor
-  carla_sensor_t *lidar_sensor = carla_actor_as_sensor(result.actor);
+  carla_sensor_t *lidar_sensor = result.actor; // Sensors are actors
   if (!lidar_sensor) {
-    fprintf(stderr, "Failed to convert actor to sensor\n");
+    fprintf(stderr, "Failed to get sensor\n");
     carla_actor_destroy(result.actor);
-    carla_actor_blueprint_destroy(lidar_bp);
-    carla_blueprint_library_destroy(bp_lib);
-    carla_world_destroy(world);
-    carla_client_destroy(client);
+    carla_blueprint_library_free(bp_lib);
+    carla_world_free(world);
+    carla_client_free(client);
     return 1;
   }
 
   // Start listening for sensor data
   carla_error_t error = carla_sensor_listen(lidar_sensor, lidar_callback, NULL);
   if (error != CARLA_ERROR_NONE) {
-    fprintf(stderr, "Failed to start sensor listening\n");
+    fprintf(stderr, "Failed to start sensor listening: %s\n", carla_error_to_string(error));
     carla_actor_destroy(result.actor);
-    carla_actor_blueprint_destroy(lidar_bp);
-    carla_blueprint_library_destroy(bp_lib);
-    carla_world_destroy(world);
-    carla_client_destroy(client);
+    carla_blueprint_library_free(bp_lib);
+    carla_world_free(world);
+    carla_client_free(client);
     return 1;
   }
 
@@ -192,7 +267,7 @@ int main(int argc, char *argv[]) {
   int max_frames = 50;
   while (lidar_data_received < max_frames) {
     // Tick the world to advance simulation
-    carla_world_tick(world);
+    carla_world_tick(world, 1000); // 1 second timeout
 
     // Sleep a bit to avoid overwhelming the system
     usleep(100000); // 100ms
@@ -230,12 +305,12 @@ int main(int argc, char *argv[]) {
 
   // Clean up
   printf("\nCleaning up...\n");
-  carla_sensor_stop(lidar_sensor);
-  carla_actor_destroy(result.actor);
-  carla_actor_blueprint_destroy(lidar_bp);
-  carla_blueprint_library_destroy(bp_lib);
-  carla_world_destroy(world);
-  carla_client_destroy(client);
+  if (lidar_sensor) {
+    carla_actor_destroy(result.actor);
+  }
+  carla_blueprint_library_free(bp_lib);
+  carla_world_free(world);
+  carla_client_free(client);
 
   if (filtered_points) {
     free(filtered_points);
