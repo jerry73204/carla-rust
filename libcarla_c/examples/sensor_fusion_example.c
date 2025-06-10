@@ -1,5 +1,6 @@
 #include "carla_c/actor.h"
 #include "carla_c/client.h"
+#include "carla_c/map.h"
 #include "carla_c/sensor.h"
 #include "carla_c/world.h"
 #include <getopt.h>
