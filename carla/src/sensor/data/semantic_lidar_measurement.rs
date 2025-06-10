@@ -1,35 +1,51 @@
 use super::SemanticLidarDetection;
-use crate::sensor::SensorData;
-use carla_sys::carla_rust::sensor::data::FfiSemanticLidarMeasurement;
-use cxx::SharedPtr;
-use derivative::Derivative;
+use crate::sensor::{SensorData, SensorDataBase};
+use anyhow::{anyhow, Result};
+use carla_sys::*;
 use ndarray::ArrayView2;
-use static_assertions::assert_impl_all;
-use std::slice;
+use std::{ptr, slice};
 
-#[derive(Clone, Derivative)]
-#[derivative(Debug)]
-#[repr(transparent)]
+#[derive(Clone, Debug)]
 pub struct SemanticLidarMeasurement {
-    #[derivative(Debug = "ignore")]
-    inner: SharedPtr<FfiSemanticLidarMeasurement>,
+    inner: *mut carla_semantic_lidar_data_t,
 }
 
 impl SemanticLidarMeasurement {
+    /// Create a SemanticLidarMeasurement from a raw C pointer.
+    /// 
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_semantic_lidar_data_t) -> Result<Self> {
+        if ptr.is_null() {
+            return Err(anyhow!("Null semantic LiDAR data pointer"));
+        }
+        Ok(Self { inner: ptr })
+    }
+
     pub fn horizontal_angle(&self) -> f32 {
-        self.inner.GetHorizontalAngle()
+        unsafe { carla_semantic_lidar_data_get_horizontal_angle(self.inner) }
     }
 
     pub fn point_count(&self, channel: usize) -> Option<usize> {
-        (channel < self.channel_count()).then(|| self.inner.GetPointCount(channel) as usize)
+        if channel < self.channel_count() {
+            Some(unsafe { carla_semantic_lidar_data_get_point_count(self.inner, channel) })
+        } else {
+            None
+        }
     }
 
     pub fn channel_count(&self) -> usize {
-        self.inner.GetChannelCount() as usize
+        unsafe { carla_semantic_lidar_data_get_channel_count(self.inner) }
     }
 
     pub fn as_slice(&self) -> &[SemanticLidarDetection] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
+        let len = self.len();
+        let data = unsafe { carla_semantic_lidar_data_get_points(self.inner) };
+        if data.is_null() {
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(data as *const SemanticLidarDetection, len) }
+        }
     }
 
     pub fn as_array(&self) -> ArrayView2<'_, SemanticLidarDetection> {
@@ -41,7 +57,7 @@ impl SemanticLidarMeasurement {
     }
 
     pub fn len(&self) -> usize {
-        self.inner.size()
+        unsafe { carla_semantic_lidar_data_get_size(self.inner) }
     }
 
     #[must_use]
@@ -49,22 +65,38 @@ impl SemanticLidarMeasurement {
         self.len() == 0
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiSemanticLidarMeasurement>) -> Option<Self> {
-        if ptr.is_null() {
-            None
-        } else {
-            Some(Self { inner: ptr })
-        }
+}
+
+impl SensorDataBase for SemanticLidarMeasurement {
+    fn raw_ptr(&self) -> *mut carla_sensor_data_t {
+        self.inner as *mut carla_sensor_data_t
     }
 }
 
 impl TryFrom<SensorData> for SemanticLidarMeasurement {
     type Error = SensorData;
 
-    fn try_from(value: SensorData) -> Result<Self, Self::Error> {
-        let ptr = value.inner.to_semantic_lidar_measurement();
-        Self::from_cxx(ptr).ok_or(value)
+    fn try_from(value: SensorData) -> std::result::Result<Self, Self::Error> {
+        // Check if the sensor data is actually semantic LiDAR data
+        let data_type = value.data_type();
+        if data_type == carla_sensor_data_type_t_CARLA_SENSOR_DATA_SEMANTIC_LIDAR {
+            let semantic_lidar_ptr = unsafe { carla_sensor_data_as_semantic_lidar(value.inner) };
+            if !semantic_lidar_ptr.is_null() {
+                return Ok(SemanticLidarMeasurement { inner: semantic_lidar_ptr });
+            }
+        }
+        Err(value)
     }
 }
 
-assert_impl_all!(SemanticLidarMeasurement: Send, Sync);
+impl Drop for SemanticLidarMeasurement {
+    fn drop(&mut self) {
+        // Note: Semantic LiDAR data is managed by the sensor data lifecycle
+        // We don't need to free it separately
+        self.inner = ptr::null_mut();
+    }
+}
+
+// SAFETY: SemanticLidarMeasurement wraps a thread-safe C API
+unsafe impl Send for SemanticLidarMeasurement {}
+unsafe impl Sync for SemanticLidarMeasurement {}

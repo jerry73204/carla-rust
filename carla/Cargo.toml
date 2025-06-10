@@ -1,8 +1,8 @@
 [package]
 name = "carla"
-version = "0.11.1"
+version = "0.12.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
-description = "Rust client library for Carla simulator"
+description = "Rust client library for CARLA simulator 0.10.0"
 edition = "2021"
 license = "MIT"
 readme = "README.md"
@@ -11,10 +11,9 @@ repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla/"
 
 [dependencies]
-autocxx = "0.26.0"
-cxx = "1.0.119"
+# Removed autocxx and cxx - now using bindgen-based carla-sys with direct C FFI
 nalgebra = "0.32.4"
-carla-sys = { version = "0.11.1", path = "../carla-sys" }
+carla-sys = { version = "0.12.0", path = "../carla-sys" }
 ndarray = "0.15.6"
 once_cell = "1.19.0"
 anyhow = "1.0.80"
@@ -23,11 +22,8 @@ derivative = "2.2.0"
 static_assertions = "1.1.0"
 
 [features]
-docs-only = ["carla-sys/docs-only"]
-build-lib = ["carla-sys/build-lib"]
-save-lib = ["carla-sys/save-lib"]
-save-bindgen = ["carla-sys/save-bindgen"]
+# docs-only = ["carla-sys/docs-only"]
 
-[package.metadata.docs.rs]
-no-default-features = true
-features = ["docs-only"]
+# [package.metadata.docs.rs]
+# no-default-features = true
+# features = ["docs-only"]

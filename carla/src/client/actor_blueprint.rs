@@ -17,6 +17,24 @@ pub struct ActorBlueprint {
 }
 
 impl ActorBlueprint {
+    /// Create an ActorBlueprint from a raw C pointer.
+    /// 
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_sys::carla_actor_blueprint_t) -> anyhow::Result<Self> {
+        if ptr.is_null() {
+            return Err(anyhow::anyhow!("Null actor blueprint pointer"));
+        }
+        // TODO: Implement proper ActorBlueprint wrapper for C FFI
+        todo!("ActorBlueprint::from_raw_ptr not yet implemented for C FFI")
+    }
+    
+    /// Get the raw C pointer to the blueprint.
+    pub(crate) fn raw_ptr(&self) -> *mut carla_sys::carla_actor_blueprint_t {
+        // TODO: Implement proper raw pointer access
+        std::ptr::null_mut()
+    }
+
     pub fn id(&self) -> String {
         self.inner.GetId().to_string()
     }

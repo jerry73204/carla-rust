@@ -1,19 +1,15 @@
 use crate::client::{Sensor, Vehicle};
-use carla_sys::carla_rust::client::FfiActor;
-use cxx::SharedPtr;
-use derivative::Derivative;
-use static_assertions::assert_impl_all;
+use anyhow::{anyhow, Result};
+use carla_sys::*;
+use std::ptr;
 
 use super::{ActorBase, ActorKind, TrafficLight, TrafficSign};
 
 /// A base actor that represents a movable object in the simulation,
 /// corresponding to `carla.Actor` in Python API.
-#[derive(Clone, Derivative)]
-#[derivative(Debug)]
-#[repr(transparent)]
+#[derive(Clone, Debug)]
 pub struct Actor {
-    #[derivative(Debug = "ignore")]
-    pub(crate) inner: SharedPtr<FfiActor>,
+    pub(crate) inner: *mut carla_actor_t,
 }
 
 impl Actor {
@@ -40,19 +36,36 @@ impl Actor {
         me.into()
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiActor>) -> Option<Self> {
+    /// Create an Actor from a raw C pointer.
+    /// 
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
         if ptr.is_null() {
-            None
-        } else {
-            Some(Self { inner: ptr })
+            return Err(anyhow!("Null actor pointer"));
         }
+        Ok(Self { inner: ptr })
     }
 }
 
 impl ActorBase for Actor {
-    fn cxx_actor(&self) -> SharedPtr<FfiActor> {
-        self.inner.clone()
+    fn raw_ptr(&self) -> *mut carla_actor_t {
+        self.inner
     }
 }
 
-assert_impl_all!(Actor: Send, Sync);
+impl Drop for Actor {
+    fn drop(&mut self) {
+        if !self.inner.is_null() {
+            unsafe {
+                carla_actor_destroy(self.inner);
+            }
+            self.inner = ptr::null_mut();
+        }
+    }
+}
+
+// SAFETY: Actor wraps a thread-safe C API
+unsafe impl Send for Actor {}
+unsafe impl Sync for Actor {}
+

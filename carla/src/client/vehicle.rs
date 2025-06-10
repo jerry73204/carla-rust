@@ -1,46 +1,58 @@
 use super::{Actor, ActorBase};
-use crate::rpc::{
-    AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
-    VehicleDoor, VehicleLightState, VehiclePhysicsControl, VehicleWheelLocation,
+use crate::{
+    rpc::{
+        AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
+        VehicleDoor, VehicleLightState, VehiclePhysicsControl, VehicleWheelLocation,
+    },
+    traffic_manager::constants::Networking::TM_DEFAULT_PORT,
+    utils::check_carla_error,
 };
-use autocxx::prelude::*;
-use carla_sys::{
-    carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT,
-    carla_rust::client::{FfiActor, FfiVehicle},
-};
-use cxx::SharedPtr;
-use derivative::Derivative;
-use static_assertions::assert_impl_all;
+use anyhow::{anyhow, Result};
+use carla_sys::*;
+use std::ptr;
 
 /// Represents a vehicle in the simulation, corresponding to
 /// `carla.Vehicle` in Python API.
-#[derive(Clone, Derivative)]
-#[derivative(Debug)]
-#[repr(transparent)]
+#[derive(Clone, Debug)]
 pub struct Vehicle {
-    #[derivative(Debug = "ignore")]
-    inner: SharedPtr<FfiVehicle>,
+    inner: *mut carla_vehicle_t, // carla_vehicle_t is typedef for carla_actor_t
 }
 
 impl Vehicle {
-    pub fn set_autopilot(&self, enabled: bool) {
+    /// Create a Vehicle from a raw C pointer.
+    /// 
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_vehicle_t) -> Result<Self> {
+        if ptr.is_null() {
+            return Err(anyhow!("Null vehicle pointer"));
+        }
+        Ok(Self { inner: ptr })
+    }
+
+    pub fn set_autopilot(&self, enabled: bool) -> Result<()> {
         self.set_autopilot_opt(enabled, TM_DEFAULT_PORT)
     }
 
-    pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) {
-        self.inner.SetAutopilot(enabled, tm_port);
+    pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) -> Result<()> {
+        let error = unsafe { carla_vehicle_set_autopilot(self.inner, enabled, tm_port) };
+        check_carla_error(error)
     }
 
-    pub fn show_debug_telemetry(&self, enabled: bool) {
-        self.inner.ShowDebugTelemetry(enabled);
+    pub fn show_debug_telemetry(&self, enabled: bool) -> Result<()> {
+        let error = unsafe { carla_vehicle_show_debug_telemetry(self.inner, enabled) };
+        check_carla_error(error)
     }
 
-    pub fn apply_control(&self, control: &VehicleControl) {
-        self.inner.ApplyControl(control);
+    pub fn apply_control(&self, control: &VehicleControl) -> Result<()> {
+        let c_control = control.to_c_control();
+        let error = unsafe { carla_vehicle_apply_control(self.inner, &c_control) };
+        check_carla_error(error)
     }
 
     pub fn control(&self) -> VehicleControl {
-        self.inner.GetControl()
+        let c_control = unsafe { carla_vehicle_get_control(self.inner) };
+        VehicleControl::from_c_control(c_control)
     }
 
     pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
@@ -52,56 +64,74 @@ impl Vehicle {
         VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
     }
 
-    pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) {
-        self.inner.ApplyAckermannControl(control);
+    pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) -> Result<()> {
+        let c_control = control.to_c_control();
+        let error = unsafe { carla_vehicle_apply_ackermann_control(self.inner, &c_control) };
+        check_carla_error(error)
     }
 
-    pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) {
-        self.inner.ApplyAckermannControllerSettings(settings)
+    pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) -> Result<()> {
+        let c_settings = settings.to_c_settings();
+        let error = unsafe { carla_vehicle_apply_ackermann_controller_settings(self.inner, &c_settings) };
+        check_carla_error(error)
     }
 
     pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
-        self.inner.GetAckermannControllerSettings()
+        let c_settings = unsafe { carla_vehicle_get_ackermann_controller_settings(self.inner) };
+        AckermannControllerSettings::from_c_settings(c_settings)
     }
 
-    pub fn open_door(&self, door: VehicleDoor) {
-        self.inner.OpenDoor(door);
+    pub fn open_door(&self, door: VehicleDoor) -> Result<()> {
+        let c_door = door as carla_vehicle_door_t;
+        let error = unsafe { carla_vehicle_open_door(self.inner, c_door) };
+        check_carla_error(error)
     }
 
-    pub fn close_door(&self, door: VehicleDoor) {
-        self.inner.CloseDoor(door);
+    pub fn close_door(&self, door: VehicleDoor) -> Result<()> {
+        let c_door = door as carla_vehicle_door_t;
+        let error = unsafe { carla_vehicle_close_door(self.inner, c_door) };
+        check_carla_error(error)
     }
 
-    pub fn set_light_state(&self, light_state: &VehicleLightState) {
-        self.inner.SetLightState(light_state);
+    pub fn set_light_state(&self, light_state: &VehicleLightState) -> Result<()> {
+        let c_light_state = light_state.to_c_light_state();
+        let error = unsafe { carla_vehicle_set_light_state(self.inner, c_light_state) };
+        check_carla_error(error)
     }
 
-    pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
-        self.inner.SetWheelSteerDirection(wheel_location, degrees);
+    pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) -> Result<()> {
+        let c_wheel_location = wheel_location as carla_vehicle_wheel_location_t;
+        let error = unsafe { carla_vehicle_set_wheel_steer_direction(self.inner, c_wheel_location, degrees) };
+        check_carla_error(error)
     }
 
     pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
-        self.inner.GetWheelSteerAngle(wheel_location)
+        let c_wheel_location = wheel_location as carla_vehicle_wheel_location_t;
+        unsafe { carla_vehicle_get_wheel_steer_angle(self.inner, c_wheel_location) }
     }
 
     pub fn light_state(&self) -> VehicleLightState {
-        self.inner.GetLightState()
+        let c_light_state = unsafe { carla_vehicle_get_light_state(self.inner) };
+        VehicleLightState::from_c_light_state(c_light_state)
     }
 
     pub fn traffic_light_state(&self) -> TrafficLightState {
-        self.inner.GetTrafficLightState()
+        let c_traffic_light_state = unsafe { carla_vehicle_get_traffic_light_state(self.inner) };
+        TrafficLightState::from_c_state(c_traffic_light_state)
     }
 
     pub fn is_at_traffic_light(&self) -> bool {
-        self.inner.IsAtTrafficLight()
+        unsafe { carla_vehicle_is_at_traffic_light(self.inner) }
     }
 
-    pub fn enable_car_sim(&self, simfile_path: &str) {
-        self.inner.EnableCarSim(simfile_path)
+    pub fn enable_car_sim(&self, simfile_path: &str) -> Result<()> {
+        // Note: CarSim integration needs to be implemented in C wrapper
+        Err(anyhow!("CarSim integration not yet implemented in C wrapper"))
     }
 
-    pub fn use_car_sim_road(&self, enabled: bool) {
-        self.inner.UseCarSimRoad(enabled);
+    pub fn use_car_sim_road(&self, enabled: bool) -> Result<()> {
+        // Note: CarSim road usage needs to be implemented in C wrapper
+        Err(anyhow!("CarSim road usage not yet implemented in C wrapper"))
     }
 
     pub fn enable_chrono_physics(
@@ -112,44 +142,59 @@ impl Vehicle {
         powertrain_json: &str,
         tire_json: &str,
         base_json_path: &str,
-    ) {
-        self.inner.EnableChronoPhysics(
-            max_substeps,
-            max_substep_delta_time,
-            vehicle_json,
-            powertrain_json,
-            tire_json,
-            base_json_path,
-        );
+    ) -> Result<()> {
+        // Note: Chrono physics integration needs to be implemented in C wrapper
+        Err(anyhow!("Chrono physics integration not yet implemented in C wrapper"))
     }
 
-    pub fn into_actor(self) -> Actor {
-        let ptr = self.inner.to_actor();
-        Actor::from_cxx(ptr).unwrap()
+    pub fn into_actor(self) -> Result<Actor> {
+        Actor::from_raw_ptr(self.inner)
     }
 
-    pub(crate) fn from_cxx(ptr: SharedPtr<FfiVehicle>) -> Option<Self> {
-        if ptr.is_null() {
+    pub fn speed_limit(&self) -> f32 {
+        unsafe { carla_vehicle_get_speed_limit(self.inner) }
+    }
+    
+    pub fn get_traffic_light(&self) -> Option<Actor> {
+        let traffic_light_ptr = unsafe { carla_vehicle_get_traffic_light(self.inner) };
+        if traffic_light_ptr.is_null() {
             None
         } else {
-            Some(Self { inner: ptr })
+            Actor::from_raw_ptr(traffic_light_ptr).ok()
         }
     }
 }
 
 impl ActorBase for Vehicle {
-    fn cxx_actor(&self) -> SharedPtr<FfiActor> {
-        self.inner.to_actor()
+    fn raw_ptr(&self) -> *mut carla_actor_t {
+        self.inner
     }
 }
 
 impl TryFrom<Actor> for Vehicle {
     type Error = Actor;
 
-    fn try_from(value: Actor) -> Result<Self, Self::Error> {
-        let ptr = value.inner.to_vehicle();
-        Self::from_cxx(ptr).ok_or(value)
+    fn try_from(value: Actor) -> std::result::Result<Self, Self::Error> {
+        // Check if the actor is actually a vehicle
+        let is_vehicle = unsafe { carla_actor_is_vehicle(value.inner) };
+        if is_vehicle {
+            let vehicle_ptr = unsafe { carla_actor_as_vehicle(value.inner) };
+            if !vehicle_ptr.is_null() {
+                return Ok(Vehicle { inner: vehicle_ptr });
+            }
+        }
+        Err(value)
     }
 }
 
-assert_impl_all!(Vehicle: Send, Sync);
+impl Drop for Vehicle {
+    fn drop(&mut self) {
+        // Note: Vehicle uses the same pointer as Actor, so we don't need to free it separately
+        // The Actor destructor will handle the cleanup
+        self.inner = ptr::null_mut();
+    }
+}
+
+// SAFETY: Vehicle wraps a thread-safe C API
+unsafe impl Send for Vehicle {}
+unsafe impl Sync for Vehicle {}

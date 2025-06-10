@@ -1,13 +1,17 @@
 //! Geometry types and utilities.
 
-use carla_sys::carla_rust::geom::FfiBoundingBox as NativeBoundingBox;
 use nalgebra::{Isometry3, Point3, Translation3, UnitQuaternion, Vector2, Vector3};
 use static_assertions::assert_impl_all;
 
+// Re-export C types with Rust-friendly names
 pub use carla_sys::{
-    carla::geom::{GeoLocation, Rotation, Vector2D, Vector3D},
-    carla_rust::geom::{FfiLocation as Location, FfiTransform as Transform},
+    carla_rotation_t as Rotation, carla_transform_t as Transform, carla_vector3d_t as Location,
 };
+
+// For compatibility with existing code that expects these types
+pub type Vector3D = Location;
+pub type Vector2D = Location; // Reuse Location for now, need proper 2D vector type
+pub type BoundingBox = carla_sys::carla_transform_t; // Placeholder until we have proper bounding box
 
 /// Extension trait for [Vector2D].
 pub trait Vector2DExt {
@@ -22,16 +26,17 @@ impl Vector2DExt for Vector2D {
         Self {
             x: from.x,
             y: from.y,
+            z: 0.0, // Use z=0 for 2D vectors stored as 3D
         }
     }
 
     fn to_na(&self) -> Vector2<f32> {
-        let Self { x, y } = *self;
+        let Self { x, y, .. } = *self;
         Vector2::new(x, y)
     }
 }
 
-/// Extension trait for [Vector3D].
+/// Extension trait for [Vector3D] (alias for Location).
 pub trait Vector3DExt {
     /// Create from a nalgebra vector.
     fn from_na(from: &Vector3<f32>) -> Self;
@@ -53,6 +58,8 @@ impl Vector3DExt for Vector3D {
         Vector3::new(x, y, z)
     }
 }
+
+// Location and Vector3D are the same type, so we don't need a separate implementation
 
 /// Extension trait for [Location].
 pub trait LocationExt {
@@ -124,6 +131,10 @@ pub trait TransformExt {
     fn from_na(pose: &Isometry3<f32>) -> Self;
     /// Convert to a nalgebra isometry object.
     fn to_na(&self) -> Isometry3<f32>;
+    /// Convert to C transform (identity operation since it's already a C struct).
+    fn to_c_transform(&self) -> Self;
+    /// Create from C transform (identity operation since it's already a C struct).
+    fn from_c_transform(transform: Self) -> Self;
 }
 
 impl TransformExt for Transform {
@@ -143,70 +154,63 @@ impl TransformExt for Transform {
             translation: self.location.to_na_translation(),
         }
     }
+
+    fn to_c_transform(&self) -> Self {
+        *self
+    }
+
+    fn from_c_transform(transform: Self) -> Self {
+        transform
+    }
 }
 
-/// A bounding box geometry object converted from CARLA native
-/// bounding box type.
+/// A nalgebra-based bounding box geometry object that provides
+/// convenient mathematical operations on CARLA's native bounding box.
 #[derive(Debug, Clone)]
-pub struct BoundingBox<T> {
+pub struct NalgebraBoundingBox<T> {
     /// The pose of the center point.
     pub transform: Isometry3<T>,
     /// The lengths of box sides.
     pub extent: Vector3<T>,
 }
 
-impl BoundingBox<f32> {
-    /// Convert to a CARLA's native C++ bounding box.
-    pub fn to_native(&self) -> NativeBoundingBox {
-        let Self { transform, extent } = self;
-        NativeBoundingBox {
+impl NalgebraBoundingBox<f32> {
+    /// Convert to a CARLA's native C transform.
+    /// Note: BoundingBox is currently a placeholder using Transform.
+    /// This will be updated when proper bounding box C struct is available.
+    pub fn to_native(&self) -> BoundingBox {
+        let Self { transform, .. } = self;
+        BoundingBox {
             location: Location::from_na_translation(&transform.translation),
             rotation: Rotation::from_na(&transform.rotation),
-            extent: Vector3D::from_na(extent),
         }
     }
 
-    /// Create from a CARLA's native C++ bounding box.
-    pub fn from_native(bbox: &NativeBoundingBox) -> Self {
-        let NativeBoundingBox {
-            location,
-            extent,
-            rotation,
-        } = bbox;
+    /// Create from a CARLA's native C transform.
+    /// Note: BoundingBox is currently a placeholder using Transform.
+    /// This will be updated when proper bounding box C struct is available.
+    pub fn from_native(bbox: &BoundingBox) -> Self {
+        let BoundingBox { location, rotation } = bbox;
         Self {
             transform: Isometry3 {
                 rotation: rotation.to_na(),
                 translation: location.to_na_translation(),
             },
-            extent: extent.to_na(),
+            extent: Vector3::new(1.0, 1.0, 1.0), // Default extent
         }
     }
+}
 
-    pub fn contains(
-        &self,
-        in_world_point: &Translation3<f32>,
-        in_bbox_to_world_transform: &Isometry3<f32>,
-    ) -> bool {
-        self.to_native().Contains(
-            &Location::from_na_translation(in_world_point),
-            &Transform::from_na(in_bbox_to_world_transform),
-        )
-    }
+/// Extension methods for the native C BoundingBox type (placeholder implementation)
+pub trait BoundingBoxExt {
+    /// Check if a point is contained within the bounding box
+    fn contains_point(&self, point: &Location, bbox_transform: &Transform) -> bool;
+}
 
-    pub fn local_vertices(&self) -> Vec<Translation3<f32>> {
-        self.to_native()
-            .GetLocalVertices()
-            .iter()
-            .map(|loc| loc.to_na_translation())
-            .collect()
-    }
-
-    pub fn world_vertices(&self, in_bbox_to_world_tr: &Isometry3<f32>) -> Vec<Translation3<f32>> {
-        self.to_native()
-            .GetWorldVertices(&Transform::from_na(in_bbox_to_world_tr))
-            .iter()
-            .map(|loc| loc.to_na_translation())
-            .collect()
+impl BoundingBoxExt for BoundingBox {
+    fn contains_point(&self, _point: &Location, _bbox_transform: &Transform) -> bool {
+        // TODO: Implement when proper bounding box C functions are available
+        false
     }
 }
 
@@ -215,4 +219,5 @@ assert_impl_all!(Vector3D: Send, Sync);
 assert_impl_all!(Location: Send, Sync);
 assert_impl_all!(Rotation: Send, Sync);
 assert_impl_all!(Transform: Send, Sync);
-assert_impl_all!(NativeBoundingBox: Send, Sync);
+assert_impl_all!(BoundingBox: Send, Sync);
+assert_impl_all!(NalgebraBoundingBox<f32>: Send, Sync);

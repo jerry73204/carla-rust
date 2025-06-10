@@ -1,104 +1,77 @@
 //! Internal utilities.
 
-use crate::geom::Location;
-use carla_sys::{
-    carla::{
-        geom::Vector2D,
-        rpc::{GearPhysicsControl, WheelPhysicsControl},
-    },
-    carla_rust::utils::{
-        new_ffi_location_vector, new_gear_physics_control_vector, new_uint32_t_vector,
-        new_uint64_t_vector, new_uint8_t_vector, new_vector_2d_vector,
-        new_wheel_physics_control_vector,
-    },
+use crate::geom::{Location, Vector2D};
+use anyhow::{anyhow, Result};
+use std::{
+    ffi::{CStr, CString},
+    os::raw::c_char,
 };
-use cxx::{kind::Trivial, vector::VectorElement, CxxVector, ExternType, UniquePtr};
 
-pub trait NewCxxVectorElement
-where
-    Self: VectorElement + ExternType<Kind = Trivial>,
-{
-    fn new_vector() -> UniquePtr<CxxVector<Self>>;
-}
-
-impl NewCxxVectorElement for u8 {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_uint8_t_vector()
+/// Error handling utilities for C FFI calls.
+pub fn check_carla_error(error: carla_sys::carla_error_t) -> Result<()> {
+    match error {
+        carla_sys::carla_error_t_CARLA_ERROR_NONE => Ok(()),
+        carla_sys::carla_error_t_CARLA_ERROR_CONNECTION_FAILED => Err(anyhow!("Connection failed")),
+        carla_sys::carla_error_t_CARLA_ERROR_TIMEOUT => Err(anyhow!("Operation timed out")),
+        carla_sys::carla_error_t_CARLA_ERROR_INVALID_ARGUMENT => Err(anyhow!("Invalid argument")),
+        carla_sys::carla_error_t_CARLA_ERROR_NOT_FOUND => Err(anyhow!("Not found")),
+        carla_sys::carla_error_t_CARLA_ERROR_NOT_IMPLEMENTED => Err(anyhow!("Not implemented")),
+        carla_sys::carla_error_t_CARLA_ERROR_UNKNOWN => Err(anyhow!("Unknown error")),
+        _ => Err(anyhow!("Unknown CARLA error: {}", error)),
     }
 }
 
-impl NewCxxVectorElement for u32 {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_uint32_t_vector()
+/// Safe conversion from Rust string to C string.
+pub fn rust_string_to_c(s: &str) -> Result<CString> {
+    CString::new(s).map_err(|e| anyhow!("String contains null byte: {}", e))
+}
+
+/// Safe conversion from C string to Rust string.
+///
+/// # Safety
+/// The pointer must be valid and point to a null-terminated C string.
+pub unsafe fn c_string_to_rust(ptr: *const c_char) -> Result<String> {
+    if ptr.is_null() {
+        return Err(anyhow!("Null pointer passed to c_string_to_rust"));
     }
+    Ok(CStr::from_ptr(ptr).to_string_lossy().into_owned())
 }
 
-impl NewCxxVectorElement for u64 {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_uint64_t_vector()
-    }
+/// Helper trait for converting collections to C arrays and back.
+///
+/// Note: These implementations use standard Rust allocation and are
+/// intended for temporary conversions. For production use, implement
+/// proper CARLA allocator integration.
+pub trait ArrayConversionExt<T> {
+    /// Create from a C array.
+    ///
+    /// # Safety
+    /// The pointer must be valid and point to `len` valid elements of type T.
+    unsafe fn from_c_array(ptr: *const T, len: usize) -> Self;
 }
 
-impl NewCxxVectorElement for Vector2D {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_vector_2d_vector()
-    }
-}
-
-impl NewCxxVectorElement for GearPhysicsControl {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_gear_physics_control_vector()
-    }
-}
-
-impl NewCxxVectorElement for WheelPhysicsControl {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_wheel_physics_control_vector()
-    }
-}
-
-impl NewCxxVectorElement for Location {
-    fn new_vector() -> UniquePtr<CxxVector<Self>> {
-        new_ffi_location_vector()
-    }
-}
-
-// impl NewCxxVectorElement for SharedPtr<FfiActor> {
-//     fn new_vector() -> UniquePtr<CxxVector<Self>> {
-//         new_ffi_location_vector()
-//     }
-// }
-
-pub trait CxxVectorExt<T>
-where
-    T: NewCxxVectorElement,
-{
-    fn new_typed() -> UniquePtr<CxxVector<T>> {
-        T::new_vector()
-    }
-}
-
-impl<T> CxxVectorExt<T> for CxxVector<T> where T: NewCxxVectorElement {}
-
-pub trait IteratorExt
-where
-    Self: Iterator,
-{
-    fn collect_cxx_vector(self) -> UniquePtr<CxxVector<Self::Item>>
-    where
-        Self::Item: NewCxxVectorElement;
-}
-
-impl<I> IteratorExt for I
-where
-    I: Iterator,
-{
-    fn collect_cxx_vector(self) -> UniquePtr<CxxVector<Self::Item>>
-    where
-        Self::Item: NewCxxVectorElement,
-    {
-        let mut vec = Self::Item::new_vector();
-        self.for_each(|item| vec.pin_mut().push(item));
+impl ArrayConversionExt<u8> for Vec<u8> {
+    unsafe fn from_c_array(ptr: *const u8, len: usize) -> Self {
+        if ptr.is_null() || len == 0 {
+            return Vec::new();
+        }
+        let mut vec = Vec::with_capacity(len);
+        std::ptr::copy_nonoverlapping(ptr, vec.as_mut_ptr(), len);
+        vec.set_len(len);
         vec
     }
 }
+
+impl ArrayConversionExt<Location> for Vec<Location> {
+    unsafe fn from_c_array(ptr: *const Location, len: usize) -> Self {
+        if ptr.is_null() || len == 0 {
+            return Vec::new();
+        }
+        let mut vec = Vec::with_capacity(len);
+        std::ptr::copy_nonoverlapping(ptr, vec.as_mut_ptr(), len);
+        vec.set_len(len);
+        vec
+    }
+}
+
+// Note: Vector2D is an alias for Location, so we don't need a separate implementation

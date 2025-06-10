@@ -25,6 +25,12 @@ pub use lidar_measurement::*;
 mod semantic_lidar_measurement;
 pub use semantic_lidar_measurement::*;
 
+mod dvs_event;
+pub use dvs_event::*;
+
+mod optical_flow;
+pub use optical_flow::*;
+
 pub use carla_sys::{
     carla::sensor::data::RadarDetection,
     carla_rust::sensor::data::{

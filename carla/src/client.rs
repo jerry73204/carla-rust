@@ -1,5 +1,6 @@
 //! Client library for the CARLA simulator.
 
+mod ackermann_control;
 mod actor;
 mod actor_attribute;
 mod actor_attribute_value_list;
@@ -32,6 +33,7 @@ mod waypoint_list;
 mod world;
 mod world_snapshot;
 
+pub use ackermann_control::*;
 pub use actor::*;
 pub use actor_attribute::*;
 pub use actor_attribute_value_list::*;

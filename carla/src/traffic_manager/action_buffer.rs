@@ -1,21 +1,27 @@
 use super::Action;
-use crate::client::Waypoint;
-use carla_sys::carla_rust::traffic_manager::{FfiAction, FfiActionBuffer};
-use cxx::UniquePtr;
-use derivative::Derivative;
-use std::slice;
+use anyhow::{anyhow, Result};
+use carla_sys::*;
+use std::{ptr, slice};
 
-#[derive(Derivative)]
-#[derivative(Debug)]
-#[repr(transparent)]
+#[derive(Clone, Debug)]
 pub struct ActionBuffer {
-    #[derivative(Debug = "ignore")]
-    inner: UniquePtr<FfiActionBuffer>,
+    inner: *mut carla_action_buffer_t,
 }
 
 impl ActionBuffer {
+    /// Create an ActionBuffer from a raw C pointer.
+    /// 
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_action_buffer_t) -> Result<Self> {
+        if ptr.is_null() {
+            return Err(anyhow!("Null action buffer pointer"));
+        }
+        Ok(Self { inner: ptr })
+    }
+
     pub fn len(&self) -> usize {
-        self.inner.size()
+        unsafe { carla_action_buffer_size(self.inner) }
     }
 
     #[must_use]
@@ -24,29 +30,34 @@ impl ActionBuffer {
     }
 
     pub fn get(&self, index: usize) -> Option<Action> {
-        let ffi_action = self.as_slice().get(index)?;
-        let option = ffi_action.road_option();
-        let waypoint = Waypoint::from_cxx(ffi_action.waypoint()).unwrap();
-        Some((option, waypoint))
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = Action> + '_ {
-        self.as_slice().iter().map(|ffi_action| {
-            let option = ffi_action.road_option();
-            let waypoint = Waypoint::from_cxx(ffi_action.waypoint()).unwrap();
-            (option, waypoint)
-        })
-    }
-
-    pub(crate) fn as_slice(&self) -> &[FfiAction] {
-        let ptr = self.inner.as_ptr();
-        unsafe { slice::from_raw_parts(ptr, self.len()) }
-    }
-
-    pub(crate) fn from_cxx(ptr: UniquePtr<FfiActionBuffer>) -> Option<Self> {
-        if ptr.is_null() {
+        if index >= self.len() {
             return None;
         }
-        Some(Self { inner: ptr })
+        
+        let action_ptr = unsafe { carla_action_buffer_at(self.inner, index) };
+        if action_ptr.is_null() {
+            return None;
+        }
+        
+        // TODO: Implement proper Action conversion once Waypoint is updated to C FFI
+        // For now, return None until Waypoint C FFI is implemented
+        None
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = Option<Action>> + '_ {
+        (0..self.len()).map(move |i| self.get(i))
+    }
+
+}
+
+impl Drop for ActionBuffer {
+    fn drop(&mut self) {
+        // Note: Action buffer data is managed by the traffic manager lifecycle
+        // We don't need to free it separately
+        self.inner = ptr::null_mut();
     }
 }
+
+// SAFETY: ActionBuffer wraps a thread-safe C API
+unsafe impl Send for ActionBuffer {}
+unsafe impl Sync for ActionBuffer {}

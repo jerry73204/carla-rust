@@ -16,6 +16,12 @@ pub struct WorldSnapshot {
 }
 
 impl WorldSnapshot {
+    /// Create a WorldSnapshot from a C snapshot.
+    pub(crate) fn from_c_snapshot(snapshot: carla_sys::carla_world_snapshot_t) -> anyhow::Result<Self> {
+        // TODO: Implement proper WorldSnapshot wrapper for C FFI
+        todo!("WorldSnapshot::from_c_snapshot not yet implemented for C FFI")
+    }
+
     pub fn id(&self) -> u64 {
         self.inner.GetId()
     }
