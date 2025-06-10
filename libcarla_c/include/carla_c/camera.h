@@ -194,13 +194,13 @@ carla_image_analyze_optical_flow(const carla_sensor_data_t *data,
 // Get optical flow magnitude image
 carla_error_t
 carla_image_optical_flow_magnitude(const carla_sensor_data_t *data,
-                                   uint8_t **magnitude_data,
+                                   float **magnitude_data,
                                    size_t *magnitude_size);
 
 // Get optical flow direction image
 carla_error_t
 carla_image_optical_flow_direction(const carla_sensor_data_t *data,
-                                   uint8_t **direction_data,
+                                   float **direction_data,
                                    size_t *direction_size);
 
 // Detect motion regions
@@ -240,6 +240,12 @@ carla_error_t carla_dvs_filter_events_by_polarity(
 
 // Free DVS analysis result
 void carla_dvs_analysis_destroy(carla_dvs_analysis_t *analysis);
+
+// Free filtered DVS events
+void carla_dvs_free_events(carla_dvs_event_t *events);
+
+// Free optical flow data arrays
+void carla_optical_flow_free_data(float *data);
 
 // Camera calibration and intrinsics functions
 

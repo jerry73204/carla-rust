@@ -95,6 +95,12 @@ const carla_dvs_event_t* carla_dvs_event_array_data_get_events(const carla_senso
 uint32_t carla_dvs_event_array_data_get_width(const carla_sensor_data_t* data);
 uint32_t carla_dvs_event_array_data_get_height(const carla_sensor_data_t* data);
 
+// Optical flow image data access
+carla_optical_flow_data_t carla_sensor_data_get_optical_flow(const carla_sensor_data_t* data);
+uint32_t carla_optical_flow_data_get_width(const carla_sensor_data_t* data);
+uint32_t carla_optical_flow_data_get_height(const carla_sensor_data_t* data);
+const carla_optical_flow_pixel_t* carla_optical_flow_data_get_pixels(const carla_sensor_data_t* data);
+
 // Utility functions to check if an actor is a sensor
 bool carla_actor_is_sensor(const carla_actor_t* actor);
 

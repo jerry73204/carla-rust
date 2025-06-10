@@ -25,6 +25,8 @@ static const ImageType *get_image_data(const carla_sensor_data_t *data) {
 
 // Basic camera data access functions
 
+extern "C" {
+
 uint32_t carla_image_get_width(const carla_sensor_data_t *data) {
   auto image = get_image_data<Image>(data);
   return image ? image->GetWidth() : 0;
@@ -122,7 +124,8 @@ carla_image_get_optical_flow_at(const carla_sensor_data_t *data, uint32_t x,
                                 uint32_t y) {
   carla_optical_flow_pixel_t result = {0.0f, 0.0f};
 
-  if (!data || data->type != CARLA_SENSOR_DATA_IMAGE) {
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (!data || data_type != CARLA_SENSOR_DATA_IMAGE) {
     return result;
   }
 
@@ -543,7 +546,8 @@ carla_error_t carla_dvs_analyze_events(const carla_sensor_data_t *data,
   if (!data || !analysis)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
-  if (data->type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
   auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
@@ -575,6 +579,151 @@ carla_error_t carla_dvs_analyze_events(const carla_sensor_data_t *data,
   return CARLA_ERROR_NONE;
 }
 
+carla_error_t carla_dvs_events_to_image(const carla_sensor_data_t *data,
+                                        float time_window,
+                                        uint8_t **output_data,
+                                        size_t *output_size) {
+  if (!data || !output_data || !output_size || time_window <= 0.0f)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  if (!dvs_data)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  const uint32_t width = dvs_data->GetWidth();
+  const uint32_t height = dvs_data->GetHeight();
+  const size_t image_size = width * height * 3; // RGB format
+
+  // Allocate output image data
+  uint8_t *image_data = new uint8_t[image_size];
+  std::memset(image_data, 0, image_size); // Initialize to black
+
+  // Convert events to image representation
+  for (const auto &event : *dvs_data) {
+    if (event.x < width && event.y < height) {
+      const size_t pixel_index = (event.y * width + event.x) * 3;
+      if (event.pol) {
+        // Positive event - white pixel
+        image_data[pixel_index] = 255;     // R
+        image_data[pixel_index + 1] = 255; // G
+        image_data[pixel_index + 2] = 255; // B
+      } else {
+        // Negative event - red pixel
+        image_data[pixel_index] = 255;     // R
+        image_data[pixel_index + 1] = 0;   // G
+        image_data[pixel_index + 2] = 0;   // B
+      }
+    }
+  }
+
+  *output_data = image_data;
+  *output_size = image_size;
+  return CARLA_ERROR_NONE;
+}
+
+carla_error_t carla_dvs_filter_events_by_time(
+    const carla_sensor_data_t *data, int64_t min_time, int64_t max_time,
+    carla_dvs_event_t **filtered_events, size_t *filtered_count) {
+  if (!data || !filtered_events || !filtered_count)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  if (!dvs_data)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  // Count events in time range
+  size_t count = 0;
+  for (const auto &event : *dvs_data) {
+    if (event.t >= min_time && event.t <= max_time) {
+      count++;
+    }
+  }
+
+  if (count == 0) {
+    *filtered_events = nullptr;
+    *filtered_count = 0;
+    return CARLA_ERROR_NONE;
+  }
+
+  // Allocate filtered events array
+  carla_dvs_event_t *events = new carla_dvs_event_t[count];
+  size_t index = 0;
+
+  // Copy filtered events
+  for (const auto &event : *dvs_data) {
+    if (event.t >= min_time && event.t <= max_time) {
+      events[index].x = event.x;
+      events[index].y = event.y;
+      events[index].t = event.t;
+      events[index].pol = event.pol;
+      index++;
+    }
+  }
+
+  *filtered_events = events;
+  *filtered_count = count;
+  return CARLA_ERROR_NONE;
+}
+
+carla_error_t carla_dvs_filter_events_by_polarity(
+    const carla_sensor_data_t *data, bool polarity,
+    carla_dvs_event_t **filtered_events, size_t *filtered_count) {
+  if (!data || !filtered_events || !filtered_count)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_DVS_EVENT_ARRAY)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto dvs_data = std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+      data->cpp_data);
+  if (!dvs_data)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  // Count events with specified polarity
+  size_t count = 0;
+  for (const auto &event : *dvs_data) {
+    if (event.pol == polarity) {
+      count++;
+    }
+  }
+
+  if (count == 0) {
+    *filtered_events = nullptr;
+    *filtered_count = 0;
+    return CARLA_ERROR_NONE;
+  }
+
+  // Allocate filtered events array
+  carla_dvs_event_t *events = new carla_dvs_event_t[count];
+  size_t index = 0;
+
+  // Copy filtered events
+  for (const auto &event : *dvs_data) {
+    if (event.pol == polarity) {
+      events[index].x = event.x;
+      events[index].y = event.y;
+      events[index].t = event.t;
+      events[index].pol = event.pol;
+      index++;
+    }
+  }
+
+  *filtered_events = events;
+  *filtered_count = count;
+  return CARLA_ERROR_NONE;
+}
+
 void carla_dvs_analysis_destroy(carla_dvs_analysis_t *analysis) {
   // DVS analysis doesn't allocate additional memory currently
   (void)analysis;
@@ -586,6 +735,14 @@ void carla_image_free_data(uint8_t *data) { delete[] data; }
 
 void carla_image_free_array(void *array) {
   delete[] static_cast<uint8_t *>(array);
+}
+
+void carla_dvs_free_events(carla_dvs_event_t *events) {
+  delete[] events;
+}
+
+void carla_optical_flow_free_data(float *data) {
+  delete[] data;
 }
 
 // Simplified implementations for remaining functions
@@ -674,13 +831,86 @@ carla_error_t carla_image_analyze_depth(const carla_sensor_data_t *data,
   return CARLA_ERROR_NOT_FOUND;
 }
 
+carla_error_t carla_image_optical_flow_magnitude(const carla_sensor_data_t *data,
+                                                 float **magnitude_data,
+                                                 size_t *data_size) {
+  if (!data || !magnitude_data || !data_size)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const uint32_t width = image->GetWidth();
+  const uint32_t height = image->GetHeight();
+  const size_t total_pixels = width * height;
+
+  // Allocate magnitude data
+  float *magnitudes = new float[total_pixels];
+
+  // Calculate magnitude for each pixel
+  for (size_t i = 0; i < total_pixels; ++i) {
+    const size_t pixel_index = i * 2; // 2 channels (x, y flow)
+    const float flow_x = pixel_data[pixel_index];
+    const float flow_y = pixel_data[pixel_index + 1];
+    magnitudes[i] = std::sqrt(flow_x * flow_x + flow_y * flow_y);
+  }
+
+  *magnitude_data = magnitudes;
+  *data_size = total_pixels;
+  return CARLA_ERROR_NONE;
+}
+
+carla_error_t carla_image_optical_flow_direction(const carla_sensor_data_t *data,
+                                                 float **direction_data,
+                                                 size_t *data_size) {
+  if (!data || !direction_data || !data_size)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image)
+    return CARLA_ERROR_INVALID_ARGUMENT;
+
+  const auto *pixel_data = reinterpret_cast<const float *>(image->data());
+  const uint32_t width = image->GetWidth();
+  const uint32_t height = image->GetHeight();
+  const size_t total_pixels = width * height;
+
+  // Allocate direction data
+  float *directions = new float[total_pixels];
+
+  // Calculate direction (angle) for each pixel
+  for (size_t i = 0; i < total_pixels; ++i) {
+    const size_t pixel_index = i * 2; // 2 channels (x, y flow)
+    const float flow_x = pixel_data[pixel_index];
+    const float flow_y = pixel_data[pixel_index + 1];
+    directions[i] = std::atan2(flow_y, flow_x); // Angle in radians
+  }
+
+  *direction_data = directions;
+  *data_size = total_pixels;
+  return CARLA_ERROR_NONE;
+}
+
 carla_error_t
 carla_image_analyze_optical_flow(const carla_sensor_data_t *data,
                                  carla_optical_flow_analysis_t *analysis) {
   if (!data || !analysis)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
-  if (data->type != CARLA_SENSOR_DATA_IMAGE)
+  carla_sensor_data_type_t data_type = IdentifySensorDataType(*data->cpp_data);
+  if (data_type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE)
     return CARLA_ERROR_INVALID_ARGUMENT;
 
   auto image =
@@ -764,3 +994,5 @@ void carla_optical_flow_analysis_destroy(
     carla_optical_flow_analysis_t *analysis) {
   (void)analysis;
 }
+
+} // extern "C"

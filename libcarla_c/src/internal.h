@@ -79,6 +79,7 @@ struct carla_sensor_data {
   mutable carla_lane_invasion_data_t lane_invasion_data;
   mutable carla_obstacle_detection_data_t obstacle_detection_data;
   mutable carla_dvs_event_array_data_t dvs_event_array_data;
+  mutable carla_optical_flow_data_t optical_flow_data;
 
   // Flags to track what data has been cached
   mutable bool image_cached = false;
@@ -91,6 +92,7 @@ struct carla_sensor_data {
   mutable bool lane_invasion_cached = false;
   mutable bool obstacle_detection_cached = false;
   mutable bool dvs_event_array_cached = false;
+  mutable bool optical_flow_cached = false;
 
   explicit carla_sensor_data(carla::SharedPtr<carla::sensor::SensorData> data)
       : cpp_data(std::move(data)), type(IdentifySensorDataType(*cpp_data)) {}

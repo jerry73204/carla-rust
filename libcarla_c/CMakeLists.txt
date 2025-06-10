@@ -105,7 +105,10 @@ if(BUILD_EXAMPLES)
     add_executable(lidar_example examples/lidar_example.c)
     target_link_libraries(lidar_example PRIVATE carla_c)
 
-    message(STATUS "Building examples: carla_c_example, sensor_fusion_example, lidar_example")
+    add_executable(dvs_optical_flow_example examples/dvs_optical_flow_example.c)
+    target_link_libraries(dvs_optical_flow_example PRIVATE carla_c)
+
+    message(STATUS "Building examples: carla_c_example, sensor_fusion_example, lidar_example, dvs_optical_flow_example")
 else()
     message(STATUS "Examples disabled (BUILD_EXAMPLES=OFF)")
 endif()
@@ -134,7 +137,7 @@ add_dependencies(build-all carla_c)
 
 # Add example dependencies if building examples
 if(BUILD_EXAMPLES)
-    add_dependencies(build-all carla_c_example sensor_fusion_example lidar_example)
+    add_dependencies(build-all carla_c_example sensor_fusion_example lidar_example dvs_optical_flow_example)
 
     # Add convenience targets for running examples
     add_custom_target(run-example
@@ -155,6 +158,13 @@ if(BUILD_EXAMPLES)
         COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lidar_example
         DEPENDS lidar_example
         COMMENT "Running LiDAR example..."
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+
+    add_custom_target(run-dvs-optical-flow
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dvs_optical_flow_example
+        DEPENDS dvs_optical_flow_example
+        COMMENT "Running DVS and optical flow example..."
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 endif()

@@ -122,18 +122,6 @@ carla_error_t carla_opendrive_map_generate_waypoints(
     const carla_opendrive_map_t *map, double distance,
     carla_waypoint_t ***waypoints, size_t *waypoint_count);
 
-// Get next waypoints from current waypoint
-carla_error_t carla_waypoint_get_next(const carla_waypoint_t *waypoint,
-                                      double distance,
-                                      carla_waypoint_t ***next_waypoints,
-                                      size_t *next_count);
-
-// Get previous waypoints from current waypoint
-carla_error_t
-carla_waypoint_get_previous(const carla_waypoint_t *waypoint, double distance,
-                            carla_waypoint_t ***previous_waypoints,
-                            size_t *previous_count);
-
 // Get waypoint data
 carla_error_t carla_waypoint_get_data(const carla_waypoint_t *waypoint,
                                       carla_waypoint_data_t *data);

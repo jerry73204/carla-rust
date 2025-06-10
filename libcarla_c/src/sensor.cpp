@@ -735,6 +735,66 @@ carla_dvs_event_array_data_get_height(const carla_sensor_data_t *data) {
   return dvs_data ? dvs_data->GetHeight() : 0;
 }
 
+// Optical flow data access functions
+
+carla_optical_flow_data_t 
+carla_sensor_data_get_optical_flow(const carla_sensor_data_t *data) {
+  carla_optical_flow_data_t optical_flow_data = {0};
+  
+  if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
+    return optical_flow_data;
+  }
+  
+  // Cache optical flow data if not already cached
+  if (!data->optical_flow_cached) {
+    auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+    if (image) {
+      data->optical_flow_data.width = image->GetWidth();
+      data->optical_flow_data.height = image->GetHeight();
+      data->optical_flow_data.fov = static_cast<uint32_t>(image->GetFOVAngle());
+      data->optical_flow_data.flow_data = 
+          reinterpret_cast<const carla_optical_flow_pixel_t*>(image->data());
+      data->optical_flow_data.flow_data_size = 
+          image->GetWidth() * image->GetHeight();
+      data->optical_flow_cached = true;
+    }
+  }
+  
+  return data->optical_flow_data;
+}
+
+uint32_t carla_optical_flow_data_get_width(const carla_sensor_data_t *data) {
+  if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
+    return 0;
+  }
+  
+  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  return image ? image->GetWidth() : 0;
+}
+
+uint32_t carla_optical_flow_data_get_height(const carla_sensor_data_t *data) {
+  if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
+    return 0;
+  }
+  
+  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  return image ? image->GetHeight() : 0;
+}
+
+const carla_optical_flow_pixel_t* 
+carla_optical_flow_data_get_pixels(const carla_sensor_data_t *data) {
+  if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
+    return nullptr;
+  }
+  
+  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+  if (!image) {
+    return nullptr;
+  }
+  
+  return reinterpret_cast<const carla_optical_flow_pixel_t*>(image->data());
+}
+
 void carla_sensor_data_destroy(carla_sensor_data_t *data) {
   if (data) {
     // Clean up any allocated actor wrappers
