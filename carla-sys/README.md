@@ -1,38 +1,77 @@
-# carla-sys
+# carla-sys2
 
-This crate provides Rust FFI bindings for CARLA simulator. It links to
-pre-built `libcarla_client` libraries and generates FFI bindings using
-[autocxx](https://github.com/google/autocxx). Additional C++ code in
-[csrc](csrc) directory replaces some classes and functions that cannot
-be correctly handled by autocxx.
+Bindgen-based FFI bindings for the CARLA simulator C library.
 
-It is part of [carla](../carla/README.md) crate and normally you don't
-have to include this package in your project.
+This crate provides low-level Rust bindings to `libcarla_c`, a C wrapper around the CARLA simulator's C++ client library. The bindings are generated automatically using [bindgen](https://github.com/rust-lang/rust-bindgen).
 
-## Use Custom CARLA Source Code
+## Requirements
 
-In the case that you want to use a custom CARLA repository. Set the
-`CARLA_DIR` environment variable to point to your CARLA repo and build
-carla-sys with additional features.
+- **libcarla_c**: The C wrapper library must be built first
+- **CARLA 0.10.0**: The CARLA simulator source code (included as submodule)
+- **clang/LLVM**: Required by bindgen for parsing C headers
 
-```bash
-// Prepare and compile CARLA repo.
-git clone https://github.com/carla-simulator/carla.git $HOME/my-carla
+## Building
+
+1. **Build the C library**:
+   ```bash
+   cd ../libcarla_c
+   ./build_libcarla_c.sh
+   ```
+
+2. **Build carla-sys2**:
+   ```bash
+   cargo build
+   ```
+
+3. **Run tests**:
+   ```bash
+   LD_LIBRARY_PATH=../libcarla_c/install/lib cargo test
+   ```
+
+## Generated Bindings
+
+The crate automatically generates Rust bindings for:
+
+- **Client API**: Connection, world management (`carla_client_*`)
+- **World API**: Simulation control, actor management (`carla_world_*`)  
+- **Actor API**: Vehicle/pedestrian control (`carla_actor_*`)
+- **Map API**: Road network queries (`carla_map_*`, `carla_waypoint_*`)
+- **Types**: Geometry, errors, enums (`carla_vector3d_t`, `carla_error_t`, etc.)
+
+## Safety
+
+All functions are marked `unsafe` as they directly interface with C code. Callers must ensure:
+- Pointers are valid and properly aligned
+- Memory is not accessed after being freed  
+- C strings are null-terminated
+- Objects are not used after destruction
+
+## Example Usage
+
+```rust
+use carla_sys2::*;
+
+unsafe {
+    // Connect to CARLA server
+    let client = carla_client_new(b"localhost\0".as_ptr() as *const i8, 2000, 1);
+    
+    // Get world
+    let world = carla_client_get_world(client);
+    
+    // Tick simulation
+    let frame = carla_world_tick(world, 5000);
+    
+    // Cleanup
+    carla_world_free(world);
+    carla_client_free(client);
+}
 ```
 
-```bash
-// Set CARLA_DIR and build your Rust project.
-export CARLA_DIR=$HOME/my-carla
+## Architecture
 
-git clone https://github.com/jerry73204/carla-rust.git
-cd carla-rust/carla-sys
-cargo build \
-    --features build-lib \
-    --features save-lib \
-    --features save-bindgen
-```
+- **C Headers**: Located in `../libcarla_c/include/carla_c/`
+- **Shared Library**: Built to `../libcarla_c/install/lib/libcarla_c.so`
+- **Bindings**: Generated to `$OUT_DIR/bindings.rs` during build
+- **Wrapper**: `wrapper.h` includes all C headers for bindgen
 
-## License
-
-It is distributed under MIT license. Please see
-[LICENSE.txt](../LICENSE.txt) file for full license text.
+This approach provides a simpler alternative to the autocxx-based `carla-sys` crate for users who prefer traditional bindgen workflows.
