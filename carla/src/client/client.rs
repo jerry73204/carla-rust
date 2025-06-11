@@ -1,16 +1,7 @@
-use super::World;
-use crate::{
-    rpc::OpendriveGenerationParameters,
-    traffic_manager::{constants::Networking::TM_DEFAULT_PORT, TrafficManager},
-    utils::{check_carla_error, rust_string_to_c, c_string_to_rust, ArrayConversionExt},
-};
+use crate::utils::{c_string_to_rust, rust_string_to_c};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
-use std::{
-    ptr,
-    time::Duration,
-    ffi::CString,
-};
+use std::{ffi::CString, ptr, time::Duration};
 
 /// The client maintains the connection to the CARLA simulator server,
 /// corresponding to `carla.Client` in Python API.
@@ -27,17 +18,13 @@ impl Client {
         let host_cstring = rust_string_to_c(host)?;
         let worker_threads = worker_threads.into().unwrap_or(0);
 
-        let client_ptr = unsafe {
-            carla_client_new(host_cstring.as_ptr(), port, worker_threads)
-        };
+        let client_ptr = unsafe { carla_client_new(host_cstring.as_ptr(), port, worker_threads) };
 
         if client_ptr.is_null() {
             return Err(anyhow!("Failed to create CARLA client"));
         }
 
-        Ok(Self {
-            inner: client_ptr,
-        })
+        Ok(Self { inner: client_ptr })
     }
 
     pub fn client_version(&self) -> Result<String> {
@@ -91,11 +78,11 @@ impl Client {
         Ok(maps)
     }
 
-    pub fn load_world(&self, map_name: &str) -> Result<World> {
+    pub fn load_world(&self, map_name: &str) -> Result<super::World> {
         self.load_world_opt(map_name, true)
     }
 
-    pub fn load_world_opt(&self, map_name: &str, reset_settings: bool) -> Result<World> {
+    pub fn load_world_opt(&self, map_name: &str, reset_settings: bool) -> Result<super::World> {
         let map_name_cstring = rust_string_to_c(map_name)?;
         let world_ptr = unsafe {
             carla_client_load_world(
@@ -110,44 +97,45 @@ impl Client {
             return Err(anyhow!("Failed to load world: {}", map_name));
         }
 
-        World::from_raw_ptr(world_ptr)
+        super::World::from_raw_ptr(world_ptr)
     }
 
-    pub fn reload_world(&self) -> Result<World> {
+    pub fn reload_world(&self) -> Result<super::World> {
         self.reload_world_opt(true)
     }
 
-    pub fn reload_world_opt(&self, reset_settings: bool) -> Result<World> {
-        let world_ptr = unsafe {
-            carla_client_reload_world(self.inner, reset_settings)
-        };
+    pub fn reload_world_opt(&self, reset_settings: bool) -> Result<super::World> {
+        let world_ptr = unsafe { carla_client_reload_world(self.inner, reset_settings) };
 
         if world_ptr.is_null() {
             return Err(anyhow!("Failed to reload world"));
         }
 
-        World::from_raw_ptr(world_ptr)
+        super::World::from_raw_ptr(world_ptr)
     }
 
     pub fn generate_open_drive_world(
         &self,
         opendrive: &str,
-        params: &OpendriveGenerationParameters,
         reset_settings: bool,
-    ) -> Result<World> {
+    ) -> Result<super::World> {
         // Note: This method will need to be implemented once OpenDRIVE generation
         // is available in the C wrapper. For now, return an error.
-        Err(anyhow!("OpenDRIVE world generation not yet implemented in C wrapper"))
+        Err(anyhow!(
+            "OpenDRIVE world generation not yet implemented in C wrapper"
+        ))
     }
 
-    pub fn world(&self) -> Result<World> {
+    pub fn world(&self) -> Result<super::World> {
         let world_ptr = unsafe { carla_client_get_world(self.inner) };
         if world_ptr.is_null() {
             return Err(anyhow!("Failed to get world"));
         }
-        World::from_raw_ptr(world_ptr)
+        super::World::from_raw_ptr(world_ptr)
     }
 
+    // TODO: Uncomment when TrafficManager is migrated
+    /*
     pub fn instance_tm<P>(&self, port: P) -> Result<TrafficManager>
     where
         P: Into<Option<u16>>,
@@ -156,12 +144,12 @@ impl Client {
         let tm_port = unsafe { carla_client_get_traffic_manager_port(self.inner, port) };
         TrafficManager::new(tm_port)
     }
+    */
 }
 
 impl Default for Client {
     fn default() -> Self {
-        Self::connect("localhost", 2000, None)
-            .expect("Failed to create default CARLA client")
+        Self::connect("localhost", 2000, None).expect("Failed to create default CARLA client")
     }
 }
 
@@ -179,4 +167,3 @@ impl Drop for Client {
 // SAFETY: Client wraps a thread-safe C API
 unsafe impl Send for Client {}
 unsafe impl Sync for Client {}
-

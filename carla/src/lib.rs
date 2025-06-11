@@ -2,7 +2,7 @@
 //!
 //! It works with CARLA simulator version 0.10.0.
 
-// pub mod client;
+pub mod client;
 pub mod geom;
 // pub mod road;
 // pub mod rpc;
