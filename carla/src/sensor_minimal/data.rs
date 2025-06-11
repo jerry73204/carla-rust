@@ -1,6 +1,7 @@
 //! Sensor data types for CARLA 0.10.0
 
 use super::SensorData;
+use crate::utils::check_carla_error;
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use nalgebra::Vector3;
@@ -72,6 +73,176 @@ impl ImageData {
             self.raw_data.clone(),
         )
         .map_err(|e| anyhow!("Failed to create array: {}", e))
+    }
+
+    /// Convert BGRA image to RGB format
+    pub fn to_rgb(&self, sensor_data: &SensorData) -> Result<Vec<u8>> {
+        let mut rgb_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut rgb_size: usize = 0;
+
+        let error =
+            unsafe { carla_image_bgra_to_rgb(sensor_data.inner, &mut rgb_data_ptr, &mut rgb_size) };
+        check_carla_error(error)?;
+
+        if rgb_data_ptr.is_null() {
+            return Err(anyhow!("Failed to convert image to RGB"));
+        }
+
+        let rgb_slice = unsafe { std::slice::from_raw_parts(rgb_data_ptr, rgb_size) };
+        let rgb_data = rgb_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(rgb_data_ptr) };
+
+        Ok(rgb_data)
+    }
+
+    /// Convert image to grayscale
+    pub fn to_grayscale(&self, sensor_data: &SensorData) -> Result<Vec<u8>> {
+        let mut gray_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut gray_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_bgra_to_grayscale(sensor_data.inner, &mut gray_data_ptr, &mut gray_size)
+        };
+        check_carla_error(error)?;
+
+        if gray_data_ptr.is_null() {
+            return Err(anyhow!("Failed to convert image to grayscale"));
+        }
+
+        let gray_slice = unsafe { std::slice::from_raw_parts(gray_data_ptr, gray_size) };
+        let gray_data = gray_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(gray_data_ptr) };
+
+        Ok(gray_data)
+    }
+
+    /// Apply Gaussian blur to the image
+    pub fn gaussian_blur(&self, sensor_data: &SensorData, sigma: f32) -> Result<Vec<u8>> {
+        let mut output_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut output_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_gaussian_blur(
+                sensor_data.inner,
+                sigma,
+                &mut output_data_ptr,
+                &mut output_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if output_data_ptr.is_null() {
+            return Err(anyhow!("Failed to apply Gaussian blur"));
+        }
+
+        let output_slice = unsafe { std::slice::from_raw_parts(output_data_ptr, output_size) };
+        let output_data = output_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(output_data_ptr) };
+
+        Ok(output_data)
+    }
+
+    /// Apply edge detection to the image
+    pub fn edge_detection(&self, sensor_data: &SensorData, threshold: f32) -> Result<Vec<u8>> {
+        let mut output_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut output_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_edge_detection(
+                sensor_data.inner,
+                threshold,
+                &mut output_data_ptr,
+                &mut output_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if output_data_ptr.is_null() {
+            return Err(anyhow!("Failed to apply edge detection"));
+        }
+
+        let output_slice = unsafe { std::slice::from_raw_parts(output_data_ptr, output_size) };
+        let output_data = output_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(output_data_ptr) };
+
+        Ok(output_data)
+    }
+
+    /// Resize the image to new dimensions
+    pub fn resize(
+        &self,
+        sensor_data: &SensorData,
+        new_width: u32,
+        new_height: u32,
+    ) -> Result<Vec<u8>> {
+        let mut output_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut output_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_resize(
+                sensor_data.inner,
+                new_width,
+                new_height,
+                &mut output_data_ptr,
+                &mut output_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if output_data_ptr.is_null() {
+            return Err(anyhow!("Failed to resize image"));
+        }
+
+        let output_slice = unsafe { std::slice::from_raw_parts(output_data_ptr, output_size) };
+        let output_data = output_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(output_data_ptr) };
+
+        Ok(output_data)
+    }
+
+    /// Crop the image to a specific region
+    pub fn crop(&self, sensor_data: &SensorData, roi: &ImageRegionOfInterest) -> Result<Vec<u8>> {
+        let c_roi = carla_image_roi_t {
+            x: roi.x,
+            y: roi.y,
+            width: roi.width,
+            height: roi.height,
+        };
+
+        let mut output_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut output_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_crop(
+                sensor_data.inner,
+                &c_roi,
+                &mut output_data_ptr,
+                &mut output_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if output_data_ptr.is_null() {
+            return Err(anyhow!("Failed to crop image"));
+        }
+
+        let output_slice = unsafe { std::slice::from_raw_parts(output_data_ptr, output_size) };
+        let output_data = output_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(output_data_ptr) };
+
+        Ok(output_data)
     }
 }
 
@@ -520,6 +691,152 @@ impl DvsEventArray {
     pub fn fov_angle(&self) -> u64 {
         self.fov_angle
     }
+
+    /// Analyze DVS events to get statistics and activity information
+    pub fn analyze_events(&self, sensor_data: &SensorData) -> Result<DvsAnalysis> {
+        let mut analysis = carla_dvs_analysis_t {
+            positive_events: 0,
+            negative_events: 0,
+            total_events: 0,
+            event_rate: 0.0,
+            active_region: carla_image_roi_t {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            },
+            activity_density: 0.0,
+        };
+
+        let error = unsafe { carla_dvs_analyze_events(sensor_data.inner, &mut analysis) };
+        check_carla_error(error)?;
+
+        Ok(DvsAnalysis {
+            positive_events: analysis.positive_events,
+            negative_events: analysis.negative_events,
+            total_events: analysis.total_events,
+            event_rate: analysis.event_rate,
+            active_region: ImageRegionOfInterest {
+                x: analysis.active_region.x,
+                y: analysis.active_region.y,
+                width: analysis.active_region.width,
+                height: analysis.active_region.height,
+            },
+            activity_density: analysis.activity_density,
+        })
+    }
+
+    /// Filter events by polarity (positive or negative)
+    pub fn filter_by_polarity(
+        &self,
+        sensor_data: &SensorData,
+        positive_polarity: bool,
+    ) -> Result<Vec<DvsEvent>> {
+        let mut filtered_events_ptr: *mut carla_dvs_event_t = std::ptr::null_mut();
+        let mut filtered_count: usize = 0;
+
+        let error = unsafe {
+            carla_dvs_filter_events_by_polarity(
+                sensor_data.inner,
+                positive_polarity,
+                &mut filtered_events_ptr,
+                &mut filtered_count,
+            )
+        };
+        check_carla_error(error)?;
+
+        if filtered_events_ptr.is_null() {
+            return Ok(Vec::new());
+        }
+
+        let filtered_slice =
+            unsafe { std::slice::from_raw_parts(filtered_events_ptr, filtered_count) };
+        let events = filtered_slice
+            .iter()
+            .map(|e| DvsEvent {
+                x: e.x,
+                y: e.y,
+                timestamp: e.t,
+                polarity: e.pol,
+            })
+            .collect();
+
+        // Free the allocated memory
+        unsafe { carla_dvs_free_events(filtered_events_ptr) };
+
+        Ok(events)
+    }
+
+    /// Filter events by time window
+    pub fn filter_by_time(
+        &self,
+        sensor_data: &SensorData,
+        start_time: i64,
+        end_time: i64,
+    ) -> Result<Vec<DvsEvent>> {
+        let mut filtered_events_ptr: *mut carla_dvs_event_t = std::ptr::null_mut();
+        let mut filtered_count: usize = 0;
+
+        let error = unsafe {
+            carla_dvs_filter_events_by_time(
+                sensor_data.inner,
+                start_time,
+                end_time,
+                &mut filtered_events_ptr,
+                &mut filtered_count,
+            )
+        };
+        check_carla_error(error)?;
+
+        if filtered_events_ptr.is_null() {
+            return Ok(Vec::new());
+        }
+
+        let filtered_slice =
+            unsafe { std::slice::from_raw_parts(filtered_events_ptr, filtered_count) };
+        let events = filtered_slice
+            .iter()
+            .map(|e| DvsEvent {
+                x: e.x,
+                y: e.y,
+                timestamp: e.t,
+                polarity: e.pol,
+            })
+            .collect();
+
+        // Free the allocated memory
+        unsafe { carla_dvs_free_events(filtered_events_ptr) };
+
+        Ok(events)
+    }
+
+    /// Convert DVS events to image representation over a time window
+    pub fn events_to_image(&self, sensor_data: &SensorData, time_window: f32) -> Result<Vec<u8>> {
+        let mut image_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut image_size: usize = 0;
+
+        let error = unsafe {
+            carla_dvs_events_to_image(
+                sensor_data.inner,
+                time_window,
+                &mut image_data_ptr,
+                &mut image_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if image_data_ptr.is_null() {
+            return Err(anyhow!("Failed to generate DVS image representation"));
+        }
+
+        let image_slice = unsafe { std::slice::from_raw_parts(image_data_ptr, image_size) };
+        let image_data = image_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_data(image_data_ptr) };
+
+        Ok(image_data)
+    }
 }
 
 /// A single DVS event
@@ -609,6 +926,157 @@ impl OpticalFlowImage {
 
         (flow_x, flow_y)
     }
+
+    /// Analyze optical flow to get motion statistics and patterns
+    pub fn analyze_optical_flow(&self, sensor_data: &SensorData) -> Result<OpticalFlowAnalysis> {
+        let mut analysis = carla_optical_flow_analysis_t {
+            average_flow: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            magnitude_avg: 0.0,
+            magnitude_max: 0.0,
+            moving_pixels: 0,
+            motion_density: 0.0,
+            dominant_direction: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        };
+
+        let error = unsafe { carla_image_analyze_optical_flow(sensor_data.inner, &mut analysis) };
+        check_carla_error(error)?;
+
+        Ok(OpticalFlowAnalysis {
+            average_flow: Vector3::new(
+                analysis.average_flow.x,
+                analysis.average_flow.y,
+                analysis.average_flow.z,
+            ),
+            magnitude_avg: analysis.magnitude_avg,
+            magnitude_max: analysis.magnitude_max,
+            moving_pixels: analysis.moving_pixels,
+            motion_density: analysis.motion_density,
+            dominant_direction: Vector3::new(
+                analysis.dominant_direction.x,
+                analysis.dominant_direction.y,
+                analysis.dominant_direction.z,
+            ),
+        })
+    }
+
+    /// Get optical flow magnitude as a 2D array
+    pub fn get_magnitude_field(&self, sensor_data: &SensorData) -> Result<Array2<f32>> {
+        let mut magnitude_data_ptr: *mut f32 = std::ptr::null_mut();
+        let mut magnitude_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_optical_flow_magnitude(
+                sensor_data.inner,
+                &mut magnitude_data_ptr,
+                &mut magnitude_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if magnitude_data_ptr.is_null() {
+            return Err(anyhow!("Failed to get optical flow magnitude data"));
+        }
+
+        let magnitude_slice =
+            unsafe { std::slice::from_raw_parts(magnitude_data_ptr, magnitude_size) };
+        let magnitude_data = magnitude_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_optical_flow_free_data(magnitude_data_ptr) };
+
+        Array2::from_shape_vec((self.height as usize, self.width as usize), magnitude_data)
+            .map_err(|e| anyhow!("Failed to create magnitude array: {}", e))
+    }
+
+    /// Get optical flow direction as a 2D array (in radians)
+    pub fn get_direction_field(&self, sensor_data: &SensorData) -> Result<Array2<f32>> {
+        let mut direction_data_ptr: *mut f32 = std::ptr::null_mut();
+        let mut direction_size: usize = 0;
+
+        let error = unsafe {
+            carla_image_optical_flow_direction(
+                sensor_data.inner,
+                &mut direction_data_ptr,
+                &mut direction_size,
+            )
+        };
+        check_carla_error(error)?;
+
+        if direction_data_ptr.is_null() {
+            return Err(anyhow!("Failed to get optical flow direction data"));
+        }
+
+        let direction_slice =
+            unsafe { std::slice::from_raw_parts(direction_data_ptr, direction_size) };
+        let direction_data = direction_slice.to_vec();
+
+        // Free the allocated memory
+        unsafe { carla_optical_flow_free_data(direction_data_ptr) };
+
+        Array2::from_shape_vec((self.height as usize, self.width as usize), direction_data)
+            .map_err(|e| anyhow!("Failed to create direction array: {}", e))
+    }
+
+    /// Detect motion regions in the optical flow field
+    pub fn detect_motion_regions(
+        &self,
+        sensor_data: &SensorData,
+        motion_threshold: f32,
+    ) -> Result<Vec<ImageRegionOfInterest>> {
+        let mut regions_ptr: *mut carla_image_roi_t = std::ptr::null_mut();
+        let mut region_count: usize = 0;
+
+        let error = unsafe {
+            carla_image_detect_motion_regions(
+                sensor_data.inner,
+                motion_threshold,
+                &mut regions_ptr,
+                &mut region_count,
+            )
+        };
+        check_carla_error(error)?;
+
+        if regions_ptr.is_null() {
+            return Ok(Vec::new());
+        }
+
+        let regions_slice = unsafe { std::slice::from_raw_parts(regions_ptr, region_count) };
+        let regions = regions_slice
+            .iter()
+            .map(|r| ImageRegionOfInterest {
+                x: r.x,
+                y: r.y,
+                width: r.width,
+                height: r.height,
+            })
+            .collect();
+
+        // Free the allocated memory
+        unsafe { carla_image_free_array(regions_ptr as *mut _) };
+
+        Ok(regions)
+    }
+
+    /// Calculate local flow vectors for computational efficiency
+    pub fn calculate_local_vectors(&self) -> Array3<f32> {
+        let mut data = Vec::with_capacity(self.pixels.len() * 3);
+        for pixel in &self.pixels {
+            data.push(pixel.flow_x);
+            data.push(pixel.flow_y);
+            data.push((pixel.flow_x * pixel.flow_x + pixel.flow_y * pixel.flow_y).sqrt());
+            // magnitude
+        }
+        Array3::from_shape_vec((self.height as usize, self.width as usize, 3), data)
+            .expect("Valid shape for local vectors array")
+    }
 }
 
 /// A single optical flow pixel
@@ -616,4 +1084,62 @@ impl OpticalFlowImage {
 pub struct OpticalFlowPixel {
     pub flow_x: f32, // Horizontal flow component
     pub flow_y: f32, // Vertical flow component
+}
+
+/// Analysis result for DVS events
+#[derive(Debug, Clone)]
+pub struct DvsAnalysis {
+    pub positive_events: u32,
+    pub negative_events: u32,
+    pub total_events: u32,
+    pub event_rate: f32,
+    pub active_region: ImageRegionOfInterest,
+    pub activity_density: f32,
+}
+
+/// Analysis result for optical flow data
+#[derive(Debug, Clone)]
+pub struct OpticalFlowAnalysis {
+    pub average_flow: Vector3<f32>,
+    pub magnitude_avg: f32,
+    pub magnitude_max: f32,
+    pub moving_pixels: u32,
+    pub motion_density: f32,
+    pub dominant_direction: Vector3<f32>,
+}
+
+/// Region of Interest in an image
+#[derive(Debug, Clone, Copy)]
+pub struct ImageRegionOfInterest {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
+}
+
+impl ImageRegionOfInterest {
+    /// Create a new region of interest
+    pub fn new(x: u32, y: u32, width: u32, height: u32) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
+    /// Get the area of the region
+    pub fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    /// Check if a point is inside this region
+    pub fn contains_point(&self, px: u32, py: u32) -> bool {
+        px >= self.x && px < self.x + self.width && py >= self.y && py < self.y + self.height
+    }
+
+    /// Get the center point of the region
+    pub fn center(&self) -> (u32, u32) {
+        (self.x + self.width / 2, self.y + self.height / 2)
+    }
 }

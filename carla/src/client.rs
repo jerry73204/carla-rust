@@ -49,7 +49,8 @@ pub use world::*;
 
 // Re-export sensor types from sensor_minimal
 pub use crate::sensor_minimal::{
-    CollisionEvent, DvsEvent, DvsEventArray, GnssData, ImageData, ImuData, LaneInvasionEvent,
-    LidarData, LidarPoint, ObstacleDetectionEvent, OpticalFlowImage, OpticalFlowPixel, RadarData,
+    CollisionEvent, DvsAnalysis, DvsEvent, DvsEventArray, GnssData, ImageData,
+    ImageRegionOfInterest, ImuData, LaneInvasionEvent, LidarData, LidarPoint,
+    ObstacleDetectionEvent, OpticalFlowAnalysis, OpticalFlowImage, OpticalFlowPixel, RadarData,
     RadarDetection, SemanticLidarData, SemanticLidarPoint, Sensor, SensorData, SensorDataType,
 };
