@@ -2,13 +2,13 @@
 //!
 //! These benchmarks measure the performance characteristics of:
 //! - Basic client operations (connect, timeout, version)
-//! - Vehicle control application 
+//! - Vehicle control application
 //! - Sensor data processing
 //! - World and map operations
 //! - Error handling overhead
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use carla_sys::*;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::{ffi::CString, ptr};
 
 /// Benchmark client creation and basic operations
@@ -24,36 +24,32 @@ fn bench_client_operations(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("client_timeout_operations", |b| {
-        unsafe {
-            let host = CString::new("localhost").unwrap();
-            let client = carla_client_new(host.as_ptr(), 2000, 1);
-            
-            b.iter(|| {
-                carla_client_set_timeout(client, black_box(5000));
-                let timeout = carla_client_get_timeout(client);
-                black_box(timeout);
-            });
-            
-            if !client.is_null() {
-                carla_client_free(client);
-            }
+    c.bench_function("client_timeout_operations", |b| unsafe {
+        let host = CString::new("localhost").unwrap();
+        let client = carla_client_new(host.as_ptr(), 2000, 1);
+
+        b.iter(|| {
+            carla_client_set_timeout(client, black_box(5000));
+            let timeout = carla_client_get_timeout(client);
+            black_box(timeout);
+        });
+
+        if !client.is_null() {
+            carla_client_free(client);
         }
     });
 
-    c.bench_function("client_version_check", |b| {
-        unsafe {
-            let host = CString::new("localhost").unwrap();
-            let client = carla_client_new(host.as_ptr(), 2000, 1);
-            
-            b.iter(|| {
-                let version = carla_client_get_client_version(client);
-                black_box(version);
-            });
-            
-            if !client.is_null() {
-                carla_client_free(client);
-            }
+    c.bench_function("client_version_check", |b| unsafe {
+        let host = CString::new("localhost").unwrap();
+        let client = carla_client_new(host.as_ptr(), 2000, 1);
+
+        b.iter(|| {
+            let version = carla_client_get_client_version(client);
+            black_box(version);
+        });
+
+        if !client.is_null() {
+            carla_client_free(client);
         }
     });
 }
@@ -94,11 +90,11 @@ fn bench_vehicle_control(c: &mut Criterion) {
             let low_beam = carla_vehicle_light_state_t_CARLA_VEHICLE_LIGHT_LOW_BEAM;
             let brake = carla_vehicle_light_state_t_CARLA_VEHICLE_LIGHT_BRAKE;
             let left_blinker = carla_vehicle_light_state_t_CARLA_VEHICLE_LIGHT_LEFT_BLINKER;
-            
+
             let headlights = position | low_beam;
             let night_driving = headlights | brake;
             let left_turn = night_driving | left_blinker;
-            
+
             black_box(left_turn);
         })
     });

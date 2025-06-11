@@ -1,8 +1,8 @@
 //! Integration tests for new CARLA 0.10.0 features
-//! 
+//!
 //! These tests verify the C FFI bindings for new features like:
 //! - DVS (Dynamic Vision Sensor) events
-//! - Optical flow data processing 
+//! - Optical flow data processing
 //! - Vehicle door control
 //! - Ackermann steering control
 //! - Enhanced motion analysis
@@ -50,10 +50,7 @@ fn test_dvs_event_processing() {
 #[test]
 fn test_optical_flow_structures() {
     // Test optical flow pixel structure
-    let flow_pixel = carla_optical_flow_pixel_t {
-        x: 2.5,
-        y: -1.8,
-    };
+    let flow_pixel = carla_optical_flow_pixel_t { x: 2.5, y: -1.8 };
 
     assert_eq!(flow_pixel.x, 2.5);
     assert_eq!(flow_pixel.y, -1.8);
@@ -152,7 +149,7 @@ fn test_enhanced_light_states() {
     assert_eq!(reverse, 0x1 << 4);
     assert_eq!(left_blinker, 0x1 << 5);
     assert_eq!(right_blinker, 0x1 << 6);
-    
+
     // Test combinations work correctly
     assert_eq!(headlights, 0x1 | 0x2);
     assert_eq!(emergency, 0x20 | 0x40);
@@ -174,9 +171,21 @@ fn test_motion_analysis_structures() {
 
     // Test actor dynamic state
     let dynamic_state = carla_actor_dynamic_state_t {
-        velocity: carla_vector3d_t { x: 15.0, y: 0.0, z: 0.0 },
-        angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.1 },
-        acceleration: carla_vector3d_t { x: 2.0, y: 0.0, z: 0.0 },
+        velocity: carla_vector3d_t {
+            x: 15.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        angular_velocity: carla_vector3d_t {
+            x: 0.0,
+            y: 0.0,
+            z: 0.1,
+        },
+        acceleration: carla_vector3d_t {
+            x: 2.0,
+            y: 0.0,
+            z: 0.0,
+        },
     };
 
     assert_eq!(dynamic_state.velocity.x, 15.0);
@@ -285,7 +294,7 @@ fn test_opendrive_generation() {
     assert!(opendrive_params.enable_mesh_visibility);
 }
 
-#[test] 
+#[test]
 fn test_object_tracking_structures() {
     // Test motion analysis structure
     let motion_analysis = carla_motion_analysis_t {
@@ -314,22 +323,22 @@ fn test_client_connection_robustness() {
     unsafe {
         // Test client creation with various parameters
         let host = CString::new("localhost").unwrap();
-        
+
         // Test with different timeout values
-        let client1 = carla_client_new(host.as_ptr(), 2000, 0);  // No timeout
-        let client2 = carla_client_new(host.as_ptr(), 2000, 1);  // 1ms timeout
+        let client1 = carla_client_new(host.as_ptr(), 2000, 0); // No timeout
+        let client2 = carla_client_new(host.as_ptr(), 2000, 1); // 1ms timeout
         let client3 = carla_client_new(host.as_ptr(), 2000, 5000); // 5s timeout
-        
+
         // All should create client objects (though they may not connect)
         assert!(!client1.is_null());
         assert!(!client2.is_null());
         assert!(!client3.is_null());
-        
+
         // Test timeout setting and getting
         carla_client_set_timeout(client1, 10000);
         let timeout = carla_client_get_timeout(client1);
         assert_eq!(timeout, 10000);
-        
+
         // Clean up
         carla_client_free(client1);
         carla_client_free(client2);
@@ -345,12 +354,12 @@ fn test_error_handling_completeness() {
     assert_eq!(carla_error_t_CARLA_ERROR_TIMEOUT, 2);
     assert_eq!(carla_error_t_CARLA_ERROR_INVALID_ARGUMENT, 3);
     assert_eq!(carla_error_t_CARLA_ERROR_NOT_FOUND, 4);
-    
+
     // Test error to string conversion
     unsafe {
         let error_str = carla_error_to_string(carla_error_t_CARLA_ERROR_NONE);
         assert!(!error_str.is_null());
-        
+
         let timeout_str = carla_error_to_string(carla_error_t_CARLA_ERROR_TIMEOUT);
         assert!(!timeout_str.is_null());
     }
