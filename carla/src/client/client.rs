@@ -1,7 +1,7 @@
 use crate::utils::{c_string_to_rust, rust_string_to_c};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
-use std::{ffi::CString, ptr, time::Duration};
+use std::{ptr, time::Duration};
 
 /// The client maintains the connection to the CARLA simulator server,
 /// corresponding to `carla.Client` in Python API.
