@@ -8,7 +8,6 @@
 //! - Wheel control
 
 use carla_sys::*;
-use std::ptr;
 
 fn main() {
     println!("CARLA Vehicle Control Example");

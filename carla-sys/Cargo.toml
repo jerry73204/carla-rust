@@ -10,8 +10,15 @@ description = "Bindgen-based FFI bindings for CARLA simulator"
 bindgen = "0.70"
 pkg-config = "0.3"
 
+[dev-dependencies]
+criterion = "0.5"
+
 [features]
 default = []
+
+[[bench]]
+name = "ffi_performance"
+harness = false
 
 [[example]]
 name = "vehicle_control"
@@ -24,3 +31,12 @@ path = "examples/sensor_callback.rs"
 [[example]]
 name = "dvs_optical_flow"
 path = "examples/dvs_optical_flow.rs"
+
+[[example]]
+name = "ackermann_control"
+path = "examples/ackermann_control.rs"
+
+[[example]]
+name = "vehicle_doors_lights"
+path = "examples/vehicle_doors_lights.rs"
+

@@ -1,5 +1,5 @@
 use carla_sys::*;
-use std::{ffi::CString, ptr};
+use std::ffi::CString;
 
 extern "C" fn camera_callback(data: *mut carla_sensor_data_t, user_data: *mut std::ffi::c_void) {
     unsafe {
@@ -129,7 +129,7 @@ fn main() {
         println!("8. Clean up with carla_sensor_data_destroy()");
 
         // Counter for callback example
-        let mut callback_counter: u32 = 0;
+        let _callback_counter: u32 = 0;
 
         // Example of registering a callback (sensor would need to be valid)
         // carla_sensor_listen(sensor, Some(camera_callback), &mut callback_counter as *mut _ as *mut std::ffi::c_void);

@@ -1,6 +1,6 @@
 //! Internal utilities.
 
-use crate::geom::{Location, Vector2D};
+use crate::geom::Location;
 use anyhow::{anyhow, Result};
 use std::{
     ffi::{CStr, CString},
