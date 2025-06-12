@@ -83,6 +83,12 @@ pub use crate::sensor::{
     SemanticLidarData,
     SemanticLidarPoint,
     Sensor,
+    SensorAttribute,
+    SensorAttributeType,
+    SensorCalibrationData,
+    SensorCallback,
+    SensorConfiguration,
     SensorData,
     SensorDataType,
+    SensorUserData,
 };

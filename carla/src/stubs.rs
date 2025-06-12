@@ -130,6 +130,46 @@ pub unsafe extern "C" fn carla_walker_is_simulate_physics(_walker: *const carla_
     true
 }
 
+// Sensor C API function stubs
+pub unsafe extern "C" fn carla_sensor_listen(
+    _sensor: *mut carla_sensor_t,
+    _callback: carla_sensor_callback_t,
+    _user_data: *mut std::ffi::c_void,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_sensor_stop(
+    _sensor: *mut carla_sensor_t,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_sensor_is_listening(_sensor: *const carla_sensor_t) -> bool {
+    false
+}
+
+pub unsafe extern "C" fn carla_sensor_get_calibration_data(
+    _sensor: *const carla_sensor_t,
+) -> carla_sensor_calibration_data_t {
+    std::ptr::null_mut()
+}
+
+pub unsafe extern "C" fn carla_sensor_set_attribute(
+    _sensor: *mut carla_sensor_t,
+    _key: *const std::ffi::c_char,
+    _value: *const std::ffi::c_char,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_sensor_get_attribute(
+    _sensor: *const carla_sensor_t,
+    _key: *const std::ffi::c_char,
+) -> *mut std::ffi::c_char {
+    std::ptr::null_mut()
+}
+
 pub unsafe extern "C" fn carla_actor_attach_to(
     _actor: *mut carla_sys::carla_actor_t,
     _other: *mut carla_sys::carla_actor_t,
@@ -264,6 +304,12 @@ pub const carla_sensor_data_type_t_CARLA_SENSOR_DATA_DVS_EVENTS:
 pub const carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW:
     carla_sys::carla_sensor_data_type_t = 998;
 
+// Sensor-specific C API placeholder types
+pub type carla_sensor_t = carla_sys::carla_actor_t;
+pub type carla_sensor_callback_t =
+    unsafe extern "C" fn(*mut carla_sys::carla_sensor_data_t, *mut std::ffi::c_void);
+pub type carla_sensor_calibration_data_t = *mut std::ffi::c_void;
+
 // Actor type checking functions (needed for conversion methods)
 pub unsafe extern "C" fn carla_actor_is_walker(_actor: *const carla_sys::carla_actor_t) -> bool {
     // TODO: Implement when C API is available
@@ -281,6 +327,12 @@ pub unsafe extern "C" fn carla_actor_is_traffic_light(
 pub unsafe extern "C" fn carla_actor_is_traffic_sign(
     _actor: *const carla_sys::carla_actor_t,
 ) -> bool {
+    // TODO: Implement when C API is available
+    // For now, check based on type ID string comparison
+    false
+}
+
+pub unsafe extern "C" fn carla_actor_is_sensor(_actor: *const carla_sys::carla_actor_t) -> bool {
     // TODO: Implement when C API is available
     // For now, check based on type ID string comparison
     false
