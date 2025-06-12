@@ -1,12 +1,12 @@
-use crate::utils::check_carla_error;
+use super::{Actor, ActorBase};
+use crate::{geom::Transform, utils::check_carla_error};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 
 /// A vehicle actor in the CARLA simulation.
+/// This is a newtype wrapper around Actor that provides vehicle-specific functionality.
 #[derive(Debug)]
-pub struct Vehicle {
-    pub(crate) inner: *mut carla_vehicle_t,
-}
+pub struct Vehicle(pub Actor);
 
 impl Vehicle {
     /// Create a Vehicle from a raw C pointer.
@@ -23,76 +23,83 @@ impl Vehicle {
             return Err(anyhow!("Actor is not a vehicle"));
         }
 
-        Ok(Self { inner: ptr })
+        // Create the base Actor first
+        let actor = Actor::from_raw_ptr(ptr as *mut carla_actor_t)?;
+        Ok(Self(actor))
     }
 
-    /// Try to create a Vehicle from an Actor.
-    pub fn from_actor(actor: &super::Actor) -> Option<Self> {
-        let vehicle_ptr = unsafe { carla_actor_as_vehicle(actor.raw_ptr()) };
-        if vehicle_ptr.is_null() {
-            None
-        } else {
-            Self::from_raw_ptr(vehicle_ptr).ok()
-        }
+    /// Convert this Vehicle back into a generic Actor.
+    pub fn into_actor(self) -> Actor {
+        self.0
+    }
+
+    /// Get access to the underlying Actor.
+    pub fn actor(&self) -> &Actor {
+        &self.0
+    }
+
+    /// Get mutable access to the underlying Actor.
+    pub fn actor_mut(&mut self) -> &mut Actor {
+        &mut self.0
     }
 
     pub(crate) fn raw_ptr(&self) -> *mut carla_vehicle_t {
-        self.inner
+        self.0.inner as *mut carla_vehicle_t
     }
 
     /// Apply vehicle control (throttle, brake, steering, etc.)
     pub fn apply_control(&mut self, control: &VehicleControl) -> Result<()> {
         let c_control = control.to_c_control();
-        let error = unsafe { carla_vehicle_apply_control(self.inner, &c_control) };
+        let error = unsafe { carla_vehicle_apply_control(self.raw_ptr(), &c_control) };
         check_carla_error(error)
     }
 
     /// Apply Ackermann vehicle control (more precise steering model)
     pub fn apply_ackermann_control(&mut self, control: &VehicleAckermannControl) -> Result<()> {
         let c_control = control.to_c_control();
-        let error = unsafe { carla_vehicle_apply_ackermann_control(self.inner, &c_control) };
+        let error = unsafe { carla_vehicle_apply_ackermann_control(self.raw_ptr(), &c_control) };
         check_carla_error(error)
     }
 
     /// Get current vehicle control state
     pub fn control(&self) -> VehicleControl {
-        let c_control = unsafe { carla_vehicle_get_control(self.inner) };
+        let c_control = unsafe { carla_vehicle_get_control(self.raw_ptr()) };
         VehicleControl::from_c_control(c_control)
     }
 
     /// Enable or disable autopilot on a specific Traffic Manager port
     pub fn set_autopilot(&mut self, enabled: bool, tm_port: u16) -> Result<()> {
-        let error = unsafe { carla_vehicle_set_autopilot(self.inner, enabled, tm_port) };
+        let error = unsafe { carla_vehicle_set_autopilot(self.raw_ptr(), enabled, tm_port) };
         check_carla_error(error)
     }
 
     /// Enable or disable autopilot on the default Traffic Manager port
     pub fn set_autopilot_default(&mut self, enabled: bool) -> Result<()> {
-        let error = unsafe { carla_vehicle_set_autopilot_default_port(self.inner, enabled) };
+        let error = unsafe { carla_vehicle_set_autopilot_default_port(self.raw_ptr(), enabled) };
         check_carla_error(error)
     }
 
     /// Set vehicle light state (headlights, brake lights, etc.)
     pub fn set_light_state(&mut self, light_state: VehicleLightState) -> Result<()> {
-        let error = unsafe { carla_vehicle_set_light_state(self.inner, light_state.bits()) };
+        let error = unsafe { carla_vehicle_set_light_state(self.raw_ptr(), light_state.bits()) };
         check_carla_error(error)
     }
 
     /// Get current vehicle light state
     pub fn light_state(&self) -> VehicleLightState {
-        let state = unsafe { carla_vehicle_get_light_state(self.inner) };
+        let state = unsafe { carla_vehicle_get_light_state(self.raw_ptr()) };
         VehicleLightState::from_bits_truncate(state)
     }
 
     /// Open a vehicle door (CARLA 0.10.0 feature)
     pub fn open_door(&mut self, door: VehicleDoor) -> Result<()> {
-        let error = unsafe { carla_vehicle_open_door(self.inner, door as u32) };
+        let error = unsafe { carla_vehicle_open_door(self.raw_ptr(), door as u32) };
         check_carla_error(error)
     }
 
     /// Close a vehicle door (CARLA 0.10.0 feature)
     pub fn close_door(&mut self, door: VehicleDoor) -> Result<()> {
-        let error = unsafe { carla_vehicle_close_door(self.inner, door as u32) };
+        let error = unsafe { carla_vehicle_close_door(self.raw_ptr(), door as u32) };
         check_carla_error(error)
     }
 
@@ -103,14 +110,14 @@ impl Vehicle {
         angle_degrees: f32,
     ) -> Result<()> {
         let error = unsafe {
-            carla_vehicle_set_wheel_steer_direction(self.inner, wheel as u32, angle_degrees)
+            carla_vehicle_set_wheel_steer_direction(self.raw_ptr(), wheel as u32, angle_degrees)
         };
         check_carla_error(error)
     }
 
     /// Get wheel steering angle
     pub fn wheel_steer_angle(&self, wheel: VehicleWheelLocation) -> f32 {
-        unsafe { carla_vehicle_get_wheel_steer_angle(self.inner, wheel as u32) }
+        unsafe { carla_vehicle_get_wheel_steer_angle(self.raw_ptr(), wheel as u32) }
     }
 
     /// Apply Ackermann controller settings
@@ -119,36 +126,37 @@ impl Vehicle {
         settings: &AckermannControllerSettings,
     ) -> Result<()> {
         let c_settings = settings.to_c_settings();
-        let error =
-            unsafe { carla_vehicle_apply_ackermann_controller_settings(self.inner, &c_settings) };
+        let error = unsafe {
+            carla_vehicle_apply_ackermann_controller_settings(self.raw_ptr(), &c_settings)
+        };
         check_carla_error(error)
     }
 
     /// Get Ackermann controller settings
     pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
-        let c_settings = unsafe { carla_vehicle_get_ackermann_controller_settings(self.inner) };
+        let c_settings = unsafe { carla_vehicle_get_ackermann_controller_settings(self.raw_ptr()) };
         AckermannControllerSettings::from_c_settings(c_settings)
     }
 
     /// Get current speed limit
     pub fn speed_limit(&self) -> f32 {
-        unsafe { carla_vehicle_get_speed_limit(self.inner) }
+        unsafe { carla_vehicle_get_speed_limit(self.raw_ptr()) }
     }
 
     /// Get traffic light state affecting this vehicle
     pub fn traffic_light_state(&self) -> TrafficLightState {
-        let state = unsafe { carla_vehicle_get_traffic_light_state(self.inner) };
+        let state = unsafe { carla_vehicle_get_traffic_light_state(self.raw_ptr()) };
         TrafficLightState::from_c_state(state)
     }
 
     /// Check if vehicle is at a traffic light
     pub fn is_at_traffic_light(&self) -> bool {
-        unsafe { carla_vehicle_is_at_traffic_light(self.inner) }
+        unsafe { carla_vehicle_is_at_traffic_light(self.raw_ptr()) }
     }
 
     /// Get the traffic light affecting this vehicle
     pub fn traffic_light(&self) -> Option<super::Actor> {
-        let actor_ptr = unsafe { carla_vehicle_get_traffic_light(self.inner) };
+        let actor_ptr = unsafe { carla_vehicle_get_traffic_light(self.raw_ptr()) };
         if actor_ptr.is_null() {
             None
         } else {
@@ -158,14 +166,37 @@ impl Vehicle {
 
     /// Get vehicle failure state
     pub fn failure_state(&self) -> VehicleFailureState {
-        let state = unsafe { carla_vehicle_get_failure_state(self.inner) };
+        let state = unsafe { carla_vehicle_get_failure_state(self.raw_ptr()) };
         VehicleFailureState::from_c_state(state)
     }
 
     /// Enable or disable debug telemetry display
     pub fn show_debug_telemetry(&mut self, enabled: bool) -> Result<()> {
-        let error = unsafe { carla_vehicle_show_debug_telemetry(self.inner, enabled) };
+        let error = unsafe { carla_vehicle_show_debug_telemetry(self.raw_ptr(), enabled) };
         check_carla_error(error)
+    }
+}
+
+// Implement ActorBase trait for Vehicle
+impl ActorBase for Vehicle {
+    fn raw_ptr(&self) -> *mut carla_actor_t {
+        self.0.raw_ptr()
+    }
+
+    fn id(&self) -> u32 {
+        self.0.id()
+    }
+
+    fn type_id(&self) -> String {
+        self.0.type_id()
+    }
+
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
     }
 }
 

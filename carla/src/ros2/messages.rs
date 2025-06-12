@@ -4,7 +4,8 @@
 
 use crate::{
     geom::{Transform, Vector3D},
-    sensor::data::{Image, LidarMeasurement},
+    // TODO: Temporarily disabled for Phase 5.1
+    // sensor::data::{Image, LidarMeasurement},
 };
 use anyhow::Result;
 
@@ -137,29 +138,30 @@ pub trait ToRos2Message {
     fn to_ros2_message(&self, frame_id: &str) -> Result<Self::Output>;
 }
 
-impl ToRos2Message for Image {
-    type Output = ImageMsg;
-
-    fn to_ros2_message(&self, frame_id: &str) -> Result<Self::Output> {
-        // TODO: Implement Image to ROS2 ImageMsg conversion:
-        // - Extract image data from CARLA Image
-        // - Set appropriate encoding (rgb8, bgr8, mono8, etc.)
-        // - Create proper ROS2 header with timestamp
-        todo!("Convert CARLA Image to ROS2 sensor_msgs/Image")
-    }
-}
-
-impl ToRos2Message for LidarMeasurement {
-    type Output = PointCloud2;
-
-    fn to_ros2_message(&self, frame_id: &str) -> Result<Self::Output> {
-        // TODO: Implement LidarMeasurement to ROS2 PointCloud2 conversion:
-        // - Extract point cloud data from CARLA LidarMeasurement
-        // - Set appropriate PointField definitions
-        // - Pack data according to ROS2 PointCloud2 format
-        todo!("Convert CARLA LidarMeasurement to ROS2 sensor_msgs/PointCloud2")
-    }
-}
+// TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
+// impl ToRos2Message for Image {
+//     type Output = ImageMsg;
+//
+//     fn to_ros2_message(&self, frame_id: &str) -> Result<Self::Output> {
+//         // TODO: Implement Image to ROS2 ImageMsg conversion:
+//         // - Extract image data from CARLA Image
+//         // - Set appropriate encoding (rgb8, bgr8, mono8, etc.)
+//         // - Create proper ROS2 header with timestamp
+//         todo!("Convert CARLA Image to ROS2 sensor_msgs/Image")
+//     }
+// }
+//
+// impl ToRos2Message for LidarMeasurement {
+//     type Output = PointCloud2;
+//
+//     fn to_ros2_message(&self, frame_id: &str) -> Result<Self::Output> {
+//         // TODO: Implement LidarMeasurement to ROS2 PointCloud2 conversion:
+//         // - Extract point cloud data from CARLA LidarMeasurement
+//         // - Set appropriate PointField definitions
+//         // - Pack data according to ROS2 PointCloud2 format
+//         todo!("Convert CARLA LidarMeasurement to ROS2 sensor_msgs/PointCloud2")
+//     }
+// }
 
 impl ToRos2Message for Transform {
     type Output = TransformMsg;

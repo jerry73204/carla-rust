@@ -13,29 +13,19 @@ pub use sensor_data::*;
 // Merge functionality from sensor_legacy
 mod legacy_data;
 
+// TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
 // Re-export all sensor data types (prefer new data types, supplement with legacy)
-pub use data::{
-    CollisionEvent, DvsEvent, DvsEventArray, GnssMeasurement as GnssData, Image,
-    ImuMeasurement as ImuData, LaneInvasionEvent, LidarMeasurement as LidarData,
-    ObstacleDetectionEvent, OpticalFlow as OpticalFlowImage, OpticalFlowPixel,
-    RadarMeasurement as RadarData,
-};
+// pub use data::{
+//     CollisionEvent, DvsEvent, DvsEventArray, GnssMeasurement as GnssData, Image,
+//     ImuMeasurement as ImuData, LaneInvasionEvent, LidarMeasurement as LidarData,
+//     ObstacleDetectionEvent, OpticalFlow as OpticalFlowImage, OpticalFlowPixel,
+//     RadarMeasurement as RadarData,
+// };
 
 // Re-export additional types from legacy data module that aren't in the new data module
 pub use legacy_data::{
-    DvsAnalysis,
-    GnssData as LegacyGnssData,
-    ImageData,
-    ImageRegionOfInterest,
-    ImuData as LegacyImuData,
-    // Re-export legacy versions with different names to avoid conflicts
-    LidarData as LegacyLidarData,
-    LidarPoint,
-    OpticalFlowAnalysis,
-    RadarData as LegacyRadarData,
-    RadarDetection,
-    SemanticLidarData,
-    SemanticLidarPoint,
+    DvsAnalysis, GnssData, ImageData, ImageRegionOfInterest, ImuData, LidarData, LidarPoint,
+    OpticalFlowAnalysis, RadarData, RadarDetection, SemanticLidarData, SemanticLidarPoint,
 };
 
 // TODO: Define SensorDataType when sensor type system is finalized
@@ -43,7 +33,9 @@ pub type SensorDataType = u32;
 
 // Sensor management
 use crate::{
-    geom::TransformExt, stubs::carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW,
+    client::{Actor, ActorBase},
+    geom::{Transform, TransformExt},
+    stubs::carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW,
     utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
@@ -55,16 +47,16 @@ use std::{
 };
 
 /// A sensor actor in the CARLA simulation.
-pub struct Sensor {
-    pub(crate) inner: *mut carla_sensor_t,
-    // Keep track of callbacks to prevent them from being dropped
-    _callback_data: Arc<Mutex<Option<Box<dyn FnMut(SensorData) + Send + 'static>>>>,
-}
+/// This is a newtype wrapper around Actor that provides sensor-specific functionality.
+pub struct Sensor(
+    pub Actor,
+    Arc<Mutex<Option<Box<dyn FnMut(SensorData) + Send + 'static>>>>,
+);
 
 impl std::fmt::Debug for Sensor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Sensor")
-            .field("inner", &self.inner)
+            .field("actor", &self.0)
             .field("_callback_data", &"<callback>")
             .finish()
     }
@@ -85,40 +77,28 @@ impl Sensor {
             return Err(anyhow!("Actor is not a sensor"));
         }
 
-        Ok(Self {
-            inner: ptr,
-            _callback_data: Arc::new(Mutex::new(None)),
-        })
+        // Create the base Actor first
+        let actor = Actor::from_raw_ptr(ptr as *mut carla_actor_t)?;
+        Ok(Self(actor, Arc::new(Mutex::new(None))))
     }
 
-    /// Get the sensor's unique ID.
-    pub fn id(&self) -> u32 {
-        unsafe { carla_actor_get_id(self.inner as *const carla_actor_t) }
+    /// Convert this Sensor back into a generic Actor.
+    pub fn into_actor(self) -> Actor {
+        self.0
     }
 
-    /// Get the sensor's type ID.
-    pub fn type_id(&self) -> String {
-        let type_id_ptr = unsafe { carla_actor_get_type_id(self.inner as *const carla_actor_t) };
-        unsafe { crate::utils::c_string_to_rust(type_id_ptr) }
+    /// Get access to the underlying Actor.
+    pub fn actor(&self) -> &Actor {
+        &self.0
     }
 
-    /// Get the sensor's current transform.
-    pub fn get_transform(&self) -> crate::geom::Transform {
-        let c_transform = unsafe { carla_actor_get_transform(self.inner as *const carla_actor_t) };
-        crate::geom::Transform::from_c_transform(c_transform)
+    /// Get mutable access to the underlying Actor.
+    pub fn actor_mut(&mut self) -> &mut Actor {
+        &mut self.0
     }
 
-    /// Set the sensor's transform.
-    pub fn set_transform(&self, transform: &crate::geom::Transform) -> Result<()> {
-        let c_transform = transform.to_c_transform();
-        let error =
-            unsafe { carla_actor_set_transform(self.inner as *mut carla_actor_t, &c_transform) };
-        check_carla_error(error)
-    }
-
-    /// Check if the sensor is still alive in the simulation.
-    pub fn is_alive(&self) -> bool {
-        unsafe { carla_actor_is_alive(self.inner as *const carla_actor_t) }
+    pub(crate) fn raw_sensor_ptr(&self) -> *mut carla_sensor_t {
+        self.0.inner as *mut carla_sensor_t
     }
 
     /// Start listening for sensor data with a callback.
@@ -127,21 +107,20 @@ impl Sensor {
         F: FnMut(SensorData) + Send + 'static,
     {
         // TODO: Implement sensor callback registration when C API is available
-        *self._callback_data.lock().unwrap() = Some(Box::new(callback));
+        *self.1.lock().unwrap() = Some(Box::new(callback));
         todo!("Sensor listening not yet implemented in C API")
     }
 
     /// Stop listening for sensor data.
     pub fn stop(&mut self) -> Result<()> {
         // TODO: Implement sensor callback deregistration when C API is available
-        *self._callback_data.lock().unwrap() = None;
+        *self.1.lock().unwrap() = None;
         todo!("Sensor stop not yet implemented in C API")
     }
 
     /// Destroy this sensor.
     pub fn destroy(self) -> Result<()> {
-        let error = unsafe { carla_actor_destroy(self.inner as *mut carla_actor_t) };
-        check_carla_error(error)
+        self.0.destroy()
     }
 
     // TODO: Add more sensor management methods:
@@ -151,9 +130,33 @@ impl Sensor {
     // - Sensor-specific configuration methods
 }
 
-pub mod data;
-pub mod fusion;
+// Implement ActorBase trait for Sensor
+impl ActorBase for Sensor {
+    fn raw_ptr(&self) -> *mut carla_actor_t {
+        self.0.raw_ptr()
+    }
+
+    fn id(&self) -> u32 {
+        self.0.id()
+    }
+
+    fn type_id(&self) -> String {
+        self.0.type_id()
+    }
+
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
+    }
+}
+
+// TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
+// pub mod data;
+// pub mod fusion;
 // TODO: Re-enable when C API types are available
 // pub mod image_analysis;
-pub mod lidar_analysis;
+// pub mod lidar_analysis;
 // pub mod motion;

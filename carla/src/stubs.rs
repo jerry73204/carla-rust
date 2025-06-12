@@ -210,3 +210,17 @@ pub const carla_sensor_data_type_t_CARLA_SENSOR_DATA_DVS_EVENTS:
     carla_sys::carla_sensor_data_type_t = 999;
 pub const carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW:
     carla_sys::carla_sensor_data_type_t = 998;
+
+// Actor type checking functions (needed for conversion methods)
+pub unsafe extern "C" fn carla_actor_is_walker(actor: *const carla_sys::carla_actor_t) -> bool {
+    // TODO: Implement when C API is available
+    false
+}
+
+// Missing actor functions
+pub unsafe extern "C" fn carla_actor_get_parent(
+    actor: *const carla_sys::carla_actor_t,
+) -> *mut carla_sys::carla_actor_t {
+    // TODO: Implement when C API is available
+    std::ptr::null_mut()
+}

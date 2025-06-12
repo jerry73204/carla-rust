@@ -1,17 +1,21 @@
+use crate::geom::Transform;
 use carla_sys::*;
 
-/// This trait defines a basic actor in the simulation. It is
-/// implemented on all actor type variants.
-pub trait ActorBase: Clone {
+/// Common interface for all actor types.
+/// This trait provides polymorphic operations on actors regardless of their specific type.
+pub trait ActorBase {
     /// Get the raw C pointer to the actor.
     fn raw_ptr(&self) -> *mut carla_actor_t;
 
-    // TODO: Uncomment and implement when full actor system is migrated
-    // fn into_actor(self) -> Result<Actor> {
-    //     Actor::from_raw_ptr(self.raw_ptr())
-    // }
+    /// Get the actor's unique ID.
+    fn id(&self) -> u32;
 
-    // fn id(&self) -> ActorId {
-    //     unsafe { carla_actor_get_id(self.raw_ptr()) }
-    // }
+    /// Get the actor's type ID (e.g., "vehicle.tesla.model3").
+    fn type_id(&self) -> String;
+
+    /// Get the actor's current transform (location and rotation).
+    fn get_transform(&self) -> Transform;
+
+    /// Check if the actor is still alive in the simulation.
+    fn is_alive(&self) -> bool;
 }

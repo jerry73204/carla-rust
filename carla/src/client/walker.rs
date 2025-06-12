@@ -1,60 +1,57 @@
-use super::ActorBase;
+use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
+    stubs::{carla_actor_is_walker, carla_walker_control_t},
     utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 
-use crate::stubs::carla_walker_control_t;
 use std::ptr;
 
 /// A walker (pedestrian) actor in the simulation.
+/// This is a newtype wrapper around Actor that provides walker-specific functionality.
 #[derive(Clone, Debug)]
-pub struct Walker {
-    pub(crate) inner: *mut carla_actor_t,
-}
+pub struct Walker(pub Actor);
 
 impl Walker {
     /// Create a Walker from a raw C pointer.
     ///
     /// # Safety
-    /// The pointer must be valid and not null.
+    /// The pointer must be valid and not null, and must point to a walker actor.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
         if ptr.is_null() {
             return Err(anyhow!("Null walker pointer"));
         }
-        Ok(Self { inner: ptr })
+
+        // Verify it's actually a walker
+        if !unsafe { carla_actor_is_walker(ptr) } {
+            return Err(anyhow!("Actor is not a walker"));
+        }
+
+        // Create the base Actor first
+        let actor = Actor::from_raw_ptr(ptr)?;
+        Ok(Self(actor))
     }
 
-    /// Get the walker's unique ID.
-    pub fn id(&self) -> u32 {
-        unsafe { carla_actor_get_id(self.inner) }
+    /// Convert this Walker back into a generic Actor.
+    pub fn into_actor(self) -> Actor {
+        self.0
     }
 
-    /// Get the walker's type ID.
-    pub fn type_id(&self) -> String {
-        let type_id_ptr = unsafe { carla_actor_get_type_id(self.inner) };
-        unsafe { crate::utils::c_string_to_rust(type_id_ptr) }
+    /// Get access to the underlying Actor.
+    pub fn actor(&self) -> &Actor {
+        &self.0
     }
 
-    /// Get the walker's current transform.
-    pub fn get_transform(&self) -> Transform {
-        let c_transform = unsafe { carla_actor_get_transform(self.inner) };
-        Transform::from_c_transform(c_transform)
-    }
-
-    /// Set the walker's transform.
-    pub fn set_transform(&self, transform: &Transform) -> Result<()> {
-        let c_transform = transform.to_c_transform();
-        let error = unsafe { carla_actor_set_transform(self.inner, &c_transform) };
-        check_carla_error(error)
+    /// Get mutable access to the underlying Actor.
+    pub fn actor_mut(&mut self) -> &mut Actor {
+        &mut self.0
     }
 
     /// Get the walker's current velocity.
     pub fn get_velocity(&self) -> Vector3D {
-        let c_velocity = unsafe { carla_actor_get_velocity(self.inner) };
-        Vector3D::from_c_vector(c_velocity)
+        self.0.get_velocity()
     }
 
     /// Apply control to the walker.
@@ -63,15 +60,9 @@ impl Walker {
         todo!("Walker control not yet implemented in C API")
     }
 
-    /// Check if the walker is still alive in the simulation.
-    pub fn is_alive(&self) -> bool {
-        unsafe { carla_actor_is_alive(self.inner) }
-    }
-
     /// Destroy this walker.
     pub fn destroy(self) -> Result<()> {
-        let error = unsafe { carla_actor_destroy(self.inner) };
-        check_carla_error(error)
+        self.0.destroy()
     }
 
     // TODO: Add methods for:
@@ -142,22 +133,31 @@ impl WalkerControl {
     }
 }
 
+// Implement ActorBase trait for Walker
 impl ActorBase for Walker {
     fn raw_ptr(&self) -> *mut carla_actor_t {
-        self.inner
+        self.0.raw_ptr()
+    }
+
+    fn id(&self) -> u32 {
+        self.0.id()
+    }
+
+    fn type_id(&self) -> String {
+        self.0.type_id()
+    }
+
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
     }
 }
 
-impl Drop for Walker {
-    fn drop(&mut self) {
-        if !self.inner.is_null() {
-            unsafe {
-                carla_actor_destroy(self.inner);
-            }
-            self.inner = ptr::null_mut();
-        }
-    }
-}
+// Note: Walker doesn't implement Drop because it's a newtype wrapper around Actor,
+// and the underlying carla_actor_t will be freed when the Actor is dropped
 
 // SAFETY: Walker wraps a thread-safe C API
 unsafe impl Send for Walker {}

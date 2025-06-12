@@ -1,12 +1,13 @@
-use super::ActorBase;
+use super::{ActorBase, Vehicle, Walker};
 use crate::{
-    geom::{Transform, Vector3D},
+    geom::{Transform, TransformExt, Vector3D, Vector3DExt},
+    sensor::Sensor,
+    stubs::{carla_actor_get_parent, carla_actor_is_walker, carla_attachment_type_t},
     utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 
-use crate::stubs::carla_attachment_type_t;
 use std::ptr;
 
 /// A base actor that represents a movable object in the simulation,
@@ -17,11 +18,6 @@ pub struct Actor {
 }
 
 impl Actor {
-    // TODO: Implement actor classification when ActorKind and specific actor types are ready
-    // pub fn into_kinds(self) -> ActorKind {
-    //     // Classification logic will be implemented when specific actor types are ready
-    // }
-
     /// Create an Actor from a raw C pointer.
     ///
     /// # Safety
@@ -31,6 +27,93 @@ impl Actor {
             return Err(anyhow!("Null actor pointer"));
         }
         Ok(Self { inner: ptr })
+    }
+
+    /// Try to convert this Actor into a Vehicle.
+    /// Returns Ok(Vehicle) if successful, or Err(Actor) if the conversion fails.
+    pub fn try_into_vehicle(self) -> Result<Vehicle, Self> {
+        if unsafe { carla_actor_is_vehicle(self.inner) } {
+            match Vehicle::from_raw_ptr(self.inner as *mut carla_vehicle_t) {
+                Ok(vehicle) => {
+                    // Prevent the Actor from being dropped since we're transferring ownership
+                    std::mem::forget(self);
+                    Ok(vehicle)
+                }
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Try to convert this Actor into a Walker.
+    /// Returns Ok(Walker) if successful, or Err(Actor) if the conversion fails.
+    pub fn try_into_walker(self) -> Result<Walker, Self> {
+        if unsafe { carla_actor_is_walker(self.inner) } {
+            match Walker::from_raw_ptr(self.inner) {
+                Ok(walker) => {
+                    // Prevent the Actor from being dropped since we're transferring ownership
+                    std::mem::forget(self);
+                    Ok(walker)
+                }
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Try to convert this Actor into a Sensor.
+    /// Returns Ok(Sensor) if successful, or Err(Actor) if the conversion fails.
+    pub fn try_into_sensor(self) -> Result<Sensor, Self> {
+        if unsafe { carla_actor_is_sensor(self.inner) } {
+            match Sensor::from_raw_ptr(self.inner as *mut carla_sensor_t) {
+                Ok(sensor) => {
+                    // Prevent the Actor from being dropped since we're transferring ownership
+                    std::mem::forget(self);
+                    Ok(sensor)
+                }
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Try to get a reference to this Actor as a Vehicle.
+    /// Returns Some if this actor is a vehicle, None otherwise.
+    pub fn as_vehicle(&self) -> Option<&Vehicle> {
+        if unsafe { carla_actor_is_vehicle(self.inner) } {
+            // SAFETY: We've verified this is a vehicle, and Vehicle is a newtype wrapper
+            // around Actor with the same memory layout
+            unsafe { Some(&*(self as *const Actor as *const Vehicle)) }
+        } else {
+            None
+        }
+    }
+
+    /// Try to get a reference to this Actor as a Walker.
+    /// Returns Some if this actor is a walker, None otherwise.
+    pub fn as_walker(&self) -> Option<&Walker> {
+        if unsafe { carla_actor_is_walker(self.inner) } {
+            // SAFETY: We've verified this is a walker, and Walker is a newtype wrapper
+            // around Actor with the same memory layout
+            unsafe { Some(&*(self as *const Actor as *const Walker)) }
+        } else {
+            None
+        }
+    }
+
+    /// Try to get a reference to this Actor as a Sensor.
+    /// Returns Some if this actor is a sensor, None otherwise.
+    pub fn as_sensor(&self) -> Option<&Sensor> {
+        if unsafe { carla_actor_is_sensor(self.inner) } {
+            // SAFETY: We've verified this is a sensor, and Sensor is a newtype wrapper
+            // around Actor with the same memory layout
+            unsafe { Some(&*(self as *const Actor as *const Sensor)) }
+        } else {
+            None
+        }
     }
 
     /// Get the actor's unique ID.
@@ -122,6 +205,22 @@ impl Actor {
 impl ActorBase for Actor {
     fn raw_ptr(&self) -> *mut carla_actor_t {
         self.inner
+    }
+
+    fn id(&self) -> u32 {
+        self.id()
+    }
+
+    fn type_id(&self) -> String {
+        self.type_id()
+    }
+
+    fn get_transform(&self) -> Transform {
+        self.get_transform()
+    }
+
+    fn is_alive(&self) -> bool {
+        self.is_alive()
     }
 }
 

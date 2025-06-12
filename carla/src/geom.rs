@@ -42,6 +42,8 @@ pub trait Vector3DExt {
     fn from_na(from: &Vector3<f32>) -> Self;
     /// Convert to a nalgebra vector.
     fn to_na(&self) -> Vector3<f32>;
+    /// Create from a C vector (identity operation since it's already a C struct).
+    fn from_c_vector(vector: carla_sys::carla_vector3d_t) -> Self;
 }
 
 impl Vector3DExt for Vector3D {
@@ -56,6 +58,10 @@ impl Vector3DExt for Vector3D {
     fn to_na(&self) -> Vector3<f32> {
         let Self { x, y, z } = *self;
         Vector3::new(x, y, z)
+    }
+
+    fn from_c_vector(vector: carla_sys::carla_vector3d_t) -> Self {
+        vector
     }
 }
 

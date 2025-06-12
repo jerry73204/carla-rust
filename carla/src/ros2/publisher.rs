@@ -1,6 +1,7 @@
 use super::CarlaRos2Node;
 use crate::{
-    sensor::data::{Image, LidarMeasurement},
+    // TODO: Temporarily disabled for Phase 5.1
+    // sensor::data::{Image, LidarMeasurement},
     stubs::carla_ros2_publisher_t,
 };
 use anyhow::Result;
@@ -36,45 +37,46 @@ impl<T> Ros2Publisher<T> {
     }
 }
 
-/// Specialized publisher for camera images.
-impl Ros2Publisher<Image> {
-    /// Create a camera image publisher.
-    pub fn new_image_publisher(
-        node: &CarlaRos2Node,
-        topic_name: &str,
-        qos_profile: QosProfile,
-    ) -> Result<Self> {
-        Self::new(node, topic_name, qos_profile)
-    }
-
-    /// Publish a camera image as sensor_msgs/Image.
-    pub fn publish_image(&self, _image: &Image) -> Result<()> {
-        // TODO: Implement image publishing using C API:
-        // - carla_ros2_publish_image()
-        // - Convert CARLA image to ROS2 sensor_msgs/Image
-        todo!("Implement camera image publishing to ROS2")
-    }
-}
-
-/// Specialized publisher for LiDAR point clouds.
-impl Ros2Publisher<LidarMeasurement> {
-    /// Create a LiDAR point cloud publisher.
-    pub fn new_pointcloud_publisher(
-        node: &CarlaRos2Node,
-        topic_name: &str,
-        qos_profile: QosProfile,
-    ) -> Result<Self> {
-        Self::new(node, topic_name, qos_profile)
-    }
-
-    /// Publish LiDAR data as sensor_msgs/PointCloud2.
-    pub fn publish_pointcloud(&self, _lidar: &LidarMeasurement) -> Result<()> {
-        // TODO: Implement point cloud publishing using C API:
-        // - carla_ros2_publish_pointcloud()
-        // - Convert CARLA LiDAR to ROS2 sensor_msgs/PointCloud2
-        todo!("Implement LiDAR point cloud publishing to ROS2")
-    }
-}
+// TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
+// /// Specialized publisher for camera images.
+// impl Ros2Publisher<Image> {
+//     /// Create a camera image publisher.
+//     pub fn new_image_publisher(
+//         node: &CarlaRos2Node,
+//         topic_name: &str,
+//         qos_profile: QosProfile,
+//     ) -> Result<Self> {
+//         Self::new(node, topic_name, qos_profile)
+//     }
+//
+//     /// Publish a camera image as sensor_msgs/Image.
+//     pub fn publish_image(&self, _image: &Image) -> Result<()> {
+//         // TODO: Implement image publishing using C API:
+//         // - carla_ros2_publish_image()
+//         // - Convert CARLA image to ROS2 sensor_msgs/Image
+//         todo!("Implement camera image publishing to ROS2")
+//     }
+// }
+//
+// /// Specialized publisher for LiDAR point clouds.
+// impl Ros2Publisher<LidarMeasurement> {
+//     /// Create a LiDAR point cloud publisher.
+//     pub fn new_pointcloud_publisher(
+//         node: &CarlaRos2Node,
+//         topic_name: &str,
+//         qos_profile: QosProfile,
+//     ) -> Result<Self> {
+//         Self::new(node, topic_name, qos_profile)
+//     }
+//
+//     /// Publish LiDAR data as sensor_msgs/PointCloud2.
+//     pub fn publish_pointcloud(&self, _lidar: &LidarMeasurement) -> Result<()> {
+//         // TODO: Implement point cloud publishing using C API:
+//         // - carla_ros2_publish_pointcloud()
+//         // - Convert CARLA LiDAR to ROS2 sensor_msgs/PointCloud2
+//         todo!("Implement LiDAR point cloud publishing to ROS2")
+//     }
+// }
 
 /// ROS2 Quality of Service profile.
 #[derive(Debug, Clone)]

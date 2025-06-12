@@ -55,9 +55,24 @@ pub use walker::{Walker, WalkerControl};
 pub use world::*;
 
 // Re-export sensor types from unified sensor module
+// TODO: Some types temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
 pub use crate::sensor::{
-    CollisionEvent, DvsAnalysis, DvsEvent, DvsEventArray, GnssData, ImageData,
-    ImageRegionOfInterest, ImuData, LaneInvasionEvent, LidarData, LidarPoint,
-    ObstacleDetectionEvent, OpticalFlowAnalysis, OpticalFlowImage, OpticalFlowPixel, RadarData,
-    RadarDetection, SemanticLidarData, SemanticLidarPoint, Sensor, SensorData, SensorDataType,
+    // CollisionEvent, DvsEvent, DvsEventArray, - temporarily disabled
+    DvsAnalysis,
+    GnssData,
+    ImageData,
+    ImageRegionOfInterest,
+    ImuData,
+    // LaneInvasionEvent, ObstacleDetectionEvent, - temporarily disabled
+    LidarData,
+    LidarPoint,
+    OpticalFlowAnalysis,
+    // OpticalFlowImage, OpticalFlowPixel, - temporarily disabled
+    RadarData,
+    RadarDetection,
+    SemanticLidarData,
+    SemanticLidarPoint,
+    Sensor,
+    SensorData,
+    SensorDataType,
 };
