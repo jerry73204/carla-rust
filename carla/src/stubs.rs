@@ -362,3 +362,20 @@ pub unsafe fn carla_actor_destroy_checked(
     carla_sys::carla_actor_destroy(actor);
     carla_sys::carla_error_t_CARLA_ERROR_NONE
 }
+
+// Blueprint C API placeholder functions
+pub unsafe extern "C" fn carla_actor_blueprint_get_attribute(
+    _blueprint: *const carla_sys::carla_actor_blueprint_t,
+    _attribute_id: *const std::ffi::c_char,
+) -> *mut std::ffi::c_char {
+    // TODO: Implement when C API is available
+    std::ptr::null_mut()
+}
+
+pub unsafe extern "C" fn carla_actor_blueprint_has_attribute(
+    _blueprint: *const carla_sys::carla_actor_blueprint_t,
+    _attribute_id: *const std::ffi::c_char,
+) -> bool {
+    // TODO: Implement when C API is available
+    false
+}
