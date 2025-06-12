@@ -24,6 +24,11 @@ pub struct carla_lane_invasion_event_data_t {
 // Walker types
 pub type carla_walker_control_t = carla_sys::carla_vehicle_control_t;
 
+// Walker-specific C API placeholder types
+pub type carla_walker_t = carla_sys::carla_actor_t;
+pub type carla_walker_ai_controller_t = *mut std::ffi::c_void;
+pub type carla_walker_state_t = u32; // Placeholder for walker state
+
 // Actor types
 pub type carla_attachment_type_t = u32;
 
@@ -75,6 +80,54 @@ pub unsafe extern "C" fn carla_walker_apply_control(
     _control: *const carla_walker_control_t,
 ) -> carla_sys::carla_error_t {
     carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_walker_get_control(
+    _walker: *const carla_walker_t,
+) -> carla_walker_control_t {
+    // TODO: Implement real walker control retrieval when C API is available
+    std::mem::zeroed()
+}
+
+pub unsafe extern "C" fn carla_walker_set_ai_controller(
+    _walker: *mut carla_walker_t,
+    _controller: *mut carla_walker_ai_controller_t,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_walker_get_ai_controller(
+    _walker: *const carla_walker_t,
+) -> *mut carla_walker_ai_controller_t {
+    std::ptr::null_mut()
+}
+
+pub unsafe extern "C" fn carla_walker_get_state(
+    _walker: *const carla_walker_t,
+) -> carla_walker_state_t {
+    0
+}
+
+pub unsafe extern "C" fn carla_walker_set_speed_limit(
+    _walker: *mut carla_walker_t,
+    _speed_limit: f32,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_walker_get_speed_limit(_walker: *const carla_walker_t) -> f32 {
+    1.4 // Default walking speed
+}
+
+pub unsafe extern "C" fn carla_walker_set_simulate_physics(
+    _walker: *mut carla_walker_t,
+    _enabled: bool,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_walker_is_simulate_physics(_walker: *const carla_walker_t) -> bool {
+    true
 }
 
 pub unsafe extern "C" fn carla_actor_attach_to(

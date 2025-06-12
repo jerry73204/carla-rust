@@ -58,7 +58,10 @@ pub use vehicle::{
     VehicleDamage, VehiclePhysicsControl, VehiclePhysicsControlAdvanced, VehicleSubsystem,
     VehicleTelemetryData, WheelPhysics, WheelPhysicsControl, WheelPosition,
 };
-pub use walker::{Walker, WalkerControl};
+pub use walker::{
+    AnimationMode, AnimationState, BoneTransform, Walker, WalkerAIController, WalkerBoneControl,
+    WalkerControl, WalkerState,
+};
 pub use world::*;
 
 // Re-export sensor types from unified sensor module
