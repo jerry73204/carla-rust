@@ -11,7 +11,7 @@ pub trait SensorDataBase {
 
     /// Gets the frame number of the data.
     fn frame(&self) -> usize {
-        unsafe { carla_sensor_data_get_frame(self.raw_ptr()) }
+        unsafe { carla_sensor_data_get_frame(self.raw_ptr()) as usize }
     }
 
     /// Gets the timestamp of the data.

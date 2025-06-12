@@ -2,7 +2,10 @@ use super::{ActorBase, Vehicle, Walker};
 use crate::{
     geom::{Transform, TransformExt, Vector3D, Vector3DExt},
     sensor::Sensor,
-    stubs::{carla_actor_get_parent, carla_actor_is_walker, carla_attachment_type_t},
+    stubs::{
+        carla_actor_destroy_checked, carla_actor_get_parent, carla_actor_is_walker,
+        carla_actor_set_transform_checked, carla_attachment_type_t,
+    },
     utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
@@ -124,13 +127,13 @@ impl Actor {
     /// Get the actor's type ID (e.g., "vehicle.tesla.model3").
     pub fn type_id(&self) -> String {
         let type_id_ptr = unsafe { carla_actor_get_type_id(self.inner) };
-        unsafe { crate::utils::c_string_to_rust(type_id_ptr) }
+        unsafe { crate::utils::c_string_to_rust(type_id_ptr) }.unwrap_or_default()
     }
 
     /// Get the actor's display ID for debugging.
     pub fn display_id(&self) -> String {
         let display_id_ptr = unsafe { carla_actor_get_display_id(self.inner) };
-        unsafe { crate::utils::c_string_to_rust(display_id_ptr) }
+        unsafe { crate::utils::c_string_to_rust(display_id_ptr) }.unwrap_or_default()
     }
 
     /// Get the actor's current transform (location and rotation).
@@ -142,7 +145,7 @@ impl Actor {
     /// Set the actor's transform.
     pub fn set_transform(&self, transform: &Transform) -> Result<()> {
         let c_transform = transform.to_c_transform();
-        let error = unsafe { carla_actor_set_transform(self.inner, &c_transform) };
+        let error = unsafe { carla_actor_set_transform_checked(self.inner, &c_transform) };
         check_carla_error(error)
     }
 
@@ -191,7 +194,7 @@ impl Actor {
 
     /// Destroy this actor.
     pub fn destroy(self) -> Result<()> {
-        let error = unsafe { carla_actor_destroy(self.inner) };
+        let error = unsafe { carla_actor_destroy_checked(self.inner) };
         check_carla_error(error)
     }
 
@@ -228,7 +231,7 @@ impl Drop for Actor {
     fn drop(&mut self) {
         if !self.inner.is_null() {
             unsafe {
-                carla_actor_destroy(self.inner);
+                carla_sys::carla_actor_destroy(self.inner);
             }
             self.inner = ptr::null_mut();
         }

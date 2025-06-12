@@ -229,11 +229,11 @@ pub mod conversion {
 
     /// Convert ROS2 coordinate system to CARLA (ROS to UE4).
     pub fn ros2_to_carla_coordinates(ros2_vec: Vector3) -> Vector3D {
-        Vector3D::new(
-            ros2_vec.x as f32,
-            -ros2_vec.y as f32, // Flip Y axis
-            ros2_vec.z as f32,
-        )
+        Vector3D {
+            x: ros2_vec.x as f32,
+            y: -ros2_vec.y as f32, // Flip Y axis
+            z: ros2_vec.z as f32,
+        }
     }
 }
 

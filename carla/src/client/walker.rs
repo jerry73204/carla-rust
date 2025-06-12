@@ -2,12 +2,9 @@ use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
     stubs::{carla_actor_is_walker, carla_walker_control_t},
-    utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
-
-use std::ptr;
 
 /// A walker (pedestrian) actor in the simulation.
 /// This is a newtype wrapper around Actor that provides walker-specific functionality.

@@ -212,15 +212,32 @@ pub const carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW:
     carla_sys::carla_sensor_data_type_t = 998;
 
 // Actor type checking functions (needed for conversion methods)
-pub unsafe extern "C" fn carla_actor_is_walker(actor: *const carla_sys::carla_actor_t) -> bool {
+pub unsafe extern "C" fn carla_actor_is_walker(_actor: *const carla_sys::carla_actor_t) -> bool {
     // TODO: Implement when C API is available
     false
 }
 
 // Missing actor functions
 pub unsafe extern "C" fn carla_actor_get_parent(
-    actor: *const carla_sys::carla_actor_t,
+    _actor: *const carla_sys::carla_actor_t,
 ) -> *mut carla_sys::carla_actor_t {
     // TODO: Implement when C API is available
     std::ptr::null_mut()
+}
+
+// Wrapper function to provide error handling for carla_actor_set_transform
+pub unsafe fn carla_actor_set_transform_checked(
+    actor: *mut carla_sys::carla_actor_t,
+    transform: *const carla_sys::carla_transform_t,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_actor_set_transform(actor, transform);
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+// Wrapper function to provide error handling for carla_actor_destroy
+pub unsafe fn carla_actor_destroy_checked(
+    actor: *mut carla_sys::carla_actor_t,
+) -> carla_sys::carla_error_t {
+    carla_sys::carla_actor_destroy(actor);
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
 }

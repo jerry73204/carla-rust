@@ -1,10 +1,7 @@
-use crate::{
-    geom::{Location, Transform, TransformExt},
-    utils::{c_string_to_rust, rust_string_to_c},
-};
+use crate::geom::Transform;
 use anyhow::{anyhow, Result};
 use carla_sys::*;
-use nalgebra::{Isometry3, Translation3, Vector3};
+use nalgebra::Translation3;
 use std::{ptr, time::Duration};
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
