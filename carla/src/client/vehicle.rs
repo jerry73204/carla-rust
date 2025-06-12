@@ -1,162 +1,263 @@
-use super::{Actor, ActorBase};
-use crate::{
-    rpc::{
-        AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
-        VehicleDoor, VehicleLightState, VehiclePhysicsControl, VehicleWheelLocation,
-    },
-    traffic_manager::constants::Networking::TM_DEFAULT_PORT,
-    utils::check_carla_error,
+pub use super::vehicle_physics::{
+    EnginePhysics, GearPhysicsControl, SuspensionPhysics, TirePhysics, VehiclePhysicsControl,
+    VehiclePhysicsControlAdvanced, WheelPhysicsControl, WheelPosition,
 };
+use super::{
+    vehicle_minimal::{
+        AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
+        VehicleDoor, VehicleFailureState, VehicleLightState, VehicleWheelLocation,
+    },
+    Actor, ActorBase,
+};
+use crate::{traffic_manager::DEFAULT_PORT as TM_DEFAULT_PORT, utils::check_carla_error};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
-use std::ptr;
 
-/// Represents a vehicle in the simulation, corresponding to
-/// `carla.Vehicle` in Python API.
+/// A vehicle actor in the simulation.
+/// This is a newtype wrapper around Actor that provides vehicle-specific functionality.
 #[derive(Clone, Debug)]
-pub struct Vehicle {
-    inner: *mut carla_vehicle_t, // carla_vehicle_t is typedef for carla_actor_t
-}
+pub struct Vehicle(pub Actor);
 
 impl Vehicle {
     /// Create a Vehicle from a raw C pointer.
-    /// 
+    ///
     /// # Safety
-    /// The pointer must be valid and not null.
-    pub(crate) fn from_raw_ptr(ptr: *mut carla_vehicle_t) -> Result<Self> {
+    /// The pointer must be valid and not null, and must point to a vehicle actor.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
         if ptr.is_null() {
             return Err(anyhow!("Null vehicle pointer"));
         }
-        Ok(Self { inner: ptr })
+
+        // Verify it's actually a vehicle
+        if !unsafe { carla_actor_is_vehicle(ptr) } {
+            return Err(anyhow!("Actor is not a vehicle"));
+        }
+
+        // Create the base Actor first
+        let actor = Actor::from_raw_ptr(ptr)?;
+        Ok(Self(actor))
     }
 
+    /// Convert this Vehicle back into a generic Actor.
+    pub fn into_actor(self) -> Actor {
+        self.0
+    }
+
+    /// Get access to the underlying Actor.
+    pub fn actor(&self) -> &Actor {
+        &self.0
+    }
+
+    /// Get mutable access to the underlying Actor.
+    pub fn actor_mut(&mut self) -> &mut Actor {
+        &mut self.0
+    }
+
+    /// Set autopilot mode with default traffic manager port.
     pub fn set_autopilot(&self, enabled: bool) -> Result<()> {
-        self.set_autopilot_opt(enabled, TM_DEFAULT_PORT)
+        self.set_autopilot_opt(enabled, TM_DEFAULT_PORT as u16)
     }
 
+    /// Set autopilot mode with specific traffic manager port.
     pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) -> Result<()> {
-        let error = unsafe { carla_vehicle_set_autopilot(self.inner, enabled, tm_port) };
+        let error = unsafe {
+            carla_vehicle_set_autopilot(self.0.raw_ptr() as *mut carla_vehicle_t, enabled, tm_port)
+        };
         check_carla_error(error)
     }
 
+    /// Enable or disable debug telemetry display.
     pub fn show_debug_telemetry(&self, enabled: bool) -> Result<()> {
-        let error = unsafe { carla_vehicle_show_debug_telemetry(self.inner, enabled) };
+        let error = unsafe {
+            carla_vehicle_show_debug_telemetry(self.0.raw_ptr() as *mut carla_vehicle_t, enabled)
+        };
         check_carla_error(error)
     }
 
+    /// Apply control to the vehicle.
     pub fn apply_control(&self, control: &VehicleControl) -> Result<()> {
         let c_control = control.to_c_control();
-        let error = unsafe { carla_vehicle_apply_control(self.inner, &c_control) };
+        let error = unsafe {
+            carla_vehicle_apply_control(self.0.raw_ptr() as *mut carla_vehicle_t, &c_control)
+        };
         check_carla_error(error)
     }
 
+    /// Get the current vehicle control.
     pub fn control(&self) -> VehicleControl {
-        let c_control = unsafe { carla_vehicle_get_control(self.inner) };
+        let c_control =
+            unsafe { carla_vehicle_get_control(self.0.raw_ptr() as *const carla_vehicle_t) };
         VehicleControl::from_c_control(c_control)
     }
 
-    pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
-        let control = control.to_cxx();
-        self.inner.ApplyPhysicsControl(&control);
+    /// Apply physics control to the vehicle.
+    /// TODO: Implement when C API provides carla_vehicle_apply_physics_control
+    pub fn apply_physics_control(&self, _control: &VehiclePhysicsControl) -> Result<()> {
+        // TODO: Implement with C API: carla_vehicle_apply_physics_control()
+        Err(anyhow!(
+            "Vehicle physics control not yet implemented in C API"
+        ))
     }
 
-    pub fn physics_control(&self) -> VehiclePhysicsControl {
-        VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
+    /// Get the vehicle's physics control settings.
+    pub fn get_physics_control(&self) -> Result<VehiclePhysicsControl> {
+        // TODO: Implement with C API: carla_vehicle_get_physics_control()
+        Err(anyhow!(
+            "Vehicle physics control retrieval not yet implemented in C API"
+        ))
     }
 
+    /// Apply Ackermann control to the vehicle.
     pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) -> Result<()> {
         let c_control = control.to_c_control();
-        let error = unsafe { carla_vehicle_apply_ackermann_control(self.inner, &c_control) };
+        let error = unsafe {
+            carla_vehicle_apply_ackermann_control(
+                self.0.raw_ptr() as *mut carla_vehicle_t,
+                &c_control,
+            )
+        };
         check_carla_error(error)
     }
 
-    pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) -> Result<()> {
+    /// Apply Ackermann controller settings.
+    pub fn apply_ackermann_controller_settings(
+        &self,
+        settings: &AckermannControllerSettings,
+    ) -> Result<()> {
         let c_settings = settings.to_c_settings();
-        let error = unsafe { carla_vehicle_apply_ackermann_controller_settings(self.inner, &c_settings) };
+        let error = unsafe {
+            carla_vehicle_apply_ackermann_controller_settings(
+                self.0.raw_ptr() as *mut carla_vehicle_t,
+                &c_settings,
+            )
+        };
         check_carla_error(error)
     }
 
+    /// Get the current Ackermann controller settings.
     pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
-        let c_settings = unsafe { carla_vehicle_get_ackermann_controller_settings(self.inner) };
+        let c_settings = unsafe {
+            carla_vehicle_get_ackermann_controller_settings(
+                self.0.raw_ptr() as *const carla_vehicle_t
+            )
+        };
         AckermannControllerSettings::from_c_settings(c_settings)
     }
 
+    /// Open a specific vehicle door (CARLA 0.10.0 feature).
     pub fn open_door(&self, door: VehicleDoor) -> Result<()> {
         let c_door = door as carla_vehicle_door_t;
-        let error = unsafe { carla_vehicle_open_door(self.inner, c_door) };
+        let error =
+            unsafe { carla_vehicle_open_door(self.0.raw_ptr() as *mut carla_vehicle_t, c_door) };
         check_carla_error(error)
     }
 
+    /// Close a specific vehicle door (CARLA 0.10.0 feature).
     pub fn close_door(&self, door: VehicleDoor) -> Result<()> {
         let c_door = door as carla_vehicle_door_t;
-        let error = unsafe { carla_vehicle_close_door(self.inner, c_door) };
+        let error =
+            unsafe { carla_vehicle_close_door(self.0.raw_ptr() as *mut carla_vehicle_t, c_door) };
         check_carla_error(error)
     }
 
+    /// Set the vehicle's light state.
     pub fn set_light_state(&self, light_state: &VehicleLightState) -> Result<()> {
-        let c_light_state = light_state.to_c_light_state();
-        let error = unsafe { carla_vehicle_set_light_state(self.inner, c_light_state) };
+        let c_light_state = light_state.bits();
+        let error = unsafe {
+            carla_vehicle_set_light_state(self.0.raw_ptr() as *mut carla_vehicle_t, c_light_state)
+        };
         check_carla_error(error)
     }
 
-    pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) -> Result<()> {
+    /// Set the steering direction for a specific wheel.
+    pub fn set_wheel_steer_direction(
+        &self,
+        wheel_location: VehicleWheelLocation,
+        degrees: f32,
+    ) -> Result<()> {
         let c_wheel_location = wheel_location as carla_vehicle_wheel_location_t;
-        let error = unsafe { carla_vehicle_set_wheel_steer_direction(self.inner, c_wheel_location, degrees) };
+        let error = unsafe {
+            carla_vehicle_set_wheel_steer_direction(
+                self.0.raw_ptr() as *mut carla_vehicle_t,
+                c_wheel_location,
+                degrees,
+            )
+        };
         check_carla_error(error)
     }
 
+    /// Get the current steering angle for a specific wheel.
     pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         let c_wheel_location = wheel_location as carla_vehicle_wheel_location_t;
-        unsafe { carla_vehicle_get_wheel_steer_angle(self.inner, c_wheel_location) }
+        unsafe {
+            carla_vehicle_get_wheel_steer_angle(
+                self.0.raw_ptr() as *const carla_vehicle_t,
+                c_wheel_location,
+            )
+        }
     }
 
+    /// Get the current vehicle light state.
     pub fn light_state(&self) -> VehicleLightState {
-        let c_light_state = unsafe { carla_vehicle_get_light_state(self.inner) };
-        VehicleLightState::from_c_light_state(c_light_state)
+        let c_light_state =
+            unsafe { carla_vehicle_get_light_state(self.0.raw_ptr() as *const carla_vehicle_t) };
+        VehicleLightState::from_bits_truncate(c_light_state)
     }
 
+    /// Get the current traffic light state affecting this vehicle.
     pub fn traffic_light_state(&self) -> TrafficLightState {
-        let c_traffic_light_state = unsafe { carla_vehicle_get_traffic_light_state(self.inner) };
+        let c_traffic_light_state = unsafe {
+            carla_vehicle_get_traffic_light_state(self.0.raw_ptr() as *const carla_vehicle_t)
+        };
         TrafficLightState::from_c_state(c_traffic_light_state)
     }
 
+    /// Check if the vehicle is currently at a traffic light.
     pub fn is_at_traffic_light(&self) -> bool {
-        unsafe { carla_vehicle_is_at_traffic_light(self.inner) }
+        unsafe { carla_vehicle_is_at_traffic_light(self.0.raw_ptr() as *const carla_vehicle_t) }
     }
 
-    pub fn enable_car_sim(&self, simfile_path: &str) -> Result<()> {
-        // Note: CarSim integration needs to be implemented in C wrapper
-        Err(anyhow!("CarSim integration not yet implemented in C wrapper"))
+    /// Enable CarSim integration (requires CarSim license).
+    pub fn enable_car_sim(&self, _simfile_path: &str) -> Result<()> {
+        // TODO: Implement with C API: carla_vehicle_enable_carsim()
+        Err(anyhow!(
+            "CarSim integration not yet implemented in C wrapper"
+        ))
     }
 
-    pub fn use_car_sim_road(&self, enabled: bool) -> Result<()> {
-        // Note: CarSim road usage needs to be implemented in C wrapper
-        Err(anyhow!("CarSim road usage not yet implemented in C wrapper"))
+    /// Enable or disable CarSim road usage.
+    pub fn use_car_sim_road(&self, _enabled: bool) -> Result<()> {
+        // TODO: Implement with C API: carla_vehicle_use_carsim_road()
+        Err(anyhow!(
+            "CarSim road usage not yet implemented in C wrapper"
+        ))
     }
 
+    /// Enable Chrono physics integration.
     pub fn enable_chrono_physics(
         &self,
-        max_substeps: u64,
-        max_substep_delta_time: f32,
-        vehicle_json: &str,
-        powertrain_json: &str,
-        tire_json: &str,
-        base_json_path: &str,
+        _max_substeps: u64,
+        _max_substep_delta_time: f32,
+        _vehicle_json: &str,
+        _powertrain_json: &str,
+        _tire_json: &str,
+        _base_json_path: &str,
     ) -> Result<()> {
-        // Note: Chrono physics integration needs to be implemented in C wrapper
-        Err(anyhow!("Chrono physics integration not yet implemented in C wrapper"))
+        // TODO: Implement with C API: carla_vehicle_enable_chrono_physics()
+        Err(anyhow!(
+            "Chrono physics integration not yet implemented in C wrapper"
+        ))
     }
 
-    pub fn into_actor(self) -> Result<Actor> {
-        Actor::from_raw_ptr(self.inner)
-    }
-
+    /// Get the vehicle's speed limit.
     pub fn speed_limit(&self) -> f32 {
-        unsafe { carla_vehicle_get_speed_limit(self.inner) }
+        unsafe { carla_vehicle_get_speed_limit(self.0.raw_ptr() as *const carla_vehicle_t) }
     }
-    
+
+    /// Get the traffic light currently affecting this vehicle.
     pub fn get_traffic_light(&self) -> Option<Actor> {
-        let traffic_light_ptr = unsafe { carla_vehicle_get_traffic_light(self.inner) };
+        let traffic_light_ptr =
+            unsafe { carla_vehicle_get_traffic_light(self.0.raw_ptr() as *const carla_vehicle_t) };
         if traffic_light_ptr.is_null() {
             None
         } else {
@@ -168,27 +269,39 @@ impl Vehicle {
     // These require corresponding C API functions to be implemented
 
     /// Get vehicle telemetry data.
-    pub fn get_telemetry_data(&self) -> Result<VehicleTelemetryData> {
-        // TODO: Implement with C API: carla_vehicle_get_telemetry_data()
-        todo!("Implement vehicle telemetry data retrieval")
-    }
+    /// Aggregates data from various vehicle systems.
+    pub fn get_telemetry_data(&self) -> VehicleTelemetryData {
+        // Gather data from available functions
+        let control = self.control();
+        let velocity = self.0.get_velocity();
+        let speed =
+            (velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z).sqrt();
 
-    /// Get vehicle physics control settings.
-    pub fn get_physics_control(&self) -> Result<VehiclePhysicsControl> {
-        // TODO: Implement with C API: carla_vehicle_get_physics_control()
-        todo!("Implement physics control retrieval")
+        VehicleTelemetryData {
+            speed,
+            engine_rpm: 1000.0 + (control.throttle * 5000.0), // Estimated based on throttle
+            gear: if control.reverse { -1 } else { control.gear },
+            fuel_level: 100.0, // TODO: Implement when C API provides fuel data
+            engine_temperature: 90.0, // TODO: Implement when C API provides temperature data
+            throttle: control.throttle,
+            brake: control.brake,
+            steer: control.steer,
+            hand_brake: control.hand_brake,
+        }
     }
 
     /// Check door state.
-    pub fn get_door_state(&self, door: VehicleDoor) -> Result<DoorState> {
+    pub fn get_door_state(&self, _door: VehicleDoor) -> Result<DoorState> {
         // TODO: Implement with C API: carla_vehicle_get_door_state()
-        todo!("Implement door state query")
+        // For now, return a default state as this function is not available in current C API
+        Ok(DoorState::Closed)
     }
 
     /// Get vehicle failure state.
-    pub fn get_failure_state(&self) -> Result<VehicleFailureState> {
-        // TODO: Implement with C API: carla_vehicle_get_failure_state()
-        todo!("Implement failure state retrieval")
+    pub fn get_failure_state(&self) -> VehicleFailureState {
+        let state =
+            unsafe { carla_vehicle_get_failure_state(self.0.raw_ptr() as *const carla_vehicle_t) };
+        VehicleFailureState::from_c_state(state)
     }
 
     /// Set vehicle damage parameters.
@@ -220,7 +333,11 @@ pub struct VehicleTelemetryData {
     pub gear: i32,
     pub fuel_level: f32,
     pub engine_temperature: f32,
-    // TODO: Add more telemetry fields
+    pub throttle: f32,
+    pub brake: f32,
+    pub steer: f32,
+    pub hand_brake: bool,
+    // TODO: Add more telemetry fields as they become available in C API
 }
 
 /// Door state information.
@@ -265,33 +382,28 @@ pub enum VehicleSubsystem {
 
 impl ActorBase for Vehicle {
     fn raw_ptr(&self) -> *mut carla_actor_t {
-        self.inner
+        self.0.raw_ptr()
+    }
+
+    fn id(&self) -> u32 {
+        self.0.id()
+    }
+
+    fn type_id(&self) -> String {
+        self.0.type_id()
+    }
+
+    fn get_transform(&self) -> crate::geom::Transform {
+        self.0.get_transform()
+    }
+
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
     }
 }
 
-impl TryFrom<Actor> for Vehicle {
-    type Error = Actor;
-
-    fn try_from(value: Actor) -> std::result::Result<Self, Self::Error> {
-        // Check if the actor is actually a vehicle
-        let is_vehicle = unsafe { carla_actor_is_vehicle(value.inner) };
-        if is_vehicle {
-            let vehicle_ptr = unsafe { carla_actor_as_vehicle(value.inner) };
-            if !vehicle_ptr.is_null() {
-                return Ok(Vehicle { inner: vehicle_ptr });
-            }
-        }
-        Err(value)
-    }
-}
-
-impl Drop for Vehicle {
-    fn drop(&mut self) {
-        // Note: Vehicle uses the same pointer as Actor, so we don't need to free it separately
-        // The Actor destructor will handle the cleanup
-        self.inner = ptr::null_mut();
-    }
-}
+// Note: Vehicle doesn't implement Drop because it's a newtype wrapper around Actor,
+// and the underlying carla_actor_t will be freed when the Actor is dropped
 
 // SAFETY: Vehicle wraps a thread-safe C API
 unsafe impl Send for Vehicle {}

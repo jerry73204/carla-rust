@@ -7,6 +7,7 @@ mod actor_minimal;
 mod client;
 mod map_minimal;
 mod vehicle_minimal;
+mod vehicle_physics; // Vehicle physics control module
 mod walker; // New walker module for pedestrian functionality
 mod world;
 
@@ -37,10 +38,10 @@ mod actor_base;
 // mod traffic_light;
 // mod traffic_light_list;
 // mod traffic_sign;
-// mod vehicle;
-// mod waypoint;
-// mod waypoint_list;
-// mod world_snapshot;
+mod vehicle; // Enhanced vehicle with newtype wrapper and advanced features
+             // mod waypoint;
+             // mod waypoint_list;
+             // mod world_snapshot;
 
 pub use actor::Actor; // Use enhanced actor instead of minimal
 pub use actor_base::ActorBase;
@@ -48,8 +49,14 @@ pub use actor_minimal::{ActorBlueprint, BlueprintLibrary};
 pub use client::*;
 pub use map_minimal::{Map, Waypoint};
 pub use vehicle_minimal::{
-    AckermannControllerSettings, TrafficLightState, Vehicle, VehicleAckermannControl,
-    VehicleControl, VehicleDoor, VehicleFailureState, VehicleLightState, VehicleWheelLocation,
+    AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
+    VehicleDoor, VehicleFailureState, VehicleLightState, VehicleWheelLocation,
+};
+// Export enhanced Vehicle with newtype wrapper and physics types
+pub use vehicle::{
+    DoorState, EnginePhysics, GearPhysicsControl, SuspensionPhysics, TirePhysics, Vehicle,
+    VehicleDamage, VehiclePhysicsControl, VehiclePhysicsControlAdvanced, VehicleSubsystem,
+    VehicleTelemetryData, WheelPhysics, WheelPhysicsControl, WheelPosition,
 };
 pub use walker::{Walker, WalkerControl};
 pub use world::*;
