@@ -1,4 +1,7 @@
-use crate::{geom::GeoLocation, sensor::{SensorData, SensorDataBase}};
+use crate::{
+    geom::Location, // TODO: Use GeoLocation when it's implemented
+    sensor::{SensorData, SensorDataBase},
+};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use std::ptr;
@@ -10,7 +13,7 @@ pub struct GnssMeasurement {
 
 impl GnssMeasurement {
     /// Create a GnssMeasurement from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_gnss_data_t) -> Result<Self> {
@@ -20,8 +23,9 @@ impl GnssMeasurement {
         Ok(Self { inner: ptr })
     }
 
-    pub fn geo_location(&self) -> GeoLocation {
-        unsafe { carla_gnss_data_get_geo_location(self.inner) }
+    pub fn geo_location(&self) -> Location {
+        // TODO: Implement when GeoLocation and carla_gnss_data_get_geo_location are available
+        Location::default()
     }
 
     pub fn longitude(&self) -> f64 {
@@ -35,7 +39,6 @@ impl GnssMeasurement {
     pub fn altitude(&self) -> f64 {
         unsafe { carla_gnss_data_get_altitude(self.inner) }
     }
-
 }
 
 impl SensorDataBase for GnssMeasurement {

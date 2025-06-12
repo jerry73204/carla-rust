@@ -16,15 +16,17 @@ impl OpenDriveGenerator {
         if generator_ptr.is_null() {
             return Err(anyhow!("Failed to create OpenDRIVE generator"));
         }
-        Ok(Self { inner: generator_ptr })
+        Ok(Self {
+            inner: generator_ptr,
+        })
     }
 
     /// Generate OpenDRIVE data from OSM (OpenStreetMap) data.
-    /// 
+    ///
     /// # Arguments
     /// * `osm_data` - The OpenStreetMap XML data as a string
     /// * `settings` - Generation settings and parameters
-    /// 
+    ///
     /// # Returns
     /// Generated OpenDRIVE XML data as a string
     pub fn generate_from_osm(
@@ -32,39 +34,34 @@ impl OpenDriveGenerator {
         osm_data: &str,
         settings: &OpenDriveGenerationSettings,
     ) -> Result<String> {
-        let osm_cstring = CString::new(osm_data)
-            .map_err(|_| anyhow!("Invalid OSM data string"))?;
+        let osm_cstring = CString::new(osm_data).map_err(|_| anyhow!("Invalid OSM data string"))?;
         let c_settings = settings.to_c_settings();
-        
+
         let result_ptr = unsafe {
-            carla_opendrive_generate_from_osm(
-                self.inner,
-                osm_cstring.as_ptr(),
-                &c_settings,
-            )
+            carla_opendrive_generate_from_osm(self.inner, osm_cstring.as_ptr(), &c_settings)
         };
-        
+
         if result_ptr.is_null() {
             return Err(anyhow!("Failed to generate OpenDRIVE from OSM data"));
         }
-        
+
         let c_str = unsafe { CStr::from_ptr(result_ptr) };
         let result = c_str.to_string_lossy().into_owned();
-        
+
         // Free the C string allocated by the generator
         unsafe {
             carla_opendrive_free_string(result_ptr);
         }
-        
+
         Ok(result)
     }
 
     /// Generate OpenDRIVE data from a list of waypoints.
-    /// 
+    ///
     /// # Arguments
     /// * `waypoints` - List of waypoints defining the road path
     /// * `settings` - Generation settings and parameters
-    /// 
+    ///
     /// # Returns
     /// Generated OpenDRIVE XML data as a string
     pub fn generate_from_waypoints(
@@ -72,12 +69,10 @@ impl OpenDriveGenerator {
         waypoints: &[OpenDriveWaypoint],
         settings: &OpenDriveGenerationSettings,
     ) -> Result<String> {
-        let c_waypoints: Vec<carla_opendrive_waypoint_t> = waypoints
-            .iter()
-            .map(|wp| wp.to_c_waypoint())
-            .collect();
+        let c_waypoints: Vec<carla_opendrive_waypoint_t> =
+            waypoints.iter().map(|wp| wp.to_c_waypoint()).collect();
         let c_settings = settings.to_c_settings();
-        
+
         let result_ptr = unsafe {
             carla_opendrive_generate_from_waypoints(
                 self.inner,
@@ -86,27 +81,27 @@ impl OpenDriveGenerator {
                 &c_settings,
             )
         };
-        
+
         if result_ptr.is_null() {
             return Err(anyhow!("Failed to generate OpenDRIVE from waypoints"));
         }
-        
+
         let c_str = unsafe { CStr::from_ptr(result_ptr) };
         let result = c_str.to_string_lossy().into_owned();
-        
+
         // Free the C string allocated by the generator
         unsafe {
             carla_opendrive_free_string(result_ptr);
         }
-        
+
         Ok(result)
     }
 
     /// Validate an OpenDRIVE XML string.
-    /// 
+    ///
     /// # Arguments
     /// * `opendrive_xml` - The OpenDRIVE XML data to validate
-    /// 
+    ///
     /// # Returns
     /// True if the OpenDRIVE data is valid, false otherwise
     pub fn validate_opendrive(&self, opendrive_xml: &str) -> bool {
@@ -114,43 +109,40 @@ impl OpenDriveGenerator {
             Ok(s) => s,
             Err(_) => return false,
         };
-        
-        unsafe {
-            carla_opendrive_validate(self.inner, xml_cstring.as_ptr())
-        }
+
+        unsafe { carla_opendrive_validate(self.inner, xml_cstring.as_ptr()) }
     }
 
     /// Get information about roads in an OpenDRIVE file.
-    /// 
+    ///
     /// # Arguments
     /// * `opendrive_xml` - The OpenDRIVE XML data to analyze
-    /// 
+    ///
     /// # Returns
     /// Vector of road information structures
     pub fn get_road_info(&self, opendrive_xml: &str) -> Result<Vec<OpenDriveRoadInfo>> {
-        let xml_cstring = CString::new(opendrive_xml)
-            .map_err(|_| anyhow!("Invalid OpenDRIVE XML string"))?;
-        
+        let xml_cstring =
+            CString::new(opendrive_xml).map_err(|_| anyhow!("Invalid OpenDRIVE XML string"))?;
+
         let mut count = 0;
-        let info_array_ptr = unsafe {
-            carla_opendrive_get_road_info(self.inner, xml_cstring.as_ptr(), &mut count)
-        };
-        
+        let info_array_ptr =
+            unsafe { carla_opendrive_get_road_info(self.inner, xml_cstring.as_ptr(), &mut count) };
+
         if info_array_ptr.is_null() {
             return Ok(Vec::new());
         }
-        
+
         let mut road_infos = Vec::with_capacity(count);
         for i in 0..count {
             let c_info = unsafe { *info_array_ptr.add(i) };
             road_infos.push(OpenDriveRoadInfo::from_c_info(c_info));
         }
-        
+
         // Free the array allocated by C
         unsafe {
             carla_opendrive_free_road_info_array(info_array_ptr);
         }
-        
+
         Ok(road_infos)
     }
 }

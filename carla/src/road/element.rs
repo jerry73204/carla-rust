@@ -2,8 +2,14 @@ use anyhow::{anyhow, Result};
 use carla_sys::*;
 use std::ptr;
 
-pub use carla_sys::carla::road::element::{
-    LaneMarking_Color, LaneMarking_LaneChange, LaneMarking_Type,
+// TODO: Update to use new C API lane marking types
+// pub use carla_sys::carla::road::element::{
+//     LaneMarking_Color, LaneMarking_LaneChange, LaneMarking_Type,
+// };
+
+use crate::stubs::{
+    carla_lane_marking_get_color, carla_lane_marking_get_lane_change, carla_lane_marking_get_type,
+    carla_lane_marking_get_width, LaneMarking_Color, LaneMarking_LaneChange, LaneMarking_Type,
 };
 
 #[derive(Clone, Debug)]
@@ -13,7 +19,7 @@ pub struct LaneMarking {
 
 impl LaneMarking {
     /// Create a LaneMarking from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_lane_marking_t) -> Result<Self> {
@@ -38,7 +44,6 @@ impl LaneMarking {
     pub fn width(&self) -> f64 {
         unsafe { carla_lane_marking_get_width(self.inner) }
     }
-
 }
 
 impl Drop for LaneMarking {

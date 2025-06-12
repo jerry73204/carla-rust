@@ -20,15 +20,17 @@ impl MotionProcessor {
         if processor_ptr.is_null() {
             return Err(anyhow!("Failed to create motion processor"));
         }
-        Ok(Self { inner: processor_ptr })
+        Ok(Self {
+            inner: processor_ptr,
+        })
     }
 
     /// Process IMU data for motion estimation.
-    /// 
+    ///
     /// # Arguments
     /// * `imu_data` - IMU measurement data
     /// * `timestamp` - Timestamp of the measurement
-    /// 
+    ///
     /// # Returns
     /// Updated motion state
     pub fn process_imu(
@@ -55,17 +57,37 @@ impl MotionProcessor {
         };
 
         let mut c_state = carla_motion_state_t {
-            position: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            orientation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
+            position: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            orientation: carla_quaternion_t {
+                w: 1.0,
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             timestamp: 0.0,
         };
 
-        let error = unsafe {
-            carla_motion_process_imu(self.inner, &c_imu, timestamp, &mut c_state)
-        };
+        let error =
+            unsafe { carla_motion_process_imu(self.inner, &c_imu, timestamp, &mut c_state) };
 
         if error != 0 {
             return Err(anyhow!("Failed to process IMU data"));
@@ -75,11 +97,11 @@ impl MotionProcessor {
     }
 
     /// Process GNSS data for position correction.
-    /// 
+    ///
     /// # Arguments
     /// * `gnss_data` - GNSS measurement data
     /// * `timestamp` - Timestamp of the measurement
-    /// 
+    ///
     /// # Returns
     /// Updated motion state with position correction
     pub fn process_gnss(
@@ -88,7 +110,7 @@ impl MotionProcessor {
         timestamp: f64,
     ) -> Result<MotionState> {
         let geo_location = gnss_data.geo_location();
-        
+
         let c_gnss = carla_gnss_data_t {
             latitude: gnss_data.latitude(),
             longitude: gnss_data.longitude(),
@@ -96,17 +118,37 @@ impl MotionProcessor {
         };
 
         let mut c_state = carla_motion_state_t {
-            position: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            orientation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
+            position: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            orientation: carla_quaternion_t {
+                w: 1.0,
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             timestamp: 0.0,
         };
 
-        let error = unsafe {
-            carla_motion_process_gnss(self.inner, &c_gnss, timestamp, &mut c_state)
-        };
+        let error =
+            unsafe { carla_motion_process_gnss(self.inner, &c_gnss, timestamp, &mut c_state) };
 
         if error != 0 {
             return Err(anyhow!("Failed to process GNSS data"));
@@ -116,11 +158,11 @@ impl MotionProcessor {
     }
 
     /// Fuse multiple sensor measurements for improved motion estimation.
-    /// 
+    ///
     /// # Arguments
     /// * `sensor_data` - Collection of sensor measurements
     /// * `timestamp` - Timestamp of the fusion
-    /// 
+    ///
     /// # Returns
     /// Fused motion state
     pub fn fuse_sensors(
@@ -130,11 +172,32 @@ impl MotionProcessor {
     ) -> Result<MotionState> {
         let c_fusion_data = sensor_data.to_c_fusion_data();
         let mut c_state = carla_motion_state_t {
-            position: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            orientation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
+            position: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            orientation: carla_quaternion_t {
+                w: 1.0,
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             timestamp: 0.0,
         };
 
@@ -150,12 +213,12 @@ impl MotionProcessor {
     }
 
     /// Transform coordinates between different reference frames.
-    /// 
+    ///
     /// # Arguments
     /// * `point` - Point to transform
     /// * `from_frame` - Source coordinate frame
     /// * `to_frame` - Target coordinate frame
-    /// 
+    ///
     /// # Returns
     /// Transformed point
     pub fn transform_coordinates(
@@ -171,7 +234,11 @@ impl MotionProcessor {
         };
         let c_from_frame = from_frame.to_c_frame();
         let c_to_frame = to_frame.to_c_frame();
-        let mut c_result = carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 };
+        let mut c_result = carla_vector3d_t {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        };
 
         let error = unsafe {
             carla_motion_transform_coordinates(
@@ -191,12 +258,12 @@ impl MotionProcessor {
     }
 
     /// Calculate motion between two poses.
-    /// 
+    ///
     /// # Arguments
     /// * `pose1` - Initial pose
     /// * `pose2` - Final pose
     /// * `time_delta` - Time difference between poses
-    /// 
+    ///
     /// # Returns
     /// Motion estimation between poses
     pub fn calculate_motion(
@@ -210,22 +277,41 @@ impl MotionProcessor {
         let dt = time_delta.as_secs_f64();
 
         let mut c_motion = carla_motion_estimation_t {
-            linear_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            linear_acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            angular_acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            displacement: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            rotation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
+            linear_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            linear_acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            displacement: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            rotation: carla_quaternion_t {
+                w: 1.0,
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
         };
 
         let error = unsafe {
-            carla_motion_calculate_motion(
-                self.inner,
-                &c_pose1,
-                &c_pose2,
-                dt,
-                &mut c_motion,
-            )
+            carla_motion_calculate_motion(self.inner, &c_pose1, &c_pose2, dt, &mut c_motion)
         };
 
         if error != 0 {
@@ -236,12 +322,12 @@ impl MotionProcessor {
     }
 
     /// Track object motion over time.
-    /// 
+    ///
     /// # Arguments
     /// * `object_id` - Unique identifier for the object
     /// * `pose` - Current pose of the object
     /// * `timestamp` - Timestamp of the observation
-    /// 
+    ///
     /// # Returns
     /// Motion tracking result
     pub fn track_object_motion(
@@ -254,25 +340,40 @@ impl MotionProcessor {
         let mut c_track = carla_object_motion_track_t {
             object_id: 0,
             current_pose: carla_transform_t {
-                location: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-                rotation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
+                location: carla_vector3d_t {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                rotation: carla_quaternion_t {
+                    w: 1.0,
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
             },
-            velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
+            velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             confidence: 0.0,
             track_length: 0,
             last_seen: 0.0,
         };
 
         let error = unsafe {
-            carla_motion_track_object(
-                self.inner,
-                object_id,
-                &c_transform,
-                timestamp,
-                &mut c_track,
-            )
+            carla_motion_track_object(self.inner, object_id, &c_transform, timestamp, &mut c_track)
         };
 
         if error != 0 {
@@ -283,11 +384,11 @@ impl MotionProcessor {
     }
 
     /// Predict future motion state.
-    /// 
+    ///
     /// # Arguments
     /// * `current_state` - Current motion state
     /// * `prediction_time` - Time to predict forward
-    /// 
+    ///
     /// # Returns
     /// Predicted future motion state
     pub fn predict_motion(
@@ -298,17 +399,36 @@ impl MotionProcessor {
         let c_current = current_state.to_c_state();
         let dt = prediction_time.as_secs_f64();
         let mut c_predicted = carla_motion_state_t {
-            position: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            acceleration: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
-            orientation: carla_quaternion_t { w: 1.0, x: 0.0, y: 0.0, z: 0.0 },
-            angular_velocity: carla_vector3d_t { x: 0.0, y: 0.0, z: 0.0 },
+            position: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            acceleration: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            orientation: carla_quaternion_t {
+                w: 1.0,
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            angular_velocity: carla_vector3d_t {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             timestamp: 0.0,
         };
 
-        let error = unsafe {
-            carla_motion_predict(self.inner, &c_current, dt, &mut c_predicted)
-        };
+        let error = unsafe { carla_motion_predict(self.inner, &c_current, dt, &mut c_predicted) };
 
         if error != 0 {
             return Err(anyhow!("Failed to predict motion"));
@@ -318,17 +438,15 @@ impl MotionProcessor {
     }
 
     /// Set motion processing parameters.
-    /// 
+    ///
     /// # Arguments
     /// * `params` - Motion processing parameters
-    /// 
+    ///
     /// # Returns
     /// Result indicating success or failure
     pub fn set_parameters(&mut self, params: &MotionProcessingParams) -> Result<()> {
         let c_params = params.to_c_params();
-        let error = unsafe {
-            carla_motion_set_parameters(self.inner, &c_params)
-        };
+        let error = unsafe { carla_motion_set_parameters(self.inner, &c_params) };
 
         if error != 0 {
             return Err(anyhow!("Failed to set motion processing parameters"));
@@ -426,10 +544,7 @@ impl MotionState {
 
     /// Get the pose (position and orientation) as an Isometry3.
     pub fn pose(&self) -> Isometry3<f32> {
-        Isometry3::from_parts(
-            Translation3::from(self.position),
-            self.orientation,
-        )
+        Isometry3::from_parts(Translation3::from(self.position), self.orientation)
     }
 
     /// Get the speed (magnitude of velocity).

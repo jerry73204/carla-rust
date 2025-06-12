@@ -1,4 +1,7 @@
-use crate::sensor::{SensorData, SensorDataBase};
+use crate::{
+    sensor::{SensorData, SensorDataBase},
+    stubs::carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW,
+};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use nalgebra::Vector2;
@@ -50,7 +53,7 @@ pub struct OpticalFlow {
 
 impl OpticalFlow {
     /// Create an OpticalFlow from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_optical_flow_data_t) -> Result<Self> {
@@ -79,7 +82,7 @@ impl OpticalFlow {
     pub fn as_slice(&self) -> &[OpticalFlowPixel] {
         let len = self.len();
         let data = unsafe { carla_optical_flow_get_data(self.inner) };
-        
+
         if data.is_null() || len == 0 {
             &[]
         } else {
@@ -114,7 +117,7 @@ impl OpticalFlow {
         if x >= self.width() || y >= self.height() {
             return None;
         }
-        
+
         let index = y * self.width() + x;
         self.as_slice().get(index).cloned()
     }
@@ -125,7 +128,7 @@ impl OpticalFlow {
         let mut mean_magnitude = 0.0;
         let mut max_magnitude = 0.0;
         let mut dominant_direction = 0.0;
-        
+
         unsafe {
             carla_image_analyze_optical_flow(
                 self.inner,
@@ -134,7 +137,7 @@ impl OpticalFlow {
                 &mut dominant_direction,
             );
         }
-        
+
         (mean_magnitude, max_magnitude, dominant_direction)
     }
 
@@ -159,7 +162,7 @@ impl OpticalFlow {
     pub fn filter_by_magnitude(&self, threshold: f32) -> Vec<(usize, usize, OpticalFlowPixel)> {
         let mut result = Vec::new();
         let width = self.width();
-        
+
         for (index, pixel) in self.as_slice().iter().enumerate() {
             if pixel.magnitude() >= threshold {
                 let x = index % width;
@@ -167,27 +170,33 @@ impl OpticalFlow {
                 result.push((x, y, pixel.clone()));
             }
         }
-        
+
         result
     }
 
     /// Calculate optical flow statistics for a specific region.
     /// Returns (mean_magnitude, max_magnitude, pixel_count) for the region.
-    pub fn analyze_region(&self, x_min: usize, y_min: usize, x_max: usize, y_max: usize) -> (f32, f32, usize) {
+    pub fn analyze_region(
+        &self,
+        x_min: usize,
+        y_min: usize,
+        x_max: usize,
+        y_max: usize,
+    ) -> (f32, f32, usize) {
         let width = self.width();
         let height = self.height();
-        
+
         let x_max = x_max.min(width);
         let y_max = y_max.min(height);
-        
+
         if x_min >= x_max || y_min >= y_max {
             return (0.0, 0.0, 0);
         }
-        
+
         let mut total_magnitude = 0.0;
         let mut max_magnitude = 0.0;
         let mut pixel_count = 0;
-        
+
         for y in y_min..y_max {
             for x in x_min..x_max {
                 if let Some(pixel) = self.get_pixel(x, y) {
@@ -198,24 +207,28 @@ impl OpticalFlow {
                 }
             }
         }
-        
+
         let mean_magnitude = if pixel_count > 0 {
             total_magnitude / (pixel_count as f32)
         } else {
             0.0
         };
-        
+
         (mean_magnitude, max_magnitude, pixel_count)
     }
 
     /// Detect motion hotspots by finding regions with high optical flow magnitude.
     /// Returns a list of (center_x, center_y, average_magnitude) for detected hotspots.
-    pub fn detect_motion_hotspots(&self, window_size: usize, magnitude_threshold: f32) -> Vec<(usize, usize, f32)> {
+    pub fn detect_motion_hotspots(
+        &self,
+        window_size: usize,
+        magnitude_threshold: f32,
+    ) -> Vec<(usize, usize, f32)> {
         let width = self.width();
         let height = self.height();
         let half_window = window_size / 2;
         let mut hotspots = Vec::new();
-        
+
         for y in half_window..(height - half_window) {
             for x in half_window..(width - half_window) {
                 let (mean_magnitude, _, _) = self.analyze_region(
@@ -224,13 +237,13 @@ impl OpticalFlow {
                     x + half_window + 1,
                     y + half_window + 1,
                 );
-                
+
                 if mean_magnitude >= magnitude_threshold {
                     hotspots.push((x, y, mean_magnitude));
                 }
             }
         }
-        
+
         hotspots
     }
 
@@ -238,13 +251,13 @@ impl OpticalFlow {
     /// Direction maps to hue, magnitude maps to value, saturation is constant.
     pub fn to_hsv_visualization(&self) -> Vec<(f32, f32, f32)> {
         let (_, max_magnitude, _) = self.analyze_optical_flow();
-        
+
         self.as_slice()
             .iter()
             .map(|pixel| {
                 let magnitude = pixel.magnitude();
                 let direction = pixel.direction();
-                
+
                 // Normalize direction to [0, 1] for hue
                 let hue = (direction + std::f32::consts::PI) / (2.0 * std::f32::consts::PI);
                 let saturation = 1.0; // Full saturation for vibrant colors
@@ -253,7 +266,7 @@ impl OpticalFlow {
                 } else {
                     0.0
                 };
-                
+
                 (hue, saturation, value)
             })
             .collect()
@@ -275,7 +288,9 @@ impl TryFrom<SensorData> for OpticalFlow {
         if data_type == carla_sensor_data_type_t_CARLA_SENSOR_DATA_OPTICAL_FLOW {
             let optical_flow_ptr = unsafe { carla_sensor_data_as_optical_flow(value.inner) };
             if !optical_flow_ptr.is_null() {
-                return Ok(OpticalFlow { inner: optical_flow_ptr });
+                return Ok(OpticalFlow {
+                    inner: optical_flow_ptr,
+                });
             }
         }
         Err(value)
@@ -303,21 +318,27 @@ mod tests {
     #[test]
     fn test_optical_flow_pixel_layout() {
         // Ensure the Rust struct has the same layout as the C struct
-        assert_eq!(mem::size_of::<OpticalFlowPixel>(), mem::size_of::<carla_optical_flow_pixel_t>());
-        assert_eq!(mem::align_of::<OpticalFlowPixel>(), mem::align_of::<carla_optical_flow_pixel_t>());
+        assert_eq!(
+            mem::size_of::<OpticalFlowPixel>(),
+            mem::size_of::<carla_optical_flow_pixel_t>()
+        );
+        assert_eq!(
+            mem::align_of::<OpticalFlowPixel>(),
+            mem::align_of::<carla_optical_flow_pixel_t>()
+        );
     }
 
     #[test]
     fn test_optical_flow_pixel_operations() {
         let pixel = OpticalFlowPixel { x: 3.0, y: 4.0 };
-        
+
         // Test magnitude calculation
         assert_eq!(pixel.magnitude(), 5.0);
-        
+
         // Test direction calculation
         let direction = pixel.direction();
         assert!((direction - (4.0_f32).atan2(3.0)).abs() < 1e-6);
-        
+
         // Test conversion to/from Vector2
         let vec = pixel.to_vector2();
         let pixel2 = OpticalFlowPixel::from_vector2(vec);

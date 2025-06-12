@@ -1,16 +1,20 @@
 //! Client library for the CARLA simulator.
+//!
+//! This module provides the complete client API matching the C++ structure,
+//! including actors, world management, and simulation control.
 
 mod actor_minimal;
 mod client;
 mod map_minimal;
 mod vehicle_minimal;
+mod walker; // New walker module for pedestrian functionality
 mod world;
 
-// TODO: Uncomment these modules as they are migrated
+// TODO: Uncomment these modules as they are migrated to new C API
 // mod ackermann_control;
-// mod actor;
-// mod actor_attribute;
-// mod actor_attribute_value_list;
+mod actor; // Enhanced actor with complete functionality
+           // mod actor_attribute;
+           // mod actor_attribute_value_list;
 mod actor_base;
 // mod actor_blueprint;
 // mod actor_builder;
@@ -38,18 +42,20 @@ mod actor_base;
 // mod waypoint_list;
 // mod world_snapshot;
 
+pub use actor::Actor; // Use enhanced actor instead of minimal
 pub use actor_base::ActorBase;
-pub use actor_minimal::{Actor, ActorBlueprint, BlueprintLibrary};
+pub use actor_minimal::{ActorBlueprint, BlueprintLibrary};
 pub use client::*;
 pub use map_minimal::{Map, Waypoint};
 pub use vehicle_minimal::{
     AckermannControllerSettings, TrafficLightState, Vehicle, VehicleAckermannControl,
     VehicleControl, VehicleDoor, VehicleFailureState, VehicleLightState, VehicleWheelLocation,
 };
+pub use walker::{Walker, WalkerControl};
 pub use world::*;
 
-// Re-export sensor types from sensor_minimal
-pub use crate::sensor_minimal::{
+// Re-export sensor types from unified sensor module
+pub use crate::sensor::{
     CollisionEvent, DvsAnalysis, DvsEvent, DvsEventArray, GnssData, ImageData,
     ImageRegionOfInterest, ImuData, LaneInvasionEvent, LidarData, LidarPoint,
     ObstacleDetectionEvent, OpticalFlowAnalysis, OpticalFlowImage, OpticalFlowPixel, RadarData,

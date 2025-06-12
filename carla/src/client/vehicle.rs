@@ -163,6 +163,104 @@ impl Vehicle {
             Actor::from_raw_ptr(traffic_light_ptr).ok()
         }
     }
+
+    // TODO: Implement CARLA 0.10.0 vehicle features
+    // These require corresponding C API functions to be implemented
+
+    /// Get vehicle telemetry data.
+    pub fn get_telemetry_data(&self) -> Result<VehicleTelemetryData> {
+        // TODO: Implement with C API: carla_vehicle_get_telemetry_data()
+        todo!("Implement vehicle telemetry data retrieval")
+    }
+
+    /// Get vehicle physics control settings.
+    pub fn get_physics_control(&self) -> Result<VehiclePhysicsControl> {
+        // TODO: Implement with C API: carla_vehicle_get_physics_control()
+        todo!("Implement physics control retrieval")
+    }
+
+    /// Check door state.
+    pub fn get_door_state(&self, door: VehicleDoor) -> Result<DoorState> {
+        // TODO: Implement with C API: carla_vehicle_get_door_state()
+        todo!("Implement door state query")
+    }
+
+    /// Get vehicle failure state.
+    pub fn get_failure_state(&self) -> Result<VehicleFailureState> {
+        // TODO: Implement with C API: carla_vehicle_get_failure_state()
+        todo!("Implement failure state retrieval")
+    }
+
+    /// Set vehicle damage parameters.
+    pub fn set_damage(&self, damage: &VehicleDamage) -> Result<()> {
+        // TODO: Implement with C API: carla_vehicle_set_damage()
+        todo!("Implement vehicle damage system")
+    }
+
+    /// Get wheel physics properties.
+    pub fn get_wheel_physics(&self, wheel: VehicleWheelLocation) -> Result<WheelPhysics> {
+        // TODO: Implement with C API: carla_vehicle_get_wheel_physics()
+        todo!("Implement wheel physics query")
+    }
+
+    /// Enable/disable specific vehicle subsystems.
+    pub fn set_subsystem_enabled(&self, subsystem: VehicleSubsystem, enabled: bool) -> Result<()> {
+        // TODO: Implement with C API: carla_vehicle_set_subsystem_enabled()
+        todo!("Implement vehicle subsystem control")
+    }
+}
+
+// TODO: Define these vehicle-related types when implementing the above methods
+
+/// Vehicle telemetry data.
+#[derive(Debug, Clone)]
+pub struct VehicleTelemetryData {
+    pub speed: f32,
+    pub engine_rpm: f32,
+    pub gear: i32,
+    pub fuel_level: f32,
+    pub engine_temperature: f32,
+    // TODO: Add more telemetry fields
+}
+
+/// Door state information.
+#[derive(Debug, Clone, PartialEq)]
+pub enum DoorState {
+    Closed,
+    Open,
+    Opening,
+    Closing,
+}
+
+/// Vehicle damage parameters.
+#[derive(Debug, Clone)]
+pub struct VehicleDamage {
+    pub engine_damage: f32,
+    pub tire_damage: [f32; 4],
+    pub body_damage: f32,
+    // TODO: Add more damage types
+}
+
+/// Wheel physics properties.
+#[derive(Debug, Clone)]
+pub struct WheelPhysics {
+    pub friction: f32,
+    pub suspension_stiffness: f32,
+    pub suspension_damping: f32,
+    pub max_brake_torque: f32,
+    // TODO: Add more wheel physics properties
+}
+
+/// Vehicle subsystems that can be controlled.
+#[derive(Debug, Clone, PartialEq)]
+pub enum VehicleSubsystem {
+    Engine,
+    Brakes,
+    Steering,
+    Transmission,
+    ABS,
+    ESP,
+    // TODO: Add more subsystems
 }
 
 impl ActorBase for Vehicle {

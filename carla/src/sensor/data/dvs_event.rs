@@ -1,4 +1,7 @@
-use crate::sensor::{SensorData, SensorDataBase};
+use crate::{
+    sensor::{SensorData, SensorDataBase},
+    stubs::carla_sensor_data_type_t_CARLA_SENSOR_DATA_DVS_EVENTS,
+};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use std::{ptr, slice};

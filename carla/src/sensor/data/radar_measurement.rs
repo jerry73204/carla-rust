@@ -11,7 +11,7 @@ pub struct RadarMeasurement {
 
 impl RadarMeasurement {
     /// Create a RadarMeasurement from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_radar_data_t) -> Result<Self> {
@@ -43,7 +43,6 @@ impl RadarMeasurement {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
 }
 
 impl SensorDataBase for RadarMeasurement {

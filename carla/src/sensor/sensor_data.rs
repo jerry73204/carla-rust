@@ -40,7 +40,7 @@ pub struct SensorData {
 
 impl SensorData {
     /// Create a SensorData from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_sensor_data_t) -> Result<Self> {

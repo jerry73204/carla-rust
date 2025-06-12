@@ -1,6 +1,14 @@
-use crate::{client::Actor, sensor::{SensorData, SensorDataBase}};
+use crate::{
+    client::Actor,
+    sensor::{SensorData, SensorDataBase},
+};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
+
+use crate::stubs::{
+    carla_obstacle_detection_event_data_t, carla_obstacle_detection_event_get_actor,
+    carla_obstacle_detection_event_get_distance, carla_obstacle_detection_event_get_other_actor,
+};
 use std::ptr;
 
 #[derive(Clone, Debug)]
@@ -10,7 +18,7 @@ pub struct ObstacleDetectionEvent {
 
 impl ObstacleDetectionEvent {
     /// Create an ObstacleDetectionEvent from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_obstacle_detection_event_data_t) -> Result<Self> {
@@ -22,18 +30,25 @@ impl ObstacleDetectionEvent {
 
     pub fn actor(&self) -> Result<Actor> {
         let actor_ptr = unsafe { carla_obstacle_detection_event_get_actor(self.inner) };
-        Actor::from_raw_ptr(actor_ptr)
+        if actor_ptr.is_null() {
+            Err(anyhow!("No actor in obstacle detection event"))
+        } else {
+            Actor::from_raw_ptr(actor_ptr)
+        }
     }
 
     pub fn other_actor(&self) -> Result<Actor> {
         let other_actor_ptr = unsafe { carla_obstacle_detection_event_get_other_actor(self.inner) };
-        Actor::from_raw_ptr(other_actor_ptr)
+        if other_actor_ptr.is_null() {
+            Err(anyhow!("No other actor in obstacle detection event"))
+        } else {
+            Actor::from_raw_ptr(other_actor_ptr)
+        }
     }
 
     pub fn distance(&self) -> f32 {
-        unsafe { carla_obstacle_detection_event_get_distance(self.inner) }
+        unsafe { carla_obstacle_detection_event_get_distance(self.inner) as f32 }
     }
-
 }
 
 impl SensorDataBase for ObstacleDetectionEvent {
@@ -46,14 +61,7 @@ impl TryFrom<SensorData> for ObstacleDetectionEvent {
     type Error = SensorData;
 
     fn try_from(value: SensorData) -> std::result::Result<Self, Self::Error> {
-        // Check if the sensor data is actually obstacle detection event data
-        let data_type = value.data_type();
-        if data_type == carla_sensor_data_type_t_CARLA_SENSOR_DATA_OBSTACLE_DETECTION {
-            let obstacle_detection_ptr = unsafe { carla_sensor_data_as_obstacle_detection_event(value.inner) };
-            if !obstacle_detection_ptr.is_null() {
-                return Ok(ObstacleDetectionEvent { inner: obstacle_detection_ptr });
-            }
-        }
+        // TODO: Implement when carla_sensor_data_as_obstacle_detection_event is available
         Err(value)
     }
 }

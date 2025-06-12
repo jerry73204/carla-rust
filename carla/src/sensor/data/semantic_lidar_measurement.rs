@@ -12,7 +12,7 @@ pub struct SemanticLidarMeasurement {
 
 impl SemanticLidarMeasurement {
     /// Create a SemanticLidarMeasurement from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_semantic_lidar_data_t) -> Result<Self> {
@@ -64,7 +64,6 @@ impl SemanticLidarMeasurement {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
 }
 
 impl SensorDataBase for SemanticLidarMeasurement {
@@ -82,7 +81,9 @@ impl TryFrom<SensorData> for SemanticLidarMeasurement {
         if data_type == carla_sensor_data_type_t_CARLA_SENSOR_DATA_SEMANTIC_LIDAR {
             let semantic_lidar_ptr = unsafe { carla_sensor_data_as_semantic_lidar(value.inner) };
             if !semantic_lidar_ptr.is_null() {
-                return Ok(SemanticLidarMeasurement { inner: semantic_lidar_ptr });
+                return Ok(SemanticLidarMeasurement {
+                    inner: semantic_lidar_ptr,
+                });
             }
         }
         Err(value)

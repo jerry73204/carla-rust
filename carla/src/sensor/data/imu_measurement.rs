@@ -1,4 +1,7 @@
-use crate::{geom::Vector3DExt, sensor::{SensorData, SensorDataBase}};
+use crate::{
+    geom::Vector3DExt,
+    sensor::{SensorData, SensorDataBase},
+};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use nalgebra::Vector3;
@@ -11,7 +14,7 @@ pub struct ImuMeasurement {
 
 impl ImuMeasurement {
     /// Create an ImuMeasurement from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_imu_data_t) -> Result<Self> {
@@ -34,7 +37,6 @@ impl ImuMeasurement {
         let gyro = unsafe { carla_imu_data_get_gyroscope(self.inner) };
         gyro.to_na()
     }
-
 }
 
 impl SensorDataBase for ImuMeasurement {

@@ -1,6 +1,7 @@
 use crate::sensor::data::Image;
 use anyhow::{anyhow, Result};
 use carla_sys::*;
+use crate::stubs::{carla_image_analyzer_t, carla_semantic_analysis_result_t, carla_instance_analysis_result_t};
 use nalgebra::{Point3, Vector3};
 use ndarray::{Array2, Array3, ArrayView2, ArrayView3};
 use std::{ptr, slice};
@@ -19,17 +20,22 @@ impl ImageAnalyzer {
         if analyzer_ptr.is_null() {
             return Err(anyhow!("Failed to create image analyzer"));
         }
-        Ok(Self { inner: analyzer_ptr })
+        Ok(Self {
+            inner: analyzer_ptr,
+        })
     }
 
     /// Analyze semantic segmentation in an image.
-    /// 
+    ///
     /// # Arguments
     /// * `image` - Semantic segmentation image from CARLA
-    /// 
+    ///
     /// # Returns
     /// Semantic segmentation analysis results
-    pub fn analyze_semantic_segmentation(&self, image: &Image) -> Result<SemanticSegmentationAnalysis> {
+    pub fn analyze_semantic_segmentation(
+        &self,
+        image: &Image,
+    ) -> Result<SemanticSegmentationAnalysis> {
         let mut analysis = carla_semantic_analysis_result_t {
             class_counts: ptr::null_mut(),
             class_percentages: ptr::null_mut(),
@@ -66,13 +72,16 @@ impl ImageAnalyzer {
     }
 
     /// Analyze instance segmentation in an image.
-    /// 
+    ///
     /// # Arguments
     /// * `image` - Instance segmentation image from CARLA
-    /// 
+    ///
     /// # Returns
     /// Instance segmentation analysis results
-    pub fn analyze_instance_segmentation(&self, image: &Image) -> Result<InstanceSegmentationAnalysis> {
+    pub fn analyze_instance_segmentation(
+        &self,
+        image: &Image,
+    ) -> Result<InstanceSegmentationAnalysis> {
         let mut analysis = carla_instance_analysis_result_t {
             instance_ids: ptr::null_mut(),
             instance_sizes: ptr::null_mut(),
@@ -113,10 +122,10 @@ impl ImageAnalyzer {
     }
 
     /// Analyze depth information in a depth image.
-    /// 
+    ///
     /// # Arguments
     /// * `depth_image` - Depth image from CARLA camera
-    /// 
+    ///
     /// # Returns
     /// Depth analysis results
     pub fn analyze_depth(&self, depth_image: &Image) -> Result<DepthAnalysis> {
@@ -155,12 +164,12 @@ impl ImageAnalyzer {
     }
 
     /// Convert a depth image to a 3D point cloud.
-    /// 
+    ///
     /// # Arguments
     /// * `depth_image` - Depth image from CARLA camera
     /// * `rgb_image` - Optional RGB image for colored point cloud
     /// * `camera_intrinsics` - Camera intrinsic parameters
-    /// 
+    ///
     /// # Returns
     /// 3D point cloud data
     pub fn depth_to_point_cloud(
@@ -211,11 +220,11 @@ impl ImageAnalyzer {
     }
 
     /// Extract objects from semantic segmentation mask.
-    /// 
+    ///
     /// # Arguments
     /// * `semantic_image` - Semantic segmentation image
     /// * `class_id` - Semantic class ID to extract
-    /// 
+    ///
     /// # Returns
     /// Binary mask of the specified class
     pub fn extract_semantic_class(
@@ -245,10 +254,10 @@ impl ImageAnalyzer {
     }
 
     /// Calculate image quality metrics.
-    /// 
+    ///
     /// # Arguments
     /// * `image` - RGB image to analyze
-    /// 
+    ///
     /// # Returns
     /// Image quality metrics
     pub fn calculate_image_quality(&self, image: &Image) -> Result<ImageQualityMetrics> {
@@ -277,12 +286,12 @@ impl ImageAnalyzer {
     }
 
     /// Detect edges in an image using Canny edge detection.
-    /// 
+    ///
     /// # Arguments
     /// * `image` - Input image
     /// * `low_threshold` - Low threshold for edge detection
     /// * `high_threshold` - High threshold for edge detection
-    /// 
+    ///
     /// # Returns
     /// Binary edge map
     pub fn detect_edges(
@@ -314,10 +323,10 @@ impl ImageAnalyzer {
     }
 
     /// Apply histogram equalization to improve image contrast.
-    /// 
+    ///
     /// # Arguments
     /// * `image` - Input image
-    /// 
+    ///
     /// # Returns
     /// Histogram equalized image
     pub fn histogram_equalization(&self, image: &Image) -> Result<Array3<u8>> {
@@ -374,9 +383,7 @@ impl SemanticSegmentationAnalysis {
         let class_counts = if analysis.class_counts.is_null() {
             Vec::new()
         } else {
-            unsafe {
-                slice::from_raw_parts(analysis.class_counts, analysis.num_classes).to_vec()
-            }
+            unsafe { slice::from_raw_parts(analysis.class_counts, analysis.num_classes).to_vec() }
         };
 
         let class_percentages = if analysis.class_percentages.is_null() {
@@ -437,9 +444,7 @@ impl InstanceSegmentationAnalysis {
         let instance_ids = if analysis.instance_ids.is_null() {
             Vec::new()
         } else {
-            unsafe {
-                slice::from_raw_parts(analysis.instance_ids, analysis.num_instances).to_vec()
-            }
+            unsafe { slice::from_raw_parts(analysis.instance_ids, analysis.num_instances).to_vec() }
         };
 
         let instance_sizes = if analysis.instance_sizes.is_null() {
@@ -551,15 +556,8 @@ impl PointCloud {
         };
 
         let colors = if cloud.has_colors && !cloud.colors.is_null() {
-            let color_data = unsafe {
-                slice::from_raw_parts(cloud.colors, cloud.num_points)
-            };
-            Some(
-                color_data
-                    .iter()
-                    .map(|c| [c.r, c.g, c.b])
-                    .collect()
-            )
+            let color_data = unsafe { slice::from_raw_parts(cloud.colors, cloud.num_points) };
+            Some(color_data.iter().map(|c| [c.r, c.g, c.b]).collect())
         } else {
             None
         };
@@ -673,10 +671,7 @@ mod tests {
 
     #[test]
     fn test_point_cloud_properties() {
-        let points = vec![
-            Point3::new(1.0, 2.0, 3.0),
-            Point3::new(4.0, 5.0, 6.0),
-        ];
+        let points = vec![Point3::new(1.0, 2.0, 3.0), Point3::new(4.0, 5.0, 6.0)];
         let colors = Some(vec![[255, 0, 0], [0, 255, 0]]);
 
         let cloud = PointCloud { points, colors };

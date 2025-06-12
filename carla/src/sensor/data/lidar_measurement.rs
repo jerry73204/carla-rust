@@ -11,7 +11,7 @@ pub struct LidarMeasurement {
 
 impl LidarMeasurement {
     /// Create a LidarMeasurement from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_lidar_data_t) -> Result<Self> {
@@ -55,7 +55,6 @@ impl LidarMeasurement {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
 }
 
 impl SensorDataBase for LidarMeasurement {
