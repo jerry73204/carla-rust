@@ -217,6 +217,22 @@ pub unsafe extern "C" fn carla_actor_is_walker(_actor: *const carla_sys::carla_a
     false
 }
 
+pub unsafe extern "C" fn carla_actor_is_traffic_light(
+    _actor: *const carla_sys::carla_actor_t,
+) -> bool {
+    // TODO: Implement when C API is available
+    // For now, check based on type ID string comparison
+    false
+}
+
+pub unsafe extern "C" fn carla_actor_is_traffic_sign(
+    _actor: *const carla_sys::carla_actor_t,
+) -> bool {
+    // TODO: Implement when C API is available
+    // For now, check based on type ID string comparison
+    false
+}
+
 // Missing actor functions
 pub unsafe extern "C" fn carla_actor_get_parent(
     _actor: *const carla_sys::carla_actor_t,

@@ -13,6 +13,57 @@ use carla_sys::*;
 
 use std::ptr;
 
+/// Actor attribute information.
+#[derive(Clone, Debug)]
+pub struct ActorAttribute {
+    /// The attribute ID/name.
+    pub id: String,
+    /// The attribute value.
+    pub value: String,
+    /// Whether the attribute is modifiable.
+    pub is_modifiable: bool,
+}
+
+impl ActorAttribute {
+    /// Create a new actor attribute.
+    pub fn new(id: String, value: String, is_modifiable: bool) -> Self {
+        Self {
+            id,
+            value,
+            is_modifiable,
+        }
+    }
+}
+
+// TODO: Remove these placeholder types when proper TrafficLight(Actor) and TrafficSign(Actor) are implemented
+/// Placeholder traffic light type for Actor conversion methods.
+/// This will be replaced with a proper newtype wrapper in the future.
+#[derive(Clone, Debug)]
+pub struct TrafficLight(pub Actor);
+
+/// Placeholder traffic sign type for Actor conversion methods.
+/// This will be replaced with a proper newtype wrapper in the future.
+#[derive(Clone, Debug)]
+pub struct TrafficSign(pub Actor);
+
+impl TrafficLight {
+    /// Create a TrafficLight from a raw C pointer.
+    /// TODO: Remove when proper TrafficLight implementation is available
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
+        let actor = Actor::from_raw_ptr(ptr)?;
+        Ok(Self(actor))
+    }
+}
+
+impl TrafficSign {
+    /// Create a TrafficSign from a raw C pointer.
+    /// TODO: Remove when proper TrafficSign implementation is available
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
+        let actor = Actor::from_raw_ptr(ptr)?;
+        Ok(Self(actor))
+    }
+}
+
 /// A base actor that represents a movable object in the simulation,
 /// corresponding to `carla.Actor` in Python API.
 #[derive(Clone, Debug)]
@@ -83,6 +134,44 @@ impl Actor {
         }
     }
 
+    /// Try to convert this Actor into a TrafficLight.
+    /// Returns Ok(TrafficLight) if successful, or Err(Actor) if the conversion fails.
+    ///
+    /// TODO: Update type checking when proper TrafficLight newtype wrapper is available
+    pub fn try_into_traffic_light(self) -> Result<TrafficLight, Self> {
+        if self.type_id().contains("traffic.traffic_light") {
+            match TrafficLight::from_raw_ptr(self.inner) {
+                Ok(traffic_light) => {
+                    // Prevent the Actor from being dropped since we're transferring ownership
+                    std::mem::forget(self);
+                    Ok(traffic_light)
+                }
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Try to convert this Actor into a TrafficSign.
+    /// Returns Ok(TrafficSign) if successful, or Err(Actor) if the conversion fails.
+    ///
+    /// TODO: Update type checking when TrafficSign newtype wrapper is available
+    pub fn try_into_traffic_sign(self) -> Result<TrafficSign, Self> {
+        if self.type_id().contains("static.prop") || self.type_id().contains("traffic.sign") {
+            match TrafficSign::from_raw_ptr(self.inner) {
+                Ok(traffic_sign) => {
+                    // Prevent the Actor from being dropped since we're transferring ownership
+                    std::mem::forget(self);
+                    Ok(traffic_sign)
+                }
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
     /// Try to get a reference to this Actor as a Vehicle.
     /// Returns Some if this actor is a vehicle, None otherwise.
     pub fn as_vehicle(&self) -> Option<&Vehicle> {
@@ -114,6 +203,34 @@ impl Actor {
             // SAFETY: We've verified this is a sensor, and Sensor is a newtype wrapper
             // around Actor with the same memory layout
             unsafe { Some(&*(self as *const Actor as *const Sensor)) }
+        } else {
+            None
+        }
+    }
+
+    /// Try to get a reference to this Actor as a TrafficLight.
+    /// Returns Some if this actor is a traffic light, None otherwise.
+    ///
+    /// TODO: Update type checking when proper TrafficLight newtype wrapper is available
+    pub fn as_traffic_light(&self) -> Option<&TrafficLight> {
+        if self.type_id().contains("traffic.traffic_light") {
+            // SAFETY: We've verified this is a traffic light, and TrafficLight is a newtype wrapper
+            // around Actor with the same memory layout
+            unsafe { Some(&*(self as *const Actor as *const TrafficLight)) }
+        } else {
+            None
+        }
+    }
+
+    /// Try to get a reference to this Actor as a TrafficSign.
+    /// Returns Some if this actor is a traffic sign, None otherwise.
+    ///
+    /// TODO: Update type checking when TrafficSign newtype wrapper is available
+    pub fn as_traffic_sign(&self) -> Option<&TrafficSign> {
+        if self.type_id().contains("static.prop") || self.type_id().contains("traffic.sign") {
+            // SAFETY: We've verified this is a traffic sign, and TrafficSign is a newtype wrapper
+            // around Actor with the same memory layout
+            unsafe { Some(&*(self as *const Actor as *const TrafficSign)) }
         } else {
             None
         }
@@ -198,9 +315,29 @@ impl Actor {
         check_carla_error(error)
     }
 
+    /// Get all attributes of this actor.
+    ///
+    /// Note: In CARLA's C API, attributes are typically accessed through blueprints.
+    /// This method provides a placeholder for future API extensions.
+    pub fn get_attributes(&self) -> Result<Vec<ActorAttribute>> {
+        // TODO: Implement when C API provides actor instance attribute access
+        // For now, return empty vector as actor attributes are managed at blueprint level
+        Ok(Vec::new())
+    }
+
+    /// Set an attribute value for this actor.
+    ///
+    /// Note: In CARLA's C API, attributes are typically set on blueprints before spawning.
+    /// This method provides a placeholder for future API extensions.
+    pub fn set_attribute(&self, _id: &str, _value: &str) -> Result<()> {
+        // TODO: Implement when C API provides actor instance attribute modification
+        // For now, return error as actor attributes are typically immutable after spawning
+        Err(anyhow!(
+            "Actor attributes cannot be modified after spawning in current CARLA version"
+        ))
+    }
+
     // TODO: Add methods for:
-    // - get_attributes()
-    // - set_attribute()
     // - get_world()
     // - get_semantic_tags()
 }
