@@ -4,10 +4,10 @@
 
 pub mod client;
 pub mod geom;
-// pub mod road;
+// pub mod road; // TODO: Update road module to use new C API functions
 // pub mod rpc;
 pub mod sensor_minimal;
-// pub mod traffic_manager;
+pub mod traffic_manager;
 mod utils;
 
 // pub mod prelude {

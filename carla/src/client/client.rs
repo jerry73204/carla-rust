@@ -134,17 +134,24 @@ impl Client {
         super::World::from_raw_ptr(world_ptr)
     }
 
-    // TODO: Uncomment when TrafficManager is migrated
-    /*
-    pub fn instance_tm<P>(&self, port: P) -> Result<TrafficManager>
+    /// Get raw pointer to the underlying C client (for internal use)
+    pub(crate) fn raw_ptr(&self) -> *mut carla_client_t {
+        self.inner
+    }
+
+    /// Get a TrafficManager instance for the specified port
+    pub fn instance_tm<P>(&self, port: P) -> Result<crate::traffic_manager::TrafficManager>
     where
         P: Into<Option<u16>>,
     {
-        let port = port.into().unwrap_or(TM_DEFAULT_PORT);
-        let tm_port = unsafe { carla_client_get_traffic_manager_port(self.inner, port) };
-        TrafficManager::new(tm_port)
+        let port = port.into().unwrap_or(CARLA_TM_DEFAULT_PORT as u16);
+        crate::traffic_manager::TrafficManager::new(self, port)
     }
-    */
+
+    /// Get the default TrafficManager instance (port 8000)
+    pub fn default_tm(&self) -> Result<crate::traffic_manager::TrafficManager> {
+        crate::traffic_manager::TrafficManager::default(self)
+    }
 }
 
 impl Default for Client {

@@ -11,7 +11,7 @@ mod world;
 // mod actor;
 // mod actor_attribute;
 // mod actor_attribute_value_list;
-// mod actor_base;
+mod actor_base;
 // mod actor_blueprint;
 // mod actor_builder;
 // mod actor_kind;
@@ -38,6 +38,7 @@ mod world;
 // mod waypoint_list;
 // mod world_snapshot;
 
+pub use actor_base::ActorBase;
 pub use actor_minimal::{Actor, ActorBlueprint, BlueprintLibrary};
 pub use client::*;
 pub use map_minimal::{Map, Waypoint};
