@@ -49,8 +49,10 @@ pub use actor_base::ActorBase;
 pub use blueprint::{ActorBlueprint, BlueprintLibrary}; // Export from new blueprint module
 pub use client::*;
 pub use map::{Map, Waypoint};
-pub use sensor::{Sensor, SensorCallback, SensorUserData}; // Export sensor actor from client module
-                                                          // Export enhanced Vehicle with newtype wrapper, control types, and physics types
+pub use sensor::{
+    EnhancedSensorUserData, Sensor, SensorCallback, SensorErrorHandler, SensorUserData,
+}; // Export sensor actor from client module
+   // Export enhanced Vehicle with newtype wrapper, control types, and physics types
 pub use vehicle::{
     AckermannControllerSettings, DoorState, EnginePhysics, GearPhysicsControl, SuspensionPhysics,
     TirePhysics, TrafficLightState, Vehicle, VehicleAckermannControl, VehicleControl,

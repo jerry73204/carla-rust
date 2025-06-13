@@ -13,9 +13,47 @@
 // pub mod data;
 // pub mod analysis;
 
+// Phase 6 Migration Roadmap:
+// 1. Enable `pub mod data;` when C API types are available
+// 2. Enable `pub mod analysis;` when advanced analysis features are needed
+// 3. Migrate from `legacy_data.rs` to organized `data/` submodules:
+//    - `data/image.rs` - Image sensor data types
+//    - `data/lidar.rs` - LiDAR point cloud data
+//    - `data/radar.rs` - Radar detection data
+//    - `data/imu.rs` - IMU sensor data
+//    - `data/gnss.rs` - GNSS positioning data
+//    - `data/collision.rs` - Collision event data
+//    - `data/lane_invasion.rs` - Lane invasion event data
+//    - `data/dvs.rs` - Dynamic Vision Sensor data
+//    - `data/optical_flow.rs` - Optical flow data
+// 4. Add `analysis/` submodules:
+//    - `analysis/image_processing.rs` - Image analysis utilities
+//    - `analysis/point_cloud.rs` - LiDAR analysis utilities
+//    - `analysis/fusion.rs` - Multi-sensor fusion
+//    - `analysis/object_detection.rs` - Object detection pipelines
+
 // Legacy data support (temporary - to be removed after migration)
 mod legacy_data;
 mod sensor_data;
+
+// Phase 6 preparation: Create stub modules for future organization
+// These will be enabled once the C API provides the necessary types
+
+/// Sensor data type definitions (Phase 6).
+/// Currently disabled - will be enabled when C API provides proper data structures.
+pub mod data {
+    //! Future home for organized sensor data types.
+    //! This module will contain dedicated submodules for each sensor type
+    //! with improved type safety and memory efficiency.
+}
+
+/// Sensor analysis utilities (Phase 6).
+/// Currently disabled - will be enabled when advanced analysis features are implemented.
+pub mod analysis {
+    //! Future home for sensor data analysis and processing utilities.
+    //! This module will provide advanced processing capabilities including
+    //! multi-sensor fusion, object detection, and performance optimization.
+}
 
 // Re-export sensor data types from organized modules
 // TODO: Enable when Phase 6 data types are ready
@@ -38,7 +76,9 @@ pub use legacy_data::{
 pub type SensorDataType = u32;
 
 // Re-export the Sensor actor from the client module
-pub use crate::client::{Sensor, SensorCallback, SensorUserData};
+pub use crate::client::{
+    EnhancedSensorUserData, Sensor, SensorCallback, SensorErrorHandler, SensorUserData,
+};
 
 use anyhow::{anyhow, Result};
 use carla_sys::*;
@@ -144,6 +184,70 @@ impl Default for SensorConfiguration {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// Sensor configuration helper for sensor-specific settings.
+#[derive(Debug, Clone)]
+pub struct SensorConfigHelper {
+    /// Sensor type identifier.
+    pub sensor_type: String,
+}
+
+impl SensorConfigHelper {
+    /// Create a new sensor configuration helper.
+    pub fn new(sensor_type: String) -> Result<Self> {
+        Ok(Self { sensor_type })
+    }
+
+    /// Get camera-specific configuration template.
+    pub fn camera_config(&self) -> SensorConfiguration {
+        match self.sensor_type.as_str() {
+            t if t.contains("camera") => SensorConfiguration::new()
+                .image_size(800, 600)
+                .fov(90.0)
+                .sensor_tick(0.1),
+            _ => SensorConfiguration::new(),
+        }
+    }
+
+    /// Get LiDAR-specific configuration template.
+    pub fn lidar_config(&self) -> SensorConfiguration {
+        match self.sensor_type.as_str() {
+            t if t.contains("lidar") => SensorConfiguration::new()
+                .range(100.0)
+                .attribute("rotation_frequency", "10")
+                .attribute("channels", "32")
+                .attribute("points_per_second", "56000"),
+            _ => SensorConfiguration::new(),
+        }
+    }
+
+    /// Get radar-specific configuration template.
+    pub fn radar_config(&self) -> SensorConfiguration {
+        match self.sensor_type.as_str() {
+            t if t.contains("radar") => SensorConfiguration::new()
+                .range(100.0)
+                .attribute("horizontal_fov", "30")
+                .attribute("vertical_fov", "30")
+                .attribute("points_per_second", "1500"),
+            _ => SensorConfiguration::new(),
+        }
+    }
+}
+
+/// Sensor performance metrics for monitoring.
+#[derive(Debug, Clone, Default)]
+pub struct SensorPerformanceMetrics {
+    /// Frames per second.
+    pub fps: f32,
+    /// Average processing time in milliseconds.
+    pub avg_processing_time_ms: f32,
+    /// Total frames processed.
+    pub total_frames: u64,
+    /// Total dropped frames.
+    pub dropped_frames: u64,
+    /// Memory usage in bytes.
+    pub memory_usage_bytes: u64,
 }
 
 // TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6

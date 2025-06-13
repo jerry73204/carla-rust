@@ -24,10 +24,23 @@ pub struct Sensor(pub Actor);
 /// Sensor callback closure type for handling incoming sensor data.
 pub type SensorCallback = Box<dyn FnMut(SensorData) + Send + 'static>;
 
+/// Sensor error handler closure type.
+pub type SensorErrorHandler = Box<dyn FnMut(String) + Send + 'static>;
+
 /// User data structure for sensor callbacks.
 pub struct SensorUserData {
     /// Callback function for sensor data processing.
     pub callback: Option<SensorCallback>,
+    /// Custom user data pointer.
+    pub user_data: *mut c_void,
+}
+
+/// Enhanced user data structure for advanced sensor callbacks.
+pub struct EnhancedSensorUserData {
+    /// Callback function for sensor data processing.
+    pub callback: Option<SensorCallback>,
+    /// Error handler for sensor errors.
+    pub error_handler: Option<SensorErrorHandler>,
     /// Custom user data pointer.
     pub user_data: *mut c_void,
 }
@@ -174,6 +187,57 @@ impl Sensor {
     pub fn destroy(self) -> Result<()> {
         self.0.destroy()
     }
+
+    // Advanced sensor management functionality for Phase 3
+
+    /// Start listening with enhanced error handling and user data.
+    pub fn listen_with_error_handling<F, E>(&self, callback: F, error_handler: E) -> Result<()>
+    where
+        F: FnMut(SensorData) + Send + 'static,
+        E: FnMut(String) + Send + 'static,
+    {
+        let user_data = Box::into_raw(Box::new(EnhancedSensorUserData {
+            callback: Some(Box::new(callback)),
+            error_handler: Some(Box::new(error_handler)),
+            user_data: std::ptr::null_mut(),
+        })) as *mut c_void;
+
+        let error = unsafe {
+            carla_sensor_listen(
+                self.raw_sensor_ptr(),
+                enhanced_sensor_callback_wrapper,
+                user_data,
+            )
+        };
+        check_carla_error(error)
+    }
+
+    /// Get sensor-specific configuration helpers.
+    pub fn get_sensor_config_helper(&self) -> Result<crate::sensor::SensorConfigHelper> {
+        crate::sensor::SensorConfigHelper::new(self.type_id())
+    }
+
+    /// Enable sensor data buffering for synchronization.
+    pub fn enable_buffering(&self, buffer_size: usize) -> Result<()> {
+        // TODO: Implement when C API provides sensor buffering
+        self.set_attribute("enable_buffering", "true")?;
+        self.set_attribute("buffer_size", &buffer_size.to_string())?;
+        Ok(())
+    }
+
+    /// Synchronize with other sensors for multi-sensor coordination.
+    pub fn synchronize_with(&self, other_sensors: &[&Sensor]) -> Result<()> {
+        // TODO: Implement when C API provides sensor synchronization
+        let sensor_ids: Vec<String> = other_sensors.iter().map(|s| s.id().to_string()).collect();
+        self.set_attribute("sync_sensors", &sensor_ids.join(","))?;
+        Ok(())
+    }
+
+    /// Get sensor performance metrics.
+    pub fn get_performance_metrics(&self) -> Result<crate::sensor::SensorPerformanceMetrics> {
+        // TODO: Implement when C API provides performance metrics
+        Ok(crate::sensor::SensorPerformanceMetrics::default())
+    }
 }
 
 // Implement ActorBase trait for Sensor
@@ -215,6 +279,40 @@ unsafe extern "C" fn sensor_callback_wrapper(
         // Convert C sensor data to Rust SensorData
         if let Ok(sensor_data_rust) = SensorData::from_raw_ptr(sensor_data) {
             callback(sensor_data_rust);
+        }
+    }
+}
+
+/// Enhanced sensor callback wrapper with error handling.
+unsafe extern "C" fn enhanced_sensor_callback_wrapper(
+    sensor_data: *mut carla_sensor_data_t,
+    user_data: *mut c_void,
+) {
+    if user_data.is_null() {
+        return;
+    }
+
+    let user_data_ptr = user_data as *mut EnhancedSensorUserData;
+    let user_data_ref = &mut *user_data_ptr;
+
+    if sensor_data.is_null() {
+        if let Some(ref mut error_handler) = user_data_ref.error_handler {
+            error_handler("Received null sensor data".to_string());
+        }
+        return;
+    }
+
+    // Convert C sensor data to Rust SensorData
+    match SensorData::from_raw_ptr(sensor_data) {
+        Ok(sensor_data_rust) => {
+            if let Some(ref mut callback) = user_data_ref.callback {
+                callback(sensor_data_rust);
+            }
+        }
+        Err(e) => {
+            if let Some(ref mut error_handler) = user_data_ref.error_handler {
+                error_handler(format!("Failed to convert sensor data: {}", e));
+            }
         }
     }
 }
