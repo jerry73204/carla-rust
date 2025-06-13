@@ -1,3 +1,4 @@
+use super::ActorList;
 use crate::geom::{Transform, TransformExt};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
@@ -132,8 +133,7 @@ impl World {
         }
     }
 
-    // TODO: Uncomment when ActorList module is migrated
-    /*
+    /// Get all actors in the world.
     pub fn actors(&self) -> Result<ActorList> {
         let actor_list_ptr = unsafe { carla_world_get_actors(self.inner) };
         if actor_list_ptr.is_null() {
@@ -141,20 +141,16 @@ impl World {
         }
         ActorList::from_raw_ptr(actor_list_ptr)
     }
-    */
 
-    // TODO: Uncomment when ActorList module is migrated
-    /*
+    /// Get actors by their IDs.
     pub fn actors_by_ids(&self, ids: &[u32]) -> Result<ActorList> {
-        let actor_list_ptr = unsafe {
-            carla_world_get_actors_by_id(self.inner, ids.as_ptr(), ids.len())
-        };
+        let actor_list_ptr =
+            unsafe { carla_world_get_actors_by_id(self.inner, ids.as_ptr(), ids.len()) };
         if actor_list_ptr.is_null() {
             return Err(anyhow!("Failed to get actors by IDs"));
         }
         ActorList::from_raw_ptr(actor_list_ptr)
     }
-    */
 
     // TODO: Uncomment when Waypoint and Actor modules are migrated
     /*

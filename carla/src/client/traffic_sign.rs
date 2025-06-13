@@ -2,8 +2,7 @@ use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
     stubs::{
-        carla_actor_is_traffic_sign, carla_traffic_sign_get_sign_id,
-        carla_traffic_sign_get_trigger_volume, carla_traffic_sign_t,
+        carla_traffic_sign_get_sign_id, carla_traffic_sign_get_trigger_volume, carla_traffic_sign_t,
     },
 };
 use anyhow::{anyhow, Result};
@@ -25,7 +24,7 @@ impl TrafficSign {
         }
 
         // Verify it's actually a traffic sign
-        if !unsafe { carla_actor_is_traffic_sign(ptr) } {
+        if !unsafe { carla_sys::carla_actor_is_traffic_sign(ptr) } {
             return Err(anyhow!("Actor is not a traffic sign"));
         }
 

@@ -1,14 +1,10 @@
 use super::{Actor, ActorBase};
 use crate::{
     geom::Transform,
-    sensor::{
-        SensorAttribute, SensorAttributeType, SensorCalibrationData, SensorConfiguration,
-        SensorData,
-    },
+    sensor::{SensorAttribute, SensorCalibrationData, SensorConfiguration, SensorData},
     stubs::{
-        carla_actor_is_sensor, carla_sensor_calibration_data_t, carla_sensor_get_attribute,
-        carla_sensor_get_calibration_data, carla_sensor_is_listening, carla_sensor_listen,
-        carla_sensor_set_attribute, carla_sensor_stop, carla_sensor_t,
+        carla_sensor_get_attribute, carla_sensor_get_calibration_data, carla_sensor_is_listening,
+        carla_sensor_listen, carla_sensor_set_attribute, carla_sensor_stop, carla_sensor_t,
     },
     utils::check_carla_error,
 };
@@ -56,7 +52,7 @@ impl Sensor {
         }
 
         // Verify it's actually a sensor
-        if !unsafe { carla_actor_is_sensor(ptr as *const carla_actor_t) } {
+        if !unsafe { carla_sys::carla_actor_is_sensor(ptr as *const carla_actor_t) } {
             return Err(anyhow!("Actor is not a sensor"));
         }
 

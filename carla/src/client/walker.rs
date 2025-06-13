@@ -2,11 +2,11 @@ use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
     stubs::{
-        carla_actor_is_walker, carla_walker_ai_controller_t, carla_walker_apply_control,
-        carla_walker_control_t, carla_walker_get_ai_controller, carla_walker_get_control,
-        carla_walker_get_speed_limit, carla_walker_get_state, carla_walker_is_simulate_physics,
-        carla_walker_set_ai_controller, carla_walker_set_simulate_physics,
-        carla_walker_set_speed_limit, carla_walker_state_t, carla_walker_t,
+        carla_walker_ai_controller_t, carla_walker_apply_control, carla_walker_control_t,
+        carla_walker_get_ai_controller, carla_walker_get_control, carla_walker_get_speed_limit,
+        carla_walker_get_state, carla_walker_is_simulate_physics, carla_walker_set_ai_controller,
+        carla_walker_set_simulate_physics, carla_walker_set_speed_limit, carla_walker_state_t,
+        carla_walker_t,
     },
     utils::check_carla_error,
 };
@@ -29,7 +29,7 @@ impl Walker {
         }
 
         // Verify it's actually a walker
-        if !unsafe { carla_actor_is_walker(ptr) } {
+        if !unsafe { carla_sys::carla_actor_is_walker(ptr) } {
             return Err(anyhow!("Actor is not a walker"));
         }
 

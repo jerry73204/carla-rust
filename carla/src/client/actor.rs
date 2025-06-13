@@ -3,8 +3,7 @@ use crate::{
     geom::{Transform, TransformExt, Vector3D, Vector3DExt},
     sensor::Sensor,
     stubs::{
-        carla_actor_destroy_checked, carla_actor_get_parent, carla_actor_is_walker,
-        carla_actor_set_transform_checked, carla_attachment_type_t,
+        carla_actor_destroy_checked, carla_actor_set_transform_checked, carla_attachment_type_t,
     },
     utils::check_carla_error,
 };
@@ -109,7 +108,7 @@ impl Actor {
     /// Try to convert this Actor into a Walker.
     /// Returns Ok(Walker) if successful, or Err(Actor) if the conversion fails.
     pub fn try_into_walker(self) -> Result<Walker, Self> {
-        if unsafe { carla_actor_is_walker(self.inner) } {
+        if unsafe { carla_sys::carla_actor_is_walker(self.inner) } {
             match Walker::from_raw_ptr(self.inner) {
                 Ok(walker) => {
                     // Prevent the Actor from being dropped since we're transferring ownership
@@ -142,10 +141,8 @@ impl Actor {
 
     /// Try to convert this Actor into a TrafficLight.
     /// Returns Ok(TrafficLight) if successful, or Err(Actor) if the conversion fails.
-    ///
-    /// TODO: Update type checking when proper TrafficLight newtype wrapper is available
     pub fn try_into_traffic_light(self) -> Result<TrafficLight, Self> {
-        if self.type_id().contains("traffic.traffic_light") {
+        if unsafe { carla_sys::carla_actor_is_traffic_light(self.inner) } {
             match TrafficLight::from_raw_ptr(self.inner) {
                 Ok(traffic_light) => {
                     // Prevent the Actor from being dropped since we're transferring ownership
@@ -161,10 +158,8 @@ impl Actor {
 
     /// Try to convert this Actor into a TrafficSign.
     /// Returns Ok(TrafficSign) if successful, or Err(Actor) if the conversion fails.
-    ///
-    /// TODO: Update type checking when TrafficSign newtype wrapper is available
     pub fn try_into_traffic_sign(self) -> Result<TrafficSign, Self> {
-        if self.type_id().contains("static.prop") || self.type_id().contains("traffic.sign") {
+        if unsafe { carla_sys::carla_actor_is_traffic_sign(self.inner) } {
             match TrafficSign::from_raw_ptr(self.inner) {
                 Ok(traffic_sign) => {
                     // Prevent the Actor from being dropped since we're transferring ownership
@@ -193,7 +188,7 @@ impl Actor {
     /// Try to get a reference to this Actor as a Walker.
     /// Returns Some if this actor is a walker, None otherwise.
     pub fn as_walker(&self) -> Option<&Walker> {
-        if unsafe { carla_actor_is_walker(self.inner) } {
+        if unsafe { carla_sys::carla_actor_is_walker(self.inner) } {
             // SAFETY: We've verified this is a walker, and Walker is a newtype wrapper
             // around Actor with the same memory layout
             unsafe { Some(&*(self as *const Actor as *const Walker)) }
@@ -216,10 +211,8 @@ impl Actor {
 
     /// Try to get a reference to this Actor as a TrafficLight.
     /// Returns Some if this actor is a traffic light, None otherwise.
-    ///
-    /// TODO: Update type checking when proper TrafficLight newtype wrapper is available
     pub fn as_traffic_light(&self) -> Option<&TrafficLight> {
-        if self.type_id().contains("traffic.traffic_light") {
+        if unsafe { carla_sys::carla_actor_is_traffic_light(self.inner) } {
             // SAFETY: We've verified this is a traffic light, and TrafficLight is a newtype wrapper
             // around Actor with the same memory layout
             unsafe { Some(&*(self as *const Actor as *const TrafficLight)) }
@@ -230,10 +223,8 @@ impl Actor {
 
     /// Try to get a reference to this Actor as a TrafficSign.
     /// Returns Some if this actor is a traffic sign, None otherwise.
-    ///
-    /// TODO: Update type checking when TrafficSign newtype wrapper is available
     pub fn as_traffic_sign(&self) -> Option<&TrafficSign> {
-        if self.type_id().contains("static.prop") || self.type_id().contains("traffic.sign") {
+        if unsafe { carla_sys::carla_actor_is_traffic_sign(self.inner) } {
             // SAFETY: We've verified this is a traffic sign, and TrafficSign is a newtype wrapper
             // around Actor with the same memory layout
             unsafe { Some(&*(self as *const Actor as *const TrafficSign)) }
@@ -392,7 +383,7 @@ impl Actor {
 
     /// Get the actor's parent actor, if any.
     pub fn get_parent(&self) -> Option<Actor> {
-        let parent_ptr = unsafe { carla_actor_get_parent(self.inner) };
+        let parent_ptr = unsafe { carla_sys::carla_actor_get_parent(self.inner) };
         if parent_ptr.is_null() {
             None
         } else {

@@ -5,6 +5,7 @@
 
 mod actor; // Enhanced actor with complete functionality and physics
 mod actor_base;
+mod actor_list;
 mod blueprint; // Blueprint management (ActorBlueprint and BlueprintLibrary)
 mod client;
 mod map; // Map and waypoint functionality (merged from map_minimal)
@@ -22,7 +23,6 @@ mod world;
 // mod actor_blueprint;
 // mod actor_builder;
 // mod actor_kind;
-// mod actor_list;
 // mod actor_vec;
 // mod blueprint_library;
 // mod bounding_box_list;
@@ -46,6 +46,7 @@ mod world;
 
 pub use actor::{Actor, ActorAttribute, TrafficLight, TrafficSign}; // Use enhanced actor with physics
 pub use actor_base::ActorBase;
+pub use actor_list::{ActorList, ActorListIterator, ActorListOwnedIterator};
 pub use blueprint::{ActorBlueprint, BlueprintLibrary}; // Export from new blueprint module
 pub use client::*;
 pub use map::{Map, Waypoint};

@@ -74,6 +74,13 @@ typedef struct {
   carla_error_t error;
 } carla_spawn_result_t;
 
+// Actor attachment type
+typedef enum {
+  CARLA_ATTACHMENT_RIGID = 0,       // Rigid attachment
+  CARLA_ATTACHMENT_SPRING_ARM = 1,  // Spring arm attachment
+  CARLA_ATTACHMENT_GHOST_OBJECT = 2 // Ghost object attachment
+} carla_attachment_type_t;
+
 // Vehicle control types
 typedef struct {
   float throttle;

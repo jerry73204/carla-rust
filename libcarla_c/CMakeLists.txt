@@ -37,6 +37,7 @@ set(SOURCES
     src/map.cpp
     src/actor.cpp
     src/vehicle.cpp
+    src/walker.cpp
     src/sensor.cpp
     src/motion.cpp
     src/lidar.cpp
