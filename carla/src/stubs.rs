@@ -74,6 +74,11 @@ pub struct carla_ros2_message_t {
     pub _placeholder: u8,
 }
 
+#[repr(C)]
+pub struct carla_traffic_sign_t {
+    pub _placeholder: u8,
+}
+
 // Stub functions that do nothing or return defaults
 pub unsafe extern "C" fn carla_walker_apply_control(
     _actor: *mut carla_sys::carla_actor_t,
@@ -378,4 +383,17 @@ pub unsafe extern "C" fn carla_actor_blueprint_has_attribute(
 ) -> bool {
     // TODO: Implement when C API is available
     false
+}
+
+pub unsafe extern "C" fn carla_traffic_sign_get_trigger_volume(
+    _traffic_sign: *const carla_traffic_sign_t,
+) -> *mut std::ffi::c_void {
+    // TODO: Implement when C API is available
+    todo!()
+}
+
+pub unsafe extern "C" fn carla_traffic_sign_get_sign_id(
+    _traffic_sign: *const carla_traffic_sign_t,
+) {
+    // TODO: Implement when C API is available
 }

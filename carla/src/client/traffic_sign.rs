@@ -2,8 +2,8 @@ use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
     stubs::{
-        carla_actor_is_traffic_sign, carla_traffic_sign_get_trigger_volume,
-        carla_traffic_sign_get_sign_id, carla_traffic_sign_t,
+        carla_actor_is_traffic_sign, carla_traffic_sign_get_sign_id,
+        carla_traffic_sign_get_trigger_volume, carla_traffic_sign_t,
     },
 };
 use anyhow::{anyhow, Result};
@@ -62,7 +62,8 @@ impl TrafficSign {
 
     /// Get the trigger volume of the traffic sign.
     pub fn get_trigger_volume(&self) -> TrafficSignTriggerVolume {
-        let c_volume = unsafe { carla_traffic_sign_get_trigger_volume(self.raw_traffic_sign_ptr()) };
+        let c_volume =
+            unsafe { carla_traffic_sign_get_trigger_volume(self.raw_traffic_sign_ptr()) };
         TrafficSignTriggerVolume::from_c_volume(c_volume)
     }
 
@@ -114,7 +115,11 @@ impl TrafficSignTriggerVolume {
         // TODO: Implement conversion when C API is available
         Self {
             center: Vector3D::default(),
-            extent: Vector3D { x: 5.0, y: 5.0, z: 2.0 }, // Default trigger volume
+            extent: Vector3D {
+                x: 5.0,
+                y: 5.0,
+                z: 2.0,
+            }, // Default trigger volume
         }
     }
 
@@ -126,12 +131,12 @@ impl TrafficSignTriggerVolume {
             z: self.extent.z / 2.0,
         };
 
-        point.x >= (self.center.x - half_extent.x) &&
-        point.x <= (self.center.x + half_extent.x) &&
-        point.y >= (self.center.y - half_extent.y) &&
-        point.y <= (self.center.y + half_extent.y) &&
-        point.z >= (self.center.z - half_extent.z) &&
-        point.z <= (self.center.z + half_extent.z)
+        point.x >= (self.center.x - half_extent.x)
+            && point.x <= (self.center.x + half_extent.x)
+            && point.y >= (self.center.y - half_extent.y)
+            && point.y <= (self.center.y + half_extent.y)
+            && point.z >= (self.center.z - half_extent.z)
+            && point.z <= (self.center.z + half_extent.z)
     }
 }
 

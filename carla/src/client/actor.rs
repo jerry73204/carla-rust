@@ -10,6 +10,7 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
+use nalgebra::{Isometry3, Translation3, Vector3};
 
 use std::ptr;
 
@@ -81,6 +82,11 @@ impl Actor {
             return Err(anyhow!("Null actor pointer"));
         }
         Ok(Self { inner: ptr })
+    }
+
+    /// Get the raw C pointer for this actor.
+    pub(crate) fn raw_ptr(&self) -> *mut carla_actor_t {
+        self.inner
     }
 
     /// Try to convert this Actor into a Vehicle.
@@ -266,6 +272,22 @@ impl Actor {
         check_carla_error(error)
     }
 
+    /// Get the actor's current location.
+    pub fn get_location(&self) -> Translation3<f32> {
+        let c_location = unsafe { carla_actor_get_location(self.inner) };
+        Translation3::new(c_location.x, c_location.y, c_location.z)
+    }
+
+    /// Set the actor's location.
+    pub fn set_location(&mut self, location: &Translation3<f32>) {
+        let c_location = carla_vector3d_t {
+            x: location.x,
+            y: location.y,
+            z: location.z,
+        };
+        unsafe { carla_actor_set_location(self.inner, &c_location) };
+    }
+
     /// Get the actor's current velocity.
     pub fn get_velocity(&self) -> Vector3D {
         let c_velocity = unsafe { carla_actor_get_velocity(self.inner) };
@@ -282,6 +304,90 @@ impl Actor {
     pub fn get_acceleration(&self) -> Vector3D {
         let c_acceleration = unsafe { carla_actor_get_acceleration(self.inner) };
         Vector3D::from_c_vector(c_acceleration)
+    }
+
+    /// Enable or disable physics simulation for this actor.
+    pub fn set_simulate_physics(&mut self, enabled: bool) {
+        unsafe { carla_actor_set_simulate_physics(self.inner, enabled) };
+    }
+
+    /// Enable or disable gravity for this actor.
+    pub fn set_enable_gravity(&mut self, enabled: bool) {
+        unsafe { carla_actor_set_enable_gravity(self.inner, enabled) };
+    }
+
+    /// Add an impulse to the actor.
+    pub fn add_impulse(&mut self, impulse: &Vector3<f32>) {
+        let c_impulse = carla_vector3d_t {
+            x: impulse.x,
+            y: impulse.y,
+            z: impulse.z,
+        };
+        unsafe { carla_actor_add_impulse(self.inner, &c_impulse) };
+    }
+
+    /// Add an impulse to the actor at a specific location.
+    pub fn add_impulse_at_location(
+        &mut self,
+        impulse: &Vector3<f32>,
+        location: &Translation3<f32>,
+    ) {
+        let c_impulse = carla_vector3d_t {
+            x: impulse.x,
+            y: impulse.y,
+            z: impulse.z,
+        };
+        let c_location = carla_vector3d_t {
+            x: location.x,
+            y: location.y,
+            z: location.z,
+        };
+        unsafe { carla_actor_add_impulse_at_location(self.inner, &c_impulse, &c_location) };
+    }
+
+    /// Add a force to the actor.
+    pub fn add_force(&mut self, force: &Vector3<f32>) {
+        let c_force = carla_vector3d_t {
+            x: force.x,
+            y: force.y,
+            z: force.z,
+        };
+        unsafe { carla_actor_add_force(self.inner, &c_force) };
+    }
+
+    /// Add a force to the actor at a specific location.
+    pub fn add_force_at_location(&mut self, force: &Vector3<f32>, location: &Translation3<f32>) {
+        let c_force = carla_vector3d_t {
+            x: force.x,
+            y: force.y,
+            z: force.z,
+        };
+        let c_location = carla_vector3d_t {
+            x: location.x,
+            y: location.y,
+            z: location.z,
+        };
+        unsafe { carla_actor_add_force_at_location(self.inner, &c_force, &c_location) };
+    }
+
+    /// Add an angular impulse to the actor.
+    pub fn add_angular_impulse(&mut self, angular_impulse: &Vector3<f32>) {
+        let c_angular_impulse = carla_vector3d_t {
+            x: angular_impulse.x,
+            y: angular_impulse.y,
+            z: angular_impulse.z,
+        };
+        unsafe { carla_actor_add_angular_impulse(self.inner, &c_angular_impulse) };
+    }
+
+    /// Add a torque to the actor.
+    pub fn add_torque(&mut self, torque: &Vector3<f32>) {
+        let c_torque = carla_vector3d_t {
+            x: torque.x,
+            y: torque.y,
+            z: torque.z,
+        };
+        unsafe { carla_actor_add_torque(self.inner, &c_torque) };
     }
 
     /// Get the actor's parent actor, if any.

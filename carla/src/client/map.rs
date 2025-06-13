@@ -1,26 +1,21 @@
-use core::slice;
-
-use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
-    geom::{Location, LocationExt, Transform, TransformExt},
-    road::{LaneId, LaneType, RoadId},
-    utils::{check_carla_error, rust_string_to_c, c_string_to_rust, ArrayConversionExt},
+    geom::{Transform, TransformExt},
+    utils::c_string_to_rust,
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use nalgebra::{Isometry3, Translation3};
 use std::ptr;
 
-/// Represents the map of the simulation, corresponding to `carla.Map`
-/// in Python API.
+/// A map provides the geometry of the world.
 #[derive(Debug)]
 pub struct Map {
-    inner: *mut carla_map_t,
+    pub(crate) inner: *mut carla_map_t,
 }
 
 impl Map {
     /// Create a Map from a raw C pointer.
-    /// 
+    ///
     /// # Safety
     /// The pointer must be valid and not null.
     pub(crate) fn from_raw_ptr(ptr: *mut carla_map_t) -> Result<Self> {
@@ -39,44 +34,48 @@ impl Map {
         Ok(name)
     }
 
-    pub fn to_open_drive(&self) -> Result<String> {
-        // Note: OpenDRIVE content access needs to be implemented in C wrapper
-        Err(anyhow!("OpenDRIVE content access not yet implemented in C wrapper"))
+    pub fn lane_width(&self) -> f64 {
+        unsafe { carla_map_get_lane_width(self.inner) }
     }
 
-    pub fn recommended_spawn_points(&self) -> Result<RecommendedSpawnPoints> {
+    pub fn get_spawn_points(&self) -> Result<Vec<Isometry3<f32>>> {
         let transform_list_ptr = unsafe { carla_map_get_spawn_points(self.inner) };
         if transform_list_ptr.is_null() {
             return Err(anyhow!("Failed to get spawn points"));
         }
-        RecommendedSpawnPoints::from_raw_ptr(transform_list_ptr)
+
+        let size = unsafe { carla_transform_list_size(transform_list_ptr) };
+        let mut spawn_points = Vec::with_capacity(size);
+
+        for i in 0..size {
+            let transform = unsafe { carla_transform_list_get(transform_list_ptr, i) };
+            spawn_points.push(Transform::from_c_transform(transform).to_na());
+        }
+
+        unsafe { carla_transform_list_free(transform_list_ptr as *mut _) };
+        Ok(spawn_points)
     }
 
-    pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint> {
-        self.waypoint_opt(location, true, LaneType::Driving)
-    }
-
-    pub fn waypoint_opt(
+    pub fn get_waypoint(
         &self,
         location: &Translation3<f32>,
         project_to_road: bool,
-        lane_type: LaneType,
     ) -> Option<Waypoint> {
         let c_location = carla_vector3d_t {
             x: location.x,
             y: location.y,
             z: location.z,
         };
-        
+
         let waypoint_ptr = unsafe {
             carla_map_get_waypoint(
                 self.inner,
                 &c_location,
                 project_to_road,
-                lane_type as i32,
+                -2, // CARLA_LANE_TYPE_ANY
             )
         };
-        
+
         if waypoint_ptr.is_null() {
             None
         } else {
@@ -84,65 +83,26 @@ impl Map {
         }
     }
 
-    pub fn waypoint_xodr(
-        &self,
-        road_id: RoadId,
-        lane_id: LaneId,
-        distance: f32,
-    ) -> Option<Waypoint> {
-        let road_id_str = format!("{}", road_id);
-        let road_id_cstring = rust_string_to_c(&road_id_str).ok()?;
-        
-        let waypoint_ptr = unsafe {
-            carla_map_get_waypoint_xodr(
-                self.inner,
-                road_id_cstring.as_ptr(),
-                lane_id,
-                distance,
-            )
-        };
-        
-        if waypoint_ptr.is_null() {
-            None
-        } else {
-            Waypoint::from_raw_ptr(waypoint_ptr).ok()
-        }
-    }
-
-    pub fn generate_waypoints(&self, distance: f64) -> Result<WaypointList> {
+    pub fn generate_waypoints(&self, distance: f64) -> Result<Vec<Waypoint>> {
         let waypoint_list_ptr = unsafe { carla_map_generate_waypoints(self.inner, distance) };
         if waypoint_list_ptr.is_null() {
             return Err(anyhow!("Failed to generate waypoints"));
         }
-        WaypointList::from_raw_ptr(waypoint_list_ptr)
-    }
 
-    pub fn junction(&self, waypoint: &Waypoint) -> Junction {
-        let junction = self.inner.GetJunction(&waypoint.inner);
-        Junction::from_cxx(junction).unwrap()
-    }
+        let size = unsafe { carla_waypoint_list_size(waypoint_list_ptr) };
+        let mut waypoints = Vec::with_capacity(size);
 
-    pub fn all_landmarks(&self) -> LandmarkList {
-        let ptr = self.inner.GetAllLandmarks().within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
-    }
+        for i in 0..size {
+            let waypoint_ptr = unsafe { carla_waypoint_list_get(waypoint_list_ptr, i) };
+            if !waypoint_ptr.is_null() {
+                if let Ok(waypoint) = Waypoint::from_raw_ptr(waypoint_ptr) {
+                    waypoints.push(waypoint);
+                }
+            }
+        }
 
-    pub fn landmarks_from_id(&self, id: &str) -> LandmarkList {
-        let ptr = self.inner.GetLandmarksFromId(id).within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
-    }
-
-    pub fn all_landmarks_of_type(&self, type_: &str) -> LandmarkList {
-        let ptr = self.inner.GetAllLandmarksOfType(type_).within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
-    }
-
-    pub fn landmark_group(&self, landmark: &Landmark) -> LandmarkList {
-        let ptr = self
-            .inner
-            .GetLandmarkGroup(&landmark.inner)
-            .within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { carla_waypoint_list_free(waypoint_list_ptr as *mut _) };
+        Ok(waypoints)
     }
 }
 
@@ -161,69 +121,113 @@ impl Drop for Map {
 unsafe impl Send for Map {}
 unsafe impl Sync for Map {}
 
+/// A waypoint is a 3D point on the map with extra information about the road.
 #[derive(Debug)]
-pub struct RecommendedSpawnPoints {
-    inner: *mut carla_transform_list_t,
+pub struct Waypoint {
+    pub(crate) inner: *mut carla_waypoint_t,
 }
 
-impl RecommendedSpawnPoints {
-    pub(crate) fn from_raw_ptr(ptr: *mut carla_transform_list_t) -> Result<Self> {
+impl Waypoint {
+    /// Create a Waypoint from a raw C pointer.
+    ///
+    /// # Safety
+    /// The pointer must be valid and not null.
+    pub(crate) fn from_raw_ptr(ptr: *mut carla_waypoint_t) -> Result<Self> {
         if ptr.is_null() {
-            return Err(anyhow!("Null transform list pointer"));
+            return Err(anyhow!("Null waypoint pointer"));
         }
         Ok(Self { inner: ptr })
     }
 
-    pub fn len(&self) -> usize {
-        unsafe { carla_transform_list_size(self.inner) }
+    pub fn id(&self) -> u64 {
+        unsafe { carla_waypoint_get_id(self.inner) }
     }
 
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
+    pub fn road_id(&self) -> u32 {
+        unsafe { carla_waypoint_get_road_id(self.inner) }
     }
 
-    pub fn as_slice(&self) -> Vec<Transform> {
-        let len = self.len();
-        let mut transforms = Vec::with_capacity(len);
-        
-        for i in 0..len {
-            let c_transform = unsafe { carla_transform_list_get(self.inner, i) };
-            let transform = Transform::from_c_transform(c_transform);
-            transforms.push(transform);
+    pub fn section_id(&self) -> u32 {
+        unsafe { carla_waypoint_get_section_id(self.inner) }
+    }
+
+    pub fn lane_id(&self) -> i32 {
+        unsafe { carla_waypoint_get_lane_id(self.inner) }
+    }
+
+    pub fn s(&self) -> f64 {
+        unsafe { carla_waypoint_get_s(self.inner) }
+    }
+
+    pub fn is_junction(&self) -> bool {
+        unsafe { carla_waypoint_is_junction(self.inner) }
+    }
+
+    pub fn lane_width(&self) -> f64 {
+        unsafe { carla_waypoint_get_lane_width(self.inner) }
+    }
+
+    pub fn lane_change(&self) -> i32 {
+        unsafe { carla_waypoint_get_lane_change(self.inner) }
+    }
+
+    pub fn lane_type(&self) -> i32 {
+        unsafe { carla_waypoint_get_lane_type(self.inner) }
+    }
+
+    pub fn transform(&self) -> Isometry3<f32> {
+        let c_transform = unsafe { carla_waypoint_get_transform(self.inner) };
+        Transform::from_c_transform(c_transform).to_na()
+    }
+
+    pub fn next(&self, distance: f64) -> Option<Waypoint> {
+        let waypoint_ptr = unsafe { carla_waypoint_get_next(self.inner, distance) };
+        if waypoint_ptr.is_null() {
+            None
+        } else {
+            Waypoint::from_raw_ptr(waypoint_ptr).ok()
         }
-        
-        transforms
     }
 
-    pub fn get(&self, index: usize) -> Option<Isometry3<f32>> {
-        if index >= self.len() {
-            return None;
+    pub fn previous(&self, distance: f64) -> Option<Waypoint> {
+        let waypoint_ptr = unsafe { carla_waypoint_get_previous(self.inner, distance) };
+        if waypoint_ptr.is_null() {
+            None
+        } else {
+            Waypoint::from_raw_ptr(waypoint_ptr).ok()
         }
-        
-        let c_transform = unsafe { carla_transform_list_get(self.inner, index) };
-        let transform = Transform::from_c_transform(c_transform);
-        Some(transform.to_na())
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = Isometry3<f32>> + Send + '_ {
-        (0..self.len()).map(move |i| {
-            let c_transform = unsafe { carla_transform_list_get(self.inner, i) };
-            let transform = Transform::from_c_transform(c_transform);
-            transform.to_na()
-        })
+    pub fn get_right(&self) -> Option<Waypoint> {
+        let waypoint_ptr = unsafe { carla_waypoint_get_right(self.inner) };
+        if waypoint_ptr.is_null() {
+            None
+        } else {
+            Waypoint::from_raw_ptr(waypoint_ptr).ok()
+        }
     }
 
+    pub fn get_left(&self) -> Option<Waypoint> {
+        let waypoint_ptr = unsafe { carla_waypoint_get_left(self.inner) };
+        if waypoint_ptr.is_null() {
+            None
+        } else {
+            Waypoint::from_raw_ptr(waypoint_ptr).ok()
+        }
+    }
 }
 
-impl Drop for RecommendedSpawnPoints {
+impl Drop for Waypoint {
     fn drop(&mut self) {
         if !self.inner.is_null() {
             unsafe {
-                carla_transform_list_free(self.inner);
+                carla_waypoint_free(self.inner);
             }
             self.inner = ptr::null_mut();
         }
     }
 }
 
+// SAFETY: Waypoint wraps a thread-safe C API
+unsafe impl Send for Waypoint {}
+unsafe impl Sync for Waypoint {}
