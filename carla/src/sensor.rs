@@ -8,20 +8,25 @@
 //!
 //! For sensor actor management, see `crate::client::Sensor`.
 
-mod sensor_data;
-pub use sensor_data::*;
+// Organize sensor data and analysis into submodules
+// TODO: Enable when Phase 6 data types are ready - currently disabled due to missing dependencies
+// pub mod data;
+// pub mod analysis;
 
-// Merge functionality from sensor_legacy
+// Legacy data support (temporary - to be removed after migration)
 mod legacy_data;
+mod sensor_data;
 
-// TODO: Temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
-// Re-export all sensor data types (prefer new data types, supplement with legacy)
-// pub use data::{
-//     CollisionEvent, DvsEvent, DvsEventArray, GnssMeasurement as GnssData, Image,
-//     ImuMeasurement as ImuData, LaneInvasionEvent, LidarMeasurement as LidarData,
-//     ObstacleDetectionEvent, OpticalFlow as OpticalFlowImage, OpticalFlowPixel,
-//     RadarMeasurement as RadarData,
-// };
+// Re-export sensor data types from organized modules
+// TODO: Enable when Phase 6 data types are ready
+// pub use data::*;
+
+// Re-export analysis utilities
+// TODO: Enable when Phase 6 analysis is ready
+// pub use analysis::*;
+
+// Re-export current sensor data functionality
+pub use sensor_data::*;
 
 // Re-export additional types from legacy data module that aren't in the new data module
 pub use legacy_data::{

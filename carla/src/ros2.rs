@@ -4,11 +4,22 @@
  * This module provides native ROS2 publishers and subscribers that work
  * directly with CARLA's built-in ROS2 support, eliminating the need for
  * external bridge software.
+ *
+ * The module is organized into logical submodules:
+ * - `messages` - ROS2 message type conversions
+ * - `publisher` - ROS2 publishers for CARLA data
+ * - `subscriber` - ROS2 subscribers for receiving commands
  */
 
+// Organize ROS2 functionality into submodules
 pub mod messages;
 pub mod publisher;
 pub mod subscriber;
+
+// Re-export commonly used types
+pub use messages::*;
+pub use publisher::Ros2Publisher;
+pub use subscriber::Ros2Subscriber;
 
 use anyhow::Result;
 use carla_sys::*;
