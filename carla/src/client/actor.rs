@@ -406,8 +406,8 @@ impl Actor {
         _other: &Actor,
         _attachment_type: carla_attachment_type_t,
     ) -> Result<()> {
-        // TODO: Implement when carla_actor_attach_to is available
-        todo!("Actor attachment not yet implemented in C API")
+        // TODO: Implement when carla_actor_attach_to is available in C API
+        Err(anyhow!("Actor attachment not yet implemented in C API"))
     }
 
     /// Check if the actor is still alive in the simulation.

@@ -1,4 +1,4 @@
-use crate::geom::Transform;
+use crate::geom::{Transform, TransformExt};
 use anyhow::{anyhow, Result};
 use carla_sys::*;
 use nalgebra::Translation3;
@@ -123,17 +123,14 @@ impl World {
     }
     */
 
-    // TODO: Uncomment when Actor module is migrated
-    /*
-    pub fn actor(&self, actor_id: u32) -> Option<Actor> {
+    pub fn actor(&self, actor_id: u32) -> Option<super::Actor> {
         let actor_ptr = unsafe { carla_world_get_actor(self.inner, actor_id) };
         if actor_ptr.is_null() {
             None
         } else {
-            Actor::from_raw_ptr(actor_ptr).ok()
+            super::Actor::from_raw_ptr(actor_ptr).ok()
         }
     }
-    */
 
     // TODO: Uncomment when ActorList module is migrated
     /*
@@ -180,75 +177,66 @@ impl World {
     }
     */
 
-    // TODO: Uncomment when Actor and ActorBlueprint modules are migrated
-    /*
     pub fn spawn_actor(
         &mut self,
-        blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
-    ) -> Result<Actor> {
+        blueprint: &super::ActorBlueprint,
+        transform: &Transform,
+    ) -> Result<super::Actor> {
         self.spawn_actor_opt(blueprint, transform, None)
     }
 
     pub fn spawn_actor_opt(
         &mut self,
-        blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
-        parent: Option<&Actor>,
-    ) -> Result<Actor> {
+        blueprint: &super::ActorBlueprint,
+        transform: &Transform,
+        parent: Option<&super::Actor>,
+    ) -> Result<super::Actor> {
         let parent_ptr = parent
             .map(|parent| parent.raw_ptr())
             .unwrap_or(ptr::null_mut());
 
-        let c_transform = Transform::from_na(transform).to_c_transform();
+        let c_transform = transform.to_c_transform();
 
         let spawn_result = unsafe {
-            carla_world_spawn_actor(
-                self.inner,
-                blueprint.raw_ptr(),
-                &c_transform,
-                parent_ptr,
-            )
+            carla_world_spawn_actor(self.inner, blueprint.raw_ptr(), &c_transform, parent_ptr)
         };
 
         if spawn_result.error != carla_error_t_CARLA_ERROR_NONE {
-            return Err(anyhow!("Failed to spawn actor: error code {}", spawn_result.error));
+            return Err(anyhow!(
+                "Failed to spawn actor: error code {}",
+                spawn_result.error
+            ));
         }
 
         if spawn_result.actor.is_null() {
             return Err(anyhow!("Failed to spawn actor - null actor returned"));
         }
 
-        Actor::from_raw_ptr(spawn_result.actor)
+        super::Actor::from_raw_ptr(spawn_result.actor)
     }
 
     pub fn try_spawn_actor(
         &mut self,
-        blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
-    ) -> Result<Option<Actor>> {
+        blueprint: &super::ActorBlueprint,
+        transform: &Transform,
+    ) -> Result<Option<super::Actor>> {
         self.try_spawn_actor_opt(blueprint, transform, None)
     }
 
     pub fn try_spawn_actor_opt(
         &mut self,
-        blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
-        parent: Option<&Actor>,
-    ) -> Result<Option<Actor>> {
+        blueprint: &super::ActorBlueprint,
+        transform: &Transform,
+        parent: Option<&super::Actor>,
+    ) -> Result<Option<super::Actor>> {
         let parent_ptr = parent
             .map(|parent| parent.raw_ptr())
             .unwrap_or(ptr::null_mut());
 
-        let c_transform = Transform::from_na(transform).to_c_transform();
+        let c_transform = transform.to_c_transform();
 
         let spawn_result = unsafe {
-            carla_world_try_spawn_actor(
-                self.inner,
-                blueprint.raw_ptr(),
-                &c_transform,
-                parent_ptr,
-            )
+            carla_world_try_spawn_actor(self.inner, blueprint.raw_ptr(), &c_transform, parent_ptr)
         };
 
         match spawn_result.error {
@@ -256,7 +244,7 @@ impl World {
                 if spawn_result.actor.is_null() {
                     Ok(None)
                 } else {
-                    Ok(Some(Actor::from_raw_ptr(spawn_result.actor)?))
+                    Ok(Some(super::Actor::from_raw_ptr(spawn_result.actor)?))
                 }
             }
             _ => {
@@ -265,7 +253,6 @@ impl World {
             }
         }
     }
-    */
 
     pub fn wait_for_tick(&self) -> Result<carla_world_snapshot_t> {
         loop {
