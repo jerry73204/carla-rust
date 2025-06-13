@@ -8,6 +8,7 @@ mod actor_base;
 mod blueprint; // Blueprint management (ActorBlueprint and BlueprintLibrary)
 mod client;
 mod map; // Map and waypoint functionality (merged from map_minimal)
+mod sensor; // Sensor actor management (newtype wrapper around Actor)
 mod traffic_sign;
 mod vehicle; // Enhanced vehicle with newtype wrapper and advanced features
 mod vehicle_physics; // Vehicle physics control module
@@ -48,7 +49,8 @@ pub use actor_base::ActorBase;
 pub use blueprint::{ActorBlueprint, BlueprintLibrary}; // Export from new blueprint module
 pub use client::*;
 pub use map::{Map, Waypoint};
-// Export enhanced Vehicle with newtype wrapper, control types, and physics types
+pub use sensor::{Sensor, SensorCallback, SensorUserData}; // Export sensor actor from client module
+                                                          // Export enhanced Vehicle with newtype wrapper, control types, and physics types
 pub use vehicle::{
     AckermannControllerSettings, DoorState, EnginePhysics, GearPhysicsControl, SuspensionPhysics,
     TirePhysics, TrafficLightState, Vehicle, VehicleAckermannControl, VehicleControl,
@@ -62,7 +64,7 @@ pub use walker::{
 };
 pub use world::*;
 
-// Re-export sensor types from unified sensor module
+// Re-export sensor data types from unified sensor module
 // TODO: Some types temporarily disabled for Phase 5.1 - will be re-enabled in Phase 6
 pub use crate::sensor::{
     // CollisionEvent, DvsEvent, DvsEventArray, - temporarily disabled
@@ -80,13 +82,10 @@ pub use crate::sensor::{
     RadarDetection,
     SemanticLidarData,
     SemanticLidarPoint,
-    Sensor,
     SensorAttribute,
     SensorAttributeType,
     SensorCalibrationData,
-    SensorCallback,
     SensorConfiguration,
     SensorData,
     SensorDataType,
-    SensorUserData,
 };
