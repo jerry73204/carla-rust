@@ -198,6 +198,15 @@ pub mod bridge {
         pub lane_change: u8, // LaneChange enum
     }
 
+    // Time and timestamp types
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTimestamp {
+        pub frame: u64,
+        pub elapsed_seconds: f64,
+        pub delta_seconds: f64,
+        pub platform_timestamp: f64,
+    }
+
     // Map and navigation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLaneMarking {
@@ -337,6 +346,7 @@ pub mod bridge {
         fn World_GetBlueprintLibrary(world: &World) -> SharedPtr<BlueprintLibrary>;
         fn World_GetSpectator(world: &World) -> SharedPtr<Actor>;
         fn World_Tick(world: &World, timeout_seconds: f64) -> u64;
+        fn World_GetSnapshot(world: &World) -> SimpleTimestamp;
         unsafe fn World_SpawnActor(
             world: &World,
             blueprint: &ActorBlueprint,
@@ -778,6 +788,7 @@ pub use bridge::{
     SimpleLocation,
     SimpleRadarDetection,
     SimpleRotation,
+    SimpleTimestamp,
     SimpleTrafficLightState,
     SimpleTrafficManagerAction,
     SimpleTrafficManagerConfig,
@@ -935,6 +946,7 @@ pub use bridge::{
     World_GetBlueprintLibrary,
     World_GetId,
     World_GetMap,
+    World_GetSnapshot,
     World_GetSpectator,
     World_SpawnActor,
     World_Tick,

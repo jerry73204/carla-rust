@@ -32,3 +32,6 @@ name = "actor_system_demo"
 
 [[example]]
 name = "sensor_streaming"
+
+[[example]]
+name = "time_demo"

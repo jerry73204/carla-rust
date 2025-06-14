@@ -42,6 +42,7 @@ pub mod geometry;
 pub mod map;
 pub mod sensor;
 pub mod streaming;
+pub mod time;
 pub mod traffic_light;
 pub mod traffic_manager;
 pub mod traffic_sign;
@@ -75,6 +76,7 @@ pub use streaming::{
     StreamConfig, StreamEvent, StreamId, StreamPriority, StreamProcessor, StreamStats,
     StreamingManager, SyncGroup, SyncedData,
 };
+pub use time::{SimulationClock, TimeDuration, Timestamp};
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
 pub use traffic_manager::{
     RoadOption, TrafficManagerAction, TrafficManagerConfig, TrafficManagerStats,

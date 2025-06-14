@@ -103,6 +103,14 @@ uint64_t World_Tick(const World &world, double timeout_seconds) {
   return const_cast<World &>(world).Tick(duration);
 }
 
+SimpleTimestamp World_GetSnapshot(const World &world) {
+  auto snapshot = const_cast<World &>(world).GetSnapshot();
+  return SimpleTimestamp{snapshot.GetFrame(),
+                         snapshot.GetTimestamp().elapsed_seconds,
+                         snapshot.GetTimestamp().delta_seconds,
+                         snapshot.GetTimestamp().platform_timestamp};
+}
+
 std::shared_ptr<Actor> World_SpawnActor(const World &world,
                                         const ActorBlueprint &blueprint,
                                         const SimpleTransform &transform,

@@ -79,6 +79,12 @@ impl WorldWrapper {
         ffi::World_Tick(&self.inner, timeout.as_secs_f64())
     }
 
+    /// Get the current world snapshot with timestamp
+    pub fn get_snapshot(&self) -> crate::time::Timestamp {
+        let simple_timestamp = ffi::World_GetSnapshot(&self.inner);
+        crate::time::Timestamp::from(simple_timestamp)
+    }
+
     /// Spawn an actor in the world (panics if failed)
     pub fn spawn_actor(
         &self,
