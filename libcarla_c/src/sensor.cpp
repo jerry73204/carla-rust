@@ -1,4 +1,8 @@
 #include "carla_c/sensor.h"
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+
 #include "carla/client/Sensor.h"
 #include "carla/sensor/data/CollisionEvent.h"
 #include "carla/sensor/data/DVSEventArray.h"
@@ -11,9 +15,6 @@
 #include "carla/sensor/data/RadarMeasurement.h"
 #include "carla/sensor/data/SemanticLidarMeasurement.h"
 #include "internal.h"
-#include <memory>
-#include <mutex>
-#include <unordered_map>
 
 namespace {
 // Callback storage structure
@@ -69,38 +70,8 @@ carla_vector3d_t ConvertVector3D(const carla::geom::Vector3D &vector) {
 }
 } // namespace
 
-// Type identification function implementation
-carla_sensor_data_type_t
-IdentifySensorDataType(const carla::sensor::SensorData &data) {
-  // Use typeid to identify the concrete type
-  const std::type_info &type = typeid(data);
-
-  if (type == typeid(carla::sensor::data::Image)) {
-    // For now, we'll identify optical flow at runtime in the accessor functions
-    // since we can't easily distinguish the image type here without metadata
-    return CARLA_SENSOR_DATA_IMAGE;
-  } else if (type == typeid(carla::sensor::data::LidarMeasurement)) {
-    return CARLA_SENSOR_DATA_LIDAR;
-  } else if (type == typeid(carla::sensor::data::SemanticLidarMeasurement)) {
-    return CARLA_SENSOR_DATA_SEMANTIC_LIDAR;
-  } else if (type == typeid(carla::sensor::data::RadarMeasurement)) {
-    return CARLA_SENSOR_DATA_RADAR;
-  } else if (type == typeid(carla::sensor::data::IMUMeasurement)) {
-    return CARLA_SENSOR_DATA_IMU;
-  } else if (type == typeid(carla::sensor::data::GnssMeasurement)) {
-    return CARLA_SENSOR_DATA_GNSS;
-  } else if (type == typeid(carla::sensor::data::CollisionEvent)) {
-    return CARLA_SENSOR_DATA_COLLISION;
-  } else if (type == typeid(carla::sensor::data::LaneInvasionEvent)) {
-    return CARLA_SENSOR_DATA_LANE_INVASION;
-  } else if (type == typeid(carla::sensor::data::ObstacleDetectionEvent)) {
-    return CARLA_SENSOR_DATA_OBSTACLE_DETECTION;
-  } else if (type == typeid(carla::sensor::data::DVSEventArray)) {
-    return CARLA_SENSOR_DATA_DVS_EVENT_ARRAY;
-  }
-
-  return CARLA_SENSOR_DATA_UNKNOWN;
-}
+// Type identification function is now implemented in common.cpp to avoid boost
+// conflicts
 
 // Sensor data structure definition moved to internal.h
 
@@ -737,29 +708,30 @@ carla_dvs_event_array_data_get_height(const carla_sensor_data_t *data) {
 
 // Optical flow data access functions
 
-carla_optical_flow_data_t 
+carla_optical_flow_data_t
 carla_sensor_data_get_optical_flow(const carla_sensor_data_t *data) {
   carla_optical_flow_data_t optical_flow_data = {0};
-  
+
   if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
     return optical_flow_data;
   }
-  
+
   // Cache optical flow data if not already cached
   if (!data->optical_flow_cached) {
-    auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+    auto image =
+        std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
     if (image) {
       data->optical_flow_data.width = image->GetWidth();
       data->optical_flow_data.height = image->GetHeight();
       data->optical_flow_data.fov = static_cast<uint32_t>(image->GetFOVAngle());
-      data->optical_flow_data.flow_data = 
-          reinterpret_cast<const carla_optical_flow_pixel_t*>(image->data());
-      data->optical_flow_data.flow_data_size = 
+      data->optical_flow_data.flow_data =
+          reinterpret_cast<const carla_optical_flow_pixel_t *>(image->data());
+      data->optical_flow_data.flow_data_size =
           image->GetWidth() * image->GetHeight();
       data->optical_flow_cached = true;
     }
   }
-  
+
   return data->optical_flow_data;
 }
 
@@ -767,8 +739,9 @@ uint32_t carla_optical_flow_data_get_width(const carla_sensor_data_t *data) {
   if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
     return 0;
   }
-  
-  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
   return image ? image->GetWidth() : 0;
 }
 
@@ -776,23 +749,98 @@ uint32_t carla_optical_flow_data_get_height(const carla_sensor_data_t *data) {
   if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
     return 0;
   }
-  
-  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
   return image ? image->GetHeight() : 0;
 }
 
-const carla_optical_flow_pixel_t* 
+const carla_optical_flow_pixel_t *
 carla_optical_flow_data_get_pixels(const carla_sensor_data_t *data) {
   if (!data || data->type != CARLA_SENSOR_DATA_OPTICAL_FLOW_IMAGE) {
     return nullptr;
   }
-  
-  auto image = std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
+
+  auto image =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(data->cpp_data);
   if (!image) {
     return nullptr;
   }
-  
-  return reinterpret_cast<const carla_optical_flow_pixel_t*>(image->data());
+
+  return reinterpret_cast<const carla_optical_flow_pixel_t *>(image->data());
+}
+
+// Sensor attribute management
+carla_error_t carla_sensor_set_attribute(carla_sensor_t *sensor,
+                                         const char *key, const char *value) {
+  if (!sensor || !key || !value) {
+    return CARLA_ERROR_INVALID_ARGUMENT;
+  }
+
+  try {
+    auto cpp_sensor = GetSensor(sensor);
+    if (!cpp_sensor) {
+      return CARLA_ERROR_INVALID_ARGUMENT;
+    }
+
+    // Note: GetActorDescription() is protected in CARLA 0.10.0
+    // We cannot modify sensor attributes after creation in this version
+    // This functionality was available in older versions but is no longer
+    // accessible
+    return CARLA_ERROR_NOT_FOUND;
+  } catch (const std::exception &) {
+    return CARLA_ERROR_UNKNOWN;
+  }
+}
+
+const char *carla_sensor_get_attribute(const carla_sensor_t *sensor,
+                                       const char *key) {
+  if (!sensor || !key) {
+    return nullptr;
+  }
+
+  try {
+    auto cpp_sensor = GetSensor(sensor);
+    if (!cpp_sensor) {
+      return nullptr;
+    }
+
+    // Note: GetActorDescription() is protected in CARLA 0.10.0
+    // We cannot access sensor attributes after creation in this version
+    // This functionality was available in older versions but is no longer
+    // accessible
+    return nullptr;
+  } catch (const std::exception &) {
+    return nullptr;
+  }
+}
+
+void *carla_sensor_get_calibration_data(const carla_sensor_t *sensor) {
+  if (!sensor) {
+    return nullptr;
+  }
+
+  try {
+    auto cpp_sensor = GetSensor(sensor);
+    if (!cpp_sensor) {
+      return nullptr;
+    }
+
+    // Check if this is a camera sensor that supports calibration
+    auto camera_sensor =
+        std::dynamic_pointer_cast<const carla::client::Sensor>(cpp_sensor);
+    if (!camera_sensor) {
+      return nullptr;
+    }
+
+    // For now, return a placeholder indicating calibration data is not yet
+    // implemented
+    // TODO: Implement proper calibration data extraction when CARLA 0.10.0 API
+    // is available
+    return nullptr;
+  } catch (const std::exception &) {
+    return nullptr;
+  }
 }
 
 void carla_sensor_data_destroy(carla_sensor_data_t *data) {
