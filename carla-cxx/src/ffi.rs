@@ -297,6 +297,36 @@ pub mod bridge {
         pub lane_change: u8, // LaneMarking::LaneChange enum
     }
 
+    // World interaction types for ray casting and queries
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleLabelledPoint {
+        pub location: SimpleLocation,
+        pub label: u8, // CityObjectLabel as u8
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleOptionalLabelledPoint {
+        pub has_value: bool,
+        pub value: SimpleLabelledPoint,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleOptionalLocation {
+        pub has_value: bool,
+        pub value: SimpleLocation,
+    }
+
+    // Actor collection for queries
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleActorId {
+        pub id: u32,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleActorList {
+        pub actor_ids: Vec<u32>,
+    }
+
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleJunction {
         pub id: u32,
@@ -464,6 +494,42 @@ pub mod bridge {
             settings: &SimpleEpisodeSettings,
             timeout_seconds: f64,
         ) -> u64;
+
+        // World interaction methods
+        // Ray casting functionality
+        fn World_CastRay(
+            world: &World,
+            start_location: &SimpleLocation,
+            end_location: &SimpleLocation,
+        ) -> Vec<SimpleLabelledPoint>;
+        fn World_ProjectPoint(
+            world: &World,
+            location: &SimpleLocation,
+            direction: &SimpleVector3D,
+            search_distance: f32,
+        ) -> SimpleOptionalLabelledPoint;
+        fn World_GroundProjection(
+            world: &World,
+            location: &SimpleLocation,
+            search_distance: f32,
+        ) -> SimpleOptionalLabelledPoint;
+
+        // Traffic light queries
+        fn World_GetTrafficLightsFromWaypoint(
+            world: &World,
+            waypoint: &Waypoint,
+            distance: f64,
+        ) -> SimpleActorList;
+        fn World_GetTrafficLightsInJunction(world: &World, junction_id: i32) -> SimpleActorList;
+
+        // Pedestrian navigation
+        fn World_GetRandomLocationFromNavigation(world: &World) -> SimpleOptionalLocation;
+        fn World_SetPedestriansCrossFactor(world: &World, percentage: f32);
+
+        // Actor query methods
+        fn World_GetActors(world: &World) -> SimpleActorList;
+        fn World_GetActorsByIds(world: &World, actor_ids: &[u32]) -> SimpleActorList;
+        fn World_GetActor(world: &World, actor_id: u32) -> SharedPtr<Actor>;
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;
@@ -899,6 +965,8 @@ pub use bridge::{
     Sensor_Stop,
     // Control structures
     SimpleAckermannControl,
+    SimpleActorId,
+    SimpleActorList,
     SimpleBoundingBox,
     SimpleCollisionData,
     SimpleCrossedLaneMarking,
@@ -908,9 +976,13 @@ pub use bridge::{
     SimpleGeoLocation,
     SimpleIMUData,
     SimpleImageData,
+    SimpleJunction,
+    SimpleLabelledPoint,
     SimpleLaneMarking,
     SimpleLiDARPoint,
     SimpleLocation,
+    SimpleOptionalLabelledPoint,
+    SimpleOptionalLocation,
     SimpleRadarDetection,
     SimpleRecorderCollision,
     SimpleRecorderInfo,
@@ -1073,14 +1145,25 @@ pub use bridge::{
     Waypoint_IsJunction,
     World,
     World_ApplySettings,
+    // World interaction functions
+    World_CastRay,
+    World_GetActor,
+    World_GetActors,
+    World_GetActorsByIds,
     World_GetBlueprintLibrary,
     World_GetId,
     World_GetMap,
+    World_GetRandomLocationFromNavigation,
     World_GetSettings,
     World_GetSnapshot,
     World_GetSpectator,
+    World_GetTrafficLightsFromWaypoint,
+    World_GetTrafficLightsInJunction,
     World_GetWeather,
+    World_GroundProjection,
     World_IsWeatherEnabled,
+    World_ProjectPoint,
+    World_SetPedestriansCrossFactor,
     World_SetWeather,
     World_SpawnActor,
     World_Tick,

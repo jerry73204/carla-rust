@@ -50,6 +50,7 @@ pub mod vehicle;
 pub mod walker;
 pub mod walker_ai;
 pub mod weather;
+pub mod world_interaction;
 
 #[cfg(test)]
 mod tests;
@@ -87,6 +88,12 @@ pub use vehicle::{
 };
 pub use walker::{Vector3D, WalkerControl, WalkerWrapper};
 pub use walker_ai::{Location as WalkerLocation, WalkerAIBehavior, WalkerAIControllerWrapper};
+pub use world_interaction::{
+    ActorListExt, CityObjectLabel, LabelledPoint, OptionalLabelledPointExt, OptionalLocationExt,
+};
+
+// Re-export world interaction utilities
+pub use world_interaction::{defaults as world_defaults, ray_casting};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

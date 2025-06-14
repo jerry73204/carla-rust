@@ -62,6 +62,11 @@ struct SimpleWeatherParameters;
 struct SimpleRecorderInfo;
 struct SimpleRecorderCollision;
 struct SimpleRecorderPosition;
+struct SimpleLabelledPoint;
+struct SimpleOptionalLabelledPoint;
+struct SimpleOptionalLocation;
+struct SimpleActorId;
+struct SimpleActorList;
 
 // CXX Bridge functions
 namespace carla {
@@ -120,6 +125,37 @@ SimpleEpisodeSettings World_GetSettings(const World &world);
 uint64_t World_ApplySettings(const World &world,
                              const SimpleEpisodeSettings &settings,
                              double timeout_seconds);
+
+// World interaction functions
+// Ray casting functionality
+rust::Vec<SimpleLabelledPoint>
+World_CastRay(const World &world, const SimpleLocation &start_location,
+              const SimpleLocation &end_location);
+SimpleOptionalLabelledPoint World_ProjectPoint(const World &world,
+                                               const SimpleLocation &location,
+                                               const SimpleVector3D &direction,
+                                               float search_distance);
+SimpleOptionalLabelledPoint
+World_GroundProjection(const World &world, const SimpleLocation &location,
+                       float search_distance);
+
+// Traffic light queries
+SimpleActorList World_GetTrafficLightsFromWaypoint(const World &world,
+                                                   const Waypoint &waypoint,
+                                                   double distance);
+SimpleActorList World_GetTrafficLightsInJunction(const World &world,
+                                                 int32_t junction_id);
+
+// Pedestrian navigation
+SimpleOptionalLocation
+World_GetRandomLocationFromNavigation(const World &world);
+void World_SetPedestriansCrossFactor(const World &world, float percentage);
+
+// Actor query methods
+SimpleActorList World_GetActors(const World &world);
+SimpleActorList World_GetActorsByIds(const World &world,
+                                     rust::Slice<const uint32_t> actor_ids);
+std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id);
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor);

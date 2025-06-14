@@ -230,6 +230,85 @@ impl WorldWrapper {
     pub fn is_weather_enabled(&self) -> bool {
         ffi::World_IsWeatherEnabled(&self.inner)
     }
+
+    // World interaction methods
+
+    /// Cast a ray between two points and get all intersection points
+    pub fn cast_ray(
+        &self,
+        start_location: &crate::ffi::SimpleLocation,
+        end_location: &crate::ffi::SimpleLocation,
+    ) -> Vec<crate::ffi::bridge::SimpleLabelledPoint> {
+        ffi::World_CastRay(&self.inner, start_location, end_location)
+    }
+
+    /// Project a point along a direction and get the first intersection
+    pub fn project_point(
+        &self,
+        location: &crate::ffi::SimpleLocation,
+        direction: &crate::ffi::SimpleVector3D,
+        search_distance: f32,
+    ) -> crate::ffi::bridge::SimpleOptionalLabelledPoint {
+        ffi::World_ProjectPoint(&self.inner, location, direction, search_distance)
+    }
+
+    /// Project a point to the ground and get the intersection
+    pub fn ground_projection(
+        &self,
+        location: &crate::ffi::SimpleLocation,
+        search_distance: f32,
+    ) -> crate::ffi::bridge::SimpleOptionalLabelledPoint {
+        ffi::World_GroundProjection(&self.inner, location, search_distance)
+    }
+
+    /// Get traffic lights near a waypoint within the specified distance
+    pub fn get_traffic_lights_from_waypoint(
+        &self,
+        waypoint: &crate::ffi::Waypoint,
+        distance: f64,
+    ) -> crate::ffi::bridge::SimpleActorList {
+        ffi::World_GetTrafficLightsFromWaypoint(&self.inner, waypoint, distance)
+    }
+
+    /// Get traffic lights in a specific junction
+    pub fn get_traffic_lights_in_junction(
+        &self,
+        junction_id: i32,
+    ) -> crate::ffi::bridge::SimpleActorList {
+        ffi::World_GetTrafficLightsInJunction(&self.inner, junction_id)
+    }
+
+    /// Get a random location from the navigation mesh
+    pub fn get_random_location_from_navigation(
+        &self,
+    ) -> crate::ffi::bridge::SimpleOptionalLocation {
+        ffi::World_GetRandomLocationFromNavigation(&self.inner)
+    }
+
+    /// Set the percentage of pedestrians that cross at traffic lights
+    pub fn set_pedestrians_cross_factor(&self, percentage: f32) {
+        ffi::World_SetPedestriansCrossFactor(&self.inner, percentage);
+    }
+
+    /// Get all actors in the world
+    pub fn get_actors(&self) -> crate::ffi::bridge::SimpleActorList {
+        ffi::World_GetActors(&self.inner)
+    }
+
+    /// Get specific actors by their IDs
+    pub fn get_actors_by_ids(&self, actor_ids: &[u32]) -> crate::ffi::bridge::SimpleActorList {
+        ffi::World_GetActorsByIds(&self.inner, actor_ids)
+    }
+
+    /// Get a specific actor by its ID
+    pub fn get_actor(&self, actor_id: u32) -> Option<ActorWrapper> {
+        let actor_ptr = ffi::World_GetActor(&self.inner, actor_id);
+        if actor_ptr.is_null() {
+            None
+        } else {
+            Some(ActorWrapper { inner: actor_ptr })
+        }
+    }
 }
 
 /// High-level wrapper for CARLA Actor

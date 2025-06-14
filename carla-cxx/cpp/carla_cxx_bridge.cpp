@@ -4,6 +4,7 @@
 // Must include the actual CARLA headers
 #include <carla/Time.h>
 #include <carla/client/ActorBlueprint.h>
+#include <carla/client/ActorList.h>
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
 #include <carla/client/Junction.h>
@@ -17,9 +18,11 @@
 #include <carla/client/Waypoint.h>
 #include <carla/client/World.h>
 #include <carla/geom/GeoLocation.h>
+#include <carla/geom/Location.h>
 #include <carla/geom/Vector3D.h>
 #include <carla/rpc/AckermannControllerSettings.h>
 #include <carla/rpc/EpisodeSettings.h>
+#include <carla/rpc/LabelledPoint.h>
 #include <carla/rpc/TrafficLightState.h>
 #include <carla/rpc/VehicleControl.h>
 #include <carla/rpc/VehicleDoor.h>
@@ -309,23 +312,6 @@ ConvertFromSimpleWeatherParameters(const SimpleWeatherParameters &weather) {
   carla_weather.rayleigh_scattering_scale = weather.rayleigh_scattering_scale;
   carla_weather.dust_storm = weather.dust_storm;
   return carla_weather;
-}
-
-// Weather wrapper functions
-SimpleWeatherParameters World_GetWeather(const World &world) {
-  auto weather = const_cast<World &>(world).GetWeather();
-  return ConvertToSimpleWeatherParameters(weather);
-}
-
-void World_SetWeather(const World &world,
-                      const SimpleWeatherParameters &weather) {
-  auto carla_weather = ConvertFromSimpleWeatherParameters(weather);
-  // const_cast is needed because CARLA's API is not const-correct
-  const_cast<World &>(world).SetWeather(carla_weather);
-}
-
-bool World_IsWeatherEnabled(const World &world) {
-  return const_cast<World &>(world).IsWeatherEnabled();
 }
 
 // Actor wrapper functions
@@ -1944,5 +1930,194 @@ void TrafficManager_Release() {
   carla::traffic_manager::TrafficManager::Release();
 }
 
+// Location and vector conversion functions
+SimpleLocation ConvertToSimpleLocation(const carla::geom::Location &location) {
+  return SimpleLocation{location.x, location.y, location.z};
+}
+
+carla::geom::Location
+ConvertFromSimpleLocation(const SimpleLocation &simple_location) {
+  return carla::geom::Location(simple_location.x, simple_location.y,
+                               simple_location.z);
+}
+
+SimpleVector3D ConvertToSimpleVector3D(const carla::geom::Vector3D &vector) {
+  return SimpleVector3D{vector.x, vector.y, vector.z};
+}
+
+carla::geom::Vector3D
+ConvertFromSimpleVector3D(const SimpleVector3D &simple_vector) {
+  return carla::geom::Vector3D(simple_vector.x, simple_vector.y,
+                               simple_vector.z);
+}
+
+// World interaction helper functions
+SimpleLabelledPoint
+ConvertToSimpleLabelledPoint(const carla::rpc::LabelledPoint &point) {
+  SimpleLabelledPoint simple_point;
+  simple_point.location = ConvertToSimpleLocation(point._location);
+  simple_point.label = static_cast<uint8_t>(point._label);
+  return simple_point;
+}
+
+SimpleOptionalLabelledPoint ConvertToSimpleOptionalLabelledPoint(
+    const std::optional<carla::rpc::LabelledPoint> &opt_point) {
+  SimpleOptionalLabelledPoint simple_opt;
+  simple_opt.has_value = opt_point.has_value();
+  if (opt_point.has_value()) {
+    simple_opt.value = ConvertToSimpleLabelledPoint(opt_point.value());
+  } else {
+    // Initialize with default values when no value
+    simple_opt.value = SimpleLabelledPoint{};
+  }
+  return simple_opt;
+}
+
+SimpleOptionalLocation ConvertToSimpleOptionalLocation(
+    const std::optional<carla::geom::Location> &opt_location) {
+  SimpleOptionalLocation simple_opt;
+  simple_opt.has_value = opt_location.has_value();
+  if (opt_location.has_value()) {
+    simple_opt.value = ConvertToSimpleLocation(opt_location.value());
+  } else {
+    // Initialize with default values when no value
+    simple_opt.value = SimpleLocation{};
+  }
+  return simple_opt;
+}
+
+SimpleActorList ConvertToSimpleActorList(
+    const std::vector<std::shared_ptr<carla::client::Actor>> &actors) {
+  SimpleActorList simple_list;
+  simple_list.actor_ids.reserve(actors.size());
+  for (const auto &actor : actors) {
+    if (actor) {
+      simple_list.actor_ids.push_back(actor->GetId());
+    }
+  }
+  return simple_list;
+}
+
+SimpleActorList
+ConvertToSimpleActorList(const carla::client::ActorList &actors) {
+  SimpleActorList simple_list;
+  simple_list.actor_ids.reserve(actors.size());
+  for (const auto &actor : actors) {
+    if (actor) {
+      simple_list.actor_ids.push_back(actor->GetId());
+    }
+  }
+  return simple_list;
+}
+
+// World interaction wrapper functions
+
+// Ray casting functionality
+rust::Vec<SimpleLabelledPoint>
+World_CastRay(const World &world, const SimpleLocation &start_location,
+              const SimpleLocation &end_location) {
+  auto carla_start = ConvertFromSimpleLocation(start_location);
+  auto carla_end = ConvertFromSimpleLocation(end_location);
+
+  auto results = const_cast<World &>(world).CastRay(carla_start, carla_end);
+
+  rust::Vec<SimpleLabelledPoint> simple_results;
+  simple_results.reserve(results.size());
+  for (const auto &point : results) {
+    simple_results.push_back(ConvertToSimpleLabelledPoint(point));
+  }
+  return simple_results;
+}
+
+SimpleOptionalLabelledPoint World_ProjectPoint(const World &world,
+                                               const SimpleLocation &location,
+                                               const SimpleVector3D &direction,
+                                               float search_distance) {
+  auto carla_location = ConvertFromSimpleLocation(location);
+  auto carla_direction = ConvertFromSimpleVector3D(direction);
+
+  auto result = const_cast<World &>(world).ProjectPoint(
+      carla_location, carla_direction, search_distance);
+  return ConvertToSimpleOptionalLabelledPoint(result);
+}
+
+SimpleOptionalLabelledPoint
+World_GroundProjection(const World &world, const SimpleLocation &location,
+                       float search_distance) {
+  auto carla_location = ConvertFromSimpleLocation(location);
+
+  auto result = const_cast<World &>(world).GroundProjection(carla_location,
+                                                            search_distance);
+  return ConvertToSimpleOptionalLabelledPoint(result);
+}
+
+// Traffic light queries
+SimpleActorList World_GetTrafficLightsFromWaypoint(const World &world,
+                                                   const Waypoint &waypoint,
+                                                   double distance) {
+  auto results = const_cast<World &>(world).GetTrafficLightsFromWaypoint(
+      waypoint, distance);
+  return ConvertToSimpleActorList(results);
+}
+
+SimpleActorList World_GetTrafficLightsInJunction(const World &world,
+                                                 int32_t junction_id) {
+  carla::road::JuncId junc_id = static_cast<carla::road::JuncId>(junction_id);
+  auto results = const_cast<World &>(world).GetTrafficLightsInJunction(junc_id);
+  return ConvertToSimpleActorList(results);
+}
+
+// Pedestrian navigation
+SimpleOptionalLocation
+World_GetRandomLocationFromNavigation(const World &world) {
+  auto result = const_cast<World &>(world).GetRandomLocationFromNavigation();
+  return ConvertToSimpleOptionalLocation(result);
+}
+
+void World_SetPedestriansCrossFactor(const World &world, float percentage) {
+  const_cast<World &>(world).SetPedestriansCrossFactor(percentage);
+}
+
+// Actor query methods
+SimpleActorList World_GetActors(const World &world) {
+  auto actors = const_cast<World &>(world).GetActors();
+  return ConvertToSimpleActorList(*actors);
+}
+
+SimpleActorList World_GetActorsByIds(const World &world,
+                                     rust::Slice<const uint32_t> actor_ids) {
+  std::vector<carla::ActorId> carla_ids;
+  carla_ids.reserve(actor_ids.size());
+  for (uint32_t id : actor_ids) {
+    carla_ids.push_back(static_cast<carla::ActorId>(id));
+  }
+
+  auto actors = const_cast<World &>(world).GetActors(carla_ids);
+  return ConvertToSimpleActorList(*actors);
+}
+
+std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id) {
+  carla::ActorId carla_id = static_cast<carla::ActorId>(actor_id);
+  auto actor = const_cast<World &>(world).GetActor(carla_id);
+  return actor;
+}
+
 } // namespace client
 } // namespace carla
+
+// Global namespace weather functions (bridge utilities)
+SimpleWeatherParameters World_GetWeather(const carla::client::World &world) {
+  auto weather = const_cast<carla::client::World &>(world).GetWeather();
+  return carla::client::ConvertToSimpleWeatherParameters(weather);
+}
+
+void World_SetWeather(const carla::client::World &world,
+                      const SimpleWeatherParameters &weather) {
+  auto carla_weather =
+      carla::client::ConvertFromSimpleWeatherParameters(weather);
+  const_cast<carla::client::World &>(world).SetWeather(carla_weather);
+}
+
+bool World_IsWeatherEnabled(const carla::client::World &world) {
+  return const_cast<carla::client::World &>(world).IsWeatherEnabled();
+}

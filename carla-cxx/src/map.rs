@@ -109,6 +109,11 @@ impl WaypointWrapper {
         Self { inner: waypoint }
     }
 
+    /// Get reference to the inner Waypoint for FFI operations
+    pub fn get_waypoint(&self) -> &Waypoint {
+        &self.inner
+    }
+
     /// Get the waypoint's unique ID
     pub fn get_id(&self) -> u64 {
         ffi::Waypoint_GetId(&self.inner)
