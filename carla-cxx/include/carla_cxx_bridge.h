@@ -75,6 +75,11 @@ struct SimpleActorId;
 struct SimpleActorList;
 struct SimpleBatchCommand;
 struct SimpleBatchResponse;
+struct SimpleEnvironmentObject;
+struct SimpleLandmark;
+struct SimpleTextureFloatColor;
+struct SimpleTextureColor;
+struct SimpleLevelBoundingBox;
 
 // CXX Bridge functions
 namespace carla {
@@ -180,6 +185,36 @@ SimpleActorList World_GetActors(const World &world);
 SimpleActorList World_GetActorsByIds(const World &world,
                                      rust::Slice<const uint32_t> actor_ids);
 std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id);
+
+// Advanced world features - Map layer management
+void World_LoadLevelLayer(const World &world, uint8_t map_layers);
+void World_UnloadLevelLayer(const World &world, uint8_t map_layers);
+
+// Environment object queries
+rust::Vec<SimpleLevelBoundingBox> World_GetLevelBBs(const World &world,
+                                                    uint8_t queried_tag);
+rust::Vec<SimpleEnvironmentObject>
+World_GetEnvironmentObjects(const World &world, uint8_t queried_tag);
+void World_EnableEnvironmentObjects(const World &world,
+                                    rust::Slice<const uint64_t> env_objects_ids,
+                                    bool enable);
+
+// Advanced traffic light management
+void World_ResetAllTrafficLights(const World &world);
+void World_FreezeAllTrafficLights(const World &world, bool frozen);
+rust::Vec<SimpleBatchCommand> World_GetVehiclesLightStates(const World &world);
+
+// Texture and material application
+void World_ApplyColorTextureToObject(const World &world, rust::Str object_name,
+                                     const SimpleTextureColor &texture,
+                                     uint8_t material_type);
+void World_ApplyFloatColorTextureToObject(
+    const World &world, rust::Str object_name,
+    const SimpleTextureFloatColor &texture, uint8_t material_type);
+rust::Vec<rust::String> World_GetNamesOfAllObjects(const World &world);
+
+// Pedestrian navigation
+void World_SetPedestriansSeed(const World &world, uint32_t seed);
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor);

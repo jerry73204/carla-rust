@@ -35,6 +35,7 @@
 #![allow(dead_code)]
 
 // Module declarations
+pub mod advanced_world;
 pub mod batch_operations;
 pub mod blueprint;
 pub mod client;
@@ -107,6 +108,12 @@ pub use batch_operations::batch_utils;
 
 // Re-export debug visualization utilities
 pub use debug_helper::{colors as debug_colors, DebugDrawBuilder, DebugDrawExt};
+
+// Re-export advanced world features
+pub use advanced_world::{
+    texture_utils, AdvancedWorldExt, MapLayers, MaterialParameter, TextureColorBuilder,
+    TextureFloatColorBuilder,
+};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

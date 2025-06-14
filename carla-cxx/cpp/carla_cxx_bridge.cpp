@@ -24,8 +24,13 @@
 #include <carla/rpc/Command.h>
 #include <carla/rpc/CommandResponse.h>
 #include <carla/rpc/DebugShape.h>
+#include <carla/rpc/EnvironmentObject.h>
 #include <carla/rpc/EpisodeSettings.h>
 #include <carla/rpc/LabelledPoint.h>
+#include <carla/rpc/MapLayer.h>
+#include <carla/rpc/MaterialParameter.h>
+#include <carla/rpc/ObjectLabel.h>
+#include <carla/rpc/Texture.h>
 #include <carla/rpc/TrafficLightState.h>
 #include <carla/rpc/VehicleControl.h>
 #include <carla/rpc/VehicleDoor.h>
@@ -2103,6 +2108,158 @@ std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id) {
   carla::ActorId carla_id = static_cast<carla::ActorId>(actor_id);
   auto actor = const_cast<World &>(world).GetActor(carla_id);
   return actor;
+}
+
+// Advanced world features implementations
+
+// Map layer management
+void World_LoadLevelLayer(const World &world, uint8_t map_layers) {
+  const_cast<World &>(world).LoadLevelLayer(
+      static_cast<carla::rpc::MapLayer>(map_layers));
+}
+
+void World_UnloadLevelLayer(const World &world, uint8_t map_layers) {
+  const_cast<World &>(world).UnloadLevelLayer(
+      static_cast<carla::rpc::MapLayer>(map_layers));
+}
+
+// Environment object queries
+rust::Vec<SimpleLevelBoundingBox> World_GetLevelBBs(const World &world,
+                                                    uint8_t queried_tag) {
+  auto bbs = const_cast<World &>(world).GetLevelBBs(queried_tag);
+  rust::Vec<SimpleLevelBoundingBox> result;
+
+  for (const auto &bb : bbs) {
+    SimpleLevelBoundingBox simple_bb;
+    simple_bb.origin =
+        SimpleLocation{bb.location.x, bb.location.y, bb.location.z};
+    simple_bb.extent = SimpleVector3D{bb.extent.x, bb.extent.y, bb.extent.z};
+    simple_bb.rotation =
+        SimpleRotation{bb.rotation.pitch, bb.rotation.yaw, bb.rotation.roll};
+    simple_bb.tag = queried_tag;
+    result.push_back(simple_bb);
+  }
+  return result;
+}
+
+rust::Vec<SimpleEnvironmentObject>
+World_GetEnvironmentObjects(const World &world, uint8_t queried_tag) {
+  auto objects = const_cast<World &>(world).GetEnvironmentObjects(queried_tag);
+  rust::Vec<SimpleEnvironmentObject> result;
+
+  for (const auto &obj : objects) {
+    SimpleEnvironmentObject simple_obj;
+    simple_obj.id = obj.id;
+    simple_obj.name = rust::String(obj.name);
+    simple_obj.transform = SimpleTransform{
+        SimpleLocation{obj.transform.location.x, obj.transform.location.y,
+                       obj.transform.location.z},
+        SimpleRotation{obj.transform.rotation.pitch, obj.transform.rotation.yaw,
+                       obj.transform.rotation.roll}};
+    simple_obj.bounding_box = SimpleBoundingBox{
+        SimpleLocation{obj.bounding_box.location.x, obj.bounding_box.location.y,
+                       obj.bounding_box.location.z},
+        SimpleVector3D{obj.bounding_box.extent.x, obj.bounding_box.extent.y,
+                       obj.bounding_box.extent.z}};
+    result.push_back(simple_obj);
+  }
+  return result;
+}
+
+void World_EnableEnvironmentObjects(const World &world,
+                                    rust::Slice<const uint64_t> env_objects_ids,
+                                    bool enable) {
+  std::vector<uint64_t> ids(env_objects_ids.begin(), env_objects_ids.end());
+  const_cast<World &>(world).EnableEnvironmentObjects(ids, enable);
+}
+
+// Advanced traffic light management
+void World_ResetAllTrafficLights(const World &world) {
+  const_cast<World &>(world).ResetAllTrafficLights();
+}
+
+void World_FreezeAllTrafficLights(const World &world, bool frozen) {
+  const_cast<World &>(world).FreezeAllTrafficLights(frozen);
+}
+
+rust::Vec<SimpleBatchCommand> World_GetVehiclesLightStates(const World &world) {
+  auto light_states = const_cast<World &>(world).GetVehiclesLightStates();
+  rust::Vec<SimpleBatchCommand> result;
+
+  // Reusing SimpleBatchCommand structure to store vehicle ID and light state
+  for (const auto &[actor_id, light_state] : light_states) {
+    SimpleBatchCommand cmd;
+    cmd.command_type = 99; // Special marker for light state
+    cmd.actor_id = actor_id;
+    cmd.int_flag1 = static_cast<int32_t>(light_state);
+    result.push_back(cmd);
+  }
+  return result;
+}
+
+// Texture and material application
+void World_ApplyColorTextureToObject(const World &world, rust::Str object_name,
+                                     const SimpleTextureColor &texture,
+                                     uint8_t material_type) {
+  // Convert SimpleTextureColor to CARLA's texture format
+  carla::rpc::TextureColor carla_texture(texture.width, texture.height);
+
+  // Copy pixel data - assuming RGBA format from Rust side
+  // CARLA uses BGRA format in sensor::data::Color
+  size_t pixel_count = texture.width * texture.height;
+  for (size_t i = 0; i < pixel_count; ++i) {
+    size_t idx = i * 4;
+    uint8_t r = texture.data[idx];
+    uint8_t g = texture.data[idx + 1];
+    uint8_t b = texture.data[idx + 2];
+    uint8_t a = texture.data[idx + 3];
+
+    // Create Color in BGRA format
+    carla::sensor::data::Color color(b, g, r, a);
+    carla_texture.At(i % texture.width, i / texture.width) = color;
+  }
+
+  const_cast<World &>(world).ApplyColorTextureToObject(
+      std::string(object_name),
+      static_cast<carla::rpc::MaterialParameter>(material_type), carla_texture);
+}
+
+void World_ApplyFloatColorTextureToObject(
+    const World &world, rust::Str object_name,
+    const SimpleTextureFloatColor &texture, uint8_t material_type) {
+  // Convert SimpleTextureFloatColor to CARLA's texture format
+  carla::rpc::TextureFloatColor carla_texture(texture.width, texture.height);
+
+  // Copy pixel data - RGBA format
+  size_t pixel_count = texture.width * texture.height;
+  for (size_t i = 0; i < pixel_count; ++i) {
+    size_t idx = i * 4;
+    float r = texture.data[idx];
+    float g = texture.data[idx + 1];
+    float b = texture.data[idx + 2];
+    float a = texture.data[idx + 3];
+
+    carla::rpc::FloatColor color(r, g, b, a);
+    carla_texture.At(i % texture.width, i / texture.width) = color;
+  }
+
+  const_cast<World &>(world).ApplyFloatColorTextureToObject(
+      std::string(object_name),
+      static_cast<carla::rpc::MaterialParameter>(material_type), carla_texture);
+}
+
+rust::Vec<rust::String> World_GetNamesOfAllObjects(const World &world) {
+  auto names = const_cast<World &>(world).GetNamesOfAllObjects();
+  rust::Vec<rust::String> result;
+  for (const auto &name : names) {
+    result.push_back(rust::String(name));
+  }
+  return result;
+}
+
+// Pedestrian navigation
+void World_SetPedestriansSeed(const World &world, uint32_t seed) {
+  const_cast<World &>(world).SetPedestriansSeed(seed);
 }
 
 // Batch operations helper functions

@@ -356,6 +356,84 @@ impl WorldWrapper {
     pub fn draw_debug_string(&self, string: &crate::ffi::bridge::SimpleDebugString) {
         ffi::bridge::World_DrawDebugString(&self.inner, string);
     }
+
+    // Advanced world features
+
+    /// Load specific map layers dynamically
+    pub fn load_level_layer(&self, map_layers: u8) {
+        ffi::World_LoadLevelLayer(&self.inner, map_layers);
+    }
+
+    /// Unload specific map layers to save memory
+    pub fn unload_level_layer(&self, map_layers: u8) {
+        ffi::World_UnloadLevelLayer(&self.inner, map_layers);
+    }
+
+    /// Get bounding boxes of all level elements with specific tag
+    pub fn get_level_bbs(
+        &self,
+        queried_tag: u8,
+    ) -> Vec<crate::ffi::bridge::SimpleLevelBoundingBox> {
+        ffi::World_GetLevelBBs(&self.inner, queried_tag)
+    }
+
+    /// Get environment objects with specific tag
+    pub fn get_environment_objects(
+        &self,
+        queried_tag: u8,
+    ) -> Vec<crate::ffi::bridge::SimpleEnvironmentObject> {
+        ffi::World_GetEnvironmentObjects(&self.inner, queried_tag)
+    }
+
+    /// Enable or disable specific environment objects
+    pub fn enable_environment_objects(&self, env_objects_ids: &[u64], enable: bool) {
+        ffi::World_EnableEnvironmentObjects(&self.inner, env_objects_ids, enable);
+    }
+
+    /// Reset all traffic lights to their initial state
+    pub fn reset_all_traffic_lights(&self) {
+        ffi::World_ResetAllTrafficLights(&self.inner);
+    }
+
+    /// Freeze or unfreeze all traffic lights
+    pub fn freeze_all_traffic_lights(&self, frozen: bool) {
+        ffi::World_FreezeAllTrafficLights(&self.inner, frozen);
+    }
+
+    /// Get light states of all vehicles
+    pub fn get_vehicles_light_states(&self) -> Vec<crate::ffi::bridge::SimpleBatchCommand> {
+        ffi::World_GetVehiclesLightStates(&self.inner)
+    }
+
+    /// Apply color texture to a named object
+    pub fn apply_color_texture_to_object(
+        &self,
+        object_name: &str,
+        texture: &crate::ffi::bridge::SimpleTextureColor,
+        material_type: u8,
+    ) {
+        ffi::World_ApplyColorTextureToObject(&self.inner, object_name, texture, material_type);
+    }
+
+    /// Apply HDR float color texture to a named object
+    pub fn apply_float_color_texture_to_object(
+        &self,
+        object_name: &str,
+        texture: &crate::ffi::bridge::SimpleTextureFloatColor,
+        material_type: u8,
+    ) {
+        ffi::World_ApplyFloatColorTextureToObject(&self.inner, object_name, texture, material_type);
+    }
+
+    /// Get names of all objects that can have textures applied
+    pub fn get_names_of_all_objects(&self) -> Vec<String> {
+        ffi::World_GetNamesOfAllObjects(&self.inner)
+    }
+
+    /// Set the random seed for pedestrian navigation
+    pub fn set_pedestrians_seed(&self, seed: u32) {
+        ffi::World_SetPedestriansSeed(&self.inner, seed);
+    }
 }
 
 /// High-level wrapper for CARLA Actor

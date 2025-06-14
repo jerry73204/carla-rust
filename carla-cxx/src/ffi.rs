@@ -1,5 +1,18 @@
 //! FFI bridge definitions for CARLA C++ integration using CXX.
 
+// Map layer enum values (outside of bridge for CXX compatibility)
+pub const MAP_LAYER_NONE: u8 = 0;
+pub const MAP_LAYER_BUILDINGS: u8 = 1;
+pub const MAP_LAYER_DECALS: u8 = 2;
+pub const MAP_LAYER_FOLIAGE: u8 = 4;
+pub const MAP_LAYER_GROUND: u8 = 8;
+pub const MAP_LAYER_PARKED_VEHICLES: u8 = 16;
+pub const MAP_LAYER_PARTICLES: u8 = 32;
+pub const MAP_LAYER_PROPS: u8 = 64;
+pub const MAP_LAYER_STREET_LIGHTS: u8 = 128;
+pub const MAP_LAYER_WALLS: u8 = 255;
+pub const MAP_LAYER_ALL: u8 = 255;
+
 #[cxx::bridge]
 pub mod bridge {
     // Geometry types - Simple versions to avoid conflicts with CARLA's complex types
@@ -409,6 +422,60 @@ pub mod bridge {
         pub actor_id: u32, // Result actor ID (for spawn commands)
     }
 
+    // Advanced world feature types
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleEnvironmentObject {
+        pub id: u64,
+        pub name: String,
+        pub transform: SimpleTransform,
+        pub bounding_box: SimpleBoundingBox,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleLandmark {
+        pub id: String,
+        pub name: String,
+        pub type_: String,
+        pub distance: f64,
+        pub s: f64,
+        pub is_dynamic: bool,
+        pub orientation: i32,
+        pub z_offset: f64,
+        pub country: String,
+        pub type_code: String,
+        pub sub_type: String,
+        pub value: f64,
+        pub unit: String,
+        pub height: f64,
+        pub width: f64,
+        pub text: String,
+        pub h_offset: f64,
+        pub pitch: f64,
+        pub roll: f64,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleTextureFloatColor {
+        pub width: u32,
+        pub height: u32,
+        pub data: Vec<f32>,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleTextureColor {
+        pub width: u32,
+        pub height: u32,
+        pub data: Vec<u8>,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleLevelBoundingBox {
+        pub origin: SimpleLocation,
+        pub extent: SimpleVector3D,
+        pub rotation: SimpleRotation,
+        pub tag: u8,
+    }
+
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleJunction {
         pub id: u32,
@@ -627,6 +694,41 @@ pub mod bridge {
         fn World_GetActors(world: &World) -> SimpleActorList;
         fn World_GetActorsByIds(world: &World, actor_ids: &[u32]) -> SimpleActorList;
         fn World_GetActor(world: &World, actor_id: u32) -> SharedPtr<Actor>;
+
+        // Advanced world features - Map layer management
+        fn World_LoadLevelLayer(world: &World, map_layers: u8);
+        fn World_UnloadLevelLayer(world: &World, map_layers: u8);
+
+        // Environment object queries
+        fn World_GetLevelBBs(world: &World, queried_tag: u8) -> Vec<SimpleLevelBoundingBox>;
+        fn World_GetEnvironmentObjects(
+            world: &World,
+            queried_tag: u8,
+        ) -> Vec<SimpleEnvironmentObject>;
+        fn World_EnableEnvironmentObjects(world: &World, env_objects_ids: &[u64], enable: bool);
+
+        // Advanced traffic light management
+        fn World_ResetAllTrafficLights(world: &World);
+        fn World_FreezeAllTrafficLights(world: &World, frozen: bool);
+        fn World_GetVehiclesLightStates(world: &World) -> Vec<SimpleBatchCommand>; // Reusing struct for vehicle light states
+
+        // Texture and material application
+        fn World_ApplyColorTextureToObject(
+            world: &World,
+            object_name: &str,
+            texture: &SimpleTextureColor,
+            material_type: u8,
+        );
+        fn World_ApplyFloatColorTextureToObject(
+            world: &World,
+            object_name: &str,
+            texture: &SimpleTextureFloatColor,
+            material_type: u8,
+        );
+        fn World_GetNamesOfAllObjects(world: &World) -> Vec<String>;
+
+        // Pedestrian navigation
+        fn World_SetPedestriansSeed(world: &World, seed: u32);
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;
@@ -1248,6 +1350,8 @@ pub use bridge::{
     Waypoint_GetType,
     Waypoint_IsJunction,
     World,
+    World_ApplyColorTextureToObject,
+    World_ApplyFloatColorTextureToObject,
     World_ApplySettings,
     // World interaction functions
     World_CastRay,
@@ -1257,25 +1361,36 @@ pub use bridge::{
     // Debug drawing functions
     World_DrawDebugPoint,
     World_DrawDebugString,
+    World_EnableEnvironmentObjects,
+    World_FreezeAllTrafficLights,
     World_GetActor,
     World_GetActors,
     World_GetActorsByIds,
     World_GetBlueprintLibrary,
+    World_GetEnvironmentObjects,
     World_GetId,
+    World_GetLevelBBs,
     World_GetMap,
+    World_GetNamesOfAllObjects,
     World_GetRandomLocationFromNavigation,
     World_GetSettings,
     World_GetSnapshot,
     World_GetSpectator,
     World_GetTrafficLightsFromWaypoint,
     World_GetTrafficLightsInJunction,
+    World_GetVehiclesLightStates,
     World_GetWeather,
     World_GroundProjection,
     World_IsWeatherEnabled,
+    // Advanced world features
+    World_LoadLevelLayer,
     World_ProjectPoint,
+    World_ResetAllTrafficLights,
     World_SetPedestriansCrossFactor,
+    World_SetPedestriansSeed,
     World_SetWeather,
     World_SpawnActor,
     World_Tick,
     World_TrySpawnActor,
+    World_UnloadLevelLayer,
 };
