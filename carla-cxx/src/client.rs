@@ -45,6 +45,80 @@ impl ClientWrapper {
         let world_ptr = ffi::Client_GetWorld(&self.inner);
         WorldWrapper { inner: world_ptr }
     }
+
+    // Recording methods
+
+    /// Start recording simulation data to a file
+    pub fn start_recorder(&self, filename: &str, additional_data: bool) -> String {
+        ffi::Client_StartRecorder(&self.inner, filename, additional_data)
+    }
+
+    /// Stop the current recording session
+    pub fn stop_recorder(&self) {
+        ffi::Client_StopRecorder(&self.inner);
+    }
+
+    /// Show information about a recording file
+    pub fn show_recorder_file_info(&self, filename: &str, show_all: bool) -> String {
+        ffi::Client_ShowRecorderFileInfo(&self.inner, filename, show_all)
+    }
+
+    /// Show collision analysis from a recording file
+    /// type1 and type2 are actor type filters: b'a' for all, b'v' for vehicles, b'w' for walkers
+    pub fn show_recorder_collisions(&self, filename: &str, type1: u8, type2: u8) -> String {
+        ffi::Client_ShowRecorderCollisions(&self.inner, filename, type1, type2)
+    }
+
+    /// Show blocked actors analysis from a recording file
+    pub fn show_recorder_actors_blocked(
+        &self,
+        filename: &str,
+        min_time: f64,
+        min_distance: f64,
+    ) -> String {
+        ffi::Client_ShowRecorderActorsBlocked(&self.inner, filename, min_time, min_distance)
+    }
+
+    // Playback methods
+
+    /// Replay a recording file
+    pub fn replay_file(
+        &self,
+        filename: &str,
+        start_time: f64,
+        duration: f64,
+        follow_id: u32,
+        replay_sensors: bool,
+    ) -> String {
+        ffi::Client_ReplayFile(
+            &self.inner,
+            filename,
+            start_time,
+            duration,
+            follow_id,
+            replay_sensors,
+        )
+    }
+
+    /// Stop the current replay session
+    pub fn stop_replayer(&self, keep_actors: bool) {
+        ffi::Client_StopReplayer(&self.inner, keep_actors);
+    }
+
+    /// Set the replay speed multiplier
+    pub fn set_replayer_time_factor(&self, time_factor: f64) {
+        ffi::Client_SetReplayerTimeFactor(&self.inner, time_factor);
+    }
+
+    /// Set whether to ignore hero vehicles during replay
+    pub fn set_replayer_ignore_hero(&self, ignore_hero: bool) {
+        ffi::Client_SetReplayerIgnoreHero(&self.inner, ignore_hero);
+    }
+
+    /// Set whether to ignore spectator during replay
+    pub fn set_replayer_ignore_spectator(&self, ignore_spectator: bool) {
+        ffi::Client_SetReplayerIgnoreSpectator(&self.inner, ignore_spectator);
+    }
 }
 
 /// High-level wrapper for CARLA World

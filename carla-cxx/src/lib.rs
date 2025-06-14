@@ -40,6 +40,7 @@ pub mod client;
 pub mod ffi;
 pub mod geometry;
 pub mod map;
+pub mod recording;
 pub mod sensor;
 pub mod time;
 pub mod traffic_light;

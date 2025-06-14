@@ -27,5 +27,11 @@ name = "basic_client"
 [[example]]
 name = "core_infrastructure"
 
+[[example]]
+name = "weather_demo"
+
+[[example]]
+name = "recording_demo"
+
 
 

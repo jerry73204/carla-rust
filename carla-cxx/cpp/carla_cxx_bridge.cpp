@@ -87,6 +87,73 @@ std::shared_ptr<World> Client_GetWorld(const Client &client) {
   return std::make_shared<World>(client.GetWorld());
 }
 
+// Recording wrapper functions
+rust::String Client_StartRecorder(const Client &client, rust::Str filename,
+                                  bool additional_data) {
+  std::string file_str(filename);
+  auto result =
+      const_cast<Client &>(client).StartRecorder(file_str, additional_data);
+  return rust::String(result);
+}
+
+void Client_StopRecorder(const Client &client) {
+  const_cast<Client &>(client).StopRecorder();
+}
+
+rust::String Client_ShowRecorderFileInfo(const Client &client,
+                                         rust::Str filename, bool show_all) {
+  std::string file_str(filename);
+  auto result =
+      const_cast<Client &>(client).ShowRecorderFileInfo(file_str, show_all);
+  return rust::String(result);
+}
+
+rust::String Client_ShowRecorderCollisions(const Client &client,
+                                           rust::Str filename, uint8_t type1,
+                                           uint8_t type2) {
+  std::string file_str(filename);
+  auto result = const_cast<Client &>(client).ShowRecorderCollisions(
+      file_str, static_cast<char>(type1), static_cast<char>(type2));
+  return rust::String(result);
+}
+
+rust::String Client_ShowRecorderActorsBlocked(const Client &client,
+                                              rust::Str filename,
+                                              double min_time,
+                                              double min_distance) {
+  std::string file_str(filename);
+  auto result = const_cast<Client &>(client).ShowRecorderActorsBlocked(
+      file_str, min_time, min_distance);
+  return rust::String(result);
+}
+
+// Playback wrapper functions
+rust::String Client_ReplayFile(const Client &client, rust::Str filename,
+                               double start_time, double duration,
+                               uint32_t follow_id, bool replay_sensors) {
+  std::string file_str(filename);
+  auto result = const_cast<Client &>(client).ReplayFile(
+      file_str, start_time, duration, follow_id, replay_sensors);
+  return rust::String(result);
+}
+
+void Client_StopReplayer(const Client &client, bool keep_actors) {
+  const_cast<Client &>(client).StopReplayer(keep_actors);
+}
+
+void Client_SetReplayerTimeFactor(const Client &client, double time_factor) {
+  const_cast<Client &>(client).SetReplayerTimeFactor(time_factor);
+}
+
+void Client_SetReplayerIgnoreHero(const Client &client, bool ignore_hero) {
+  const_cast<Client &>(client).SetReplayerIgnoreHero(ignore_hero);
+}
+
+void Client_SetReplayerIgnoreSpectator(const Client &client,
+                                       bool ignore_spectator) {
+  const_cast<Client &>(client).SetReplayerIgnoreSpectator(ignore_spectator);
+}
+
 // World wrapper functions
 uint64_t World_GetId(const World &world) { return world.GetId(); }
 

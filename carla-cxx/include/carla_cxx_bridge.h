@@ -59,6 +59,9 @@ struct SimpleTrafficManagerStats;
 struct SimpleTimestamp;
 struct SimpleEpisodeSettings;
 struct SimpleWeatherParameters;
+struct SimpleRecorderInfo;
+struct SimpleRecorderCollision;
+struct SimpleRecorderPosition;
 
 // CXX Bridge functions
 namespace carla {
@@ -73,6 +76,30 @@ void Client_SetTimeout(Client &client, double timeout_seconds);
 double Client_GetTimeout(Client &client);
 rust::String Client_GetServerVersion(const Client &client);
 std::shared_ptr<World> Client_GetWorld(const Client &client);
+
+// Recording functions
+rust::String Client_StartRecorder(const Client &client, rust::Str filename,
+                                  bool additional_data);
+void Client_StopRecorder(const Client &client);
+rust::String Client_ShowRecorderFileInfo(const Client &client,
+                                         rust::Str filename, bool show_all);
+rust::String Client_ShowRecorderCollisions(const Client &client,
+                                           rust::Str filename, uint8_t type1,
+                                           uint8_t type2);
+rust::String Client_ShowRecorderActorsBlocked(const Client &client,
+                                              rust::Str filename,
+                                              double min_time,
+                                              double min_distance);
+
+// Playback functions
+rust::String Client_ReplayFile(const Client &client, rust::Str filename,
+                               double start_time, double duration,
+                               uint32_t follow_id, bool replay_sensors);
+void Client_StopReplayer(const Client &client, bool keep_actors);
+void Client_SetReplayerTimeFactor(const Client &client, double time_factor);
+void Client_SetReplayerIgnoreHero(const Client &client, bool ignore_hero);
+void Client_SetReplayerIgnoreSpectator(const Client &client,
+                                       bool ignore_spectator);
 
 // World wrapper functions
 uint64_t World_GetId(const World &world);

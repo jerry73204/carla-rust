@@ -242,6 +242,38 @@ pub mod bridge {
         pub dust_storm: f32,
     }
 
+    // Recording and playback types
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleRecorderInfo {
+        pub version: u16,
+        pub magic: String,
+        pub date: u64, // Unix timestamp
+        pub mapfile: String,
+        pub frame_count: u32,
+        pub duration_seconds: f64,
+        pub total_size_mb: f32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleRecorderCollision {
+        pub id: u32,
+        pub database_id1: u32,
+        pub database_id2: u32,
+        pub is_actor1_hero: bool,
+        pub is_actor2_hero: bool,
+        pub frame: u32,
+        pub time_seconds: f64,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleRecorderPosition {
+        pub database_id: u32,
+        pub location: SimpleLocation,
+        pub rotation: SimpleRotation,
+        pub frame: u32,
+        pub time_seconds: f64,
+    }
+
     // Map and navigation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLaneMarking {
@@ -375,6 +407,37 @@ pub mod bridge {
         fn Client_SetTimeout(client: Pin<&mut Client>, timeout_seconds: f64);
         fn Client_GetTimeout(client: Pin<&mut Client>) -> f64;
         fn Client_GetWorld(client: &Client) -> SharedPtr<World>;
+
+        // Recording methods
+        fn Client_StartRecorder(client: &Client, filename: &str, additional_data: bool) -> String;
+        fn Client_StopRecorder(client: &Client);
+        fn Client_ShowRecorderFileInfo(client: &Client, filename: &str, show_all: bool) -> String;
+        fn Client_ShowRecorderCollisions(
+            client: &Client,
+            filename: &str,
+            type1: u8,
+            type2: u8,
+        ) -> String;
+        fn Client_ShowRecorderActorsBlocked(
+            client: &Client,
+            filename: &str,
+            min_time: f64,
+            min_distance: f64,
+        ) -> String;
+
+        // Playback methods
+        fn Client_ReplayFile(
+            client: &Client,
+            filename: &str,
+            start_time: f64,
+            duration: f64,
+            follow_id: u32,
+            replay_sensors: bool,
+        ) -> String;
+        fn Client_StopReplayer(client: &Client, keep_actors: bool);
+        fn Client_SetReplayerTimeFactor(client: &Client, time_factor: f64);
+        fn Client_SetReplayerIgnoreHero(client: &Client, ignore_hero: bool);
+        fn Client_SetReplayerIgnoreSpectator(client: &Client, ignore_spectator: bool);
 
         // World methods
         fn World_GetId(world: &World) -> u64;
@@ -789,7 +852,17 @@ pub use bridge::{
     Client_GetServerVersion,
     Client_GetTimeout,
     Client_GetWorld,
+    Client_ReplayFile,
+    Client_SetReplayerIgnoreHero,
+    Client_SetReplayerIgnoreSpectator,
+    Client_SetReplayerTimeFactor,
     Client_SetTimeout,
+    Client_ShowRecorderActorsBlocked,
+    Client_ShowRecorderCollisions,
+    Client_ShowRecorderFileInfo,
+    Client_StartRecorder,
+    Client_StopRecorder,
+    Client_StopReplayer,
     Junction,
     Junction_GetBoundingBox,
     // Junction methods
@@ -839,6 +912,9 @@ pub use bridge::{
     SimpleLiDARPoint,
     SimpleLocation,
     SimpleRadarDetection,
+    SimpleRecorderCollision,
+    SimpleRecorderInfo,
+    SimpleRecorderPosition,
     SimpleRotation,
     SimpleTimestamp,
     SimpleTrafficLightState,
