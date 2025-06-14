@@ -329,6 +329,33 @@ impl WorldWrapper {
             Some(ActorWrapper { inner: actor_ptr })
         }
     }
+
+    // Debug drawing methods
+
+    /// Draw a debug point in the world
+    pub fn draw_debug_point(&self, point: &crate::ffi::bridge::SimpleDebugPoint) {
+        ffi::bridge::World_DrawDebugPoint(&self.inner, point);
+    }
+
+    /// Draw a debug line in the world
+    pub fn draw_debug_line(&self, line: &crate::ffi::bridge::SimpleDebugLine) {
+        ffi::bridge::World_DrawDebugLine(&self.inner, line);
+    }
+
+    /// Draw a debug arrow in the world
+    pub fn draw_debug_arrow(&self, arrow: &crate::ffi::bridge::SimpleDebugArrow) {
+        ffi::bridge::World_DrawDebugArrow(&self.inner, arrow);
+    }
+
+    /// Draw a debug box in the world
+    pub fn draw_debug_box(&self, box_shape: &crate::ffi::bridge::SimpleDebugBox) {
+        ffi::bridge::World_DrawDebugBox(&self.inner, box_shape);
+    }
+
+    /// Draw a debug string in the world
+    pub fn draw_debug_string(&self, string: &crate::ffi::bridge::SimpleDebugString) {
+        ffi::bridge::World_DrawDebugString(&self.inner, string);
+    }
 }
 
 /// High-level wrapper for CARLA Actor

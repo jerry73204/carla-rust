@@ -48,6 +48,12 @@ struct SimpleGNSSData;
 struct SimpleImageData;
 struct SimpleCollisionData;
 struct SimpleCrossedLaneMarking;
+struct SimpleColor;
+struct SimpleDebugPoint;
+struct SimpleDebugLine;
+struct SimpleDebugArrow;
+struct SimpleDebugBox;
+struct SimpleDebugString;
 struct SimpleLaneMarking;
 struct SimpleWaypointInfo;
 struct SimpleJunction;
@@ -116,6 +122,13 @@ rust::Vec<SimpleBatchResponse>
 Client_ApplyBatchSync(const Client &client,
                       rust::Slice<const SimpleBatchCommand> commands,
                       bool do_tick_cue);
+
+// Debug drawing functions - on World, not Client
+void World_DrawDebugPoint(const World &world, const SimpleDebugPoint &point);
+void World_DrawDebugLine(const World &world, const SimpleDebugLine &line);
+void World_DrawDebugArrow(const World &world, const SimpleDebugArrow &arrow);
+void World_DrawDebugBox(const World &world, const SimpleDebugBox &box_shape);
+void World_DrawDebugString(const World &world, const SimpleDebugString &string);
 
 // World wrapper functions
 uint64_t World_GetId(const World &world);

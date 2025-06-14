@@ -38,6 +38,7 @@
 pub mod batch_operations;
 pub mod blueprint;
 pub mod client;
+pub mod debug_helper;
 pub mod ffi;
 pub mod geometry;
 pub mod map;
@@ -59,10 +60,11 @@ mod tests;
 // Re-export the most commonly used types for convenience
 pub use ffi::{
     Actor, ActorBlueprint, BlueprintLibrary, Client, Junction, Map, Sensor, SimpleBoundingBox,
-    SimpleGeoLocation, SimpleLaneMarking, SimpleLocation, SimpleRotation, SimpleTransform,
-    SimpleVector2D, SimpleVector3D, SimpleVehicleControl, SimpleWalkerControl, SimpleWaypointInfo,
-    SimpleWeatherParameters, TrafficLight, TrafficManager, TrafficSign, Vehicle, Walker, Waypoint,
-    World,
+    SimpleColor, SimpleDebugArrow, SimpleDebugBox, SimpleDebugLine, SimpleDebugPoint,
+    SimpleDebugString, SimpleGeoLocation, SimpleLaneMarking, SimpleLocation, SimpleRotation,
+    SimpleTransform, SimpleVector2D, SimpleVector3D, SimpleVehicleControl, SimpleWalkerControl,
+    SimpleWaypointInfo, SimpleWeatherParameters, TrafficLight, TrafficManager, TrafficSign,
+    Vehicle, Walker, Waypoint, World,
 };
 
 pub use batch_operations::{
@@ -102,6 +104,9 @@ pub use world_interaction::{defaults as world_defaults, ray_casting};
 
 // Re-export batch operation utilities
 pub use batch_operations::batch_utils;
+
+// Re-export debug visualization utilities
+pub use debug_helper::{colors as debug_colors, DebugDrawBuilder, DebugDrawExt};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

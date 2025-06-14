@@ -198,6 +198,64 @@ pub mod bridge {
         pub lane_change: u8, // LaneChange enum
     }
 
+    // Debug visualization structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleColor {
+        pub r: u8,
+        pub g: u8,
+        pub b: u8,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleDebugPoint {
+        pub location: SimpleLocation,
+        pub size: f32,
+        pub color: SimpleColor,
+        pub life_time: f32,
+        pub persistent_lines: bool,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleDebugLine {
+        pub begin: SimpleLocation,
+        pub end: SimpleLocation,
+        pub thickness: f32,
+        pub color: SimpleColor,
+        pub life_time: f32,
+        pub persistent_lines: bool,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleDebugArrow {
+        pub begin: SimpleLocation,
+        pub end: SimpleLocation,
+        pub thickness: f32,
+        pub arrow_size: f32,
+        pub color: SimpleColor,
+        pub life_time: f32,
+        pub persistent_lines: bool,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleDebugBox {
+        pub bbox: SimpleBoundingBox,
+        pub rotation: SimpleRotation,
+        pub thickness: f32,
+        pub color: SimpleColor,
+        pub life_time: f32,
+        pub persistent_lines: bool,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleDebugString {
+        pub location: SimpleLocation,
+        pub text: String,
+        pub draw_shadow: bool,
+        pub color: SimpleColor,
+        pub life_time: f32,
+        pub persistent_lines: bool,
+    }
+
     // Time and timestamp types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleTimestamp {
@@ -500,6 +558,13 @@ pub mod bridge {
             commands: &[SimpleBatchCommand],
             do_tick_cue: bool,
         ) -> Vec<SimpleBatchResponse>;
+
+        // Debug drawing methods - on World, not Client
+        fn World_DrawDebugPoint(world: &World, point: &SimpleDebugPoint);
+        fn World_DrawDebugLine(world: &World, line: &SimpleDebugLine);
+        fn World_DrawDebugArrow(world: &World, arrow: &SimpleDebugArrow);
+        fn World_DrawDebugBox(world: &World, box_shape: &SimpleDebugBox);
+        fn World_DrawDebugString(world: &World, string: &SimpleDebugString);
 
         // World methods
         fn World_GetId(world: &World) -> u64;
@@ -1001,7 +1066,14 @@ pub use bridge::{
     SimpleActorList,
     SimpleBoundingBox,
     SimpleCollisionData,
+    // Debug visualization structures
+    SimpleColor,
     SimpleCrossedLaneMarking,
+    SimpleDebugArrow,
+    SimpleDebugBox,
+    SimpleDebugLine,
+    SimpleDebugPoint,
+    SimpleDebugString,
     SimpleEpisodeSettings,
     SimpleGNSSData,
     SimpleGearPhysicsControl,
@@ -1179,6 +1251,12 @@ pub use bridge::{
     World_ApplySettings,
     // World interaction functions
     World_CastRay,
+    World_DrawDebugArrow,
+    World_DrawDebugBox,
+    World_DrawDebugLine,
+    // Debug drawing functions
+    World_DrawDebugPoint,
+    World_DrawDebugString,
     World_GetActor,
     World_GetActors,
     World_GetActorsByIds,

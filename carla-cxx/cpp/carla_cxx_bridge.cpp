@@ -23,6 +23,7 @@
 #include <carla/rpc/AckermannControllerSettings.h>
 #include <carla/rpc/Command.h>
 #include <carla/rpc/CommandResponse.h>
+#include <carla/rpc/DebugShape.h>
 #include <carla/rpc/EpisodeSettings.h>
 #include <carla/rpc/LabelledPoint.h>
 #include <carla/rpc/TrafficLightState.h>
@@ -2334,6 +2335,135 @@ Client_ApplyBatchSync(const Client &client,
   }
 
   return simple_responses;
+}
+
+// Debug drawing wrapper functions - using World's episode to draw debug shapes
+void World_DrawDebugPoint(const World &world, const SimpleDebugPoint &point) {
+  carla::rpc::DebugShape debug_shape;
+
+  // Create Point primitive
+  carla::rpc::DebugShape::Point debug_point;
+  debug_point.location = carla::geom::Location(
+      point.location.x, point.location.y, point.location.z);
+  debug_point.size = point.size;
+
+  // Set the shape variant
+  debug_shape.primitive = debug_point;
+
+  // Set color and lifetime
+  debug_shape.color =
+      carla::rpc::Color(point.color.r, point.color.g, point.color.b);
+  debug_shape.life_time = point.life_time;
+  debug_shape.persistent_lines = point.persistent_lines;
+
+  // Get episode from world and draw the shape
+  auto episode = const_cast<World &>(world).GetEpisode();
+  episode.Lock()->DrawDebugShape(debug_shape);
+}
+
+void World_DrawDebugLine(const World &world, const SimpleDebugLine &line) {
+  carla::rpc::DebugShape debug_shape;
+
+  // Create Line primitive
+  carla::rpc::DebugShape::Line debug_line;
+  debug_line.begin =
+      carla::geom::Location(line.begin.x, line.begin.y, line.begin.z);
+  debug_line.end = carla::geom::Location(line.end.x, line.end.y, line.end.z);
+  debug_line.thickness = line.thickness;
+
+  // Set the shape variant
+  debug_shape.primitive = debug_line;
+
+  // Set color and lifetime
+  debug_shape.color =
+      carla::rpc::Color(line.color.r, line.color.g, line.color.b);
+  debug_shape.life_time = line.life_time;
+  debug_shape.persistent_lines = line.persistent_lines;
+
+  // Get episode from world and draw the shape
+  auto episode = const_cast<World &>(world).GetEpisode();
+  episode.Lock()->DrawDebugShape(debug_shape);
+}
+
+void World_DrawDebugArrow(const World &world, const SimpleDebugArrow &arrow) {
+  carla::rpc::DebugShape debug_shape;
+
+  // Create Arrow primitive
+  carla::rpc::DebugShape::Arrow debug_arrow;
+  debug_arrow.line.begin =
+      carla::geom::Location(arrow.begin.x, arrow.begin.y, arrow.begin.z);
+  debug_arrow.line.end =
+      carla::geom::Location(arrow.end.x, arrow.end.y, arrow.end.z);
+  debug_arrow.line.thickness = arrow.thickness;
+  debug_arrow.arrow_size = arrow.arrow_size;
+
+  // Set the shape variant
+  debug_shape.primitive = debug_arrow;
+
+  // Set color and lifetime
+  debug_shape.color =
+      carla::rpc::Color(arrow.color.r, arrow.color.g, arrow.color.b);
+  debug_shape.life_time = arrow.life_time;
+  debug_shape.persistent_lines = arrow.persistent_lines;
+
+  // Get episode from world and draw the shape
+  auto episode = const_cast<World &>(world).GetEpisode();
+  episode.Lock()->DrawDebugShape(debug_shape);
+}
+
+void World_DrawDebugBox(const World &world, const SimpleDebugBox &box_shape) {
+  carla::rpc::DebugShape debug_shape;
+
+  // Create Box primitive
+  carla::rpc::DebugShape::Box debug_box;
+  debug_box.box = carla::geom::BoundingBox(
+      carla::geom::Location(box_shape.bbox.location.x,
+                            box_shape.bbox.location.y,
+                            box_shape.bbox.location.z),
+      carla::geom::Vector3D(box_shape.bbox.extent.x, box_shape.bbox.extent.y,
+                            box_shape.bbox.extent.z));
+  debug_box.rotation =
+      carla::geom::Rotation(box_shape.rotation.pitch, box_shape.rotation.yaw,
+                            box_shape.rotation.roll);
+  debug_box.thickness = box_shape.thickness;
+
+  // Set the shape variant
+  debug_shape.primitive = debug_box;
+
+  // Set color and lifetime
+  debug_shape.color = carla::rpc::Color(box_shape.color.r, box_shape.color.g,
+                                        box_shape.color.b);
+  debug_shape.life_time = box_shape.life_time;
+  debug_shape.persistent_lines = box_shape.persistent_lines;
+
+  // Get episode from world and draw the shape
+  auto episode = const_cast<World &>(world).GetEpisode();
+  episode.Lock()->DrawDebugShape(debug_shape);
+}
+
+void World_DrawDebugString(const World &world,
+                           const SimpleDebugString &string) {
+  carla::rpc::DebugShape debug_shape;
+
+  // Create String primitive
+  carla::rpc::DebugShape::String debug_string;
+  debug_string.location = carla::geom::Location(
+      string.location.x, string.location.y, string.location.z);
+  debug_string.text = std::string(string.text);
+  debug_string.draw_shadow = string.draw_shadow;
+
+  // Set the shape variant
+  debug_shape.primitive = debug_string;
+
+  // Set color and lifetime
+  debug_shape.color =
+      carla::rpc::Color(string.color.r, string.color.g, string.color.b);
+  debug_shape.life_time = string.life_time;
+  debug_shape.persistent_lines = string.persistent_lines;
+
+  // Get episode from world and draw the shape
+  auto episode = const_cast<World &>(world).GetEpisode();
+  episode.Lock()->DrawDebugShape(debug_shape);
 }
 
 } // namespace client
