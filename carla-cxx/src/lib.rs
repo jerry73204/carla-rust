@@ -48,6 +48,7 @@ pub mod traffic_sign;
 pub mod vehicle;
 pub mod walker;
 pub mod walker_ai;
+pub mod weather;
 
 #[cfg(test)]
 mod tests;
@@ -57,7 +58,8 @@ pub use ffi::{
     Actor, ActorBlueprint, BlueprintLibrary, Client, Junction, Map, Sensor, SimpleBoundingBox,
     SimpleGeoLocation, SimpleLaneMarking, SimpleLocation, SimpleRotation, SimpleTransform,
     SimpleVector2D, SimpleVector3D, SimpleVehicleControl, SimpleWalkerControl, SimpleWaypointInfo,
-    TrafficLight, TrafficManager, TrafficSign, Vehicle, Walker, Waypoint, World,
+    SimpleWeatherParameters, TrafficLight, TrafficManager, TrafficSign, Vehicle, Walker, Waypoint,
+    World,
 };
 
 pub use blueprint::ActorBlueprintExt;

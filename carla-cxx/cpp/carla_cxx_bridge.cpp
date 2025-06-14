@@ -28,6 +28,7 @@
 #include <carla/rpc/WalkerBoneControlIn.h>
 #include <carla/rpc/WalkerBoneControlOut.h>
 #include <carla/rpc/WalkerControl.h>
+#include <carla/rpc/WeatherParameters.h>
 #include <carla/sensor/SensorData.h>
 #include <carla/sensor/data/GnssMeasurement.h>
 #include <carla/sensor/data/IMUMeasurement.h>
@@ -202,6 +203,62 @@ uint64_t World_ApplySettings(const World &world,
 
   // const_cast is needed because CARLA's API is not const-correct
   return const_cast<World &>(world).ApplySettings(carla_settings, duration);
+}
+
+// Weather parameter conversion functions
+SimpleWeatherParameters
+ConvertToSimpleWeatherParameters(const carla::rpc::WeatherParameters &weather) {
+  return SimpleWeatherParameters{weather.cloudiness,
+                                 weather.precipitation,
+                                 weather.precipitation_deposits,
+                                 weather.wind_intensity,
+                                 weather.sun_azimuth_angle,
+                                 weather.sun_altitude_angle,
+                                 weather.fog_density,
+                                 weather.fog_distance,
+                                 weather.fog_falloff,
+                                 weather.wetness,
+                                 weather.scattering_intensity,
+                                 weather.mie_scattering_scale,
+                                 weather.rayleigh_scattering_scale,
+                                 weather.dust_storm};
+}
+
+carla::rpc::WeatherParameters
+ConvertFromSimpleWeatherParameters(const SimpleWeatherParameters &weather) {
+  carla::rpc::WeatherParameters carla_weather;
+  carla_weather.cloudiness = weather.cloudiness;
+  carla_weather.precipitation = weather.precipitation;
+  carla_weather.precipitation_deposits = weather.precipitation_deposits;
+  carla_weather.wind_intensity = weather.wind_intensity;
+  carla_weather.sun_azimuth_angle = weather.sun_azimuth_angle;
+  carla_weather.sun_altitude_angle = weather.sun_altitude_angle;
+  carla_weather.fog_density = weather.fog_density;
+  carla_weather.fog_distance = weather.fog_distance;
+  carla_weather.fog_falloff = weather.fog_falloff;
+  carla_weather.wetness = weather.wetness;
+  carla_weather.scattering_intensity = weather.scattering_intensity;
+  carla_weather.mie_scattering_scale = weather.mie_scattering_scale;
+  carla_weather.rayleigh_scattering_scale = weather.rayleigh_scattering_scale;
+  carla_weather.dust_storm = weather.dust_storm;
+  return carla_weather;
+}
+
+// Weather wrapper functions
+SimpleWeatherParameters World_GetWeather(const World &world) {
+  auto weather = const_cast<World &>(world).GetWeather();
+  return ConvertToSimpleWeatherParameters(weather);
+}
+
+void World_SetWeather(const World &world,
+                      const SimpleWeatherParameters &weather) {
+  auto carla_weather = ConvertFromSimpleWeatherParameters(weather);
+  // const_cast is needed because CARLA's API is not const-correct
+  const_cast<World &>(world).SetWeather(carla_weather);
+}
+
+bool World_IsWeatherEnabled(const World &world) {
+  return const_cast<World &>(world).IsWeatherEnabled();
 }
 
 // Actor wrapper functions

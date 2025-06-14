@@ -58,6 +58,7 @@ struct SimpleTrafficManagerAction;
 struct SimpleTrafficManagerStats;
 struct SimpleTimestamp;
 struct SimpleEpisodeSettings;
+struct SimpleWeatherParameters;
 
 // CXX Bridge functions
 namespace carla {
@@ -429,3 +430,9 @@ void TrafficManager_Release();
 
 } // namespace client
 } // namespace carla
+
+// Global namespace weather functions (bridge utilities)
+SimpleWeatherParameters World_GetWeather(const carla::client::World &world);
+void World_SetWeather(const carla::client::World &world,
+                      const SimpleWeatherParameters &weather);
+bool World_IsWeatherEnabled(const carla::client::World &world);

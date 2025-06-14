@@ -223,6 +223,25 @@ pub mod bridge {
         pub spectator_as_ego: bool,
     }
 
+    // Weather parameters
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleWeatherParameters {
+        pub cloudiness: f32,
+        pub precipitation: f32,
+        pub precipitation_deposits: f32,
+        pub wind_intensity: f32,
+        pub sun_azimuth_angle: f32,
+        pub sun_altitude_angle: f32,
+        pub fog_density: f32,
+        pub fog_distance: f32,
+        pub fog_falloff: f32,
+        pub wetness: f32,
+        pub scattering_intensity: f32,
+        pub mie_scattering_scale: f32,
+        pub rayleigh_scattering_scale: f32,
+        pub dust_storm: f32,
+    }
+
     // Map and navigation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLaneMarking {
@@ -714,6 +733,16 @@ pub mod bridge {
 
     }
 
+    // Global namespace functions (primarily bridge utilities)
+    unsafe extern "C++" {
+        include!("carla_cxx_bridge.h");
+
+        // Weather functions - use global namespace since they're bridge functions
+        fn World_GetWeather(world: &World) -> SimpleWeatherParameters;
+        fn World_SetWeather(world: &World, weather: &SimpleWeatherParameters);
+        fn World_IsWeatherEnabled(world: &World) -> bool;
+    }
+
     #[namespace = "carla::traffic_manager"]
     unsafe extern "C++" {
         include!("carla_cxx_bridge.h");
@@ -800,6 +829,7 @@ pub use bridge::{
     SimpleBoundingBox,
     SimpleCollisionData,
     SimpleCrossedLaneMarking,
+    SimpleEpisodeSettings,
     SimpleGNSSData,
     SimpleGearPhysicsControl,
     SimpleGeoLocation,
@@ -825,6 +855,7 @@ pub use bridge::{
     SimpleWalkerControl,
     SimpleWalkerDestination,
     SimpleWaypointInfo,
+    SimpleWeatherParameters,
     SimpleWheelPhysicsControl,
     TrafficLight,
     TrafficLight_Freeze,
@@ -972,6 +1003,9 @@ pub use bridge::{
     World_GetSettings,
     World_GetSnapshot,
     World_GetSpectator,
+    World_GetWeather,
+    World_IsWeatherEnabled,
+    World_SetWeather,
     World_SpawnActor,
     World_Tick,
     World_TrySpawnActor,

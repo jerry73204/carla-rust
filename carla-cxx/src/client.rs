@@ -141,6 +141,21 @@ impl WorldWrapper {
     ) -> u64 {
         ffi::World_ApplySettings(&self.inner, settings, timeout.as_secs_f64())
     }
+
+    /// Get the current weather parameters
+    pub fn get_weather(&self) -> crate::ffi::bridge::SimpleWeatherParameters {
+        ffi::World_GetWeather(&self.inner)
+    }
+
+    /// Set the weather parameters
+    pub fn set_weather(&self, weather: &crate::ffi::bridge::SimpleWeatherParameters) {
+        ffi::World_SetWeather(&self.inner, weather);
+    }
+
+    /// Check if weather simulation is enabled
+    pub fn is_weather_enabled(&self) -> bool {
+        ffi::World_IsWeatherEnabled(&self.inner)
+    }
 }
 
 /// High-level wrapper for CARLA Actor
