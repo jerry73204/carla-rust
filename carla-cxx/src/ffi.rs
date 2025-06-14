@@ -71,6 +71,49 @@ pub mod bridge {
         pub elapsed_time: f32,
     }
 
+    // Sensor data structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleLiDARPoint {
+        pub x: f32,
+        pub y: f32,
+        pub z: f32,
+        pub intensity: f32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleRadarDetection {
+        pub velocity: f32,
+        pub azimuth: f32,
+        pub altitude: f32,
+        pub depth: f32,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleIMUData {
+        pub accelerometer_x: f64,
+        pub accelerometer_y: f64,
+        pub accelerometer_z: f64,
+        pub gyroscope_x: f64,
+        pub gyroscope_y: f64,
+        pub gyroscope_z: f64,
+        pub compass: f64,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleGNSSData {
+        pub latitude: f64,
+        pub longitude: f64,
+        pub altitude: f64,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleImageData {
+        pub width: u32,
+        pub height: u32,
+        pub fov: f32,
+        pub data_size: usize,
+    }
+
     #[namespace = "carla::client"]
     unsafe extern "C++" {
         include!("carla_cxx_bridge.h");
@@ -157,6 +200,16 @@ pub mod bridge {
         // Sensor methods
         fn Sensor_Stop(sensor: &Sensor);
         fn Sensor_IsListening(sensor: &Sensor) -> bool;
+        fn Sensor_Listen(sensor: &Sensor);
+
+        // Sensor data retrieval - polling approach
+        fn Sensor_GetLastImageData(sensor: &Sensor) -> SimpleImageData;
+        fn Sensor_GetImageDataBuffer(sensor: &Sensor, buffer: &mut [u8]) -> bool;
+        fn Sensor_GetLastLiDARData(sensor: &Sensor) -> Vec<SimpleLiDARPoint>;
+        fn Sensor_GetLastRadarData(sensor: &Sensor) -> Vec<SimpleRadarDetection>;
+        fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
+        fn Sensor_GetLastGNSSData(sensor: &Sensor) -> SimpleGNSSData;
+        fn Sensor_HasNewData(sensor: &Sensor) -> bool;
 
         // Traffic Light methods
         fn TrafficLight_GetState(traffic_light: &TrafficLight) -> u32; // TrafficLightState enum
@@ -257,11 +310,25 @@ pub use bridge::{
     Location_Distance,
     Location_DistanceSquared,
     Sensor,
+    // Sensor data retrieval
+    Sensor_GetImageDataBuffer,
+    Sensor_GetLastGNSSData,
+    Sensor_GetLastIMUData,
+    Sensor_GetLastImageData,
+    Sensor_GetLastLiDARData,
+    Sensor_GetLastRadarData,
+    Sensor_HasNewData,
     Sensor_IsListening,
+    Sensor_Listen,
     // Sensor methods
     Sensor_Stop,
     SimpleBoundingBox,
+    SimpleGNSSData,
+    SimpleIMUData,
+    SimpleImageData,
+    SimpleLiDARPoint,
     SimpleLocation,
+    SimpleRadarDetection,
     SimpleRotation,
     SimpleTrafficLightState,
     SimpleTransform,

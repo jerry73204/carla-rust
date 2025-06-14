@@ -16,11 +16,22 @@
 #include <carla/rpc/VehicleControl.h>
 #include <carla/rpc/VehicleLightState.h>
 #include <carla/rpc/WalkerControl.h>
+#include <carla/sensor/SensorData.h>
+#include <carla/sensor/data/GnssMeasurement.h>
+#include <carla/sensor/data/IMUMeasurement.h>
+#include <carla/sensor/data/Image.h>
+#include <carla/sensor/data/LidarMeasurement.h>
+#include <carla/sensor/data/RadarMeasurement.h>
 
 #include <chrono>
 #include <cmath>
 #include <memory>
 #include <string>
+
+// Global storage for sensor data - in a real implementation this would be
+// per-sensor
+static std::shared_ptr<carla::sensor::SensorData> g_last_sensor_data;
+static bool g_has_new_data = false;
 
 namespace carla {
 namespace client {
@@ -530,6 +541,133 @@ float Walker_GetSpeed(const Walker &walker) {
 void Sensor_Stop(const Sensor &sensor) { const_cast<Sensor &>(sensor).Stop(); }
 
 bool Sensor_IsListening(const Sensor &sensor) { return sensor.IsListening(); }
+
+void Sensor_Listen(const Sensor &sensor) {
+  // Set up a lambda callback that stores data globally
+  auto callback = [](std::shared_ptr<carla::sensor::SensorData> data) {
+    g_last_sensor_data = data;
+    g_has_new_data = true;
+  };
+
+  const_cast<Sensor &>(sensor).Listen(std::move(callback));
+}
+
+// Sensor data retrieval functions
+SimpleImageData Sensor_GetLastImageData(const Sensor &sensor) {
+  if (!g_last_sensor_data) {
+    return SimpleImageData{0, 0, 0.0f, 0};
+  }
+
+  auto image_data =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(g_last_sensor_data);
+  if (image_data) {
+    return SimpleImageData{
+        image_data->GetWidth(), image_data->GetHeight(),
+        90.0f, // Default FOV - would need to get from sensor blueprint
+        image_data->size()};
+  }
+
+  return SimpleImageData{0, 0, 0.0f, 0};
+}
+
+bool Sensor_GetImageDataBuffer(const Sensor &sensor,
+                               rust::Slice<uint8_t> buffer) {
+  if (!g_last_sensor_data) {
+    return false;
+  }
+
+  auto image_data =
+      std::dynamic_pointer_cast<carla::sensor::data::Image>(g_last_sensor_data);
+  if (image_data && buffer.size() >= image_data->size()) {
+    std::memcpy(buffer.data(), image_data->data(), image_data->size());
+    return true;
+  }
+
+  return false;
+}
+
+rust::Vec<SimpleLiDARPoint> Sensor_GetLastLiDARData(const Sensor &sensor) {
+  rust::Vec<SimpleLiDARPoint> points;
+
+  if (!g_last_sensor_data) {
+    return points;
+  }
+
+  auto lidar_data =
+      std::dynamic_pointer_cast<carla::sensor::data::LidarMeasurement>(
+          g_last_sensor_data);
+  if (lidar_data) {
+    for (const auto &detection : *lidar_data) {
+      points.push_back(SimpleLiDARPoint{detection.point.x, detection.point.y,
+                                        detection.point.z,
+                                        detection.intensity});
+    }
+  }
+
+  return points;
+}
+
+rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor) {
+  rust::Vec<SimpleRadarDetection> detections;
+
+  if (!g_last_sensor_data) {
+    return detections;
+  }
+
+  auto radar_data =
+      std::dynamic_pointer_cast<carla::sensor::data::RadarMeasurement>(
+          g_last_sensor_data);
+  if (radar_data) {
+    for (const auto &detection : *radar_data) {
+      detections.push_back(
+          SimpleRadarDetection{detection.velocity, detection.azimuth,
+                               detection.altitude, detection.depth});
+    }
+  }
+
+  return detections;
+}
+
+SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor) {
+  if (!g_last_sensor_data) {
+    return SimpleIMUData{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  }
+
+  auto imu_data =
+      std::dynamic_pointer_cast<carla::sensor::data::IMUMeasurement>(
+          g_last_sensor_data);
+  if (imu_data) {
+    const auto &accelerometer = imu_data->GetAccelerometer();
+    const auto &gyroscope = imu_data->GetGyroscope();
+    return SimpleIMUData{
+        accelerometer.x, accelerometer.y, accelerometer.z,       gyroscope.x,
+        gyroscope.y,     gyroscope.z,     imu_data->GetCompass()};
+  }
+
+  return SimpleIMUData{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+}
+
+SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor) {
+  if (!g_last_sensor_data) {
+    return SimpleGNSSData{0.0, 0.0, 0.0};
+  }
+
+  auto gnss_data =
+      std::dynamic_pointer_cast<carla::sensor::data::GnssMeasurement>(
+          g_last_sensor_data);
+  if (gnss_data) {
+    return SimpleGNSSData{gnss_data->GetLatitude(), gnss_data->GetLongitude(),
+                          gnss_data->GetAltitude()};
+  }
+
+  return SimpleGNSSData{0.0, 0.0, 0.0};
+}
+
+bool Sensor_HasNewData(const Sensor &sensor) {
+  bool result = g_has_new_data;
+  g_has_new_data = false; // Reset flag after checking
+  return result;
+}
 
 // Traffic Light wrapper functions
 uint32_t TrafficLight_GetState(const TrafficLight &traffic_light) {

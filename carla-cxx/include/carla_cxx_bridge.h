@@ -29,6 +29,11 @@ struct SimpleBoundingBox;
 struct SimpleVehicleControl;
 struct SimpleWalkerControl;
 struct SimpleTrafficLightState;
+struct SimpleLiDARPoint;
+struct SimpleRadarDetection;
+struct SimpleIMUData;
+struct SimpleGNSSData;
+struct SimpleImageData;
 
 // CXX Bridge functions
 namespace carla {
@@ -110,6 +115,17 @@ float Walker_GetSpeed(const Walker &walker);
 // Sensor wrapper functions
 void Sensor_Stop(const Sensor &sensor);
 bool Sensor_IsListening(const Sensor &sensor);
+void Sensor_Listen(const Sensor &sensor);
+
+// Sensor data retrieval functions
+SimpleImageData Sensor_GetLastImageData(const Sensor &sensor);
+bool Sensor_GetImageDataBuffer(const Sensor &sensor,
+                               rust::Slice<uint8_t> buffer);
+rust::Vec<SimpleLiDARPoint> Sensor_GetLastLiDARData(const Sensor &sensor);
+rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor);
+SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor);
+SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor);
+bool Sensor_HasNewData(const Sensor &sensor);
 
 // Traffic Light wrapper functions
 uint32_t TrafficLight_GetState(const TrafficLight &traffic_light);
