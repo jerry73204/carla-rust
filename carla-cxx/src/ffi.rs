@@ -207,6 +207,22 @@ pub mod bridge {
         pub platform_timestamp: f64,
     }
 
+    // Episode and world settings
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleEpisodeSettings {
+        pub synchronous_mode: bool,
+        pub no_rendering_mode: bool,
+        pub fixed_delta_seconds: f64, // Use 0.0 for None/variable time step
+        pub substepping: bool,
+        pub max_substep_delta_time: f64,
+        pub max_substeps: i32,
+        pub max_culling_distance: f32,
+        pub deterministic_ragdolls: bool,
+        pub tile_stream_distance: f32,
+        pub actor_active_distance: f32,
+        pub spectator_as_ego: bool,
+    }
+
     // Map and navigation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLaneMarking {
@@ -360,6 +376,12 @@ pub mod bridge {
             parent: *const Actor,
         ) -> SharedPtr<Actor>;
         fn World_GetMap(world: &World) -> SharedPtr<Map>;
+        fn World_GetSettings(world: &World) -> SimpleEpisodeSettings;
+        fn World_ApplySettings(
+            world: &World,
+            settings: &SimpleEpisodeSettings,
+            timeout_seconds: f64,
+        ) -> u64;
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;
@@ -943,9 +965,11 @@ pub use bridge::{
     Waypoint_GetType,
     Waypoint_IsJunction,
     World,
+    World_ApplySettings,
     World_GetBlueprintLibrary,
     World_GetId,
     World_GetMap,
+    World_GetSettings,
     World_GetSnapshot,
     World_GetSpectator,
     World_SpawnActor,

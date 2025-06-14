@@ -127,6 +127,20 @@ impl WorldWrapper {
         let map_ptr = ffi::World_GetMap(&self.inner);
         crate::map::MapWrapper::new(map_ptr)
     }
+
+    /// Get the current episode settings (raw FFI version)
+    pub fn get_settings_raw(&self) -> crate::ffi::bridge::SimpleEpisodeSettings {
+        ffi::World_GetSettings(&self.inner)
+    }
+
+    /// Apply new episode settings to the world (raw FFI version)
+    pub fn apply_settings_raw(
+        &self,
+        settings: &crate::ffi::bridge::SimpleEpisodeSettings,
+        timeout: Duration,
+    ) -> u64 {
+        ffi::World_ApplySettings(&self.inner, settings, timeout.as_secs_f64())
+    }
 }
 
 /// High-level wrapper for CARLA Actor

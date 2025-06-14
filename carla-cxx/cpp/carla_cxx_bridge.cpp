@@ -19,6 +19,7 @@
 #include <carla/geom/GeoLocation.h>
 #include <carla/geom/Vector3D.h>
 #include <carla/rpc/AckermannControllerSettings.h>
+#include <carla/rpc/EpisodeSettings.h>
 #include <carla/rpc/TrafficLightState.h>
 #include <carla/rpc/VehicleControl.h>
 #include <carla/rpc/VehicleDoor.h>
@@ -146,6 +147,62 @@ std::shared_ptr<Actor> World_TrySpawnActor(const World &world,
 }
 
 std::shared_ptr<Map> World_GetMap(const World &world) { return world.GetMap(); }
+
+// Episode settings conversion functions
+SimpleEpisodeSettings
+ConvertToSimpleEpisodeSettings(const carla::rpc::EpisodeSettings &settings) {
+  return SimpleEpisodeSettings{settings.synchronous_mode,
+                               settings.no_rendering_mode,
+                               settings.fixed_delta_seconds.has_value()
+                                   ? settings.fixed_delta_seconds.value()
+                                   : 0.0,
+                               settings.substepping,
+                               settings.max_substep_delta_time,
+                               static_cast<int32_t>(settings.max_substeps),
+                               settings.max_culling_distance,
+                               settings.deterministic_ragdolls,
+                               settings.tile_stream_distance,
+                               settings.actor_active_distance,
+                               settings.spectator_as_ego};
+}
+
+carla::rpc::EpisodeSettings
+ConvertFromSimpleEpisodeSettings(const SimpleEpisodeSettings &simple_settings) {
+  carla::rpc::EpisodeSettings settings;
+  settings.synchronous_mode = simple_settings.synchronous_mode;
+  settings.no_rendering_mode = simple_settings.no_rendering_mode;
+
+  // Handle optional fixed_delta_seconds - 0.0 means None/variable time step
+  if (simple_settings.fixed_delta_seconds > 0.0) {
+    settings.fixed_delta_seconds = simple_settings.fixed_delta_seconds;
+  }
+
+  settings.substepping = simple_settings.substepping;
+  settings.max_substep_delta_time = simple_settings.max_substep_delta_time;
+  settings.max_substeps = static_cast<size_t>(simple_settings.max_substeps);
+  settings.max_culling_distance = simple_settings.max_culling_distance;
+  settings.deterministic_ragdolls = simple_settings.deterministic_ragdolls;
+  settings.tile_stream_distance = simple_settings.tile_stream_distance;
+  settings.actor_active_distance = simple_settings.actor_active_distance;
+  settings.spectator_as_ego = simple_settings.spectator_as_ego;
+
+  return settings;
+}
+
+SimpleEpisodeSettings World_GetSettings(const World &world) {
+  auto settings = const_cast<World &>(world).GetSettings();
+  return ConvertToSimpleEpisodeSettings(settings);
+}
+
+uint64_t World_ApplySettings(const World &world,
+                             const SimpleEpisodeSettings &settings,
+                             double timeout_seconds) {
+  auto carla_settings = ConvertFromSimpleEpisodeSettings(settings);
+  auto duration = carla::time_duration::seconds(timeout_seconds);
+
+  // const_cast is needed because CARLA's API is not const-correct
+  return const_cast<World &>(world).ApplySettings(carla_settings, duration);
+}
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor) { return actor.GetId(); }

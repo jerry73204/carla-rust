@@ -57,6 +57,7 @@ struct SimpleTrafficManagerVehicleConfig;
 struct SimpleTrafficManagerAction;
 struct SimpleTrafficManagerStats;
 struct SimpleTimestamp;
+struct SimpleEpisodeSettings;
 
 // CXX Bridge functions
 namespace carla {
@@ -86,6 +87,11 @@ std::shared_ptr<Actor> World_TrySpawnActor(const World &world,
                                            const ActorBlueprint &blueprint,
                                            const SimpleTransform &transform,
                                            const Actor *parent);
+std::shared_ptr<Map> World_GetMap(const World &world);
+SimpleEpisodeSettings World_GetSettings(const World &world);
+uint64_t World_ApplySettings(const World &world,
+                             const SimpleEpisodeSettings &settings,
+                             double timeout_seconds);
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor);
@@ -264,7 +270,6 @@ rust::Vec<SimpleLocation>
 BoundingBox_GetVertices(const SimpleBoundingBox &bbox);
 
 // Map wrapper functions
-std::shared_ptr<Map> World_GetMap(const World &world);
 rust::String Map_GetName(const Map &map);
 rust::String Map_GetOpenDrive(const Map &map);
 rust::Vec<SimpleTransform> Map_GetRecommendedSpawnPoints(const Map &map);
