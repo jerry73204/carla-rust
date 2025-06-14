@@ -141,6 +141,19 @@ impl SensorDataProcessor {
             SensorData::Raw(raw_data) => {
                 println!("📊 Raw sensor data: {} bytes", raw_data.len());
             }
+            SensorData::Collision(collision) => {
+                println!(
+                    "💥 Collision detected! Other actor: {}, impulse: {:.2} N",
+                    collision.other_actor_id,
+                    collision.impulse_magnitude()
+                );
+            }
+            SensorData::LaneInvasion(lane_invasion) => {
+                println!(
+                    "🚨 Lane invasion detected! Crossings: {}",
+                    lane_invasion.crossed_lane_markings.len()
+                );
+            }
         }
     }
 

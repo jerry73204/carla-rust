@@ -56,6 +56,7 @@ struct SimpleTrafficManagerConfig;
 struct SimpleTrafficManagerVehicleConfig;
 struct SimpleTrafficManagerAction;
 struct SimpleTrafficManagerStats;
+struct SimpleTimestamp;
 
 // CXX Bridge functions
 namespace carla {
@@ -76,6 +77,7 @@ uint64_t World_GetId(const World &world);
 std::shared_ptr<BlueprintLibrary> World_GetBlueprintLibrary(const World &world);
 std::shared_ptr<Actor> World_GetSpectator(const World &world);
 uint64_t World_Tick(const World &world, double timeout_seconds);
+SimpleTimestamp World_GetSnapshot(const World &world);
 std::shared_ptr<Actor> World_SpawnActor(const World &world,
                                         const ActorBlueprint &blueprint,
                                         const SimpleTransform &transform,

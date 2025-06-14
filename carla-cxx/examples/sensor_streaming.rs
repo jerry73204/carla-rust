@@ -1,9 +1,7 @@
 //! Example demonstrating sensor data streaming with carla-cxx
 
 use anyhow::Result;
-use carla_cxx::{
-    ClientWrapper, SensorWrapper, StreamConfig, StreamPriority, StreamingManager, SyncGroup,
-};
+use carla_cxx::{ClientWrapper, SensorWrapper, StreamConfig, StreamPriority, StreamingManager};
 use std::{sync::Arc, thread, time::Duration};
 
 fn main() -> Result<()> {
@@ -12,7 +10,7 @@ fn main() -> Result<()> {
 
     // Connect to CARLA server
     println!("Connecting to CARLA server...");
-    let mut client = ClientWrapper::new("localhost", 2000)?;
+    let client = ClientWrapper::new("localhost", 2000)?;
     let world = client.get_world();
     println!("Connected to CARLA server");
 
@@ -25,12 +23,13 @@ fn main() -> Result<()> {
         .find("vehicle.tesla.model3")
         .ok_or_else(|| anyhow::anyhow!("Vehicle blueprint not found"))?;
 
-    let spawn_points = world.get_spawn_points();
-    if spawn_points.is_empty() {
-        return Err(anyhow::anyhow!("No spawn points available"));
-    }
+    // Use a default spawn point
+    let spawn_point = carla_cxx::SimpleTransform::new(
+        carla_cxx::SimpleLocation::new(0.0, 0.0, 0.5),
+        carla_cxx::SimpleRotation::ZERO,
+    );
 
-    let vehicle = world.spawn_actor(&vehicle_bp, &spawn_points[0], None)?;
+    let vehicle = world.spawn_actor(&vehicle_bp, &spawn_point, None)?;
     println!("Vehicle spawned with ID: {}", vehicle.get_id());
 
     // Create streaming manager
@@ -44,11 +43,10 @@ fn main() -> Result<()> {
         .find("sensor.camera.rgb")
         .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
-    // Set camera attributes
-    let mut camera_bp_mut = camera_bp.clone();
-    camera_bp_mut.set_attribute("image_size_x", "1920");
-    camera_bp_mut.set_attribute("image_size_y", "1080");
-    camera_bp_mut.set_attribute("fov", "90");
+    // Set camera attributes using FFI directly since SharedPtr doesn't support set_attribute
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&camera_bp, "image_size_x", "1920");
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&camera_bp, "image_size_y", "1080");
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&camera_bp, "fov", "90");
 
     // Camera transform (relative to vehicle)
     let camera_transform = carla_cxx::SimpleTransform::new(
@@ -56,8 +54,9 @@ fn main() -> Result<()> {
         carla_cxx::SimpleRotation::ZERO,
     );
 
-    let camera_actor = world.spawn_actor(&camera_bp_mut, &camera_transform, Some(&vehicle))?;
-    let mut camera_sensor = SensorWrapper::from_actor(&camera_actor)
+    let camera_actor =
+        world.spawn_actor(&camera_bp, &camera_transform, Some(vehicle.get_actor()))?;
+    let mut camera_sensor = SensorWrapper::from_actor(camera_actor.get_actor())
         .ok_or_else(|| anyhow::anyhow!("Failed to cast to sensor"))?;
 
     // Configure streaming for camera
@@ -91,12 +90,11 @@ fn main() -> Result<()> {
         .find("sensor.lidar.ray_cast")
         .ok_or_else(|| anyhow::anyhow!("LiDAR blueprint not found"))?;
 
-    // Set LiDAR attributes
-    let mut lidar_bp_mut = lidar_bp.clone();
-    lidar_bp_mut.set_attribute("channels", "32");
-    lidar_bp_mut.set_attribute("range", "100");
-    lidar_bp_mut.set_attribute("rotation_frequency", "10");
-    lidar_bp_mut.set_attribute("points_per_second", "100000");
+    // Set LiDAR attributes using FFI directly
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&lidar_bp, "channels", "32");
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&lidar_bp, "range", "100");
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&lidar_bp, "rotation_frequency", "10");
+    carla_cxx::ffi::ActorBlueprint_SetAttribute(&lidar_bp, "points_per_second", "100000");
 
     // LiDAR transform (on vehicle roof)
     let lidar_transform = carla_cxx::SimpleTransform::new(
@@ -104,8 +102,8 @@ fn main() -> Result<()> {
         carla_cxx::SimpleRotation::ZERO,
     );
 
-    let lidar_actor = world.spawn_actor(&lidar_bp_mut, &lidar_transform, Some(&vehicle))?;
-    let mut lidar_sensor = SensorWrapper::from_actor(&lidar_actor)
+    let lidar_actor = world.spawn_actor(&lidar_bp, &lidar_transform, Some(vehicle.get_actor()))?;
+    let mut lidar_sensor = SensorWrapper::from_actor(lidar_actor.get_actor())
         .ok_or_else(|| anyhow::anyhow!("Failed to cast to sensor"))?;
 
     // Configure streaming for LiDAR
@@ -130,7 +128,7 @@ fn main() -> Result<()> {
 
     // Create synchronized sensor group
     println!("\nCreating synchronized sensor group...");
-    let sync_group =
+    let _sync_group =
         streaming_manager.create_sync_group(vec![camera_stream_id, lidar_stream_id])?;
 
     // Spawn collision detector
@@ -139,8 +137,17 @@ fn main() -> Result<()> {
         .find("sensor.other.collision")
         .ok_or_else(|| anyhow::anyhow!("Collision blueprint not found"))?;
 
-    let collision_actor = world.spawn_actor(&collision_bp, &spawn_points[0], Some(&vehicle))?;
-    let mut collision_sensor = SensorWrapper::from_actor(&collision_actor)
+    // Use the same spawn point as the vehicle for collision sensor
+    let collision_transform = carla_cxx::SimpleTransform::new(
+        carla_cxx::SimpleLocation::new(0.0, 0.0, 0.0),
+        carla_cxx::SimpleRotation::ZERO,
+    );
+    let collision_actor = world.spawn_actor(
+        &collision_bp,
+        &collision_transform,
+        Some(vehicle.get_actor()),
+    )?;
+    let mut collision_sensor = SensorWrapper::from_actor(collision_actor.get_actor())
         .ok_or_else(|| anyhow::anyhow!("Failed to cast to sensor"))?;
 
     // Configure streaming for collision detector
@@ -176,7 +183,7 @@ fn main() -> Result<()> {
 
     loop {
         // Tick the world
-        world.tick(Duration::from_secs(1))?;
+        world.tick(Duration::from_secs(1));
 
         // Poll sensors
         camera_sensor.poll_streaming()?;
@@ -239,7 +246,7 @@ fn main() -> Result<()> {
 
     // Cleanup
     println!("\nCleaning up...");
-    vehicle.destroy()?;
+    vehicle.destroy();
     println!("Done!");
 
     Ok(())
