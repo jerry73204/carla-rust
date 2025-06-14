@@ -14,6 +14,8 @@ mod traffic_sign;
 mod vehicle; // Enhanced vehicle with newtype wrapper and advanced features
 mod vehicle_physics; // Vehicle physics control module
 mod walker; // New walker module for pedestrian functionality
+mod walker_ai_controller; // Walker AI controller module
+mod walker_navigation; // Walker navigation and pathfinding module
 mod world;
 
 // TODO: Uncomment these modules as they are migrated to new C API
@@ -62,9 +64,10 @@ pub use vehicle::{
     WheelPhysics, WheelPhysicsControl, WheelPosition,
 };
 pub use walker::{
-    AnimationMode, AnimationState, BoneTransform, Walker, WalkerAIController, WalkerBoneControl,
-    WalkerControl, WalkerState,
+    AnimationMode, AnimationState, BoneTransform, Walker, WalkerBoneControl, WalkerControl,
 };
+pub use walker_ai_controller::WalkerAIController;
+pub use walker_navigation::{NavigationState, WalkerNavigation, WalkerRoute};
 pub use world::*;
 
 // Re-export sensor data types from unified sensor module

@@ -38,6 +38,8 @@ carla_error_t carla_walker_ai_set_max_speed(carla_actor_t *walker,
 carla_error_t
 carla_walker_ai_go_to_location(carla_actor_t *walker,
                                const carla_vector3d_t *destination);
+carla_error_t carla_walker_ai_get_random_location(carla_actor_t *walker,
+                                                  carla_vector3d_t *location);
 
 // Walker bone control functions
 carla_error_t

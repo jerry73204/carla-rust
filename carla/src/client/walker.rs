@@ -1,17 +1,11 @@
 use super::{Actor, ActorBase};
 use crate::{
     geom::{Transform, Vector3D},
-    stubs::{
-        carla_walker_ai_controller_t, carla_walker_apply_control, carla_walker_control_t,
-        carla_walker_get_ai_controller, carla_walker_get_control, carla_walker_get_speed_limit,
-        carla_walker_get_state, carla_walker_is_simulate_physics, carla_walker_set_ai_controller,
-        carla_walker_set_simulate_physics, carla_walker_set_speed_limit, carla_walker_state_t,
-        carla_walker_t,
-    },
     utils::check_carla_error,
 };
 use anyhow::{anyhow, Result};
 use carla_sys::*;
+use std::ffi::CString;
 
 /// A walker (pedestrian) actor in the simulation.
 /// This is a newtype wrapper around Actor that provides walker-specific functionality.
@@ -61,83 +55,76 @@ impl Walker {
     /// Apply control to the walker.
     pub fn apply_control(&self, control: &WalkerControl) -> Result<()> {
         let c_control = control.to_c_control();
-        let error = unsafe {
-            carla_walker_apply_control(self.0.raw_ptr() as *mut carla_walker_t, &c_control)
-        };
+        let error = unsafe { carla_walker_apply_control(self.0.raw_ptr(), &c_control) };
         check_carla_error(error)
     }
 
     /// Get the current walker control.
     pub fn get_control(&self) -> WalkerControl {
         let c_control =
-            unsafe { carla_walker_get_control(self.0.raw_ptr() as *const carla_walker_t) };
+            unsafe { carla_walker_get_control(self.0.raw_ptr() as *const carla_actor_t) };
         WalkerControl::from_c_control(c_control)
     }
 
-    /// Set the walker's AI controller.
-    pub fn set_ai_controller(&self, controller: &WalkerAIController) -> Result<()> {
-        let c_controller = controller.to_c_controller();
-        let error = unsafe {
-            carla_walker_set_ai_controller(self.0.raw_ptr() as *mut carla_walker_t, c_controller)
-        };
-        check_carla_error(error)
-    }
-
-    /// Get the walker's AI controller settings.
-    pub fn get_ai_controller(&self) -> Result<WalkerAIController> {
-        let c_controller =
-            unsafe { carla_walker_get_ai_controller(self.0.raw_ptr() as *const carla_walker_t) };
-        if c_controller.is_null() {
-            return Err(anyhow!("Walker has no AI controller"));
-        }
-        Ok(WalkerAIController::from_c_controller(c_controller))
-    }
+    // AI controller functions are implemented on the AI controller actor itself,
+    // not on the walker. Use World::spawn_actor to create a WalkerAIController
+    // and link it to this walker.
 
     /// Set bone control for detailed animation.
-    pub fn set_bone_control(&self, bone_control: &WalkerBoneControl) -> Result<()> {
-        // TODO: Implement when C API provides carla_walker_set_bone_control
-        Err(anyhow!("Walker bone control not yet implemented in C API"))
+    pub fn set_bones_transform(&self, bone_control: &WalkerBoneControl) -> Result<()> {
+        let c_bone_control = bone_control.to_c_bone_control();
+        let error = unsafe { carla_walker_set_bones_transform(self.0.raw_ptr(), &c_bone_control) };
+        // Clean up allocated memory
+        unsafe {
+            if !c_bone_control.bone_transforms.is_null() {
+                drop(Vec::from_raw_parts(
+                    c_bone_control.bone_transforms as *mut carla_walker_bone_transform_t,
+                    c_bone_control.bone_count,
+                    c_bone_control.bone_count,
+                ));
+            }
+        }
+        check_carla_error(error)
     }
 
     /// Get bone transforms for current animation state.
-    pub fn get_bone_transforms(&self) -> Result<Vec<BoneTransform>> {
-        // TODO: Implement when C API provides carla_walker_get_bone_transforms
-        Err(anyhow!(
-            "Walker bone transforms not yet implemented in C API"
-        ))
+    pub fn get_bones_transform(&self) -> Result<WalkerBoneControl> {
+        let c_bone_control =
+            unsafe { carla_walker_get_bones_transform(self.0.raw_ptr() as *const carla_actor_t) };
+        let result = WalkerBoneControl::from_c_bone_control(c_bone_control);
+        // Free the C memory
+        unsafe {
+            carla_walker_bone_control_free(&c_bone_control as *const _ as *mut _);
+        }
+        Ok(result)
     }
 
-    /// Get the walker's current state.
-    pub fn get_state(&self) -> WalkerState {
-        let c_state = unsafe { carla_walker_get_state(self.0.raw_ptr() as *const carla_walker_t) };
-        WalkerState::from_c_state(c_state)
-    }
-
-    /// Set the walker's speed limit.
-    pub fn set_speed_limit(&self, speed_limit: f32) -> Result<()> {
-        let error = unsafe {
-            carla_walker_set_speed_limit(self.0.raw_ptr() as *mut carla_walker_t, speed_limit)
-        };
+    /// Blend the pose with the animation.
+    pub fn blend_pose(&self, blend: f32) -> Result<()> {
+        let error = unsafe { carla_walker_blend_pose(self.0.raw_ptr(), blend) };
         check_carla_error(error)
     }
 
-    /// Get the walker's speed limit.
-    pub fn get_speed_limit(&self) -> f32 {
-        unsafe { carla_walker_get_speed_limit(self.0.raw_ptr() as *const carla_walker_t) }
-    }
-
-    /// Enable or disable walker physics.
-    pub fn set_simulate_physics(&self, enabled: bool) -> Result<()> {
-        let error = unsafe {
-            carla_walker_set_simulate_physics(self.0.raw_ptr() as *mut carla_walker_t, enabled)
-        };
+    /// Show the pose (blend weight = 1.0).
+    pub fn show_pose(&self) -> Result<()> {
+        let error = unsafe { carla_walker_show_pose(self.0.raw_ptr()) };
         check_carla_error(error)
     }
 
-    /// Check if walker physics is enabled.
-    pub fn is_simulate_physics(&self) -> bool {
-        unsafe { carla_walker_is_simulate_physics(self.0.raw_ptr() as *const carla_walker_t) }
+    /// Hide the pose (blend weight = 0.0).
+    pub fn hide_pose(&self) -> Result<()> {
+        let error = unsafe { carla_walker_hide_pose(self.0.raw_ptr()) };
+        check_carla_error(error)
     }
+
+    /// Get pose from animation.
+    pub fn get_pose_from_animation(&self) -> Result<()> {
+        let error = unsafe { carla_walker_get_pose_from_animation(self.0.raw_ptr()) };
+        check_carla_error(error)
+    }
+
+    // Note: Walker state, speed limit, and physics simulation functions
+    // are not available in the C API. Use the base Actor methods instead.
 
     /// Destroy this walker.
     pub fn destroy(self) -> Result<()> {
@@ -182,25 +169,27 @@ impl WalkerControl {
 
     /// Convert to C control structure.
     pub(crate) fn to_c_control(&self) -> carla_walker_control_t {
-        // TODO: Implement proper walker control conversion when C API is available
         carla_walker_control_t {
-            throttle: self.speed,
-            steer: 0.0, // Not applicable to walker
-            brake: 0.0,
-            hand_brake: false,
-            reverse: false,
-            manual_gear_shift: false,
-            gear: 0,
+            direction: carla_vector3d_t {
+                x: self.direction.x,
+                y: self.direction.y,
+                z: self.direction.z,
+            },
+            speed: self.speed,
+            jump: self.jump,
         }
     }
 
     /// Create from C control structure.
     pub(crate) fn from_c_control(c_control: carla_walker_control_t) -> Self {
-        // TODO: Implement proper walker control conversion when C API is available
         Self {
-            direction: Vector3D::default(), // Can't extract from vehicle control
-            speed: c_control.throttle,
-            jump: false, // Not available in vehicle control
+            direction: Vector3D {
+                x: c_control.direction.x,
+                y: c_control.direction.y,
+                z: c_control.direction.z,
+            },
+            speed: c_control.speed,
+            jump: c_control.jump,
         }
     }
 }
@@ -235,75 +224,6 @@ impl ActorBase for Walker {
 unsafe impl Send for Walker {}
 unsafe impl Sync for Walker {}
 
-/// Walker AI controller for autonomous navigation.
-#[derive(Clone, Debug)]
-pub struct WalkerAIController {
-    /// Target destination for AI navigation.
-    pub target_location: Vector3D,
-    /// Maximum walking speed for AI.
-    pub max_speed: f32,
-    /// Whether AI should avoid obstacles.
-    pub avoid_obstacles: bool,
-    /// Navigation precision (0.0 to 1.0).
-    pub precision: f32,
-}
-
-impl WalkerAIController {
-    /// Create a new AI controller with default settings.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set the target location for AI navigation.
-    pub fn target_location(mut self, location: Vector3D) -> Self {
-        self.target_location = location;
-        self
-    }
-
-    /// Set the maximum speed for AI movement.
-    pub fn max_speed(mut self, speed: f32) -> Self {
-        self.max_speed = speed.clamp(0.0, 10.0);
-        self
-    }
-
-    /// Enable or disable obstacle avoidance.
-    pub fn avoid_obstacles(mut self, avoid: bool) -> Self {
-        self.avoid_obstacles = avoid;
-        self
-    }
-
-    /// Set navigation precision.
-    pub fn precision(mut self, precision: f32) -> Self {
-        self.precision = precision.clamp(0.0, 1.0);
-        self
-    }
-
-    /// Convert to C controller structure.
-    /// TODO: Implement when C API provides proper walker AI controller
-    pub(crate) fn to_c_controller(&self) -> *mut carla_walker_ai_controller_t {
-        // TODO: Implement conversion when C API is available
-        std::ptr::null_mut()
-    }
-
-    /// Create from C controller structure.
-    /// TODO: Implement when C API provides proper walker AI controller
-    pub(crate) fn from_c_controller(_c_controller: *mut carla_walker_ai_controller_t) -> Self {
-        // TODO: Implement conversion when C API is available
-        Self::default()
-    }
-}
-
-impl Default for WalkerAIController {
-    fn default() -> Self {
-        Self {
-            target_location: Vector3D::default(),
-            max_speed: 1.4, // Average human walking speed
-            avoid_obstacles: true,
-            precision: 0.5,
-        }
-    }
-}
-
 /// Walker bone control for detailed animation.
 #[derive(Clone, Debug)]
 pub struct WalkerBoneControl {
@@ -337,6 +257,98 @@ impl WalkerBoneControl {
     pub fn animation_mode(mut self, mode: AnimationMode) -> Self {
         self.animation_mode = mode;
         self
+    }
+
+    /// Convert to C bone control structure.
+    pub(crate) fn to_c_bone_control(&self) -> carla_walker_bone_control_t {
+        let mut bone_transforms = Vec::with_capacity(self.bone_transforms.len());
+
+        for bone in &self.bone_transforms {
+            let bone_name_cstr = CString::new(bone.bone_name.clone()).unwrap_or_default();
+            let mut c_bone = carla_walker_bone_transform_t {
+                transform: carla_transform_t {
+                    location: carla_vector3d_t {
+                        x: bone.transform.location.x,
+                        y: bone.transform.location.y,
+                        z: bone.transform.location.z,
+                    },
+                    rotation: carla_rotation_t {
+                        pitch: bone.transform.rotation.pitch,
+                        yaw: bone.transform.rotation.yaw,
+                        roll: bone.transform.rotation.roll,
+                    },
+                },
+                bone_name: [0; 64],
+            };
+
+            // Copy bone name
+            let name_bytes = bone_name_cstr.as_bytes();
+            let copy_len = std::cmp::min(name_bytes.len(), 63);
+            // Convert u8 to i8 for bone_name array
+            for (i, &byte) in name_bytes[..copy_len].iter().enumerate() {
+                c_bone.bone_name[i] = byte as i8;
+            }
+
+            bone_transforms.push(c_bone);
+        }
+
+        let bone_ptr = if bone_transforms.is_empty() {
+            std::ptr::null_mut()
+        } else {
+            bone_transforms.as_mut_ptr()
+        };
+
+        // Leak the vector so the pointer remains valid
+        std::mem::forget(bone_transforms);
+
+        carla_walker_bone_control_t {
+            bone_transforms: bone_ptr,
+            bone_count: self.bone_transforms.len(),
+            blend_weight: self.blend_weight,
+        }
+    }
+
+    /// Create from C bone control structure.
+    pub(crate) fn from_c_bone_control(c_bone_control: carla_walker_bone_control_t) -> Self {
+        let mut bone_transforms = Vec::new();
+
+        if !c_bone_control.bone_transforms.is_null() && c_bone_control.bone_count > 0 {
+            let bone_slice = unsafe {
+                std::slice::from_raw_parts(
+                    c_bone_control.bone_transforms,
+                    c_bone_control.bone_count,
+                )
+            };
+
+            for c_bone in bone_slice {
+                let bone_name = unsafe {
+                    std::ffi::CStr::from_ptr(c_bone.bone_name.as_ptr())
+                        .to_string_lossy()
+                        .into_owned()
+                };
+
+                let transform = Transform {
+                    location: Vector3D {
+                        x: c_bone.transform.location.x,
+                        y: c_bone.transform.location.y,
+                        z: c_bone.transform.location.z,
+                    },
+                    rotation: crate::geom::Rotation {
+                        pitch: c_bone.transform.rotation.pitch,
+                        yaw: c_bone.transform.rotation.yaw,
+                        roll: c_bone.transform.rotation.roll,
+                    },
+                };
+
+                bone_transforms.push(BoneTransform::new(bone_name, transform));
+            }
+        }
+
+        Self {
+            bone_transforms,
+            blend_weight: c_bone_control.blend_weight,
+            animation_mode: AnimationMode::Additive, // Default mode
+        }
     }
 }
 
@@ -381,45 +393,6 @@ pub enum AnimationMode {
     Additive,
     /// Blend with existing animation.
     Blend,
-}
-
-/// Walker current state information.
-#[derive(Clone, Debug)]
-pub struct WalkerState {
-    /// Current movement speed.
-    pub speed: f32,
-    /// Current movement direction.
-    pub direction: Vector3D,
-    /// Whether walker is on ground.
-    pub is_on_ground: bool,
-    /// Whether walker is jumping.
-    pub is_jumping: bool,
-    /// Whether walker is controlled by AI.
-    pub has_ai_controller: bool,
-    /// Current animation state.
-    pub animation_state: AnimationState,
-}
-
-impl WalkerState {
-    /// Create from C state structure.
-    /// TODO: Implement when C API provides carla_walker_state_t
-    pub(crate) fn from_c_state(_c_state: carla_walker_state_t) -> Self {
-        // TODO: Implement conversion when C API is available
-        Self::default()
-    }
-}
-
-impl Default for WalkerState {
-    fn default() -> Self {
-        Self {
-            speed: 0.0,
-            direction: Vector3D::default(),
-            is_on_ground: true,
-            is_jumping: false,
-            has_ai_controller: false,
-            animation_state: AnimationState::Idle,
-        }
-    }
 }
 
 /// Walker animation state.
