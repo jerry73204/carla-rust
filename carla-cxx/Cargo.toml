@@ -27,7 +27,5 @@ name = "basic_client"
 [[example]]
 name = "core_infrastructure"
 
-[[example]]
-name = "actor_system_demo"
 
 
