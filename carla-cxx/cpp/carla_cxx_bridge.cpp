@@ -992,6 +992,20 @@ SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor) {
   return SimpleGNSSData{0.0, 0.0, 0.0};
 }
 
+SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor) {
+  // TODO: Implement actual collision data retrieval
+  // For now, return empty collision data
+  return SimpleCollisionData{0, SimpleVector3D{0.0, 0.0, 0.0}};
+}
+
+rust::Vec<SimpleCrossedLaneMarking>
+Sensor_GetLastLaneInvasionData(const Sensor &sensor) {
+  rust::Vec<SimpleCrossedLaneMarking> markings;
+  // TODO: Implement actual lane invasion data retrieval
+  // For now, return empty vector
+  return markings;
+}
+
 bool Sensor_HasNewData(const Sensor &sensor) {
   bool result = g_has_new_data;
   g_has_new_data = false; // Reset flag after checking

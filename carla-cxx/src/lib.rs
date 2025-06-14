@@ -66,7 +66,10 @@ pub use map::{
     JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
     MapWrapper, SignalOrientation, WaypointWrapper,
 };
-pub use sensor::{GNSSData, IMUData, ImageData, LiDARData, RadarData, SensorData, SensorWrapper};
+pub use sensor::{
+    CollisionData, CrossedLaneMarking, GNSSData, IMUData, ImageData, LaneInvasionData, LiDARData,
+    RadarData, SensorData, SensorWrapper,
+};
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
 pub use traffic_manager::{
     RoadOption, TrafficManagerAction, TrafficManagerConfig, TrafficManagerStats,

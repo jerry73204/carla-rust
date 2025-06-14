@@ -185,6 +185,19 @@ pub mod bridge {
         pub data_size: usize,
     }
 
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleCollisionData {
+        pub other_actor_id: u32,
+        pub normal_impulse: SimpleVector3D,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleCrossedLaneMarking {
+        pub lane_type: u32,  // LaneMarkingType enum
+        pub color: u32,      // LaneMarkingColor enum
+        pub lane_change: u8, // LaneChange enum
+    }
+
     // Map and navigation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLaneMarking {
@@ -430,6 +443,8 @@ pub mod bridge {
         fn Sensor_GetLastRadarData(sensor: &Sensor) -> Vec<SimpleRadarDetection>;
         fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
         fn Sensor_GetLastGNSSData(sensor: &Sensor) -> SimpleGNSSData;
+        fn Sensor_GetLastCollisionData(sensor: &Sensor) -> SimpleCollisionData;
+        fn Sensor_GetLastLaneInvasionData(sensor: &Sensor) -> Vec<SimpleCrossedLaneMarking>;
         fn Sensor_HasNewData(sensor: &Sensor) -> bool;
 
         // Traffic Light methods
@@ -736,9 +751,11 @@ pub use bridge::{
     Sensor,
     // Sensor data retrieval
     Sensor_GetImageDataBuffer,
+    Sensor_GetLastCollisionData,
     Sensor_GetLastGNSSData,
     Sensor_GetLastIMUData,
     Sensor_GetLastImageData,
+    Sensor_GetLastLaneInvasionData,
     Sensor_GetLastLiDARData,
     Sensor_GetLastRadarData,
     Sensor_HasNewData,
@@ -749,6 +766,8 @@ pub use bridge::{
     // Control structures
     SimpleAckermannControl,
     SimpleBoundingBox,
+    SimpleCollisionData,
+    SimpleCrossedLaneMarking,
     SimpleGNSSData,
     SimpleGearPhysicsControl,
     SimpleGeoLocation,

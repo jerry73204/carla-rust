@@ -327,7 +327,7 @@ pub enum LaneMarkingType {
 }
 
 impl LaneMarkingType {
-    fn from_u32(value: u32) -> Self {
+    pub fn from_u32(value: u32) -> Self {
         match value {
             0 => LaneMarkingType::Other,
             1 => LaneMarkingType::Broken,
@@ -359,7 +359,7 @@ pub enum LaneMarkingColor {
 impl LaneMarkingColor {
     pub const White: LaneMarkingColor = LaneMarkingColor::Standard;
 
-    fn from_u8(value: u8) -> Self {
+    pub fn from_u8(value: u8) -> Self {
         match value {
             0 => LaneMarkingColor::Standard,
             1 => LaneMarkingColor::Blue,
@@ -381,7 +381,7 @@ pub enum LaneChange {
 }
 
 impl LaneChange {
-    fn from_u8(value: u8) -> Self {
+    pub fn from_u8(value: u8) -> Self {
         match value {
             0x00 => LaneChange::None,
             0x01 => LaneChange::Right,

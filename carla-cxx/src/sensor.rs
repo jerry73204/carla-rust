@@ -148,6 +148,31 @@ impl SensorWrapper {
             }));
         }
 
+        // Try Collision data
+        let collision_data = ffi::Sensor_GetLastCollisionData(sensor);
+        if collision_data.other_actor_id != 0 {
+            return Some(SensorData::Collision(CollisionData {
+                other_actor_id: collision_data.other_actor_id,
+                normal_impulse: collision_data.normal_impulse,
+            }));
+        }
+
+        // Try Lane Invasion data
+        let lane_markings = ffi::Sensor_GetLastLaneInvasionData(sensor);
+        if !lane_markings.is_empty() {
+            let crossed_markings: Vec<CrossedLaneMarking> = lane_markings
+                .into_iter()
+                .map(|m| CrossedLaneMarking {
+                    lane_type: crate::map::LaneMarkingType::from_u32(m.lane_type),
+                    color: crate::map::LaneMarkingColor::from_u8(m.color as u8),
+                    lane_change: crate::map::LaneChange::from_u8(m.lane_change),
+                })
+                .collect();
+            return Some(SensorData::LaneInvasion(LaneInvasionData::new(
+                crossed_markings,
+            )));
+        }
+
         None
     }
 
@@ -199,6 +224,10 @@ pub enum SensorData {
     IMU(IMUData),
     /// GNSS/GPS data
     GNSS(GNSSData),
+    /// Collision detection data
+    Collision(CollisionData),
+    /// Lane invasion detection data
+    LaneInvasion(LaneInvasionData),
     /// Raw binary data
     Raw(Vec<u8>),
 }
@@ -394,6 +423,85 @@ impl RadarData {
             .collect();
 
         Self::new(filtered_detections)
+    }
+}
+
+/// Collision detection sensor data
+#[derive(Debug, Clone)]
+pub struct CollisionData {
+    /// Other actor ID involved in collision
+    pub other_actor_id: u32,
+    /// Normal impulse vector of the collision
+    pub normal_impulse: crate::SimpleVector3D,
+}
+
+impl CollisionData {
+    /// Create a new CollisionData
+    pub fn new(other_actor_id: u32, normal_impulse: crate::SimpleVector3D) -> Self {
+        Self {
+            other_actor_id,
+            normal_impulse,
+        }
+    }
+
+    /// Get the magnitude of the collision impulse
+    pub fn impulse_magnitude(&self) -> f64 {
+        let x = self.normal_impulse.x;
+        let y = self.normal_impulse.y;
+        let z = self.normal_impulse.z;
+        (x * x + y * y + z * z).sqrt()
+    }
+}
+
+/// Lane invasion detection sensor data
+#[derive(Debug, Clone)]
+pub struct LaneInvasionData {
+    /// List of crossed lane markings
+    pub crossed_lane_markings: Vec<CrossedLaneMarking>,
+}
+
+/// Information about a crossed lane marking
+#[derive(Debug, Clone)]
+pub struct CrossedLaneMarking {
+    /// Type of lane marking (from road module)
+    pub lane_type: crate::map::LaneMarkingType,
+    /// Color of lane marking
+    pub color: crate::map::LaneMarkingColor,
+    /// Lane change permission
+    pub lane_change: crate::map::LaneChange,
+}
+
+impl LaneInvasionData {
+    /// Create a new LaneInvasionData
+    pub fn new(crossed_lane_markings: Vec<CrossedLaneMarking>) -> Self {
+        Self {
+            crossed_lane_markings,
+        }
+    }
+
+    /// Check if any solid lane markings were crossed
+    pub fn crossed_solid_line(&self) -> bool {
+        self.crossed_lane_markings.iter().any(|marking| {
+            matches!(
+                marking.lane_type,
+                crate::map::LaneMarkingType::Solid
+                    | crate::map::LaneMarkingType::SolidSolid
+                    | crate::map::LaneMarkingType::SolidBroken
+                    | crate::map::LaneMarkingType::BrokenSolid
+            )
+        })
+    }
+
+    /// Check if a yellow line was crossed
+    pub fn crossed_yellow_line(&self) -> bool {
+        self.crossed_lane_markings
+            .iter()
+            .any(|marking| marking.color == crate::map::LaneMarkingColor::Yellow)
+    }
+
+    /// Get the number of lane markings crossed
+    pub fn num_markings_crossed(&self) -> usize {
+        self.crossed_lane_markings.len()
     }
 }
 
