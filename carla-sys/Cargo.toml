@@ -28,9 +28,10 @@ path = "examples/vehicle_control.rs"
 name = "sensor_callback"
 path = "examples/sensor_callback.rs"
 
-[[example]]
-name = "dvs_optical_flow"
-path = "examples/dvs_optical_flow.rs"
+# Temporarily disabled due to missing sensor functions
+# [[example]]
+# name = "dvs_optical_flow"
+# path = "examples/dvs_optical_flow.rs"
 
 [[example]]
 name = "ackermann_control"

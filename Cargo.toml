@@ -3,5 +3,6 @@ resolver = "2"
 members = [
     "carla",
     "carla-sys",
+    "carla-cxx",
     # "carla-src",
 ]

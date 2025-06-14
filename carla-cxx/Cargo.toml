@@ -1,0 +1,25 @@
+[package]
+name = "carla-cxx"
+version = "0.1.0"
+edition = "2021"
+description = "CXX-based FFI bindings for CARLA simulator"
+license = "MIT"
+
+[dependencies]
+cxx = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+
+[build-dependencies]
+cxx-build = "1.0"
+anyhow = "1.0"
+cc = "1.0"
+
+[features]
+default = []
+
+[[example]]
+name = "basic_client"
+
+[[example]]
+name = "core_infrastructure"
