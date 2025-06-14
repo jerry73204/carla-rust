@@ -30,6 +30,4 @@ name = "core_infrastructure"
 [[example]]
 name = "actor_system_demo"
 
-[[example]]
-name = "sensor_streaming"
 

@@ -41,7 +41,6 @@ pub mod ffi;
 pub mod geometry;
 pub mod map;
 pub mod sensor;
-pub mod streaming;
 pub mod time;
 pub mod traffic_light;
 pub mod traffic_manager;
@@ -49,7 +48,6 @@ pub mod traffic_sign;
 pub mod vehicle;
 pub mod walker;
 pub mod walker_ai;
-pub mod waypoint;
 
 #[cfg(test)]
 mod tests;
@@ -65,19 +63,15 @@ pub use ffi::{
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
 pub use map::{
-    JunctionWrapper, Lane, LaneChange, LaneDirection, LaneMarking, LaneMarkingColor,
-    LaneMarkingType, LaneType, MapWrapper, SignalOrientation, WaypointWrapper,
+    JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
+    MapWrapper, SignalOrientation, WaypointWrapper,
 };
 pub use sensor::{
     CollisionData, CrossedLaneMarking, GNSSData, IMUData, ImageData, LaneInvasionData, LiDARData,
-    RadarData, SensorData, SensorWrapper,
-};
-pub use streaming::{
-    StreamConfig, StreamEvent, StreamId, StreamPriority, StreamProcessor, StreamStats,
-    StreamingManager, SyncGroup, SyncedData,
+    LiDARPoint, RadarData, RadarDetection, SensorData, SensorWrapper,
 };
 pub use time::Timestamp;
-pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
+pub use traffic_light::{TrafficLightState, TrafficLightWrapper};
 pub use traffic_manager::{
     RoadOption, TrafficManagerAction, TrafficManagerConfig, TrafficManagerStats,
     TrafficManagerVehicleConfig, TrafficManagerWrapper,

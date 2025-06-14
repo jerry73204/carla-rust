@@ -225,11 +225,6 @@ impl WaypointWrapper {
     pub fn get_lane_change(&self) -> LaneChange {
         LaneChange::from_u8(ffi::Waypoint_GetLaneChange(&self.inner))
     }
-
-    /// Get lane information for this waypoint
-    pub fn get_lane(&self) -> Lane {
-        Lane::from_waypoint(self)
-    }
 }
 
 /// High-level wrapper for CARLA Junction
@@ -256,87 +251,6 @@ impl JunctionWrapper {
 
 // TODO: Landmark wrapper disabled for now due to CXX compatibility issues
 // pub struct LandmarkWrapper { ... }
-
-/// Lane information
-#[derive(Debug, Clone, PartialEq)]
-pub struct Lane {
-    /// Lane ID (negative for right lanes, positive for left lanes)
-    pub id: i32,
-    /// Lane type
-    pub lane_type: LaneType,
-    /// Lane width in meters
-    pub width: f64,
-    /// Road ID this lane belongs to
-    pub road_id: u32,
-    /// Section ID this lane belongs to
-    pub section_id: u32,
-}
-
-impl Lane {
-    /// Create a new Lane
-    pub fn new(id: i32, lane_type: LaneType, width: f64, road_id: u32, section_id: u32) -> Self {
-        Self {
-            id,
-            lane_type,
-            width,
-            road_id,
-            section_id,
-        }
-    }
-
-    /// Create a Lane from a Waypoint
-    pub fn from_waypoint(waypoint: &WaypointWrapper) -> Self {
-        Self {
-            id: waypoint.get_lane_id(),
-            lane_type: waypoint.get_type(),
-            width: waypoint.get_lane_width(),
-            road_id: waypoint.get_road_id(),
-            section_id: waypoint.get_section_id(),
-        }
-    }
-
-    /// Check if this is a driving lane
-    pub fn is_driving_lane(&self) -> bool {
-        matches!(self.lane_type, LaneType::Driving | LaneType::Bidirectional)
-    }
-
-    /// Check if this is a sidewalk
-    pub fn is_sidewalk(&self) -> bool {
-        self.lane_type == LaneType::Sidewalk
-    }
-
-    /// Check if this is a shoulder lane
-    pub fn is_shoulder(&self) -> bool {
-        self.lane_type == LaneType::Shoulder
-    }
-
-    /// Check if this is a parking lane
-    pub fn is_parking(&self) -> bool {
-        self.lane_type == LaneType::Parking
-    }
-
-    /// Get the direction of the lane (right lanes have negative IDs, left lanes positive)
-    pub fn get_direction(&self) -> LaneDirection {
-        if self.id < 0 {
-            LaneDirection::Right
-        } else if self.id > 0 {
-            LaneDirection::Left
-        } else {
-            LaneDirection::Center
-        }
-    }
-}
-
-/// Lane direction relative to the road
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LaneDirection {
-    /// Right side of the road (negative lane IDs)
-    Right,
-    /// Center lane (lane ID 0)
-    Center,
-    /// Left side of the road (positive lane IDs)
-    Left,
-}
 
 /// Lane types in CARLA
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -443,8 +357,6 @@ pub enum LaneMarkingColor {
 }
 
 impl LaneMarkingColor {
-    pub const White: LaneMarkingColor = LaneMarkingColor::Standard;
-
     pub fn from_u8(value: u8) -> Self {
         match value {
             0 => LaneMarkingColor::Standard,
