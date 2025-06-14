@@ -41,6 +41,7 @@ pub mod ffi;
 pub mod geometry;
 pub mod map;
 pub mod sensor;
+pub mod streaming;
 pub mod traffic_light;
 pub mod traffic_manager;
 pub mod traffic_sign;
@@ -69,6 +70,10 @@ pub use map::{
 pub use sensor::{
     CollisionData, CrossedLaneMarking, GNSSData, IMUData, ImageData, LaneInvasionData, LiDARData,
     RadarData, SensorData, SensorWrapper,
+};
+pub use streaming::{
+    StreamConfig, StreamEvent, StreamId, StreamPriority, StreamProcessor, StreamStats,
+    StreamingManager, SyncGroup, SyncedData,
 };
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
 pub use traffic_manager::{

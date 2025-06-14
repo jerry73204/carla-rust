@@ -1,15 +1,20 @@
 //! Sensor actor implementation for CARLA.
 
-use crate::ffi::{self, Actor, Sensor};
+use crate::{
+    ffi::{self, Actor, Sensor},
+    streaming::{StreamConfig, StreamId, StreamingManager},
+};
 use anyhow::Result;
 use cxx::SharedPtr;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, Weak};
 
 /// High-level wrapper for CARLA Sensor
 pub struct SensorWrapper {
     inner: SharedPtr<Sensor>,
     callback_data: Arc<Mutex<Option<Box<dyn FnMut(SensorData)>>>>,
     polling_active: Arc<Mutex<bool>>,
+    stream_id: Option<StreamId>,
+    streaming_manager: Option<Weak<StreamingManager>>,
 }
 
 impl SensorWrapper {
@@ -23,6 +28,8 @@ impl SensorWrapper {
                 inner: sensor_ptr,
                 callback_data: Arc::new(Mutex::new(None)),
                 polling_active: Arc::new(Mutex::new(false)),
+                stream_id: None,
+                streaming_manager: None,
             })
         }
     }
@@ -203,10 +210,77 @@ impl SensorWrapper {
     pub fn has_new_data(&self) -> bool {
         ffi::Sensor_HasNewData(&self.inner)
     }
+
+    /// Start listening with streaming support
+    pub fn listen_streaming<F>(
+        &mut self,
+        streaming_manager: Arc<StreamingManager>,
+        config: StreamConfig,
+        callback: F,
+    ) -> Result<()>
+    where
+        F: FnMut(SensorData) + Send + 'static,
+    {
+        // Register with streaming manager
+        let stream_id = streaming_manager.register_stream(config, callback)?;
+        self.stream_id = Some(stream_id);
+        self.streaming_manager = Some(Arc::downgrade(&streaming_manager));
+
+        // Start the sensor listening
+        ffi::Sensor_Listen(&self.inner);
+
+        // Set polling as active
+        {
+            let mut polling_guard = self.polling_active.lock().unwrap();
+            *polling_guard = true;
+        }
+
+        Ok(())
+    }
+
+    /// Poll and push data to streaming manager
+    pub fn poll_streaming(&self) -> Result<bool> {
+        if !*self.polling_active.lock().unwrap() {
+            return Ok(false);
+        }
+
+        if let (Some(stream_id), Some(weak_manager)) = (self.stream_id, &self.streaming_manager) {
+            if let Some(manager) = weak_manager.upgrade() {
+                if ffi::Sensor_HasNewData(&self.inner) {
+                    if let Some(data) = Self::poll_sensor_data(&self.inner) {
+                        manager.push_data(stream_id, data)?;
+                        return Ok(true);
+                    }
+                }
+            }
+        }
+        Ok(false)
+    }
+
+    /// Get sensor type information
+    pub fn get_sensor_type(&self) -> String {
+        // This would need to be implemented in FFI
+        // For now, return a placeholder
+        "Unknown".to_string()
+    }
+
+    /// Enable synchronization with other sensors
+    pub fn enable_sync(&mut self, sync_enabled: bool) {
+        // This would need FFI implementation
+        // Placeholder for now
+        let _ = sync_enabled;
+    }
 }
 
 impl Drop for SensorWrapper {
     fn drop(&mut self) {
+        // Unregister from streaming manager if needed
+        if let (Some(stream_id), Some(weak_manager)) = (self.stream_id, &self.streaming_manager) {
+            if let Some(manager) = weak_manager.upgrade() {
+                let _ = manager.unregister_stream(stream_id);
+            }
+        }
+
         self.stop();
     }
 }
