@@ -648,6 +648,7 @@ pub mod bridge {
         type Map;
         type Waypoint;
         type Junction;
+        type Landmark;
 
         // Light management types
         type LightManager;
@@ -825,6 +826,29 @@ pub mod bridge {
             light_ids: &[u32],
             state: SimpleLightState,
         );
+
+        // Landmark and signal management functions
+        fn Map_GetAllLandmarks(map: &Map) -> Vec<SimpleLandmark>;
+        fn Map_GetLandmarksFromId(map: &Map, id: &str) -> Vec<SimpleLandmark>;
+        fn Map_GetAllLandmarksOfType(map: &Map, type_: &str) -> Vec<SimpleLandmark>;
+        // fn Map_GetLandmarkGroup(map: &Map, landmark: &Landmark) -> Vec<SimpleLandmark>; // Requires Landmark param
+        fn Waypoint_GetAllLandmarksInDistance(
+            waypoint: &Waypoint,
+            distance: f64,
+            stop_at_junction: bool,
+        ) -> Vec<SimpleLandmark>;
+        fn Waypoint_GetLandmarksOfTypeInDistance(
+            waypoint: &Waypoint,
+            distance: f64,
+            filter_type: &str,
+            stop_at_junction: bool,
+        ) -> Vec<SimpleLandmark>;
+
+        // Individual landmark property functions (commented out due to CXX SharedPtr limitations)
+        // Use collection-based approaches via Map_GetAllLandmarks and Waypoint_GetAllLandmarksInDistance instead
+        // fn Landmark_GetWaypoint(landmark: &Landmark) -> SharedPtr<Waypoint>;
+        // fn Landmark_GetTransform(landmark: &Landmark) -> SimpleTransform;
+        // ... (other individual landmark functions are available in C++ but not exposed via FFI)
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;

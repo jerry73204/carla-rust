@@ -2467,6 +2467,101 @@ void Light_SetColor(const Light &light, SimpleColor color) {
   const_cast<Light &>(light).SetColor(carla_color);
 }
 
+// Landmark and signal management functions
+
+// Helper function to convert CARLA Landmark to SimpleLandmark
+SimpleLandmark
+ConvertToSimpleLandmark(const carla::client::Landmark &landmark) {
+  SimpleLandmark simple_landmark;
+  simple_landmark.id = rust::String(landmark.GetId());
+  simple_landmark.name = rust::String(landmark.GetName());
+  simple_landmark.type_ = rust::String(landmark.GetType());
+  simple_landmark.distance = landmark.GetDistance();
+  simple_landmark.s = landmark.GetS();
+  simple_landmark.is_dynamic = landmark.IsDynamic();
+  simple_landmark.orientation = static_cast<int32_t>(landmark.GetOrientation());
+  simple_landmark.z_offset = landmark.GetZOffset();
+  simple_landmark.country = rust::String(landmark.GetCountry());
+  simple_landmark.type_code =
+      rust::String(landmark.GetType()); // Type code is the type
+  simple_landmark.sub_type = rust::String(landmark.GetSubType());
+  simple_landmark.value = landmark.GetValue();
+  simple_landmark.unit = rust::String(landmark.GetUnit());
+  simple_landmark.height = landmark.GetHeight();
+  simple_landmark.width = landmark.GetWidth();
+  simple_landmark.text = rust::String(landmark.GetText());
+  simple_landmark.h_offset = landmark.GethOffset();
+  simple_landmark.pitch = landmark.GetPitch();
+  simple_landmark.roll = landmark.GetRoll();
+  return simple_landmark;
+}
+
+rust::Vec<SimpleLandmark> Map_GetAllLandmarks(const Map &map) {
+  rust::Vec<SimpleLandmark> simple_landmarks;
+  auto landmarks = const_cast<Map &>(map).GetAllLandmarks();
+  for (const auto &landmark : landmarks) {
+    simple_landmarks.push_back(ConvertToSimpleLandmark(*landmark));
+  }
+  return simple_landmarks;
+}
+
+rust::Vec<SimpleLandmark> Map_GetLandmarksFromId(const Map &map, rust::Str id) {
+  rust::Vec<SimpleLandmark> simple_landmarks;
+  std::string id_str(id);
+  auto landmarks = const_cast<Map &>(map).GetLandmarksFromId(id_str);
+  for (const auto &landmark : landmarks) {
+    simple_landmarks.push_back(ConvertToSimpleLandmark(*landmark));
+  }
+  return simple_landmarks;
+}
+
+rust::Vec<SimpleLandmark> Map_GetAllLandmarksOfType(const Map &map,
+                                                    rust::Str type_) {
+  rust::Vec<SimpleLandmark> simple_landmarks;
+  std::string type_str(type_);
+  auto landmarks = const_cast<Map &>(map).GetAllLandmarksOfType(type_str);
+  for (const auto &landmark : landmarks) {
+    simple_landmarks.push_back(ConvertToSimpleLandmark(*landmark));
+  }
+  return simple_landmarks;
+}
+
+// rust::Vec<SimpleLandmark> Map_GetLandmarkGroup(const Map &map, const Landmark
+// &landmark) {
+//   rust::Vec<SimpleLandmark> simple_landmarks;
+//   auto landmarks = const_cast<Map &>(map).GetLandmarkGroup(landmark);
+//   for (const auto &group_landmark : landmarks) {
+//     simple_landmarks.push_back(ConvertToSimpleLandmark(*group_landmark));
+//   }
+//   return simple_landmarks;
+// }
+
+rust::Vec<SimpleLandmark>
+Waypoint_GetAllLandmarksInDistance(const Waypoint &waypoint, double distance,
+                                   bool stop_at_junction) {
+  rust::Vec<SimpleLandmark> simple_landmarks;
+  auto landmarks =
+      waypoint.GetAllLandmarksInDistance(distance, stop_at_junction);
+  for (const auto &landmark : landmarks) {
+    simple_landmarks.push_back(ConvertToSimpleLandmark(*landmark));
+  }
+  return simple_landmarks;
+}
+
+rust::Vec<SimpleLandmark>
+Waypoint_GetLandmarksOfTypeInDistance(const Waypoint &waypoint, double distance,
+                                      rust::Str filter_type,
+                                      bool stop_at_junction) {
+  rust::Vec<SimpleLandmark> simple_landmarks;
+  std::string filter_type_str(filter_type);
+  auto landmarks = waypoint.GetLandmarksOfTypeInDistance(
+      distance, filter_type_str, stop_at_junction);
+  for (const auto &landmark : landmarks) {
+    simple_landmarks.push_back(ConvertToSimpleLandmark(*landmark));
+  }
+  return simple_landmarks;
+}
+
 // Batch operations helper functions
 
 // Command type enum for SimpleBatchCommand.command_type

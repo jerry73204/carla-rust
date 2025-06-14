@@ -96,6 +96,79 @@ impl MapWrapper {
     pub fn get_topology(&self) -> Vec<SimpleWaypointInfo> {
         ffi::Map_GetTopology(&self.inner)
     }
+
+    /// Get all landmarks in the map.
+    ///
+    /// # Returns
+    /// Vector of all LandmarkInfo in the map
+    pub fn get_all_landmarks(&self) -> Vec<crate::landmark::LandmarkInfo> {
+        ffi::bridge::Map_GetAllLandmarks(&self.inner)
+            .into_iter()
+            .map(|landmark| landmark.into())
+            .collect()
+    }
+
+    /// Get landmarks with a specific ID.
+    ///
+    /// # Arguments
+    /// * `id` - The landmark ID to search for
+    ///
+    /// # Returns
+    /// Vector of LandmarkInfo with the specified ID
+    pub fn get_landmarks_from_id(&self, id: &str) -> Vec<crate::landmark::LandmarkInfo> {
+        ffi::bridge::Map_GetLandmarksFromId(&self.inner, id)
+            .into_iter()
+            .map(|landmark| landmark.into())
+            .collect()
+    }
+
+    /// Get all landmarks of a specific type.
+    ///
+    /// # Arguments
+    /// * `landmark_type` - OpenDRIVE type code (e.g., "274" for speed limits, "206" for stop signs)
+    ///
+    /// # Returns
+    /// Vector of LandmarkInfo matching the specified type
+    pub fn get_all_landmarks_of_type(
+        &self,
+        landmark_type: &str,
+    ) -> Vec<crate::landmark::LandmarkInfo> {
+        ffi::bridge::Map_GetAllLandmarksOfType(&self.inner, landmark_type)
+            .into_iter()
+            .map(|landmark| landmark.into())
+            .collect()
+    }
+
+    /// Get all speed limit landmarks in the map.
+    /// This is a convenience method for landmarks of type "274".
+    ///
+    /// # Returns
+    /// Vector of speed limit landmarks
+    pub fn get_all_speed_limits(&self) -> Vec<crate::landmark::LandmarkInfo> {
+        self.get_all_landmarks_of_type("274")
+    }
+
+    /// Get all stop signs in the map.
+    /// This is a convenience method for landmarks of type "206".
+    ///
+    /// # Returns
+    /// Vector of stop sign landmarks
+    pub fn get_all_stop_signs(&self) -> Vec<crate::landmark::LandmarkInfo> {
+        self.get_all_landmarks_of_type("206")
+    }
+
+    /// Get all traffic lights in the map.
+    /// This searches for landmarks with types starting with "1000" (traffic light types).
+    ///
+    /// # Returns
+    /// Vector of traffic light landmarks
+    pub fn get_all_traffic_lights(&self) -> Vec<crate::landmark::LandmarkInfo> {
+        let all_landmarks = self.get_all_landmarks();
+        all_landmarks
+            .into_iter()
+            .filter(|landmark| landmark.type_code.starts_with("1000"))
+            .collect()
+    }
 }
 
 /// High-level wrapper for CARLA Waypoint
@@ -229,6 +302,92 @@ impl WaypointWrapper {
     /// Get the allowed lane change directions
     pub fn get_lane_change(&self) -> LaneChange {
         LaneChange::from_u8(ffi::Waypoint_GetLaneChange(&self.inner))
+    }
+
+    /// Get all landmarks within a specified distance from this waypoint.
+    ///
+    /// # Arguments
+    /// * `distance` - Maximum search distance in meters
+    /// * `stop_at_junction` - Whether to stop searching at junctions
+    ///
+    /// # Returns
+    /// Vector of LandmarkInfo for all landmarks found within the distance
+    pub fn get_all_landmarks_in_distance(
+        &self,
+        distance: f64,
+        stop_at_junction: bool,
+    ) -> Vec<crate::landmark::LandmarkInfo> {
+        ffi::bridge::Waypoint_GetAllLandmarksInDistance(&self.inner, distance, stop_at_junction)
+            .into_iter()
+            .map(|landmark| landmark.into())
+            .collect()
+    }
+
+    /// Get landmarks of a specific type within a specified distance from this waypoint.
+    ///
+    /// # Arguments
+    /// * `distance` - Maximum search distance in meters
+    /// * `filter_type` - OpenDRIVE type code to filter by (e.g., "274" for speed limits)
+    /// * `stop_at_junction` - Whether to stop searching at junctions
+    ///
+    /// # Returns
+    /// Vector of LandmarkInfo for landmarks matching the type filter
+    pub fn get_landmarks_of_type_in_distance(
+        &self,
+        distance: f64,
+        filter_type: &str,
+        stop_at_junction: bool,
+    ) -> Vec<crate::landmark::LandmarkInfo> {
+        ffi::bridge::Waypoint_GetLandmarksOfTypeInDistance(
+            &self.inner,
+            distance,
+            filter_type,
+            stop_at_junction,
+        )
+        .into_iter()
+        .map(|landmark| landmark.into())
+        .collect()
+    }
+
+    /// Get speed limit landmarks near this waypoint.
+    /// This is a convenience method that filters for speed limit signs (type "274").
+    ///
+    /// # Arguments
+    /// * `distance` - Maximum search distance in meters
+    /// * `stop_at_junction` - Whether to stop searching at junctions
+    ///
+    /// # Returns
+    /// Vector of speed limit landmarks with their values
+    pub fn get_speed_limits_in_distance(
+        &self,
+        distance: f64,
+        stop_at_junction: bool,
+    ) -> Vec<crate::landmark::LandmarkInfo> {
+        self.get_landmarks_of_type_in_distance(distance, "274", stop_at_junction)
+    }
+
+    /// Get the applicable speed limit at this waypoint.
+    /// Returns the speed limit from the nearest speed limit sign, if any.
+    ///
+    /// # Arguments
+    /// * `search_distance` - How far to search for speed limit signs (default: 100m)
+    ///
+    /// # Returns
+    /// Speed limit value in km/h, if found
+    pub fn get_speed_limit(&self, search_distance: Option<f64>) -> Option<f64> {
+        let distance = search_distance.unwrap_or(100.0);
+        let speed_limits = self.get_speed_limits_in_distance(distance, true);
+
+        // Return the speed limit from the nearest sign
+        speed_limits
+            .iter()
+            .filter_map(|landmark| {
+                landmark
+                    .get_speed_limit()
+                    .map(|limit| (limit, landmark.distance))
+            })
+            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(limit, _)| limit)
     }
 }
 
