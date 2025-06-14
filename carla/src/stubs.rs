@@ -42,6 +42,19 @@ pub type carla_walker_t = carla_sys::carla_actor_t;
 pub type carla_walker_ai_controller_t = *mut std::ffi::c_void;
 pub type carla_walker_state_t = u32; // Placeholder for walker state
 
+// Traffic light types
+pub type carla_traffic_light_t = carla_sys::carla_actor_t;
+
+// Traffic light state enumeration constants
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_RED: carla_traffic_light_state_t = 0;
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_YELLOW: carla_traffic_light_state_t = 1;
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_GREEN: carla_traffic_light_state_t = 2;
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_OFF: carla_traffic_light_state_t = 3;
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_BLINKING: carla_traffic_light_state_t = 4;
+pub const carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_UNKNOWN: carla_traffic_light_state_t = 5;
+
+pub type carla_traffic_light_state_t = u32;
+
 // Actor types
 pub type carla_attachment_type_t = u32;
 
@@ -416,6 +429,107 @@ pub unsafe extern "C" fn carla_actor_blueprint_has_attribute(
     let attr = carla_sys::carla_actor_blueprint_find_attribute(blueprint, attribute_id);
     !attr.is_null()
 }
+
+// Traffic light functions - these are stub implementations since traffic light
+// functionality is not available in the base CARLA C++ API
+pub unsafe extern "C" fn carla_traffic_light_set_state(
+    _traffic_light: *mut carla_traffic_light_t,
+    _state: carla_traffic_light_state_t,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_state(
+    _traffic_light: *const carla_traffic_light_t,
+) -> carla_traffic_light_state_t {
+    // TODO: Implement when traffic light C API is available
+    carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_UNKNOWN
+}
+
+pub unsafe extern "C" fn carla_traffic_light_set_green_time(
+    _traffic_light: *mut carla_traffic_light_t,
+    _green_time: f32,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_green_time(
+    _traffic_light: *const carla_traffic_light_t,
+) -> f32 {
+    // TODO: Implement when traffic light C API is available
+    30.0 // Default green time
+}
+
+pub unsafe extern "C" fn carla_traffic_light_set_yellow_time(
+    _traffic_light: *mut carla_traffic_light_t,
+    _yellow_time: f32,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_yellow_time(
+    _traffic_light: *const carla_traffic_light_t,
+) -> f32 {
+    // TODO: Implement when traffic light C API is available
+    5.0 // Default yellow time
+}
+
+pub unsafe extern "C" fn carla_traffic_light_set_red_time(
+    _traffic_light: *mut carla_traffic_light_t,
+    _red_time: f32,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_red_time(
+    _traffic_light: *const carla_traffic_light_t,
+) -> f32 {
+    // TODO: Implement when traffic light C API is available
+    30.0 // Default red time
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_elapsed_time(
+    _traffic_light: *const carla_traffic_light_t,
+) -> f32 {
+    // TODO: Implement when traffic light C API is available
+    0.0
+}
+
+pub unsafe extern "C" fn carla_traffic_light_freeze(
+    _traffic_light: *mut carla_traffic_light_t,
+    _freeze: bool,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+pub unsafe extern "C" fn carla_traffic_light_is_frozen(
+    _traffic_light: *const carla_traffic_light_t,
+) -> bool {
+    // TODO: Implement when traffic light C API is available
+    false
+}
+
+pub unsafe extern "C" fn carla_traffic_light_get_pole_index(
+    _traffic_light: *const carla_traffic_light_t,
+) -> u32 {
+    // TODO: Implement when traffic light C API is available
+    0
+}
+
+pub unsafe extern "C" fn carla_traffic_light_reset_group(
+    _traffic_light: *mut carla_traffic_light_t,
+) -> carla_sys::carla_error_t {
+    // TODO: Implement when traffic light C API is available
+    carla_sys::carla_error_t_CARLA_ERROR_NONE
+}
+
+// Note: carla_traffic_light_get_group_traffic_lights is not implemented
+// because it requires carla_actor_list_t which is not yet available
 
 pub unsafe extern "C" fn carla_traffic_sign_get_trigger_volume(
     _traffic_sign: *const carla_traffic_sign_t,

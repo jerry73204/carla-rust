@@ -2,11 +2,13 @@ use super::{Actor, ActorBase};
 use crate::{
     geom::Transform,
     stubs::{
-        carla_actor_is_traffic_light, carla_traffic_light_get_green_time,
-        carla_traffic_light_get_group_traffic_lights, carla_traffic_light_get_red_time,
-        carla_traffic_light_get_state, carla_traffic_light_get_yellow_time,
-        carla_traffic_light_set_green_time, carla_traffic_light_set_red_time,
-        carla_traffic_light_set_state, carla_traffic_light_set_yellow_time, carla_traffic_light_t,
+        carla_traffic_light_freeze, carla_traffic_light_get_elapsed_time,
+        carla_traffic_light_get_green_time, carla_traffic_light_get_pole_index,
+        carla_traffic_light_get_red_time, carla_traffic_light_get_state,
+        carla_traffic_light_get_yellow_time, carla_traffic_light_is_frozen,
+        carla_traffic_light_reset_group, carla_traffic_light_set_green_time,
+        carla_traffic_light_set_red_time, carla_traffic_light_set_state,
+        carla_traffic_light_set_yellow_time, carla_traffic_light_t,
     },
     utils::check_carla_error,
 };
@@ -26,11 +28,6 @@ impl TrafficLight {
     pub(crate) fn from_raw_ptr(ptr: *mut carla_actor_t) -> Result<Self> {
         if ptr.is_null() {
             return Err(anyhow!("Null traffic light pointer"));
-        }
-
-        // Verify it's actually a traffic light
-        if !unsafe { carla_actor_is_traffic_light(ptr) } {
-            return Err(anyhow!("Actor is not a traffic light"));
         }
 
         // Create the base Actor first
@@ -72,9 +69,8 @@ impl TrafficLight {
 
     /// Set the duration of the green light phase in seconds.
     pub fn set_green_time(&self, green_time: f32) -> Result<()> {
-        let error = unsafe {
-            carla_traffic_light_set_green_time(self.raw_traffic_light_ptr(), green_time)
-        };
+        let error =
+            unsafe { carla_traffic_light_set_green_time(self.raw_traffic_light_ptr(), green_time) };
         check_carla_error(error)
     }
 
@@ -109,17 +105,11 @@ impl TrafficLight {
     }
 
     /// Get all traffic lights that belong to the same group as this traffic light.
+    /// Note: This function is not yet implemented due to missing carla_actor_list_t type.
     pub fn get_group_traffic_lights(&self) -> Result<Vec<TrafficLight>> {
-        let group_ptr =
-            unsafe { carla_traffic_light_get_group_traffic_lights(self.raw_traffic_light_ptr()) };
-        
-        if group_ptr.is_null() {
-            return Ok(Vec::new());
-        }
-
-        // TODO: Implement conversion from C traffic light list when C API is available
+        // TODO: Implement when carla_actor_list_t is available
         Err(anyhow!(
-            "Traffic light group retrieval not yet implemented in C API"
+            "Traffic light group retrieval not yet implemented - requires carla_actor_list_t"
         ))
     }
 
@@ -148,13 +138,37 @@ impl TrafficLight {
 
     /// Get the elapsed time in the current state.
     pub fn get_elapsed_time(&self) -> f32 {
-        // TODO: Implement when C API provides carla_traffic_light_get_elapsed_time
-        0.0
+        unsafe { carla_traffic_light_get_elapsed_time(self.raw_traffic_light_ptr()) }
+    }
+
+    /// Freeze or unfreeze the traffic light (stops state changes).
+    pub fn freeze(&self, freeze: bool) -> Result<()> {
+        let error = unsafe { carla_traffic_light_freeze(self.raw_traffic_light_ptr(), freeze) };
+        check_carla_error(error)
+    }
+
+    /// Check if the traffic light is frozen.
+    pub fn is_frozen(&self) -> bool {
+        unsafe { carla_traffic_light_is_frozen(self.raw_traffic_light_ptr()) }
+    }
+
+    /// Get the pole index within the traffic light group.
+    pub fn get_pole_index(&self) -> u32 {
+        unsafe { carla_traffic_light_get_pole_index(self.raw_traffic_light_ptr()) }
+    }
+
+    /// Reset the timing and state of all traffic lights in the group.
+    pub fn reset_group(&self) -> Result<()> {
+        let error = unsafe { carla_traffic_light_reset_group(self.raw_traffic_light_ptr()) };
+        check_carla_error(error)
     }
 
     /// Check if this traffic light is part of a traffic light group.
     pub fn is_in_group(&self) -> bool {
-        !self.get_group_traffic_lights().unwrap_or_default().is_empty()
+        !self
+            .get_group_traffic_lights()
+            .unwrap_or_default()
+            .is_empty()
     }
 
     /// Destroy this traffic light.
@@ -174,8 +188,6 @@ pub enum TrafficLightState {
     Green,
     /// Traffic light is off.
     Off,
-    /// Blinking yellow - proceed with caution.
-    Blinking,
     /// Unknown or invalid state.
     Unknown,
 }
@@ -184,23 +196,21 @@ impl TrafficLightState {
     /// Convert to C traffic light state.
     pub(crate) fn to_c_state(self) -> carla_traffic_light_state_t {
         match self {
-            Self::Red => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_RED,
-            Self::Yellow => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_YELLOW,
-            Self::Green => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_GREEN,
-            Self::Off => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_OFF,
-            Self::Blinking => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_BLINKING,
-            Self::Unknown => carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_UNKNOWN,
+            Self::Red => CARLA_TRAFFIC_LIGHT_RED,
+            Self::Yellow => CARLA_TRAFFIC_LIGHT_YELLOW,
+            Self::Green => CARLA_TRAFFIC_LIGHT_GREEN,
+            Self::Off => CARLA_TRAFFIC_LIGHT_OFF,
+            Self::Unknown => CARLA_TRAFFIC_LIGHT_UNKNOWN,
         }
     }
 
     /// Create from C traffic light state.
     pub(crate) fn from_c_state(c_state: carla_traffic_light_state_t) -> Self {
         match c_state {
-            carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_RED => Self::Red,
-            carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_YELLOW => Self::Yellow,
-            carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_GREEN => Self::Green,
-            carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_OFF => Self::Off,
-            carla_traffic_light_state_t_CARLA_TRAFFIC_LIGHT_BLINKING => Self::Blinking,
+            CARLA_TRAFFIC_LIGHT_RED => Self::Red,
+            CARLA_TRAFFIC_LIGHT_YELLOW => Self::Yellow,
+            CARLA_TRAFFIC_LIGHT_GREEN => Self::Green,
+            CARLA_TRAFFIC_LIGHT_OFF => Self::Off,
             _ => Self::Unknown,
         }
     }
@@ -236,9 +246,9 @@ impl TrafficLightTiming {
 impl Default for TrafficLightTiming {
     fn default() -> Self {
         Self {
-            green_time: 30.0,  // 30 seconds green
-            yellow_time: 5.0,  // 5 seconds yellow
-            red_time: 30.0,    // 30 seconds red
+            green_time: 30.0, // 30 seconds green
+            yellow_time: 5.0, // 5 seconds yellow
+            red_time: 30.0,   // 30 seconds red
         }
     }
 }
