@@ -119,6 +119,26 @@ impl ClientWrapper {
     pub fn set_replayer_ignore_spectator(&self, ignore_spectator: bool) {
         ffi::Client_SetReplayerIgnoreSpectator(&self.inner, ignore_spectator);
     }
+
+    // Batch operation methods
+
+    /// Apply multiple commands asynchronously without waiting for results
+    pub fn apply_batch(
+        &self,
+        commands: &[crate::ffi::bridge::SimpleBatchCommand],
+        do_tick_cue: bool,
+    ) {
+        ffi::bridge::Client_ApplyBatch(&self.inner, commands, do_tick_cue);
+    }
+
+    /// Apply multiple commands synchronously and return results
+    pub fn apply_batch_sync(
+        &self,
+        commands: &[crate::ffi::bridge::SimpleBatchCommand],
+        do_tick_cue: bool,
+    ) -> Vec<crate::ffi::bridge::SimpleBatchResponse> {
+        ffi::bridge::Client_ApplyBatchSync(&self.inner, commands, do_tick_cue)
+    }
 }
 
 /// High-level wrapper for CARLA World

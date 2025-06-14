@@ -35,6 +35,7 @@
 #![allow(dead_code)]
 
 // Module declarations
+pub mod batch_operations;
 pub mod blueprint;
 pub mod client;
 pub mod ffi;
@@ -64,6 +65,10 @@ pub use ffi::{
     World,
 };
 
+pub use batch_operations::{
+    BatchCommandBuilder, BatchCommandType, BatchResponseExt,
+    TrafficLightState as BatchTrafficLightState, VehicleLightState as BatchVehicleLightState,
+};
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
 pub use map::{
@@ -94,6 +99,9 @@ pub use world_interaction::{
 
 // Re-export world interaction utilities
 pub use world_interaction::{defaults as world_defaults, ray_casting};
+
+// Re-export batch operation utilities
+pub use batch_operations::batch_utils;
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

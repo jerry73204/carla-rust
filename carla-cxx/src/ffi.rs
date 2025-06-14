@@ -327,6 +327,30 @@ pub mod bridge {
         pub actor_ids: Vec<u32>,
     }
 
+    // Batch operation types
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleBatchCommand {
+        pub command_type: u8, // CommandType enum as u8
+        pub actor_id: u32,
+        pub data1: f64,       // Multi-purpose data field 1
+        pub data2: f64,       // Multi-purpose data field 2
+        pub data3: f64,       // Multi-purpose data field 3
+        pub data4: f64,       // Multi-purpose data field 4
+        pub data5: f64,       // Multi-purpose data field 5
+        pub data6: f64,       // Multi-purpose data field 6
+        pub bool_flag1: bool, // Multi-purpose boolean flag 1
+        pub bool_flag2: bool, // Multi-purpose boolean flag 2
+        pub int_flag1: i32,   // Multi-purpose integer flag 1
+        pub int_flag2: i32,   // Multi-purpose integer flag 2
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleBatchResponse {
+        pub has_error: bool,
+        pub error_message: String,
+        pub actor_id: u32, // Result actor ID (for spawn commands)
+    }
+
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleJunction {
         pub id: u32,
@@ -468,6 +492,14 @@ pub mod bridge {
         fn Client_SetReplayerTimeFactor(client: &Client, time_factor: f64);
         fn Client_SetReplayerIgnoreHero(client: &Client, ignore_hero: bool);
         fn Client_SetReplayerIgnoreSpectator(client: &Client, ignore_spectator: bool);
+
+        // Batch operation methods
+        fn Client_ApplyBatch(client: &Client, commands: &[SimpleBatchCommand], do_tick_cue: bool);
+        fn Client_ApplyBatchSync(
+            client: &Client,
+            commands: &[SimpleBatchCommand],
+            do_tick_cue: bool,
+        ) -> Vec<SimpleBatchResponse>;
 
         // World methods
         fn World_GetId(world: &World) -> u64;

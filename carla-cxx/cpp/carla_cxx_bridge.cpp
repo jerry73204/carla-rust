@@ -21,6 +21,8 @@
 #include <carla/geom/Location.h>
 #include <carla/geom/Vector3D.h>
 #include <carla/rpc/AckermannControllerSettings.h>
+#include <carla/rpc/Command.h>
+#include <carla/rpc/CommandResponse.h>
 #include <carla/rpc/EpisodeSettings.h>
 #include <carla/rpc/LabelledPoint.h>
 #include <carla/rpc/TrafficLightState.h>
@@ -2100,6 +2102,238 @@ std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id) {
   carla::ActorId carla_id = static_cast<carla::ActorId>(actor_id);
   auto actor = const_cast<World &>(world).GetActor(carla_id);
   return actor;
+}
+
+// Batch operations helper functions
+
+// Command type enum for SimpleBatchCommand.command_type
+enum class BatchCommandType : uint8_t {
+  SpawnActor = 0,
+  DestroyActor = 1,
+  ApplyVehicleControl = 2,
+  ApplyWalkerControl = 3,
+  ApplyTransform = 4,
+  ApplyLocation = 5,
+  ApplyVehicleAckermannControl = 6,
+  SetAutopilot = 7,
+  SetVehicleLightState = 8,
+  SetSimulatePhysics = 9,
+  SetEnableGravity = 10,
+  ApplyTargetVelocity = 11,
+  ApplyTargetAngularVelocity = 12,
+  ApplyImpulse = 13,
+  ApplyForce = 14,
+  ApplyAngularImpulse = 15,
+  ApplyTorque = 16,
+  SetTrafficLightState = 17,
+  ApplyWalkerState = 18,
+  ApplyVehiclePhysicsControl = 19,
+  ShowDebugTelemetry = 20,
+  ConsoleCommand = 21,
+};
+
+carla::rpc::Command
+ConvertFromSimpleBatchCommand(const SimpleBatchCommand &simple_cmd) {
+  using namespace carla::rpc;
+
+  BatchCommandType cmd_type =
+      static_cast<BatchCommandType>(simple_cmd.command_type);
+  carla::ActorId actor_id = static_cast<carla::ActorId>(simple_cmd.actor_id);
+
+  switch (cmd_type) {
+  case BatchCommandType::DestroyActor:
+    return Command::DestroyActor(actor_id);
+
+  case BatchCommandType::ApplyVehicleControl: {
+    VehicleControl control;
+    control.throttle = static_cast<float>(simple_cmd.data1);
+    control.steer = static_cast<float>(simple_cmd.data2);
+    control.brake = static_cast<float>(simple_cmd.data3);
+    control.hand_brake = simple_cmd.bool_flag1;
+    control.reverse = simple_cmd.bool_flag2;
+    control.manual_gear_shift = (simple_cmd.int_flag1 != 0);
+    control.gear = simple_cmd.int_flag2;
+    return Command::ApplyVehicleControl(actor_id, control);
+  }
+
+  case BatchCommandType::ApplyWalkerControl: {
+    WalkerControl control;
+    control.direction =
+        carla::geom::Vector3D(static_cast<float>(simple_cmd.data1),
+                              static_cast<float>(simple_cmd.data2),
+                              static_cast<float>(simple_cmd.data3));
+    control.speed = static_cast<float>(simple_cmd.data4);
+    control.jump = simple_cmd.bool_flag1;
+    return Command::ApplyWalkerControl(actor_id, control);
+  }
+
+  case BatchCommandType::ApplyTransform: {
+    carla::geom::Transform transform;
+    transform.location =
+        carla::geom::Location(static_cast<float>(simple_cmd.data1),
+                              static_cast<float>(simple_cmd.data2),
+                              static_cast<float>(simple_cmd.data3));
+    transform.rotation =
+        carla::geom::Rotation(static_cast<float>(simple_cmd.data4),
+                              static_cast<float>(simple_cmd.data5),
+                              static_cast<float>(simple_cmd.data6));
+    return Command::ApplyTransform(actor_id, transform);
+  }
+
+  case BatchCommandType::ApplyLocation: {
+    carla::geom::Location location(static_cast<float>(simple_cmd.data1),
+                                   static_cast<float>(simple_cmd.data2),
+                                   static_cast<float>(simple_cmd.data3));
+    return Command::ApplyLocation(actor_id, location);
+  }
+
+  case BatchCommandType::ApplyVehicleAckermannControl: {
+    VehicleAckermannControl control;
+    control.steer = static_cast<float>(simple_cmd.data1);
+    control.steer_speed = static_cast<float>(simple_cmd.data2);
+    control.speed = static_cast<float>(simple_cmd.data3);
+    control.acceleration = static_cast<float>(simple_cmd.data4);
+    control.jerk = static_cast<float>(simple_cmd.data5);
+    return Command::ApplyVehicleAckermannControl(actor_id, control);
+  }
+
+  case BatchCommandType::SetAutopilot: {
+    bool enabled = simple_cmd.bool_flag1;
+    uint16_t tm_port = static_cast<uint16_t>(simple_cmd.int_flag1);
+    return Command::SetAutopilot(actor_id, enabled, tm_port);
+  }
+
+  case BatchCommandType::SetVehicleLightState: {
+    VehicleLightState::flag_type light_state =
+        static_cast<VehicleLightState::flag_type>(simple_cmd.int_flag1);
+    return Command::SetVehicleLightState(actor_id, light_state);
+  }
+
+  case BatchCommandType::SetSimulatePhysics: {
+    bool enabled = simple_cmd.bool_flag1;
+    return Command::SetSimulatePhysics(actor_id, enabled);
+  }
+
+  case BatchCommandType::SetEnableGravity: {
+    bool enabled = simple_cmd.bool_flag1;
+    return Command::SetEnableGravity(actor_id, enabled);
+  }
+
+  case BatchCommandType::ApplyTargetVelocity: {
+    carla::geom::Vector3D velocity(static_cast<float>(simple_cmd.data1),
+                                   static_cast<float>(simple_cmd.data2),
+                                   static_cast<float>(simple_cmd.data3));
+    return Command::ApplyTargetVelocity(actor_id, velocity);
+  }
+
+  case BatchCommandType::ApplyTargetAngularVelocity: {
+    carla::geom::Vector3D angular_velocity(
+        static_cast<float>(simple_cmd.data1),
+        static_cast<float>(simple_cmd.data2),
+        static_cast<float>(simple_cmd.data3));
+    return Command::ApplyTargetAngularVelocity(actor_id, angular_velocity);
+  }
+
+  case BatchCommandType::ApplyImpulse: {
+    carla::geom::Vector3D impulse(static_cast<float>(simple_cmd.data1),
+                                  static_cast<float>(simple_cmd.data2),
+                                  static_cast<float>(simple_cmd.data3));
+    return Command::ApplyImpulse(actor_id, impulse);
+  }
+
+  case BatchCommandType::ApplyForce: {
+    carla::geom::Vector3D force(static_cast<float>(simple_cmd.data1),
+                                static_cast<float>(simple_cmd.data2),
+                                static_cast<float>(simple_cmd.data3));
+    return Command::ApplyForce(actor_id, force);
+  }
+
+  case BatchCommandType::ApplyAngularImpulse: {
+    carla::geom::Vector3D impulse(static_cast<float>(simple_cmd.data1),
+                                  static_cast<float>(simple_cmd.data2),
+                                  static_cast<float>(simple_cmd.data3));
+    return Command::ApplyAngularImpulse(actor_id, impulse);
+  }
+
+  case BatchCommandType::ApplyTorque: {
+    carla::geom::Vector3D torque(static_cast<float>(simple_cmd.data1),
+                                 static_cast<float>(simple_cmd.data2),
+                                 static_cast<float>(simple_cmd.data3));
+    return Command::ApplyTorque(actor_id, torque);
+  }
+
+  case BatchCommandType::SetTrafficLightState: {
+    TrafficLightState state =
+        static_cast<TrafficLightState>(simple_cmd.int_flag1);
+    return Command::SetTrafficLightState(actor_id, state);
+  }
+
+  case BatchCommandType::ShowDebugTelemetry: {
+    bool enabled = simple_cmd.bool_flag1;
+    return Command::ShowDebugTelemetry(actor_id, enabled);
+  }
+
+  // Note: SpawnActor and other complex commands require additional
+  // implementation
+  default:
+    // For unsupported commands, return a destroy command as fallback
+    return Command::DestroyActor(actor_id);
+  }
+}
+
+SimpleBatchResponse
+ConvertToSimpleBatchResponse(const carla::rpc::CommandResponse &response) {
+  SimpleBatchResponse simple_response;
+  simple_response.has_error = response.HasError();
+
+  if (response.HasError()) {
+    simple_response.error_message = response.GetError().What();
+    simple_response.actor_id = 0;
+  } else {
+    simple_response.error_message = "";
+    simple_response.actor_id = static_cast<uint32_t>(response.Get());
+  }
+
+  return simple_response;
+}
+
+// Batch operation wrapper functions
+void Client_ApplyBatch(const Client &client,
+                       rust::Slice<const SimpleBatchCommand> commands,
+                       bool do_tick_cue) {
+  std::vector<carla::rpc::Command> carla_commands;
+  carla_commands.reserve(commands.size());
+
+  for (const auto &simple_cmd : commands) {
+    carla_commands.push_back(ConvertFromSimpleBatchCommand(simple_cmd));
+  }
+
+  const_cast<Client &>(client).ApplyBatch(std::move(carla_commands),
+                                          do_tick_cue);
+}
+
+rust::Vec<SimpleBatchResponse>
+Client_ApplyBatchSync(const Client &client,
+                      rust::Slice<const SimpleBatchCommand> commands,
+                      bool do_tick_cue) {
+  std::vector<carla::rpc::Command> carla_commands;
+  carla_commands.reserve(commands.size());
+
+  for (const auto &simple_cmd : commands) {
+    carla_commands.push_back(ConvertFromSimpleBatchCommand(simple_cmd));
+  }
+
+  auto responses = const_cast<Client &>(client).ApplyBatchSync(
+      std::move(carla_commands), do_tick_cue);
+
+  rust::Vec<SimpleBatchResponse> simple_responses;
+  simple_responses.reserve(responses.size());
+
+  for (const auto &response : responses) {
+    simple_responses.push_back(ConvertToSimpleBatchResponse(response));
+  }
+
+  return simple_responses;
 }
 
 } // namespace client

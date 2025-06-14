@@ -67,6 +67,8 @@ struct SimpleOptionalLabelledPoint;
 struct SimpleOptionalLocation;
 struct SimpleActorId;
 struct SimpleActorList;
+struct SimpleBatchCommand;
+struct SimpleBatchResponse;
 
 // CXX Bridge functions
 namespace carla {
@@ -105,6 +107,15 @@ void Client_SetReplayerTimeFactor(const Client &client, double time_factor);
 void Client_SetReplayerIgnoreHero(const Client &client, bool ignore_hero);
 void Client_SetReplayerIgnoreSpectator(const Client &client,
                                        bool ignore_spectator);
+
+// Batch operation functions
+void Client_ApplyBatch(const Client &client,
+                       rust::Slice<const SimpleBatchCommand> commands,
+                       bool do_tick_cue);
+rust::Vec<SimpleBatchResponse>
+Client_ApplyBatchSync(const Client &client,
+                      rust::Slice<const SimpleBatchCommand> commands,
+                      bool do_tick_cue);
 
 // World wrapper functions
 uint64_t World_GetId(const World &world);
