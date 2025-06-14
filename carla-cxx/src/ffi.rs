@@ -211,6 +211,55 @@ pub mod bridge {
         pub lane_change: u8, // LaneChange enum
     }
 
+    // Advanced sensor data structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleDVSEvent {
+        pub x: u16,    // X pixel coordinate
+        pub y: u16,    // Y pixel coordinate
+        pub t: i64,    // Timestamp in nanoseconds
+        pub pol: bool, // Polarity (true=positive, false=negative)
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleDVSEventArray {
+        pub width: u32,                  // Image width in pixels
+        pub height: u32,                 // Image height in pixels
+        pub fov_angle: f32,              // Horizontal field of view
+        pub events: Vec<SimpleDVSEvent>, // Array of DVS events
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleObstacleDetectionEvent {
+        pub self_actor_id: u32,  // Sensor's parent actor ID
+        pub other_actor_id: u32, // Detected obstacle actor ID
+        pub distance: f32,       // Distance to obstacle in meters
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleSemanticLidarDetection {
+        pub point: SimpleLocation, // 3D point location (x, y, z)
+        pub cos_inc_angle: f32,    // Cosine of incidence angle
+        pub object_idx: u32,       // Object instance index
+        pub object_tag: u32,       // Semantic tag/label
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleSemanticLidarData {
+        pub horizontal_angle: f32, // Current horizontal rotation angle
+        pub channel_count: u32,    // Number of laser channels
+        pub detections: Vec<SimpleSemanticLidarDetection>, // Array of detections
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleRssResponse {
+        pub response_valid: bool,          // RSS calculation validity
+        pub proper_response: String,       // RSS proper response (serialized)
+        pub rss_state_snapshot: String,    // Current RSS state (serialized)
+        pub situation_snapshot: String,    // Situation analysis (serialized)
+        pub world_model: String,           // World model used (serialized)
+        pub ego_dynamics_on_route: String, // Ego vehicle dynamics (serialized)
+    }
+
     // Debug visualization structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleColor {
@@ -825,6 +874,12 @@ pub mod bridge {
         fn Sensor_GetLastCollisionData(sensor: &Sensor) -> SimpleCollisionData;
         fn Sensor_GetLastLaneInvasionData(sensor: &Sensor) -> Vec<SimpleCrossedLaneMarking>;
         fn Sensor_HasNewData(sensor: &Sensor) -> bool;
+
+        // Advanced sensor data retrieval functions
+        fn Sensor_GetLastDVSData(sensor: &Sensor) -> SimpleDVSEventArray;
+        fn Sensor_GetLastObstacleDetectionData(sensor: &Sensor) -> SimpleObstacleDetectionEvent;
+        fn Sensor_GetLastSemanticLidarData(sensor: &Sensor) -> SimpleSemanticLidarData;
+        fn Sensor_GetLastRssData(sensor: &Sensor) -> SimpleRssResponse;
 
         // Traffic Light methods
         fn TrafficLight_GetState(traffic_light: &TrafficLight) -> u32; // TrafficLightState enum

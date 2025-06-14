@@ -79,8 +79,25 @@ pub use map::{
     MapWrapper, SignalOrientation, WaypointWrapper,
 };
 pub use sensor::{
-    CollisionData, CrossedLaneMarking, GNSSData, IMUData, ImageData, LaneInvasionData, LiDARData,
-    LiDARPoint, RadarData, RadarDetection, SensorData, SensorWrapper,
+    CollisionData,
+    CrossedLaneMarking,
+    // Advanced sensor types
+    DVSEvent,
+    DVSEventArray,
+    GNSSData,
+    IMUData,
+    ImageData,
+    LaneInvasionData,
+    LiDARData,
+    LiDARPoint,
+    ObstacleDetectionEvent,
+    RadarData,
+    RadarDetection,
+    RssResponse,
+    SemanticLidarData,
+    SemanticLidarDetection,
+    SensorData,
+    SensorWrapper,
 };
 pub use time::Timestamp;
 pub use traffic_light::{TrafficLightState, TrafficLightWrapper};

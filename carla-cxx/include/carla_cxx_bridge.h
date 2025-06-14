@@ -80,6 +80,12 @@ struct SimpleLandmark;
 struct SimpleTextureFloatColor;
 struct SimpleTextureColor;
 struct SimpleLevelBoundingBox;
+struct SimpleDVSEvent;
+struct SimpleDVSEventArray;
+struct SimpleObstacleDetectionEvent;
+struct SimpleSemanticLidarDetection;
+struct SimpleSemanticLidarData;
+struct SimpleRssResponse;
 
 // CXX Bridge functions
 namespace carla {
@@ -339,6 +345,13 @@ SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor);
 rust::Vec<SimpleCrossedLaneMarking>
 Sensor_GetLastLaneInvasionData(const Sensor &sensor);
 bool Sensor_HasNewData(const Sensor &sensor);
+
+// Advanced sensor data retrieval functions
+SimpleDVSEventArray Sensor_GetLastDVSData(const Sensor &sensor);
+SimpleObstacleDetectionEvent
+Sensor_GetLastObstacleDetectionData(const Sensor &sensor);
+SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor);
+SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor);
 
 // Traffic Light wrapper functions
 uint32_t TrafficLight_GetState(const TrafficLight &traffic_light);

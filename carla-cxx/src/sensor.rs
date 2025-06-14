@@ -85,6 +85,32 @@ impl SensorWrapper {
         let markings = ffi::Sensor_GetLastLaneInvasionData(&self.inner);
         LaneInvasionData::from(markings)
     }
+
+    // Advanced sensor data methods
+
+    /// Get the last Dynamic Vision Sensor (DVS) data
+    pub fn get_last_dvs_data(&self) -> DVSEventArray {
+        let simple_data = ffi::bridge::Sensor_GetLastDVSData(&self.inner);
+        DVSEventArray::from(simple_data)
+    }
+
+    /// Get the last Obstacle Detection event
+    pub fn get_last_obstacle_detection_data(&self) -> ObstacleDetectionEvent {
+        let simple_data = ffi::bridge::Sensor_GetLastObstacleDetectionData(&self.inner);
+        ObstacleDetectionEvent::from(simple_data)
+    }
+
+    /// Get the last Semantic LiDAR data
+    pub fn get_last_semantic_lidar_data(&self) -> SemanticLidarData {
+        let simple_data = ffi::bridge::Sensor_GetLastSemanticLidarData(&self.inner);
+        SemanticLidarData::from(simple_data)
+    }
+
+    /// Get the last RSS (Road Safety) response
+    pub fn get_last_rss_data(&self) -> RssResponse {
+        let simple_data = ffi::bridge::Sensor_GetLastRssData(&self.inner);
+        RssResponse::from(simple_data)
+    }
 }
 
 /// Image sensor data
@@ -269,6 +295,134 @@ impl From<ffi::SimpleCrossedLaneMarking> for CrossedLaneMarking {
     }
 }
 
+// Advanced sensor data types
+
+/// Dynamic Vision Sensor (DVS) event
+#[derive(Debug, Clone, Copy)]
+pub struct DVSEvent {
+    pub x: u16,    // X pixel coordinate
+    pub y: u16,    // Y pixel coordinate
+    pub t: i64,    // Timestamp in nanoseconds
+    pub pol: bool, // Polarity (true=positive, false=negative)
+}
+
+impl From<ffi::bridge::SimpleDVSEvent> for DVSEvent {
+    fn from(simple: ffi::bridge::SimpleDVSEvent) -> Self {
+        Self {
+            x: simple.x,
+            y: simple.y,
+            t: simple.t,
+            pol: simple.pol,
+        }
+    }
+}
+
+/// Dynamic Vision Sensor (DVS) event array
+#[derive(Debug, Clone)]
+pub struct DVSEventArray {
+    pub width: u32,            // Image width in pixels
+    pub height: u32,           // Image height in pixels
+    pub fov_angle: f32,        // Horizontal field of view
+    pub events: Vec<DVSEvent>, // Array of DVS events
+}
+
+impl From<ffi::bridge::SimpleDVSEventArray> for DVSEventArray {
+    fn from(simple: ffi::bridge::SimpleDVSEventArray) -> Self {
+        let events = simple.events.into_iter().map(DVSEvent::from).collect();
+        Self {
+            width: simple.width,
+            height: simple.height,
+            fov_angle: simple.fov_angle,
+            events,
+        }
+    }
+}
+
+/// Obstacle Detection event
+#[derive(Debug, Clone, Copy)]
+pub struct ObstacleDetectionEvent {
+    pub self_actor_id: u32,  // Sensor's parent actor ID
+    pub other_actor_id: u32, // Detected obstacle actor ID
+    pub distance: f32,       // Distance to obstacle in meters
+}
+
+impl From<ffi::bridge::SimpleObstacleDetectionEvent> for ObstacleDetectionEvent {
+    fn from(simple: ffi::bridge::SimpleObstacleDetectionEvent) -> Self {
+        Self {
+            self_actor_id: simple.self_actor_id,
+            other_actor_id: simple.other_actor_id,
+            distance: simple.distance,
+        }
+    }
+}
+
+/// Semantic LiDAR detection point
+#[derive(Debug, Clone, Copy)]
+pub struct SemanticLidarDetection {
+    pub point: crate::ffi::SimpleLocation, // 3D point location (x, y, z)
+    pub cos_inc_angle: f32,                // Cosine of incidence angle
+    pub object_idx: u32,                   // Object instance index
+    pub object_tag: u32,                   // Semantic tag/label
+}
+
+impl From<ffi::bridge::SimpleSemanticLidarDetection> for SemanticLidarDetection {
+    fn from(simple: ffi::bridge::SimpleSemanticLidarDetection) -> Self {
+        Self {
+            point: simple.point,
+            cos_inc_angle: simple.cos_inc_angle,
+            object_idx: simple.object_idx,
+            object_tag: simple.object_tag,
+        }
+    }
+}
+
+/// Semantic LiDAR sensor data
+#[derive(Debug, Clone)]
+pub struct SemanticLidarData {
+    pub horizontal_angle: f32, // Current horizontal rotation angle
+    pub channel_count: u32,    // Number of laser channels
+    pub detections: Vec<SemanticLidarDetection>, // Array of detections
+}
+
+impl From<ffi::bridge::SimpleSemanticLidarData> for SemanticLidarData {
+    fn from(simple: ffi::bridge::SimpleSemanticLidarData) -> Self {
+        let detections = simple
+            .detections
+            .into_iter()
+            .map(SemanticLidarDetection::from)
+            .collect();
+        Self {
+            horizontal_angle: simple.horizontal_angle,
+            channel_count: simple.channel_count,
+            detections,
+        }
+    }
+}
+
+/// RSS (Road Safety) response
+#[derive(Debug, Clone)]
+pub struct RssResponse {
+    pub response_valid: bool,          // RSS calculation validity
+    pub proper_response: String,       // RSS proper response (serialized)
+    pub rss_state_snapshot: String,    // Current RSS state (serialized)
+    pub situation_snapshot: String,    // Situation analysis (serialized)
+    pub world_model: String,           // World model used (serialized)
+    pub ego_dynamics_on_route: String, // Ego vehicle dynamics (serialized)
+}
+
+impl From<ffi::bridge::SimpleRssResponse> for RssResponse {
+    fn from(simple: ffi::bridge::SimpleRssResponse) -> Self {
+        Self {
+            response_valid: simple.response_valid,
+            proper_response: simple.proper_response,
+            rss_state_snapshot: simple.rss_state_snapshot,
+            situation_snapshot: simple.situation_snapshot,
+            world_model: simple.world_model,
+            ego_dynamics_on_route: simple.ego_dynamics_on_route,
+        }
+    }
+}
+
 /// Sensor data enum
 #[derive(Debug, Clone)]
 pub enum SensorData {
@@ -279,5 +433,10 @@ pub enum SensorData {
     GNSS(GNSSData),
     Collision(CollisionData),
     LaneInvasion(LaneInvasionData),
+    // Advanced sensor types
+    DVS(DVSEventArray),
+    ObstacleDetection(ObstacleDetectionEvent),
+    SemanticLiDAR(SemanticLidarData),
+    RSS(RssResponse),
     Raw(Vec<u8>),
 }

@@ -1195,6 +1195,63 @@ bool Sensor_HasNewData(const Sensor &sensor) {
   return result;
 }
 
+// Advanced sensor data retrieval functions
+SimpleDVSEventArray Sensor_GetLastDVSData(const Sensor &sensor) {
+  SimpleDVSEventArray result;
+  result.width = 640; // Default values
+  result.height = 480;
+  result.fov_angle = 90.0f;
+
+  // TODO: Implement actual DVS data retrieval
+  // This would involve getting the latest DVS sensor data from CARLA
+  // and converting it to our SimpleDVSEventArray format
+
+  return result;
+}
+
+SimpleObstacleDetectionEvent
+Sensor_GetLastObstacleDetectionData(const Sensor &sensor) {
+  SimpleObstacleDetectionEvent result;
+  result.self_actor_id = 0;
+  result.other_actor_id = 0;
+  result.distance = 0.0f;
+
+  // TODO: Implement actual obstacle detection data retrieval
+  // This would involve getting the latest obstacle detection event from CARLA
+  // and converting it to our SimpleObstacleDetectionEvent format
+
+  return result;
+}
+
+SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor) {
+  SimpleSemanticLidarData result;
+  result.horizontal_angle = 0.0f;
+  result.channel_count = 32; // Default LiDAR channel count
+
+  // TODO: Implement actual semantic LiDAR data retrieval
+  // This would involve getting the latest semantic LiDAR data from CARLA
+  // and converting it to our SimpleSemanticLidarData format
+
+  return result;
+}
+
+SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor) {
+  SimpleRssResponse result;
+  result.response_valid = false;
+  result.proper_response = "";
+  result.rss_state_snapshot = "";
+  result.situation_snapshot = "";
+  result.world_model = "";
+  result.ego_dynamics_on_route = "";
+
+  // TODO: Implement actual RSS data retrieval
+  // This would involve getting the latest RSS sensor data from CARLA
+  // and converting it to our SimpleRssResponse format
+  // RSS data is typically serialized as JSON or other structured format
+
+  return result;
+}
+
 // Traffic Light wrapper functions
 uint32_t TrafficLight_GetState(const TrafficLight &traffic_light) {
   auto state = traffic_light.GetState();
