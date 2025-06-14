@@ -43,6 +43,7 @@ pub mod sensor;
 pub mod traffic_light;
 pub mod vehicle;
 pub mod walker;
+pub mod walker_ai;
 
 #[cfg(test)]
 mod tests;
@@ -63,7 +64,8 @@ pub use vehicle::{
     VehicleControl, VehicleDoorState, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
     VehicleWrapper, WheelPhysicsControl,
 };
-pub use walker::{WalkerControl, WalkerWrapper};
+pub use walker::{Vector3D, WalkerControl, WalkerWrapper};
+pub use walker_ai::{Location as WalkerLocation, WalkerAIBehavior, WalkerAIControllerWrapper};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

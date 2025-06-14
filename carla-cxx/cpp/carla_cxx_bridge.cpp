@@ -18,6 +18,8 @@
 #include <carla/rpc/VehicleDoor.h>
 #include <carla/rpc/VehicleLightState.h>
 #include <carla/rpc/VehiclePhysicsControl.h>
+#include <carla/rpc/WalkerBoneControlIn.h>
+#include <carla/rpc/WalkerBoneControlOut.h>
 #include <carla/rpc/WalkerControl.h>
 #include <carla/sensor/SensorData.h>
 #include <carla/sensor/data/GnssMeasurement.h>
@@ -447,6 +449,16 @@ std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor) {
   }
 }
 
+std::shared_ptr<WalkerAIController>
+Actor_CastToWalkerAIController(const Actor &actor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<WalkerAIController>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
 std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor) {
   try {
     auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
@@ -775,6 +787,65 @@ float Walker_GetSpeed(const Walker &walker) {
   auto velocity = walker.GetVelocity();
   return std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y +
                    velocity.z * velocity.z);
+}
+
+// Walker pose control functions
+void Walker_BlendPose(const Walker &walker, float blend) {
+  const_cast<Walker &>(walker).BlendPose(blend);
+}
+
+void Walker_ShowPose(const Walker &walker) {
+  const_cast<Walker &>(walker).ShowPose();
+}
+
+void Walker_HidePose(const Walker &walker) {
+  const_cast<Walker &>(walker).HidePose();
+}
+
+void Walker_GetPoseFromAnimation(const Walker &walker) {
+  const_cast<Walker &>(walker).GetPoseFromAnimation();
+}
+
+// Walker AI Controller functions
+void WalkerAIController_Start(const WalkerAIController &controller) {
+  const_cast<WalkerAIController &>(controller).Start();
+}
+
+void WalkerAIController_Stop(const WalkerAIController &controller) {
+  const_cast<WalkerAIController &>(controller).Stop();
+}
+
+void WalkerAIController_SetMaxSpeed(const WalkerAIController &controller,
+                                    float max_speed) {
+  const_cast<WalkerAIController &>(controller).SetMaxSpeed(max_speed);
+}
+
+void WalkerAIController_GoToLocation(
+    const WalkerAIController &controller,
+    const SimpleWalkerDestination &destination) {
+  carla::geom::Location location(destination.x, destination.y, destination.z);
+  const_cast<WalkerAIController &>(controller).GoToLocation(location);
+}
+
+SimpleWalkerDestination
+WalkerAIController_GetRandomLocation(const WalkerAIController &controller) {
+  auto location_opt =
+      const_cast<WalkerAIController &>(controller).GetRandomLocation();
+  if (location_opt.has_value()) {
+    auto loc = location_opt.value();
+    return SimpleWalkerDestination{loc.x, loc.y, loc.z};
+  }
+  // Return invalid location (0,0,0) if no random location available
+  return SimpleWalkerDestination{0.0, 0.0, 0.0};
+}
+
+bool WalkerAIController_HasValidDestination(
+    const WalkerAIController &controller) {
+  // Check if the controller has a valid destination
+  // This is a heuristic based on whether GetRandomLocation returns a value
+  return const_cast<WalkerAIController &>(controller)
+      .GetRandomLocation()
+      .has_value();
 }
 
 // Sensor wrapper functions

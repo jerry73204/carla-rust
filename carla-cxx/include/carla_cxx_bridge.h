@@ -16,6 +16,7 @@
 #include <carla/client/TrafficLight.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
+#include <carla/client/WalkerAIController.h>
 #include <carla/client/World.h>
 #include <carla/geom/Transform.h>
 
@@ -33,6 +34,7 @@ struct SimpleWheelPhysicsControl;
 struct SimpleGearPhysicsControl;
 struct SimpleVehicleDoor;
 struct SimpleWalkerControl;
+struct SimpleWalkerDestination;
 struct SimpleTrafficLightState;
 struct SimpleLiDARPoint;
 struct SimpleRadarDetection;
@@ -98,6 +100,8 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
 // Actor casting functions
 std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);
 std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor);
+std::shared_ptr<WalkerAIController>
+Actor_CastToWalkerAIController(const Actor &actor);
 std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
 std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
 
@@ -151,6 +155,25 @@ void Walker_ApplyControl(const Walker &walker,
                          const SimpleWalkerControl &control);
 SimpleWalkerControl Walker_GetControl(const Walker &walker);
 float Walker_GetSpeed(const Walker &walker);
+
+// Walker pose control functions (simplified)
+void Walker_BlendPose(const Walker &walker, float blend);
+void Walker_ShowPose(const Walker &walker);
+void Walker_HidePose(const Walker &walker);
+void Walker_GetPoseFromAnimation(const Walker &walker);
+
+// Walker AI Controller functions
+void WalkerAIController_Start(const WalkerAIController &controller);
+void WalkerAIController_Stop(const WalkerAIController &controller);
+void WalkerAIController_SetMaxSpeed(const WalkerAIController &controller,
+                                    float max_speed);
+void WalkerAIController_GoToLocation(
+    const WalkerAIController &controller,
+    const SimpleWalkerDestination &destination);
+SimpleWalkerDestination
+WalkerAIController_GetRandomLocation(const WalkerAIController &controller);
+bool WalkerAIController_HasValidDestination(
+    const WalkerAIController &controller);
 
 // Sensor wrapper functions
 void Sensor_Stop(const Sensor &sensor);

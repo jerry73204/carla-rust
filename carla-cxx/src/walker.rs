@@ -53,6 +53,34 @@ impl WalkerWrapper {
     pub fn get_speed(&self) -> f32 {
         ffi::Walker_GetSpeed(&self.inner)
     }
+
+    // Note: Direct bone transform control is not available through CXX
+    // Use blend_pose to control animation blending instead
+
+    /// Blend between animation pose and custom pose
+    /// @param blend: 0.0 = full animation, 1.0 = full custom pose
+    pub fn blend_pose(&self, blend: f32) -> Result<()> {
+        ffi::Walker_BlendPose(&self.inner, blend.clamp(0.0, 1.0));
+        Ok(())
+    }
+
+    /// Show custom pose (blend = 1.0)
+    pub fn show_pose(&self) -> Result<()> {
+        ffi::Walker_ShowPose(&self.inner);
+        Ok(())
+    }
+
+    /// Hide custom pose (blend = 0.0)
+    pub fn hide_pose(&self) -> Result<()> {
+        ffi::Walker_HidePose(&self.inner);
+        Ok(())
+    }
+
+    /// Get pose from current animation frame
+    pub fn get_pose_from_animation(&self) -> Result<()> {
+        ffi::Walker_GetPoseFromAnimation(&self.inner);
+        Ok(())
+    }
 }
 
 /// Walker control structure
@@ -138,3 +166,6 @@ impl Vector3D {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 }
+
+// Note: Bone transform functionality is limited in the CXX implementation
+// Advanced bone control would require different FFI approach

@@ -125,6 +125,14 @@ pub mod bridge {
         pub jump: bool,
     }
 
+    // Walker AI controller destination
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleWalkerDestination {
+        pub x: f64,
+        pub y: f64,
+        pub z: f64,
+    }
+
     // Traffic light states
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleTrafficLightState {
@@ -193,6 +201,7 @@ pub mod bridge {
         // Specific actor types
         type Vehicle;
         type Walker;
+        type WalkerAIController;
         type Sensor;
         type TrafficLight;
 
@@ -243,6 +252,7 @@ pub mod bridge {
         // Actor type checking and casting
         fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
         fn Actor_CastToWalker(actor: &Actor) -> SharedPtr<Walker>;
+        fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
         fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
         fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
 
@@ -287,6 +297,25 @@ pub mod bridge {
         fn Walker_ApplyControl(walker: &Walker, control: &SimpleWalkerControl);
         fn Walker_GetControl(walker: &Walker) -> SimpleWalkerControl;
         fn Walker_GetSpeed(walker: &Walker) -> f32;
+
+        // Walker pose control methods (simplified - no bone transforms)
+        fn Walker_BlendPose(walker: &Walker, blend: f32);
+        fn Walker_ShowPose(walker: &Walker);
+        fn Walker_HidePose(walker: &Walker);
+        fn Walker_GetPoseFromAnimation(walker: &Walker);
+
+        // Walker AI Controller methods
+        fn WalkerAIController_Start(controller: &WalkerAIController);
+        fn WalkerAIController_Stop(controller: &WalkerAIController);
+        fn WalkerAIController_SetMaxSpeed(controller: &WalkerAIController, max_speed: f32);
+        fn WalkerAIController_GoToLocation(
+            controller: &WalkerAIController,
+            destination: &SimpleWalkerDestination,
+        );
+        fn WalkerAIController_GetRandomLocation(
+            controller: &WalkerAIController,
+        ) -> SimpleWalkerDestination;
+        fn WalkerAIController_HasValidDestination(controller: &WalkerAIController) -> bool;
 
         // Sensor methods
         fn Sensor_Stop(sensor: &Sensor);
@@ -379,6 +408,7 @@ pub use bridge::{
     // Actor casting functions
     Actor_CastToVehicle,
     Actor_CastToWalker,
+    Actor_CastToWalkerAIController,
     Actor_Destroy,
     Actor_GetDisplayId,
     Actor_GetId,
@@ -432,6 +462,7 @@ pub use bridge::{
     SimpleVehicleDoor,
     SimpleVehiclePhysicsControl,
     SimpleWalkerControl,
+    SimpleWalkerDestination,
     SimpleWheelPhysicsControl,
     TrafficLight,
     TrafficLight_Freeze,
@@ -491,10 +522,21 @@ pub use bridge::{
     Vehicle_SetLightState,
     Vehicle_SetWheelPhysicsControls,
     Walker,
+    WalkerAIController,
+    WalkerAIController_GetRandomLocation,
+    WalkerAIController_GoToLocation,
+    WalkerAIController_HasValidDestination,
+    WalkerAIController_SetMaxSpeed,
+    WalkerAIController_Start,
+    WalkerAIController_Stop,
     // Walker methods
     Walker_ApplyControl,
+    Walker_BlendPose,
     Walker_GetControl,
+    Walker_GetPoseFromAnimation,
     Walker_GetSpeed,
+    Walker_HidePose,
+    Walker_ShowPose,
     World,
     World_GetBlueprintLibrary,
     World_GetId,
