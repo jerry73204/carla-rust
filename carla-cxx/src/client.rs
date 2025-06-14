@@ -20,6 +20,11 @@ impl ClientWrapper {
         Ok(Self { inner })
     }
 
+    /// Get reference to the inner Client for FFI operations
+    pub fn get_client(&self) -> &Client {
+        &self.inner
+    }
+
     /// Get the server version string
     pub fn get_server_version(&self) -> String {
         ffi::Client_GetServerVersion(&self.inner)

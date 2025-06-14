@@ -221,6 +221,63 @@ pub mod bridge {
         pub altitude: f64,
     }
 
+    // Traffic Manager types
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTrafficManagerConfig {
+        pub global_speed_percentage_difference: f32,
+        pub global_lane_offset: f32,
+        pub global_distance_to_leading_vehicle: f32,
+        pub synchronous_mode: bool,
+        pub synchronous_mode_timeout_ms: f64,
+        pub hybrid_physics_mode: bool,
+        pub hybrid_physics_radius: f32,
+        pub respawn_dormant_vehicles: bool,
+        pub respawn_lower_bound: f32,
+        pub respawn_upper_bound: f32,
+        pub random_device_seed: u64,
+        pub osm_mode: bool,
+        pub port: u16,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTrafficManagerVehicleConfig {
+        pub speed_percentage_difference: f32,
+        pub desired_speed: f32,
+        pub lane_offset: f32,
+        pub distance_to_leading_vehicle: f32,
+        pub auto_lane_change: bool,
+        pub force_lane_change_direction: bool,
+        pub force_lane_change_active: bool,
+        pub keep_right_percentage: f32,
+        pub random_left_lane_change_percentage: f32,
+        pub random_right_lane_change_percentage: f32,
+        pub percentage_running_light: f32,
+        pub percentage_running_sign: f32,
+        pub percentage_ignore_walkers: f32,
+        pub percentage_ignore_vehicles: f32,
+        pub update_vehicle_lights: bool,
+        pub collision_detection_enabled: bool,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTrafficManagerAction {
+        pub road_option: u32, // RoadOption enum
+        pub waypoint_id: u64, // Waypoint ID (0 if no waypoint)
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTrafficManagerStats {
+        pub total_registered_vehicles: u32,
+        pub active_vehicle_count: u32,
+        pub total_ticks: u32,
+        pub average_tick_time_ms: f64,
+        pub collision_count: u32,
+        pub lane_change_count: u32,
+        pub traffic_light_violations: u32,
+        pub stop_sign_violations: u32,
+        pub total_simulation_time_seconds: f64,
+    }
+
     #[namespace = "carla::client"]
     unsafe extern "C++" {
         include!("carla_cxx_bridge.h");
@@ -386,6 +443,131 @@ pub mod bridge {
         fn TrafficLight_Freeze(traffic_light: &TrafficLight, freeze: bool);
         fn TrafficLight_IsFrozen(traffic_light: &TrafficLight) -> bool;
 
+        // Traffic Manager methods
+        fn TrafficManager_GetInstance(client: &Client, port: u16) -> SharedPtr<TrafficManager>;
+        fn TrafficManager_RegisterVehicles(tm: &TrafficManager, vehicles: &[*const Vehicle]);
+        fn TrafficManager_UnregisterVehicles(tm: &TrafficManager, vehicles: &[*const Vehicle]);
+        fn TrafficManager_SetSynchronousMode(tm: &TrafficManager, mode: bool);
+        fn TrafficManager_SynchronousTick(tm: &TrafficManager) -> bool;
+        fn TrafficManager_SetSynchronousModeTimeout(tm: &TrafficManager, timeout_ms: f64);
+
+        // Global traffic manager configuration
+        fn TrafficManager_SetGlobalSpeedPercentage(tm: &TrafficManager, percentage: f32);
+        fn TrafficManager_SetGlobalLaneOffset(tm: &TrafficManager, offset: f32);
+        fn TrafficManager_SetGlobalDistanceToLeadingVehicle(tm: &TrafficManager, distance: f32);
+        fn TrafficManager_SetRandomDeviceSeed(tm: &TrafficManager, seed: u64);
+        fn TrafficManager_SetOSMMode(tm: &TrafficManager, mode: bool);
+
+        // Vehicle-specific configuration
+        fn TrafficManager_SetVehicleSpeedPercentage(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehicleDesiredSpeed(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            speed: f32,
+        );
+        fn TrafficManager_SetVehicleLaneOffset(tm: &TrafficManager, vehicle: &Vehicle, offset: f32);
+        fn TrafficManager_SetVehicleAutoLaneChange(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            enable: bool,
+        );
+        fn TrafficManager_ForceVehicleLaneChange(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            direction: bool,
+        );
+        fn TrafficManager_SetVehicleDistanceToLeadingVehicle(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            distance: f32,
+        );
+
+        // Traffic rule compliance
+        fn TrafficManager_SetVehiclePercentageRunningLight(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehiclePercentageRunningSign(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehiclePercentageIgnoreWalkers(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehiclePercentageIgnoreVehicles(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+
+        // Advanced features
+        fn TrafficManager_SetHybridPhysicsMode(tm: &TrafficManager, mode: bool);
+        fn TrafficManager_SetHybridPhysicsRadius(tm: &TrafficManager, radius: f32);
+        fn TrafficManager_SetCollisionDetection(
+            tm: &TrafficManager,
+            vehicle1: &Vehicle,
+            vehicle2: &Vehicle,
+            detect: bool,
+        );
+        fn TrafficManager_SetVehicleUpdateLights(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            update: bool,
+        );
+
+        // Lane behavior percentages
+        fn TrafficManager_SetVehicleKeepRightPercentage(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehicleRandomLeftLaneChangePercentage(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+        fn TrafficManager_SetVehicleRandomRightLaneChangePercentage(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+            percentage: f32,
+        );
+
+        // Respawn configuration
+        fn TrafficManager_SetRespawnDormantVehicles(tm: &TrafficManager, enable: bool);
+        fn TrafficManager_SetRespawnBoundaries(
+            tm: &TrafficManager,
+            lower_bound: f32,
+            upper_bound: f32,
+        );
+        fn TrafficManager_SetMaxBoundaries(tm: &TrafficManager, lower: f32, upper: f32);
+
+        // Statistics and monitoring
+        fn TrafficManager_GetConfig(tm: &TrafficManager) -> SimpleTrafficManagerConfig;
+        fn TrafficManager_GetVehicleConfig(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+        ) -> SimpleTrafficManagerVehicleConfig;
+        fn TrafficManager_GetStats(tm: &TrafficManager) -> SimpleTrafficManagerStats;
+        fn TrafficManager_GetNextAction(
+            tm: &TrafficManager,
+            vehicle: &Vehicle,
+        ) -> SimpleTrafficManagerAction;
+        fn TrafficManager_IsVehicleRegistered(tm: &TrafficManager, vehicle: &Vehicle) -> bool;
+        fn TrafficManager_GetPort(tm: &TrafficManager) -> u16;
+
+        // Lifecycle management
+        fn TrafficManager_Shutdown(tm: &TrafficManager);
+        fn TrafficManager_Reset();
+        fn TrafficManager_Release();
+
         // BlueprintLibrary methods
         fn BlueprintLibrary_Find(library: &BlueprintLibrary, id: &str)
             -> SharedPtr<ActorBlueprint>;
@@ -478,6 +660,14 @@ pub mod bridge {
         fn Junction_GetBoundingBox(junction: &Junction) -> SimpleBoundingBox;
 
     }
+
+    #[namespace = "carla::traffic_manager"]
+    unsafe extern "C++" {
+        include!("carla_cxx_bridge.h");
+
+        // Traffic Manager type
+        type TrafficManager;
+    }
 }
 
 // Re-export bridge types for easier access
@@ -563,6 +753,10 @@ pub use bridge::{
     SimpleRadarDetection,
     SimpleRotation,
     SimpleTrafficLightState,
+    SimpleTrafficManagerAction,
+    SimpleTrafficManagerConfig,
+    SimpleTrafficManagerStats,
+    SimpleTrafficManagerVehicleConfig,
     SimpleTransform,
     SimpleVector2D,
     SimpleVector3D,
@@ -586,6 +780,47 @@ pub use bridge::{
     TrafficLight_SetRedTime,
     TrafficLight_SetState,
     TrafficLight_SetYellowTime,
+    // Traffic Manager type and methods
+    TrafficManager,
+    TrafficManager_ForceVehicleLaneChange,
+    TrafficManager_GetConfig,
+    TrafficManager_GetInstance,
+    TrafficManager_GetNextAction,
+    TrafficManager_GetPort,
+    TrafficManager_GetStats,
+    TrafficManager_GetVehicleConfig,
+    TrafficManager_IsVehicleRegistered,
+    TrafficManager_RegisterVehicles,
+    TrafficManager_Release,
+    TrafficManager_Reset,
+    TrafficManager_SetCollisionDetection,
+    TrafficManager_SetGlobalDistanceToLeadingVehicle,
+    TrafficManager_SetGlobalLaneOffset,
+    TrafficManager_SetGlobalSpeedPercentage,
+    TrafficManager_SetHybridPhysicsMode,
+    TrafficManager_SetHybridPhysicsRadius,
+    TrafficManager_SetMaxBoundaries,
+    TrafficManager_SetOSMMode,
+    TrafficManager_SetRandomDeviceSeed,
+    TrafficManager_SetRespawnBoundaries,
+    TrafficManager_SetRespawnDormantVehicles,
+    TrafficManager_SetSynchronousMode,
+    TrafficManager_SetSynchronousModeTimeout,
+    TrafficManager_SetVehicleAutoLaneChange,
+    TrafficManager_SetVehicleDesiredSpeed,
+    TrafficManager_SetVehicleDistanceToLeadingVehicle,
+    TrafficManager_SetVehicleKeepRightPercentage,
+    TrafficManager_SetVehicleLaneOffset,
+    TrafficManager_SetVehiclePercentageIgnoreVehicles,
+    TrafficManager_SetVehiclePercentageIgnoreWalkers,
+    TrafficManager_SetVehiclePercentageRunningLight,
+    TrafficManager_SetVehiclePercentageRunningSign,
+    TrafficManager_SetVehicleRandomLeftLaneChangePercentage,
+    TrafficManager_SetVehicleRandomRightLaneChangePercentage,
+    TrafficManager_SetVehicleSpeedPercentage,
+    TrafficManager_SetVehicleUpdateLights,
+    TrafficManager_Shutdown,
+    TrafficManager_SynchronousTick,
     Transform_GetForwardVector,
     Transform_GetRightVector,
     Transform_GetUpVector,

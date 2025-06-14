@@ -23,6 +23,7 @@
 #include <carla/client/World.h>
 #include <carla/geom/GeoLocation.h>
 #include <carla/geom/Transform.h>
+#include <carla/trafficmanager/TrafficManager.h>
 
 // Forward declare our simple types from the generated header
 struct SimpleVector2D;
@@ -49,6 +50,10 @@ struct SimpleLaneMarking;
 struct SimpleWaypointInfo;
 struct SimpleJunction;
 struct SimpleGeoLocation;
+struct SimpleTrafficManagerConfig;
+struct SimpleTrafficManagerVehicleConfig;
+struct SimpleTrafficManagerAction;
+struct SimpleTrafficManagerStats;
 
 // CXX Bridge functions
 namespace carla {
@@ -290,6 +295,120 @@ uint8_t Waypoint_GetLaneChange(const Waypoint &waypoint);
 // Junction wrapper functions
 uint32_t Junction_GetId(const Junction &junction);
 SimpleBoundingBox Junction_GetBoundingBox(const Junction &junction);
+
+// Traffic Manager functions
+std::shared_ptr<carla::traffic_manager::TrafficManager>
+TrafficManager_GetInstance(const Client &client, uint16_t port);
+void TrafficManager_RegisterVehicles(
+    const carla::traffic_manager::TrafficManager &tm,
+    const rust::Slice<const Vehicle *const> vehicles);
+void TrafficManager_UnregisterVehicles(
+    const carla::traffic_manager::TrafficManager &tm,
+    const rust::Slice<const Vehicle *const> vehicles);
+void TrafficManager_SetSynchronousMode(
+    const carla::traffic_manager::TrafficManager &tm, bool mode);
+bool TrafficManager_SynchronousTick(
+    const carla::traffic_manager::TrafficManager &tm);
+void TrafficManager_SetSynchronousModeTimeout(
+    const carla::traffic_manager::TrafficManager &tm, double timeout_ms);
+
+// Global configuration functions
+void TrafficManager_SetGlobalSpeedPercentage(
+    const carla::traffic_manager::TrafficManager &tm, float percentage);
+void TrafficManager_SetGlobalLaneOffset(
+    const carla::traffic_manager::TrafficManager &tm, float offset);
+void TrafficManager_SetGlobalDistanceToLeadingVehicle(
+    const carla::traffic_manager::TrafficManager &tm, float distance);
+void TrafficManager_SetRandomDeviceSeed(
+    const carla::traffic_manager::TrafficManager &tm, uint64_t seed);
+void TrafficManager_SetOSMMode(const carla::traffic_manager::TrafficManager &tm,
+                               bool mode);
+
+// Vehicle-specific configuration functions
+void TrafficManager_SetVehicleSpeedPercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehicleDesiredSpeed(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float speed);
+void TrafficManager_SetVehicleLaneOffset(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float offset);
+void TrafficManager_SetVehicleAutoLaneChange(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool enable);
+void TrafficManager_ForceVehicleLaneChange(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool direction);
+void TrafficManager_SetVehicleDistanceToLeadingVehicle(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float distance);
+
+// Traffic rule compliance functions
+void TrafficManager_SetVehiclePercentageRunningLight(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehiclePercentageRunningSign(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehiclePercentageIgnoreWalkers(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehiclePercentageIgnoreVehicles(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+
+// Advanced features
+void TrafficManager_SetHybridPhysicsMode(
+    const carla::traffic_manager::TrafficManager &tm, bool mode);
+void TrafficManager_SetHybridPhysicsRadius(
+    const carla::traffic_manager::TrafficManager &tm, float radius);
+void TrafficManager_SetCollisionDetection(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle1,
+    const Vehicle &vehicle2, bool detect);
+void TrafficManager_SetVehicleUpdateLights(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool update);
+
+// Lane behavior percentages
+void TrafficManager_SetVehicleKeepRightPercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehicleRandomLeftLaneChangePercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+void TrafficManager_SetVehicleRandomRightLaneChangePercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage);
+
+// Respawn configuration
+void TrafficManager_SetRespawnDormantVehicles(
+    const carla::traffic_manager::TrafficManager &tm, bool enable);
+void TrafficManager_SetRespawnBoundaries(
+    const carla::traffic_manager::TrafficManager &tm, float lower_bound,
+    float upper_bound);
+void TrafficManager_SetMaxBoundaries(
+    const carla::traffic_manager::TrafficManager &tm, float lower, float upper);
+
+// Statistics and monitoring functions
+SimpleTrafficManagerConfig
+TrafficManager_GetConfig(const carla::traffic_manager::TrafficManager &tm);
+SimpleTrafficManagerVehicleConfig TrafficManager_GetVehicleConfig(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle);
+SimpleTrafficManagerStats
+TrafficManager_GetStats(const carla::traffic_manager::TrafficManager &tm);
+SimpleTrafficManagerAction
+TrafficManager_GetNextAction(const carla::traffic_manager::TrafficManager &tm,
+                             const Vehicle &vehicle);
+bool TrafficManager_IsVehicleRegistered(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle);
+uint16_t
+TrafficManager_GetPort(const carla::traffic_manager::TrafficManager &tm);
+
+// Lifecycle management
+void TrafficManager_Shutdown(const carla::traffic_manager::TrafficManager &tm);
+void TrafficManager_Reset();
+void TrafficManager_Release();
 
 } // namespace client
 } // namespace carla

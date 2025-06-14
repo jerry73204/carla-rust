@@ -32,6 +32,7 @@
 #include <carla/sensor/data/Image.h>
 #include <carla/sensor/data/LidarMeasurement.h>
 #include <carla/sensor/data/RadarMeasurement.h>
+#include <carla/trafficmanager/TrafficManager.h>
 
 #include <chrono>
 #include <cmath>
@@ -1353,6 +1354,369 @@ double Landmark_GetPitch(const Landmark &landmark) {
 }
 
 double Landmark_GetRoll(const Landmark &landmark) { return landmark.GetRoll(); }
+
+// ===== Traffic Manager Functions =====
+
+// Helper function to create a SharedPtr<Actor> from a Vehicle reference
+// This is a simplified approach - in practice, proper lifetime management is
+// crucial
+static std::shared_ptr<carla::client::Actor>
+make_actor_ptr(const Vehicle &vehicle) {
+  return std::shared_ptr<carla::client::Actor>(
+      const_cast<carla::client::Vehicle *>(&vehicle),
+      [](carla::client::Vehicle *) {}
+      // No-op deleter since we don't own the pointer
+  );
+}
+
+std::shared_ptr<carla::traffic_manager::TrafficManager>
+TrafficManager_GetInstance(const Client &client, uint16_t port) {
+  // Get traffic manager instance for the given port
+  auto world = client.GetWorld();
+  auto episode = world.GetEpisode();
+  auto tm = carla::traffic_manager::TrafficManager(episode, port);
+  return std::make_shared<carla::traffic_manager::TrafficManager>(
+      std::move(tm));
+}
+
+void TrafficManager_RegisterVehicles(
+    const carla::traffic_manager::TrafficManager &tm,
+    const rust::Slice<const Vehicle *const> vehicles) {
+  std::vector<std::shared_ptr<carla::client::Actor>> actor_list;
+  for (const Vehicle *vehicle_ptr : vehicles) {
+    if (vehicle_ptr) {
+      actor_list.push_back(make_actor_ptr(*vehicle_ptr));
+    }
+  }
+  // Note: TrafficManager.RegisterVehicles() is not const, so we need to cast
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.RegisterVehicles(actor_list);
+}
+
+void TrafficManager_UnregisterVehicles(
+    const carla::traffic_manager::TrafficManager &tm,
+    const rust::Slice<const Vehicle *const> vehicles) {
+  std::vector<std::shared_ptr<carla::client::Actor>> actor_list;
+  for (const Vehicle *vehicle_ptr : vehicles) {
+    if (vehicle_ptr) {
+      actor_list.push_back(make_actor_ptr(*vehicle_ptr));
+    }
+  }
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.UnregisterVehicles(actor_list);
+}
+
+void TrafficManager_SetSynchronousMode(
+    const carla::traffic_manager::TrafficManager &tm, bool mode) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetSynchronousMode(mode);
+}
+
+bool TrafficManager_SynchronousTick(
+    const carla::traffic_manager::TrafficManager &tm) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  return non_const_tm.SynchronousTick();
+}
+
+void TrafficManager_SetSynchronousModeTimeout(
+    const carla::traffic_manager::TrafficManager &tm, double timeout_ms) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetSynchronousModeTimeOutInMiliSecond(timeout_ms);
+}
+
+// Global configuration functions
+void TrafficManager_SetGlobalSpeedPercentage(
+    const carla::traffic_manager::TrafficManager &tm, float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetGlobalPercentageSpeedDifference(percentage);
+}
+
+void TrafficManager_SetGlobalLaneOffset(
+    const carla::traffic_manager::TrafficManager &tm, float offset) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetGlobalLaneOffset(offset);
+}
+
+void TrafficManager_SetGlobalDistanceToLeadingVehicle(
+    const carla::traffic_manager::TrafficManager &tm, float distance) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetGlobalDistanceToLeadingVehicle(distance);
+}
+
+void TrafficManager_SetRandomDeviceSeed(
+    const carla::traffic_manager::TrafficManager &tm, uint64_t seed) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetRandomDeviceSeed(seed);
+}
+
+void TrafficManager_SetOSMMode(const carla::traffic_manager::TrafficManager &tm,
+                               bool mode) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetOSMMode(mode);
+}
+
+// Vehicle-specific configuration functions
+void TrafficManager_SetVehicleSpeedPercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetPercentageSpeedDifference(actor, percentage);
+}
+
+void TrafficManager_SetVehicleDesiredSpeed(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float speed) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetDesiredSpeed(actor, speed);
+}
+
+void TrafficManager_SetVehicleLaneOffset(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float offset) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetLaneOffset(actor, offset);
+}
+
+void TrafficManager_SetVehicleAutoLaneChange(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool enable) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetAutoLaneChange(actor, enable);
+}
+
+void TrafficManager_ForceVehicleLaneChange(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool direction) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetForceLaneChange(actor, direction);
+}
+
+void TrafficManager_SetVehicleDistanceToLeadingVehicle(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float distance) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetDistanceToLeadingVehicle(actor, distance);
+}
+
+// Traffic rule compliance functions
+void TrafficManager_SetVehiclePercentageRunningLight(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetPercentageRunningLight(actor, percentage);
+}
+
+void TrafficManager_SetVehiclePercentageRunningSign(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetPercentageRunningSign(actor, percentage);
+}
+
+void TrafficManager_SetVehiclePercentageIgnoreWalkers(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetPercentageIgnoreWalkers(actor, percentage);
+}
+
+void TrafficManager_SetVehiclePercentageIgnoreVehicles(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetPercentageIgnoreVehicles(actor, percentage);
+}
+
+// Advanced features
+void TrafficManager_SetHybridPhysicsMode(
+    const carla::traffic_manager::TrafficManager &tm, bool mode) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetHybridPhysicsMode(mode);
+}
+
+void TrafficManager_SetHybridPhysicsRadius(
+    const carla::traffic_manager::TrafficManager &tm, float radius) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetHybridPhysicsRadius(radius);
+}
+
+void TrafficManager_SetCollisionDetection(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle1,
+    const Vehicle &vehicle2, bool detect) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor1 = make_actor_ptr(vehicle1);
+  auto actor2 = make_actor_ptr(vehicle2);
+  non_const_tm.SetCollisionDetection(actor1, actor2, detect);
+}
+
+void TrafficManager_SetVehicleUpdateLights(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    bool update) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetUpdateVehicleLights(actor, update);
+}
+
+// Lane behavior percentages
+void TrafficManager_SetVehicleKeepRightPercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetKeepRightPercentage(actor, percentage);
+}
+
+void TrafficManager_SetVehicleRandomLeftLaneChangePercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetRandomLeftLaneChangePercentage(actor, percentage);
+}
+
+void TrafficManager_SetVehicleRandomRightLaneChangePercentage(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle,
+    float percentage) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  auto actor = make_actor_ptr(vehicle);
+  non_const_tm.SetRandomRightLaneChangePercentage(actor, percentage);
+}
+
+// Respawn configuration
+void TrafficManager_SetRespawnDormantVehicles(
+    const carla::traffic_manager::TrafficManager &tm, bool enable) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetRespawnDormantVehicles(enable);
+}
+
+void TrafficManager_SetRespawnBoundaries(
+    const carla::traffic_manager::TrafficManager &tm, float lower_bound,
+    float upper_bound) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetBoundariesRespawnDormantVehicles(lower_bound, upper_bound);
+}
+
+void TrafficManager_SetMaxBoundaries(
+    const carla::traffic_manager::TrafficManager &tm, float lower,
+    float upper) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.SetMaxBoundaries(lower, upper);
+}
+
+// Statistics and monitoring functions - simplified implementations
+SimpleTrafficManagerConfig
+TrafficManager_GetConfig(const carla::traffic_manager::TrafficManager &tm) {
+  // Return a default config since CARLA TM doesn't expose configuration
+  // directly
+  SimpleTrafficManagerConfig config;
+  config.global_speed_percentage_difference = 0.0f;
+  config.global_lane_offset = 0.0f;
+  config.global_distance_to_leading_vehicle = 3.0f;
+  config.synchronous_mode = false;
+  config.synchronous_mode_timeout_ms = 2000.0;
+  config.hybrid_physics_mode = false;
+  config.hybrid_physics_radius = 50.0f;
+  config.respawn_dormant_vehicles = false;
+  config.respawn_lower_bound = 0.0f;
+  config.respawn_upper_bound = 0.0f;
+  config.random_device_seed = 0;
+  config.osm_mode = false;
+  config.port = tm.Port();
+  return config;
+}
+
+SimpleTrafficManagerVehicleConfig TrafficManager_GetVehicleConfig(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle) {
+  // Return default vehicle config since CARLA TM doesn't expose per-vehicle
+  // config directly
+  SimpleTrafficManagerVehicleConfig config;
+  config.speed_percentage_difference = 0.0f;
+  config.desired_speed = 0.0f;
+  config.lane_offset = 0.0f;
+  config.distance_to_leading_vehicle = 3.0f;
+  config.auto_lane_change = true;
+  config.force_lane_change_direction = false;
+  config.force_lane_change_active = false;
+  config.keep_right_percentage = 50.0f;
+  config.random_left_lane_change_percentage = 0.0f;
+  config.random_right_lane_change_percentage = 0.0f;
+  config.percentage_running_light = 0.0f;
+  config.percentage_running_sign = 0.0f;
+  config.percentage_ignore_walkers = 0.0f;
+  config.percentage_ignore_vehicles = 0.0f;
+  config.update_vehicle_lights = true;
+  config.collision_detection_enabled = true;
+  return config;
+}
+
+SimpleTrafficManagerStats
+TrafficManager_GetStats(const carla::traffic_manager::TrafficManager &tm) {
+  // Return default stats since CARLA TM doesn't expose statistics directly
+  SimpleTrafficManagerStats stats;
+  stats.total_registered_vehicles = 0;
+  stats.active_vehicle_count = 0;
+  stats.total_ticks = 0;
+  stats.average_tick_time_ms = 0.0;
+  stats.collision_count = 0;
+  stats.lane_change_count = 0;
+  stats.traffic_light_violations = 0;
+  stats.stop_sign_violations = 0;
+  stats.total_simulation_time_seconds = 0.0;
+  return stats;
+}
+
+SimpleTrafficManagerAction
+TrafficManager_GetNextAction(const carla::traffic_manager::TrafficManager &tm,
+                             const Vehicle &vehicle) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+
+  SimpleTrafficManagerAction action;
+  try {
+    auto carla_action = non_const_tm.GetNextAction(vehicle.GetId());
+    // GetNextAction returns a pair<RoadOption, SharedPtr<Waypoint>>
+    action.road_option = static_cast<uint32_t>(carla_action.first);
+    action.waypoint_id = carla_action.second ? carla_action.second->GetId() : 0;
+  } catch (...) {
+    // Default action if failed
+    action.road_option = 0; // VOID
+    action.waypoint_id = 0;
+  }
+  return action;
+}
+
+bool TrafficManager_IsVehicleRegistered(
+    const carla::traffic_manager::TrafficManager &tm, const Vehicle &vehicle) {
+  // CARLA TM doesn't provide a direct method to check registration
+  // This is a simplified implementation
+  return true; // Assume registered for now
+}
+
+uint16_t
+TrafficManager_GetPort(const carla::traffic_manager::TrafficManager &tm) {
+  return tm.Port();
+}
+
+// Lifecycle management
+void TrafficManager_Shutdown(const carla::traffic_manager::TrafficManager &tm) {
+  auto &non_const_tm = const_cast<carla::traffic_manager::TrafficManager &>(tm);
+  non_const_tm.ShutDown();
+}
+
+void TrafficManager_Reset() { carla::traffic_manager::TrafficManager::Reset(); }
+
+void TrafficManager_Release() {
+  carla::traffic_manager::TrafficManager::Release();
+}
 
 } // namespace client
 } // namespace carla

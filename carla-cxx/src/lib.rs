@@ -42,6 +42,7 @@ pub mod geometry;
 pub mod map;
 pub mod sensor;
 pub mod traffic_light;
+pub mod traffic_manager;
 pub mod vehicle;
 pub mod walker;
 pub mod walker_ai;
@@ -55,7 +56,7 @@ pub use ffi::{
     Actor, ActorBlueprint, BlueprintLibrary, Client, Junction, Map, Sensor, SimpleBoundingBox,
     SimpleGeoLocation, SimpleLaneMarking, SimpleLocation, SimpleRotation, SimpleTransform,
     SimpleVector2D, SimpleVector3D, SimpleVehicleControl, SimpleWalkerControl, SimpleWaypointInfo,
-    TrafficLight, Vehicle, Walker, Waypoint, World,
+    TrafficLight, TrafficManager, Vehicle, Walker, Waypoint, World,
 };
 
 pub use blueprint::ActorBlueprintExt;
@@ -66,6 +67,10 @@ pub use map::{
 };
 pub use sensor::{GNSSData, IMUData, ImageData, LiDARData, RadarData, SensorData, SensorWrapper};
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
+pub use traffic_manager::{
+    RoadOption, TrafficManagerAction, TrafficManagerConfig, TrafficManagerStats,
+    TrafficManagerVehicleConfig, TrafficManagerWrapper,
+};
 pub use vehicle::{
     AckermannControl, EnginePhysics, GearPhysicsControl, SteeringPhysics, TransmissionPhysics,
     VehicleControl, VehicleDoorState, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
