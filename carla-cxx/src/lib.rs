@@ -39,24 +39,31 @@ pub mod blueprint;
 pub mod client;
 pub mod ffi;
 pub mod geometry;
+pub mod map;
 pub mod sensor;
 pub mod traffic_light;
 pub mod vehicle;
 pub mod walker;
 pub mod walker_ai;
+pub mod waypoint;
 
 #[cfg(test)]
 mod tests;
 
 // Re-export the most commonly used types for convenience
 pub use ffi::{
-    Actor, ActorBlueprint, BlueprintLibrary, Client, Sensor, SimpleBoundingBox, SimpleLocation,
-    SimpleRotation, SimpleTransform, SimpleVector2D, SimpleVector3D, SimpleVehicleControl,
-    SimpleWalkerControl, TrafficLight, Vehicle, Walker, World,
+    Actor, ActorBlueprint, BlueprintLibrary, Client, Junction, Map, Sensor, SimpleBoundingBox,
+    SimpleGeoLocation, SimpleLaneMarking, SimpleLocation, SimpleRotation, SimpleTransform,
+    SimpleVector2D, SimpleVector3D, SimpleVehicleControl, SimpleWalkerControl, SimpleWaypointInfo,
+    TrafficLight, Vehicle, Walker, Waypoint, World,
 };
 
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
+pub use map::{
+    JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
+    MapWrapper, SignalOrientation, WaypointWrapper,
+};
 pub use sensor::{GNSSData, IMUData, ImageData, LiDARData, RadarData, SensorData, SensorWrapper};
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
 pub use vehicle::{

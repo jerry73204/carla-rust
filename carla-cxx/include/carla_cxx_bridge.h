@@ -12,12 +12,16 @@
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
+#include <carla/client/Junction.h>
+#include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
 #include <carla/client/TrafficLight.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
 #include <carla/client/WalkerAIController.h>
+#include <carla/client/Waypoint.h>
 #include <carla/client/World.h>
+#include <carla/geom/GeoLocation.h>
 #include <carla/geom/Transform.h>
 
 // Forward declare our simple types from the generated header
@@ -41,6 +45,10 @@ struct SimpleRadarDetection;
 struct SimpleIMUData;
 struct SimpleGNSSData;
 struct SimpleImageData;
+struct SimpleLaneMarking;
+struct SimpleWaypointInfo;
+struct SimpleJunction;
+struct SimpleGeoLocation;
 
 // CXX Bridge functions
 namespace carla {
@@ -237,6 +245,51 @@ bool BoundingBox_Contains(const SimpleBoundingBox &bbox,
                           const SimpleLocation &point);
 rust::Vec<SimpleLocation>
 BoundingBox_GetVertices(const SimpleBoundingBox &bbox);
+
+// Map wrapper functions
+std::shared_ptr<Map> World_GetMap(const World &world);
+rust::String Map_GetName(const Map &map);
+rust::String Map_GetOpenDrive(const Map &map);
+rust::Vec<SimpleTransform> Map_GetRecommendedSpawnPoints(const Map &map);
+std::shared_ptr<Waypoint> Map_GetWaypoint(const Map &map,
+                                          const SimpleLocation &location,
+                                          bool project_to_road,
+                                          int32_t lane_type);
+std::shared_ptr<Waypoint> Map_GetWaypointXODR(const Map &map, uint32_t road_id,
+                                              int32_t lane_id, double s);
+rust::Vec<SimpleWaypointInfo> Map_GenerateWaypoints(const Map &map,
+                                                    double distance);
+SimpleGeoLocation Map_GetGeoReference(const Map &map);
+rust::Vec<SimpleLocation> Map_GetAllCrosswalkZones(const Map &map);
+std::shared_ptr<Junction> Map_GetJunction(const Map &map,
+                                          const Waypoint &waypoint);
+rust::Vec<SimpleWaypointInfo> Map_GetTopology(const Map &map);
+
+// Waypoint wrapper functions
+uint64_t Waypoint_GetId(const Waypoint &waypoint);
+uint32_t Waypoint_GetRoadId(const Waypoint &waypoint);
+uint32_t Waypoint_GetSectionId(const Waypoint &waypoint);
+int32_t Waypoint_GetLaneId(const Waypoint &waypoint);
+double Waypoint_GetDistance(const Waypoint &waypoint);
+SimpleTransform Waypoint_GetTransform(const Waypoint &waypoint);
+uint32_t Waypoint_GetJunctionId(const Waypoint &waypoint);
+bool Waypoint_IsJunction(const Waypoint &waypoint);
+std::shared_ptr<Junction> Waypoint_GetJunction(const Waypoint &waypoint);
+double Waypoint_GetLaneWidth(const Waypoint &waypoint);
+uint32_t Waypoint_GetType(const Waypoint &waypoint);
+std::shared_ptr<Waypoint> Waypoint_GetNext(const Waypoint &waypoint,
+                                           double distance);
+std::shared_ptr<Waypoint> Waypoint_GetPrevious(const Waypoint &waypoint,
+                                               double distance);
+std::shared_ptr<Waypoint> Waypoint_GetRight(const Waypoint &waypoint);
+std::shared_ptr<Waypoint> Waypoint_GetLeft(const Waypoint &waypoint);
+SimpleLaneMarking Waypoint_GetRightLaneMarking(const Waypoint &waypoint);
+SimpleLaneMarking Waypoint_GetLeftLaneMarking(const Waypoint &waypoint);
+uint8_t Waypoint_GetLaneChange(const Waypoint &waypoint);
+
+// Junction wrapper functions
+uint32_t Junction_GetId(const Junction &junction);
+SimpleBoundingBox Junction_GetBoundingBox(const Junction &junction);
 
 } // namespace client
 } // namespace carla

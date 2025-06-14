@@ -6,11 +6,16 @@
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
+#include <carla/client/Junction.h>
+#include <carla/client/Landmark.h>
+#include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
 #include <carla/client/TrafficLight.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
+#include <carla/client/Waypoint.h>
 #include <carla/client/World.h>
+#include <carla/geom/GeoLocation.h>
 #include <carla/geom/Vector3D.h>
 #include <carla/rpc/AckermannControllerSettings.h>
 #include <carla/rpc/TrafficLightState.h>
@@ -129,6 +134,8 @@ std::shared_ptr<Actor> World_TrySpawnActor(const World &world,
   return const_cast<World &>(world).TrySpawnActor(blueprint, carla_transform,
                                                   const_cast<Actor *>(parent));
 }
+
+std::shared_ptr<Map> World_GetMap(const World &world) { return world.GetMap(); }
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor) { return actor.GetId(); }
@@ -1029,6 +1036,323 @@ void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze) {
 bool TrafficLight_IsFrozen(const TrafficLight &traffic_light) {
   return traffic_light.IsFrozen();
 }
+
+// Map wrapper functions
+rust::String Map_GetName(const Map &map) { return rust::String(map.GetName()); }
+
+rust::String Map_GetOpenDrive(const Map &map) {
+  return rust::String(map.GetOpenDrive());
+}
+
+rust::Vec<SimpleTransform> Map_GetRecommendedSpawnPoints(const Map &map) {
+  rust::Vec<SimpleTransform> spawn_points;
+  for (const auto &transform : map.GetRecommendedSpawnPoints()) {
+    spawn_points.push_back(SimpleTransform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}});
+  }
+  return spawn_points;
+}
+
+std::shared_ptr<Waypoint> Map_GetWaypoint(const Map &map,
+                                          const SimpleLocation &location,
+                                          bool project_to_road,
+                                          int32_t lane_type) {
+  carla::geom::Location carla_location(location.x, location.y, location.z);
+  return map.GetWaypoint(carla_location, project_to_road, lane_type);
+}
+
+std::shared_ptr<Waypoint> Map_GetWaypointXODR(const Map &map, uint32_t road_id,
+                                              int32_t lane_id, double s) {
+  return map.GetWaypointXODR(road_id, lane_id, s);
+}
+
+rust::Vec<SimpleWaypointInfo> Map_GenerateWaypoints(const Map &map,
+                                                    double distance) {
+  rust::Vec<SimpleWaypointInfo> waypoints;
+  for (const auto &wp : map.GenerateWaypoints(distance)) {
+    SimpleWaypointInfo simple_wp;
+    simple_wp.id = wp->GetId();
+    simple_wp.road_id = wp->GetRoadId();
+    simple_wp.section_id = wp->GetSectionId();
+    simple_wp.lane_id = wp->GetLaneId();
+    simple_wp.s = wp->GetDistance();
+
+    const auto &transform = wp->GetTransform();
+    simple_wp.transform = SimpleTransform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+
+    simple_wp.is_junction = wp->IsJunction();
+    simple_wp.lane_width = wp->GetLaneWidth();
+    simple_wp.lane_type = static_cast<uint32_t>(wp->GetType());
+    simple_wp.lane_change = static_cast<uint8_t>(wp->GetLaneChange());
+
+    waypoints.push_back(simple_wp);
+  }
+  return waypoints;
+}
+
+SimpleGeoLocation Map_GetGeoReference(const Map &map) {
+  const auto &geo = map.GetGeoReference();
+  return SimpleGeoLocation{geo.latitude, geo.longitude, geo.altitude};
+}
+
+rust::Vec<SimpleLocation> Map_GetAllCrosswalkZones(const Map &map) {
+  rust::Vec<SimpleLocation> zones;
+  for (const auto &location : map.GetAllCrosswalkZones()) {
+    zones.push_back(SimpleLocation{location.x, location.y, location.z});
+  }
+  return zones;
+}
+
+std::shared_ptr<Junction> Map_GetJunction(const Map &map,
+                                          const Waypoint &waypoint) {
+  return map.GetJunction(waypoint);
+}
+
+rust::Vec<SimpleWaypointInfo> Map_GetTopology(const Map &map) {
+  rust::Vec<SimpleWaypointInfo> waypoints;
+  auto topology = map.GetTopology();
+  // Return just the first waypoint of each pair for simplicity
+  for (const auto &pair : topology) {
+    if (pair.first) {
+      SimpleWaypointInfo simple_wp;
+      simple_wp.id = pair.first->GetId();
+      simple_wp.road_id = pair.first->GetRoadId();
+      simple_wp.section_id = pair.first->GetSectionId();
+      simple_wp.lane_id = pair.first->GetLaneId();
+      simple_wp.s = pair.first->GetDistance();
+
+      const auto &transform = pair.first->GetTransform();
+      simple_wp.transform = SimpleTransform{
+          SimpleLocation{transform.location.x, transform.location.y,
+                         transform.location.z},
+          SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                         transform.rotation.roll}};
+
+      simple_wp.is_junction = pair.first->IsJunction();
+      simple_wp.lane_width = pair.first->GetLaneWidth();
+      simple_wp.lane_type = static_cast<uint32_t>(pair.first->GetType());
+      simple_wp.lane_change = static_cast<uint8_t>(pair.first->GetLaneChange());
+
+      waypoints.push_back(simple_wp);
+    }
+  }
+  return waypoints;
+}
+
+// Waypoint wrapper functions
+uint64_t Waypoint_GetId(const Waypoint &waypoint) { return waypoint.GetId(); }
+
+uint32_t Waypoint_GetRoadId(const Waypoint &waypoint) {
+  return waypoint.GetRoadId();
+}
+
+uint32_t Waypoint_GetSectionId(const Waypoint &waypoint) {
+  return waypoint.GetSectionId();
+}
+
+int32_t Waypoint_GetLaneId(const Waypoint &waypoint) {
+  return waypoint.GetLaneId();
+}
+
+double Waypoint_GetDistance(const Waypoint &waypoint) {
+  return waypoint.GetDistance();
+}
+
+SimpleTransform Waypoint_GetTransform(const Waypoint &waypoint) {
+  const auto &transform = waypoint.GetTransform();
+  return SimpleTransform{
+      SimpleLocation{transform.location.x, transform.location.y,
+                     transform.location.z},
+      SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                     transform.rotation.roll}};
+}
+
+uint32_t Waypoint_GetJunctionId(const Waypoint &waypoint) {
+  return waypoint.GetJunctionId();
+}
+
+bool Waypoint_IsJunction(const Waypoint &waypoint) {
+  return waypoint.IsJunction();
+}
+
+std::shared_ptr<Junction> Waypoint_GetJunction(const Waypoint &waypoint) {
+  return waypoint.GetJunction();
+}
+
+double Waypoint_GetLaneWidth(const Waypoint &waypoint) {
+  return waypoint.GetLaneWidth();
+}
+
+uint32_t Waypoint_GetType(const Waypoint &waypoint) {
+  return static_cast<uint32_t>(waypoint.GetType());
+}
+
+std::shared_ptr<Waypoint> Waypoint_GetNext(const Waypoint &waypoint,
+                                           double distance) {
+  auto next_waypoints = waypoint.GetNext(distance);
+  if (!next_waypoints.empty()) {
+    return next_waypoints[0];
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> Waypoint_GetPrevious(const Waypoint &waypoint,
+                                               double distance) {
+  auto prev_waypoints = waypoint.GetPrevious(distance);
+  if (!prev_waypoints.empty()) {
+    return prev_waypoints[0];
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> Waypoint_GetRight(const Waypoint &waypoint) {
+  return waypoint.GetRight();
+}
+
+std::shared_ptr<Waypoint> Waypoint_GetLeft(const Waypoint &waypoint) {
+  return waypoint.GetLeft();
+}
+
+SimpleLaneMarking Waypoint_GetRightLaneMarking(const Waypoint &waypoint) {
+  auto marking_opt = waypoint.GetRightLaneMarking();
+  if (marking_opt.has_value()) {
+    const auto &marking = marking_opt.value();
+    return SimpleLaneMarking{static_cast<uint32_t>(marking.type),
+                             static_cast<uint8_t>(marking.color),
+                             static_cast<uint8_t>(marking.lane_change),
+                             marking.width};
+  }
+  // Return a default marking if none exists
+  return SimpleLaneMarking{0, 0, 0, 0.0};
+}
+
+SimpleLaneMarking Waypoint_GetLeftLaneMarking(const Waypoint &waypoint) {
+  auto marking_opt = waypoint.GetLeftLaneMarking();
+  if (marking_opt.has_value()) {
+    const auto &marking = marking_opt.value();
+    return SimpleLaneMarking{static_cast<uint32_t>(marking.type),
+                             static_cast<uint8_t>(marking.color),
+                             static_cast<uint8_t>(marking.lane_change),
+                             marking.width};
+  }
+  // Return a default marking if none exists
+  return SimpleLaneMarking{0, 0, 0, 0.0};
+}
+
+uint8_t Waypoint_GetLaneChange(const Waypoint &waypoint) {
+  return static_cast<uint8_t>(waypoint.GetLaneChange());
+}
+
+// Removed Waypoint_GetAllLandmarksInDistance and
+// Waypoint_GetLandmarksOfTypeInDistance due to CXX limitations with
+// Vec<SharedPtr<T>>
+
+// Junction wrapper functions
+uint32_t Junction_GetId(const Junction &junction) { return junction.GetId(); }
+
+// Removed Junction_GetWaypoints due to CXX limitations with Vec<SharedPtr<T>>
+
+SimpleBoundingBox Junction_GetBoundingBox(const Junction &junction) {
+  const auto &bbox = junction.GetBoundingBox();
+  return SimpleBoundingBox{
+      SimpleLocation{bbox.location.x, bbox.location.y, bbox.location.z},
+      SimpleVector3D{bbox.extent.x, bbox.extent.y, bbox.extent.z}};
+}
+
+// Landmark wrapper functions
+std::shared_ptr<Waypoint> Landmark_GetWaypoint(const Landmark &landmark) {
+  return landmark.GetWaypoint();
+}
+
+SimpleTransform Landmark_GetTransform(const Landmark &landmark) {
+  const auto &transform = landmark.GetTransform();
+  return SimpleTransform{
+      SimpleLocation{transform.location.x, transform.location.y,
+                     transform.location.z},
+      SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                     transform.rotation.roll}};
+}
+
+uint32_t Landmark_GetRoadId(const Landmark &landmark) {
+  return landmark.GetRoadId();
+}
+
+double Landmark_GetDistance(const Landmark &landmark) {
+  return landmark.GetDistance();
+}
+
+double Landmark_GetS(const Landmark &landmark) { return landmark.GetS(); }
+
+double Landmark_GetT(const Landmark &landmark) { return landmark.GetT(); }
+
+rust::String Landmark_GetId(const Landmark &landmark) {
+  return rust::String(landmark.GetId());
+}
+
+rust::String Landmark_GetName(const Landmark &landmark) {
+  return rust::String(landmark.GetName());
+}
+
+bool Landmark_IsDynamic(const Landmark &landmark) {
+  return landmark.IsDynamic();
+}
+
+int32_t Landmark_GetOrientation(const Landmark &landmark) {
+  return static_cast<int32_t>(landmark.GetOrientation());
+}
+
+double Landmark_GetZOffset(const Landmark &landmark) {
+  return landmark.GetZOffset();
+}
+
+rust::String Landmark_GetCountry(const Landmark &landmark) {
+  return rust::String(landmark.GetCountry());
+}
+
+rust::String Landmark_GetType(const Landmark &landmark) {
+  return rust::String(landmark.GetType());
+}
+
+rust::String Landmark_GetSubType(const Landmark &landmark) {
+  return rust::String(landmark.GetSubType());
+}
+
+double Landmark_GetValue(const Landmark &landmark) {
+  return landmark.GetValue();
+}
+
+rust::String Landmark_GetUnit(const Landmark &landmark) {
+  return rust::String(landmark.GetUnit());
+}
+
+double Landmark_GetHeight(const Landmark &landmark) {
+  return landmark.GetHeight();
+}
+
+double Landmark_GetWidth(const Landmark &landmark) {
+  return landmark.GetWidth();
+}
+
+rust::String Landmark_GetText(const Landmark &landmark) {
+  return rust::String(landmark.GetText());
+}
+
+double Landmark_GetHOffset(const Landmark &landmark) {
+  return landmark.GethOffset();
+}
+
+double Landmark_GetPitch(const Landmark &landmark) {
+  return landmark.GetPitch();
+}
+
+double Landmark_GetRoll(const Landmark &landmark) { return landmark.GetRoll(); }
 
 } // namespace client
 } // namespace carla

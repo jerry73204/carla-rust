@@ -110,6 +110,12 @@ impl WorldWrapper {
             Some(ActorWrapper { inner: actor_ptr })
         }
     }
+
+    /// Get the map associated with this world
+    pub fn get_map(&self) -> crate::map::MapWrapper {
+        let map_ptr = ffi::World_GetMap(&self.inner);
+        crate::map::MapWrapper::new(map_ptr)
+    }
 }
 
 /// High-level wrapper for CARLA Actor

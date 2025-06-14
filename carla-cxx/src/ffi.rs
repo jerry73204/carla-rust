@@ -185,6 +185,42 @@ pub mod bridge {
         pub data_size: usize,
     }
 
+    // Map and navigation types
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleLaneMarking {
+        pub lane_marking_type: u32, // LaneMarking::Type enum
+        pub color: u8,              // LaneMarking::Color enum
+        pub lane_change: u8,        // LaneMarking::LaneChange enum
+        pub width: f64,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleWaypointInfo {
+        pub id: u64,
+        pub road_id: u32,
+        pub section_id: u32,
+        pub lane_id: i32,
+        pub s: f64,
+        pub transform: SimpleTransform,
+        pub is_junction: bool,
+        pub lane_width: f64,
+        pub lane_type: u32,  // Lane::LaneType enum
+        pub lane_change: u8, // LaneMarking::LaneChange enum
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleJunction {
+        pub id: u32,
+        pub bounding_box: SimpleBoundingBox,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleGeoLocation {
+        pub latitude: f64,
+        pub longitude: f64,
+        pub altitude: f64,
+    }
+
     #[namespace = "carla::client"]
     unsafe extern "C++" {
         include!("carla_cxx_bridge.h");
@@ -210,6 +246,11 @@ pub mod bridge {
 
         // ActorBlueprint type
         type ActorBlueprint;
+
+        // Map and navigation types
+        type Map;
+        type Waypoint;
+        type Junction;
 
         // Client creation
         fn create_client(host: &str, port: u16, worker_threads: usize) -> UniquePtr<Client>;
@@ -237,6 +278,7 @@ pub mod bridge {
             transform: &SimpleTransform,
             parent: *const Actor,
         ) -> SharedPtr<Actor>;
+        fn World_GetMap(world: &World) -> SharedPtr<Map>;
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;
@@ -388,6 +430,53 @@ pub mod bridge {
 
         fn BoundingBox_Contains(bbox: &SimpleBoundingBox, point: &SimpleLocation) -> bool;
         fn BoundingBox_GetVertices(bbox: &SimpleBoundingBox) -> Vec<SimpleLocation>;
+
+        // Map methods
+        fn Map_GetName(map: &Map) -> String;
+        fn Map_GetOpenDrive(map: &Map) -> String;
+        fn Map_GetRecommendedSpawnPoints(map: &Map) -> Vec<SimpleTransform>;
+        fn Map_GetWaypoint(
+            map: &Map,
+            location: &SimpleLocation,
+            project_to_road: bool,
+            lane_type: i32,
+        ) -> SharedPtr<Waypoint>;
+        fn Map_GetWaypointXODR(
+            map: &Map,
+            road_id: u32,
+            lane_id: i32,
+            s: f64,
+        ) -> SharedPtr<Waypoint>;
+        fn Map_GenerateWaypoints(map: &Map, distance: f64) -> Vec<SimpleWaypointInfo>;
+        fn Map_GetGeoReference(map: &Map) -> SimpleGeoLocation;
+        fn Map_GetAllCrosswalkZones(map: &Map) -> Vec<SimpleLocation>;
+        fn Map_GetJunction(map: &Map, waypoint: &Waypoint) -> SharedPtr<Junction>;
+        // Note: Due to CXX limitations, these return simplified structs instead of Vec<SharedPtr<T>>
+        fn Map_GetTopology(map: &Map) -> Vec<SimpleWaypointInfo>;
+
+        // Waypoint methods
+        fn Waypoint_GetId(waypoint: &Waypoint) -> u64;
+        fn Waypoint_GetRoadId(waypoint: &Waypoint) -> u32;
+        fn Waypoint_GetSectionId(waypoint: &Waypoint) -> u32;
+        fn Waypoint_GetLaneId(waypoint: &Waypoint) -> i32;
+        fn Waypoint_GetDistance(waypoint: &Waypoint) -> f64;
+        fn Waypoint_GetTransform(waypoint: &Waypoint) -> SimpleTransform;
+        fn Waypoint_GetJunctionId(waypoint: &Waypoint) -> u32;
+        fn Waypoint_IsJunction(waypoint: &Waypoint) -> bool;
+        fn Waypoint_GetJunction(waypoint: &Waypoint) -> SharedPtr<Junction>;
+        fn Waypoint_GetLaneWidth(waypoint: &Waypoint) -> f64;
+        fn Waypoint_GetType(waypoint: &Waypoint) -> u32;
+        fn Waypoint_GetNext(waypoint: &Waypoint, distance: f64) -> SharedPtr<Waypoint>;
+        fn Waypoint_GetPrevious(waypoint: &Waypoint, distance: f64) -> SharedPtr<Waypoint>;
+        fn Waypoint_GetRight(waypoint: &Waypoint) -> SharedPtr<Waypoint>;
+        fn Waypoint_GetLeft(waypoint: &Waypoint) -> SharedPtr<Waypoint>;
+        fn Waypoint_GetRightLaneMarking(waypoint: &Waypoint) -> SimpleLaneMarking;
+        fn Waypoint_GetLeftLaneMarking(waypoint: &Waypoint) -> SimpleLaneMarking;
+        fn Waypoint_GetLaneChange(waypoint: &Waypoint) -> u8;
+        // Junction methods
+        fn Junction_GetId(junction: &Junction) -> u32;
+        fn Junction_GetBoundingBox(junction: &Junction) -> SimpleBoundingBox;
+
     }
 }
 
@@ -428,8 +517,25 @@ pub use bridge::{
     Client_GetTimeout,
     Client_GetWorld,
     Client_SetTimeout,
+    Junction,
+    Junction_GetBoundingBox,
+    // Junction methods
+    Junction_GetId,
     Location_Distance,
     Location_DistanceSquared,
+    // Map and navigation types
+    Map,
+    Map_GenerateWaypoints,
+    Map_GetAllCrosswalkZones,
+    Map_GetGeoReference,
+    Map_GetJunction,
+    // Map methods
+    Map_GetName,
+    Map_GetOpenDrive,
+    Map_GetRecommendedSpawnPoints,
+    Map_GetTopology,
+    Map_GetWaypoint,
+    Map_GetWaypointXODR,
     Sensor,
     // Sensor data retrieval
     Sensor_GetImageDataBuffer,
@@ -448,8 +554,10 @@ pub use bridge::{
     SimpleBoundingBox,
     SimpleGNSSData,
     SimpleGearPhysicsControl,
+    SimpleGeoLocation,
     SimpleIMUData,
     SimpleImageData,
+    SimpleLaneMarking,
     SimpleLiDARPoint,
     SimpleLocation,
     SimpleRadarDetection,
@@ -463,6 +571,7 @@ pub use bridge::{
     SimpleVehiclePhysicsControl,
     SimpleWalkerControl,
     SimpleWalkerDestination,
+    SimpleWaypointInfo,
     SimpleWheelPhysicsControl,
     TrafficLight,
     TrafficLight_Freeze,
@@ -537,9 +646,30 @@ pub use bridge::{
     Walker_GetSpeed,
     Walker_HidePose,
     Walker_ShowPose,
+    Waypoint,
+    Waypoint_GetDistance,
+    // Waypoint methods
+    Waypoint_GetId,
+    Waypoint_GetJunction,
+    Waypoint_GetJunctionId,
+    Waypoint_GetLaneChange,
+    Waypoint_GetLaneId,
+    Waypoint_GetLaneWidth,
+    Waypoint_GetLeft,
+    Waypoint_GetLeftLaneMarking,
+    Waypoint_GetNext,
+    Waypoint_GetPrevious,
+    Waypoint_GetRight,
+    Waypoint_GetRightLaneMarking,
+    Waypoint_GetRoadId,
+    Waypoint_GetSectionId,
+    Waypoint_GetTransform,
+    Waypoint_GetType,
+    Waypoint_IsJunction,
     World,
     World_GetBlueprintLibrary,
     World_GetId,
+    World_GetMap,
     World_GetSpectator,
     World_SpawnActor,
     World_Tick,
