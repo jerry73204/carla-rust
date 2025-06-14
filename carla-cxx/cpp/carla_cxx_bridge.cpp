@@ -11,6 +11,7 @@
 #include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
 #include <carla/client/TrafficLight.h>
+#include <carla/client/TrafficSign.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
 #include <carla/client/Waypoint.h>
@@ -480,6 +481,15 @@ std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor) {
   try {
     auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
     return std::dynamic_pointer_cast<TrafficLight>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<TrafficSign>(actor_ptr);
   } catch (...) {
     return nullptr;
   }
@@ -1036,6 +1046,19 @@ void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze) {
 
 bool TrafficLight_IsFrozen(const TrafficLight &traffic_light) {
   return traffic_light.IsFrozen();
+}
+
+// Traffic Sign wrapper functions
+rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign) {
+  return rust::String(traffic_sign.GetSignId());
+}
+
+SimpleBoundingBox
+TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign) {
+  auto bbox = traffic_sign.GetTriggerVolume();
+  return SimpleBoundingBox{
+      SimpleLocation{bbox.location.x, bbox.location.y, bbox.location.z},
+      SimpleVector3D{bbox.extent.x, bbox.extent.y, bbox.extent.z}};
 }
 
 // Map wrapper functions

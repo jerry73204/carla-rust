@@ -117,6 +117,7 @@ std::shared_ptr<WalkerAIController>
 Actor_CastToWalkerAIController(const Actor &actor);
 std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
 std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
+std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor);
 
 // Vehicle wrapper functions
 void Vehicle_ApplyControl(const Vehicle &vehicle,
@@ -217,6 +218,10 @@ float TrafficLight_GetYellowTime(const TrafficLight &traffic_light);
 float TrafficLight_GetGreenTime(const TrafficLight &traffic_light);
 void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze);
 bool TrafficLight_IsFrozen(const TrafficLight &traffic_light);
+
+// Traffic Sign wrapper functions
+rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign);
+SimpleBoundingBox TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign);
 
 // Geometry utility functions
 double Vector2D_Length(const SimpleVector2D &vector);

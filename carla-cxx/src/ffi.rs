@@ -297,6 +297,7 @@ pub mod bridge {
         type WalkerAIController;
         type Sensor;
         type TrafficLight;
+        type TrafficSign;
 
         // BlueprintLibrary type
         type BlueprintLibrary;
@@ -354,6 +355,7 @@ pub mod bridge {
         fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
         fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
         fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
+        fn Actor_CastToTrafficSign(actor: &Actor) -> SharedPtr<TrafficSign>;
 
         // Vehicle methods
         fn Vehicle_ApplyControl(vehicle: &Vehicle, control: &SimpleVehicleControl);
@@ -442,6 +444,10 @@ pub mod bridge {
         fn TrafficLight_GetGreenTime(traffic_light: &TrafficLight) -> f32;
         fn TrafficLight_Freeze(traffic_light: &TrafficLight, freeze: bool);
         fn TrafficLight_IsFrozen(traffic_light: &TrafficLight) -> bool;
+
+        // Traffic Sign methods
+        fn TrafficSign_GetSignId(traffic_sign: &TrafficSign) -> String;
+        fn TrafficSign_GetTriggerVolume(traffic_sign: &TrafficSign) -> SimpleBoundingBox;
 
         // Traffic Manager methods
         fn TrafficManager_GetInstance(client: &Client, port: u16) -> SharedPtr<TrafficManager>;
@@ -684,6 +690,7 @@ pub use bridge::{
     ActorBlueprint_SetAttribute,
     Actor_CastToSensor,
     Actor_CastToTrafficLight,
+    Actor_CastToTrafficSign,
     // Actor casting functions
     Actor_CastToVehicle,
     Actor_CastToWalker,
@@ -821,6 +828,10 @@ pub use bridge::{
     TrafficManager_SetVehicleUpdateLights,
     TrafficManager_Shutdown,
     TrafficManager_SynchronousTick,
+    // Traffic Sign type and methods
+    TrafficSign,
+    TrafficSign_GetSignId,
+    TrafficSign_GetTriggerVolume,
     Transform_GetForwardVector,
     Transform_GetRightVector,
     Transform_GetUpVector,
