@@ -63,8 +63,8 @@ pub use ffi::{
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
 pub use map::{
-    JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
-    MapWrapper, SignalOrientation, WaypointWrapper,
+    JunctionWrapper, Lane, LaneChange, LaneDirection, LaneMarking, LaneMarkingColor,
+    LaneMarkingType, LaneType, MapWrapper, SignalOrientation, WaypointWrapper,
 };
 pub use sensor::{
     CollisionData, CrossedLaneMarking, GNSSData, IMUData, ImageData, LaneInvasionData, LiDARData,
