@@ -39,18 +39,27 @@ pub mod blueprint;
 pub mod client;
 pub mod ffi;
 pub mod geometry;
+pub mod sensor;
+pub mod traffic_light;
+pub mod vehicle;
+pub mod walker;
 
 #[cfg(test)]
 mod tests;
 
 // Re-export the most commonly used types for convenience
 pub use ffi::{
-    Actor, ActorBlueprint, BlueprintLibrary, Client, SimpleBoundingBox, SimpleLocation,
-    SimpleRotation, SimpleTransform, SimpleVector2D, SimpleVector3D, World,
+    Actor, ActorBlueprint, BlueprintLibrary, Client, Sensor, SimpleBoundingBox, SimpleLocation,
+    SimpleRotation, SimpleTransform, SimpleVector2D, SimpleVector3D, SimpleVehicleControl,
+    SimpleWalkerControl, TrafficLight, Vehicle, Walker, World,
 };
 
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
+pub use sensor::{GNSSData, IMUData, ImageData, LiDARData, RadarData, SensorData, SensorWrapper};
+pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
+pub use vehicle::{VehicleControl, VehicleLightState, VehicleWrapper};
+pub use walker::{WalkerControl, WalkerWrapper};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)
 // The geometry module contains all the impl blocks for the Simple* types from ffi

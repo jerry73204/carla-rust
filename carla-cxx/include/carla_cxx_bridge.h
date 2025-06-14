@@ -12,6 +12,10 @@
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
+#include <carla/client/Sensor.h>
+#include <carla/client/TrafficLight.h>
+#include <carla/client/Vehicle.h>
+#include <carla/client/Walker.h>
 #include <carla/client/World.h>
 #include <carla/geom/Transform.h>
 
@@ -22,6 +26,9 @@ struct SimpleLocation;
 struct SimpleRotation;
 struct SimpleTransform;
 struct SimpleBoundingBox;
+struct SimpleVehicleControl;
+struct SimpleWalkerControl;
+struct SimpleTrafficLightState;
 
 // CXX Bridge functions
 namespace carla {
@@ -77,6 +84,47 @@ bool ActorBlueprint_ContainsAttribute(const ActorBlueprint &blueprint,
                                       rust::Str id);
 void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
                                  rust::Str value);
+
+// Actor casting functions
+std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);
+std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor);
+std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
+std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
+
+// Vehicle wrapper functions
+void Vehicle_ApplyControl(const Vehicle &vehicle,
+                          const SimpleVehicleControl &control);
+SimpleVehicleControl Vehicle_GetControl(const Vehicle &vehicle);
+void Vehicle_SetAutopilot(const Vehicle &vehicle, bool enabled);
+float Vehicle_GetSpeed(const Vehicle &vehicle);
+float Vehicle_GetSpeedLimit(const Vehicle &vehicle);
+void Vehicle_SetLightState(const Vehicle &vehicle, uint32_t light_state);
+uint32_t Vehicle_GetLightState(const Vehicle &vehicle);
+
+// Walker wrapper functions
+void Walker_ApplyControl(const Walker &walker,
+                         const SimpleWalkerControl &control);
+SimpleWalkerControl Walker_GetControl(const Walker &walker);
+float Walker_GetSpeed(const Walker &walker);
+
+// Sensor wrapper functions
+void Sensor_Stop(const Sensor &sensor);
+bool Sensor_IsListening(const Sensor &sensor);
+
+// Traffic Light wrapper functions
+uint32_t TrafficLight_GetState(const TrafficLight &traffic_light);
+void TrafficLight_SetState(const TrafficLight &traffic_light, uint32_t state);
+float TrafficLight_GetElapsedTime(const TrafficLight &traffic_light);
+void TrafficLight_SetRedTime(const TrafficLight &traffic_light, float red_time);
+void TrafficLight_SetYellowTime(const TrafficLight &traffic_light,
+                                float yellow_time);
+void TrafficLight_SetGreenTime(const TrafficLight &traffic_light,
+                               float green_time);
+float TrafficLight_GetRedTime(const TrafficLight &traffic_light);
+float TrafficLight_GetYellowTime(const TrafficLight &traffic_light);
+float TrafficLight_GetGreenTime(const TrafficLight &traffic_light);
+void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze);
+bool TrafficLight_IsFrozen(const TrafficLight &traffic_light);
 
 // Geometry utility functions
 double Vector2D_Length(const SimpleVector2D &vector);

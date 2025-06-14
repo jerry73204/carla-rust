@@ -6,8 +6,16 @@
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
+#include <carla/client/Sensor.h>
+#include <carla/client/TrafficLight.h>
+#include <carla/client/Vehicle.h>
+#include <carla/client/Walker.h>
 #include <carla/client/World.h>
 #include <carla/geom/Vector3D.h>
+#include <carla/rpc/TrafficLightState.h>
+#include <carla/rpc/VehicleControl.h>
+#include <carla/rpc/VehicleLightState.h>
+#include <carla/rpc/WalkerControl.h>
 
 #include <chrono>
 #include <cmath>
@@ -403,6 +411,174 @@ BoundingBox_GetVertices(const SimpleBoundingBox &bbox) {
   vertices.push_back(SimpleLocation{max_x, max_y, max_z}); // 7: max corner
 
   return vertices;
+}
+
+// Actor casting functions
+std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor) {
+  try {
+    // Get the actor as a shared_ptr, remove const, and cast to Vehicle
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<Vehicle>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<Walker>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<Sensor>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
+    return std::dynamic_pointer_cast<TrafficLight>(actor_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+// Vehicle wrapper functions
+void Vehicle_ApplyControl(const Vehicle &vehicle,
+                          const SimpleVehicleControl &control) {
+  carla::rpc::VehicleControl carla_control;
+  carla_control.throttle = control.throttle;
+  carla_control.steer = control.steer;
+  carla_control.brake = control.brake;
+  carla_control.hand_brake = control.hand_brake;
+  carla_control.reverse = control.reverse;
+  carla_control.manual_gear_shift = control.manual_gear_shift;
+  carla_control.gear = control.gear;
+
+  const_cast<Vehicle &>(vehicle).ApplyControl(carla_control);
+}
+
+SimpleVehicleControl Vehicle_GetControl(const Vehicle &vehicle) {
+  auto carla_control = vehicle.GetControl();
+  return SimpleVehicleControl{
+      carla_control.throttle, carla_control.steer,
+      carla_control.brake,    carla_control.hand_brake,
+      carla_control.reverse,  carla_control.manual_gear_shift,
+      carla_control.gear};
+}
+
+void Vehicle_SetAutopilot(const Vehicle &vehicle, bool enabled) {
+  const_cast<Vehicle &>(vehicle).SetAutopilot(enabled);
+}
+
+float Vehicle_GetSpeed(const Vehicle &vehicle) {
+  auto velocity = vehicle.GetVelocity();
+  return std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y +
+                   velocity.z * velocity.z);
+}
+
+float Vehicle_GetSpeedLimit(const Vehicle &vehicle) {
+  return vehicle.GetSpeedLimit();
+}
+
+void Vehicle_SetLightState(const Vehicle &vehicle, uint32_t light_state) {
+  auto carla_light_state =
+      static_cast<carla::rpc::VehicleLightState::LightState>(light_state);
+  const_cast<Vehicle &>(vehicle).SetLightState(carla_light_state);
+}
+
+uint32_t Vehicle_GetLightState(const Vehicle &vehicle) {
+  auto light_state = vehicle.GetLightState();
+  return static_cast<uint32_t>(light_state);
+}
+
+// Walker wrapper functions
+void Walker_ApplyControl(const Walker &walker,
+                         const SimpleWalkerControl &control) {
+  carla::rpc::WalkerControl carla_control;
+  carla_control.direction = carla::geom::Vector3D(
+      control.direction.x, control.direction.y, control.direction.z);
+  carla_control.speed = control.speed;
+  carla_control.jump = control.jump;
+
+  const_cast<Walker &>(walker).ApplyControl(carla_control);
+}
+
+SimpleWalkerControl Walker_GetControl(const Walker &walker) {
+  auto carla_control = walker.GetWalkerControl();
+  return SimpleWalkerControl{SimpleVector3D{carla_control.direction.x,
+                                            carla_control.direction.y,
+                                            carla_control.direction.z},
+                             carla_control.speed, carla_control.jump};
+}
+
+float Walker_GetSpeed(const Walker &walker) {
+  auto velocity = walker.GetVelocity();
+  return std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y +
+                   velocity.z * velocity.z);
+}
+
+// Sensor wrapper functions
+void Sensor_Stop(const Sensor &sensor) { const_cast<Sensor &>(sensor).Stop(); }
+
+bool Sensor_IsListening(const Sensor &sensor) { return sensor.IsListening(); }
+
+// Traffic Light wrapper functions
+uint32_t TrafficLight_GetState(const TrafficLight &traffic_light) {
+  auto state = traffic_light.GetState();
+  return static_cast<uint32_t>(state);
+}
+
+void TrafficLight_SetState(const TrafficLight &traffic_light, uint32_t state) {
+  auto carla_state = static_cast<carla::rpc::TrafficLightState>(state);
+  const_cast<TrafficLight &>(traffic_light).SetState(carla_state);
+}
+
+float TrafficLight_GetElapsedTime(const TrafficLight &traffic_light) {
+  return traffic_light.GetElapsedTime();
+}
+
+void TrafficLight_SetRedTime(const TrafficLight &traffic_light,
+                             float red_time) {
+  const_cast<TrafficLight &>(traffic_light).SetRedTime(red_time);
+}
+
+void TrafficLight_SetYellowTime(const TrafficLight &traffic_light,
+                                float yellow_time) {
+  const_cast<TrafficLight &>(traffic_light).SetYellowTime(yellow_time);
+}
+
+void TrafficLight_SetGreenTime(const TrafficLight &traffic_light,
+                               float green_time) {
+  const_cast<TrafficLight &>(traffic_light).SetGreenTime(green_time);
+}
+
+float TrafficLight_GetRedTime(const TrafficLight &traffic_light) {
+  return traffic_light.GetRedTime();
+}
+
+float TrafficLight_GetYellowTime(const TrafficLight &traffic_light) {
+  return traffic_light.GetYellowTime();
+}
+
+float TrafficLight_GetGreenTime(const TrafficLight &traffic_light) {
+  return traffic_light.GetGreenTime();
+}
+
+void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze) {
+  const_cast<TrafficLight &>(traffic_light).Freeze(freeze);
+}
+
+bool TrafficLight_IsFrozen(const TrafficLight &traffic_light) {
+  return traffic_light.IsFrozen();
 }
 
 } // namespace client

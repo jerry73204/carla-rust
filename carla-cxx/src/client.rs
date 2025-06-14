@@ -118,6 +118,11 @@ pub struct ActorWrapper {
 }
 
 impl ActorWrapper {
+    /// Get reference to the inner Actor for casting
+    pub fn get_actor(&self) -> &Actor {
+        &self.inner
+    }
+
     /// Get the actor's unique ID
     pub fn get_id(&self) -> u32 {
         ffi::Actor_GetId(&self.inner)

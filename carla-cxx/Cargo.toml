@@ -9,6 +9,7 @@ license = "MIT"
 cxx = "1.0"
 anyhow = "1.0"
 thiserror = "1.0"
+bitflags = "2.0"
 
 [build-dependencies]
 cxx-build = "1.0"
@@ -23,3 +24,6 @@ name = "basic_client"
 
 [[example]]
 name = "core_infrastructure"
+
+[[example]]
+name = "actor_system_demo"

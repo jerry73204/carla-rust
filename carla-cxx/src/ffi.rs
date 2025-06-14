@@ -42,6 +42,35 @@ pub mod bridge {
         pub extent: SimpleVector3D,
     }
 
+    // Vehicle control structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleVehicleControl {
+        pub throttle: f32,
+        pub steer: f32,
+        pub brake: f32,
+        pub hand_brake: bool,
+        pub reverse: bool,
+        pub manual_gear_shift: bool,
+        pub gear: i32,
+    }
+
+    // Walker control structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleWalkerControl {
+        pub direction: SimpleVector3D,
+        pub speed: f32,
+        pub jump: bool,
+    }
+
+    // Traffic light states
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleTrafficLightState {
+        pub red_time: f32,
+        pub yellow_time: f32,
+        pub green_time: f32,
+        pub elapsed_time: f32,
+    }
+
     #[namespace = "carla::client"]
     unsafe extern "C++" {
         include!("carla_cxx_bridge.h");
@@ -54,6 +83,12 @@ pub mod bridge {
 
         // Actor type
         type Actor;
+
+        // Specific actor types
+        type Vehicle;
+        type Walker;
+        type Sensor;
+        type TrafficLight;
 
         // BlueprintLibrary type
         type BlueprintLibrary;
@@ -98,6 +133,43 @@ pub mod bridge {
         fn Actor_SetTransform(actor: &Actor, transform: &SimpleTransform);
         fn Actor_Destroy(actor: &Actor) -> bool;
         fn Actor_IsAlive(actor: &Actor) -> bool;
+
+        // Actor type checking and casting
+        fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
+        fn Actor_CastToWalker(actor: &Actor) -> SharedPtr<Walker>;
+        fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
+        fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
+
+        // Vehicle methods
+        fn Vehicle_ApplyControl(vehicle: &Vehicle, control: &SimpleVehicleControl);
+        fn Vehicle_GetControl(vehicle: &Vehicle) -> SimpleVehicleControl;
+        fn Vehicle_SetAutopilot(vehicle: &Vehicle, enabled: bool);
+        fn Vehicle_GetSpeed(vehicle: &Vehicle) -> f32;
+        fn Vehicle_GetSpeedLimit(vehicle: &Vehicle) -> f32;
+        fn Vehicle_SetLightState(vehicle: &Vehicle, light_state: u32);
+        fn Vehicle_GetLightState(vehicle: &Vehicle) -> u32;
+
+        // Walker methods
+        fn Walker_ApplyControl(walker: &Walker, control: &SimpleWalkerControl);
+        fn Walker_GetControl(walker: &Walker) -> SimpleWalkerControl;
+        fn Walker_GetSpeed(walker: &Walker) -> f32;
+
+        // Sensor methods
+        fn Sensor_Stop(sensor: &Sensor);
+        fn Sensor_IsListening(sensor: &Sensor) -> bool;
+
+        // Traffic Light methods
+        fn TrafficLight_GetState(traffic_light: &TrafficLight) -> u32; // TrafficLightState enum
+        fn TrafficLight_SetState(traffic_light: &TrafficLight, state: u32);
+        fn TrafficLight_GetElapsedTime(traffic_light: &TrafficLight) -> f32;
+        fn TrafficLight_SetRedTime(traffic_light: &TrafficLight, red_time: f32);
+        fn TrafficLight_SetYellowTime(traffic_light: &TrafficLight, yellow_time: f32);
+        fn TrafficLight_SetGreenTime(traffic_light: &TrafficLight, green_time: f32);
+        fn TrafficLight_GetRedTime(traffic_light: &TrafficLight) -> f32;
+        fn TrafficLight_GetYellowTime(traffic_light: &TrafficLight) -> f32;
+        fn TrafficLight_GetGreenTime(traffic_light: &TrafficLight) -> f32;
+        fn TrafficLight_Freeze(traffic_light: &TrafficLight, freeze: bool);
+        fn TrafficLight_IsFrozen(traffic_light: &TrafficLight) -> bool;
 
         // BlueprintLibrary methods
         fn BlueprintLibrary_Find(library: &BlueprintLibrary, id: &str)
@@ -158,6 +230,11 @@ pub use bridge::{
     ActorBlueprint_GetTags,
     ActorBlueprint_MatchTags,
     ActorBlueprint_SetAttribute,
+    Actor_CastToSensor,
+    Actor_CastToTrafficLight,
+    // Actor casting functions
+    Actor_CastToVehicle,
+    Actor_CastToWalker,
     Actor_Destroy,
     Actor_GetDisplayId,
     Actor_GetId,
@@ -179,12 +256,33 @@ pub use bridge::{
     Client_SetTimeout,
     Location_Distance,
     Location_DistanceSquared,
+    Sensor,
+    Sensor_IsListening,
+    // Sensor methods
+    Sensor_Stop,
     SimpleBoundingBox,
     SimpleLocation,
     SimpleRotation,
+    SimpleTrafficLightState,
     SimpleTransform,
     SimpleVector2D,
     SimpleVector3D,
+    // Control structures
+    SimpleVehicleControl,
+    SimpleWalkerControl,
+    TrafficLight,
+    TrafficLight_Freeze,
+    TrafficLight_GetElapsedTime,
+    TrafficLight_GetGreenTime,
+    TrafficLight_GetRedTime,
+    // Traffic Light methods
+    TrafficLight_GetState,
+    TrafficLight_GetYellowTime,
+    TrafficLight_IsFrozen,
+    TrafficLight_SetGreenTime,
+    TrafficLight_SetRedTime,
+    TrafficLight_SetState,
+    TrafficLight_SetYellowTime,
     Transform_GetForwardVector,
     Transform_GetRightVector,
     Transform_GetUpVector,
@@ -201,6 +299,21 @@ pub use bridge::{
     Vector3D_Dot,
     Vector3D_Length,
     Vector3D_SquaredLength,
+    // Specific actor types
+    Vehicle,
+    // Vehicle methods
+    Vehicle_ApplyControl,
+    Vehicle_GetControl,
+    Vehicle_GetLightState,
+    Vehicle_GetSpeed,
+    Vehicle_GetSpeedLimit,
+    Vehicle_SetAutopilot,
+    Vehicle_SetLightState,
+    Walker,
+    // Walker methods
+    Walker_ApplyControl,
+    Walker_GetControl,
+    Walker_GetSpeed,
     World,
     World_GetBlueprintLibrary,
     World_GetId,
