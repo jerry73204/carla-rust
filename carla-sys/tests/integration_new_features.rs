@@ -146,13 +146,13 @@ fn test_enhanced_light_states() {
     assert_eq!(low_beam, 0x1 << 1);
     assert_eq!(high_beam, 0x1 << 2);
     assert_eq!(brake, 0x1 << 3);
-    assert_eq!(reverse, 0x1 << 4);
+    assert_eq!(right_blinker, 0x1 << 4);
     assert_eq!(left_blinker, 0x1 << 5);
-    assert_eq!(right_blinker, 0x1 << 6);
+    assert_eq!(reverse, 0x1 << 6);
 
     // Test combinations work correctly
     assert_eq!(headlights, 0x1 | 0x2);
-    assert_eq!(emergency, 0x20 | 0x40);
+    assert_eq!(emergency, 0x10 | 0x20);
     assert!(all_special > 0);
 }
 
