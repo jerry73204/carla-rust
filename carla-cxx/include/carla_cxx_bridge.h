@@ -27,6 +27,11 @@ struct SimpleRotation;
 struct SimpleTransform;
 struct SimpleBoundingBox;
 struct SimpleVehicleControl;
+struct SimpleAckermannControl;
+struct SimpleVehiclePhysicsControl;
+struct SimpleWheelPhysicsControl;
+struct SimpleGearPhysicsControl;
+struct SimpleVehicleDoor;
 struct SimpleWalkerControl;
 struct SimpleTrafficLightState;
 struct SimpleLiDARPoint;
@@ -105,6 +110,41 @@ float Vehicle_GetSpeed(const Vehicle &vehicle);
 float Vehicle_GetSpeedLimit(const Vehicle &vehicle);
 void Vehicle_SetLightState(const Vehicle &vehicle, uint32_t light_state);
 uint32_t Vehicle_GetLightState(const Vehicle &vehicle);
+
+// Advanced vehicle control
+void Vehicle_ApplyAckermannControl(const Vehicle &vehicle,
+                                   const SimpleAckermannControl &control);
+SimpleAckermannControl Vehicle_GetAckermannControl(const Vehicle &vehicle);
+void Vehicle_ApplyPhysicsControl(const Vehicle &vehicle,
+                                 const SimpleVehiclePhysicsControl &control);
+SimpleVehiclePhysicsControl Vehicle_GetPhysicsControl(const Vehicle &vehicle);
+
+// Vehicle telemetry
+SimpleVector3D Vehicle_GetVelocity(const Vehicle &vehicle);
+SimpleVector3D Vehicle_GetAngularVelocity(const Vehicle &vehicle);
+SimpleVector3D Vehicle_GetAcceleration(const Vehicle &vehicle);
+float Vehicle_GetTireFriction(const Vehicle &vehicle);
+float Vehicle_GetEngineRpm(const Vehicle &vehicle);
+float Vehicle_GetGearRatio(const Vehicle &vehicle);
+
+// Vehicle doors (CARLA 0.10.0)
+void Vehicle_OpenDoor(const Vehicle &vehicle, uint32_t door_type);
+void Vehicle_CloseDoor(const Vehicle &vehicle, uint32_t door_type);
+bool Vehicle_IsDoorOpen(const Vehicle &vehicle, uint32_t door_type);
+rust::Vec<SimpleVehicleDoor> Vehicle_GetDoorStates(const Vehicle &vehicle);
+
+// Wheel physics
+rust::Vec<SimpleWheelPhysicsControl>
+Vehicle_GetWheelPhysicsControls(const Vehicle &vehicle);
+void Vehicle_SetWheelPhysicsControls(
+    const Vehicle &vehicle,
+    rust::Slice<const SimpleWheelPhysicsControl> wheels);
+
+// Gear physics
+rust::Vec<SimpleGearPhysicsControl>
+Vehicle_GetGearPhysicsControls(const Vehicle &vehicle);
+void Vehicle_SetGearPhysicsControls(
+    const Vehicle &vehicle, rust::Slice<const SimpleGearPhysicsControl> gears);
 
 // Walker wrapper functions
 void Walker_ApplyControl(const Walker &walker,

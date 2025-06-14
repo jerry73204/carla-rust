@@ -54,6 +54,69 @@ pub mod bridge {
         pub gear: i32,
     }
 
+    // Ackermann vehicle control
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleAckermannControl {
+        pub steer: f32,
+        pub steer_speed: f32,
+        pub speed: f32,
+        pub acceleration: f32,
+        pub jerk: f32,
+    }
+
+    // Vehicle physics control
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleVehiclePhysicsControl {
+        pub torque_curve_max_rpm: f32,
+        pub torque_curve_max_torque_nm: f32,
+        pub max_rpm: f32,
+        pub moi: f32,
+        pub damping_rate_full_throttle: f32,
+        pub damping_rate_zero_throttle_clutch_engaged: f32,
+        pub damping_rate_zero_throttle_clutch_disengaged: f32,
+        pub use_gear_autobox: bool,
+        pub gear_switch_time: f32,
+        pub clutch_strength: f32,
+        pub final_ratio: f32,
+        pub mass: f32,
+        pub drag_coefficient: f32,
+        pub center_of_mass_x: f32,
+        pub center_of_mass_y: f32,
+        pub center_of_mass_z: f32,
+        pub steering_curve_0: f32,
+        pub steering_curve_1: f32,
+        pub use_sweep_wheel_collision: bool,
+    }
+
+    // Wheel physics control
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleWheelPhysicsControl {
+        pub tire_friction: f32,
+        pub damping_rate: f32,
+        pub max_steer_angle: f32,
+        pub radius: f32,
+        pub max_brake_torque: f32,
+        pub max_handbrake_torque: f32,
+        pub position_x: f32,
+        pub position_y: f32,
+        pub position_z: f32,
+    }
+
+    // Gear physics control
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleGearPhysicsControl {
+        pub ratio: f32,
+        pub down_ratio: f32,
+        pub up_ratio: f32,
+    }
+
+    // Vehicle door state
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleVehicleDoor {
+        pub door_type: u32, // VehicleDoor enum
+        pub is_open: bool,
+    }
+
     // Walker control structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleWalkerControl {
@@ -192,6 +255,34 @@ pub mod bridge {
         fn Vehicle_SetLightState(vehicle: &Vehicle, light_state: u32);
         fn Vehicle_GetLightState(vehicle: &Vehicle) -> u32;
 
+        // Advanced vehicle control
+        fn Vehicle_ApplyAckermannControl(vehicle: &Vehicle, control: &SimpleAckermannControl);
+        fn Vehicle_GetAckermannControl(vehicle: &Vehicle) -> SimpleAckermannControl;
+        fn Vehicle_ApplyPhysicsControl(vehicle: &Vehicle, control: &SimpleVehiclePhysicsControl);
+        fn Vehicle_GetPhysicsControl(vehicle: &Vehicle) -> SimpleVehiclePhysicsControl;
+
+        // Vehicle telemetry
+        fn Vehicle_GetVelocity(vehicle: &Vehicle) -> SimpleVector3D;
+        fn Vehicle_GetAngularVelocity(vehicle: &Vehicle) -> SimpleVector3D;
+        fn Vehicle_GetAcceleration(vehicle: &Vehicle) -> SimpleVector3D;
+        fn Vehicle_GetTireFriction(vehicle: &Vehicle) -> f32;
+        fn Vehicle_GetEngineRpm(vehicle: &Vehicle) -> f32;
+        fn Vehicle_GetGearRatio(vehicle: &Vehicle) -> f32;
+
+        // Vehicle doors (CARLA 0.10.0)
+        fn Vehicle_OpenDoor(vehicle: &Vehicle, door_type: u32);
+        fn Vehicle_CloseDoor(vehicle: &Vehicle, door_type: u32);
+        fn Vehicle_IsDoorOpen(vehicle: &Vehicle, door_type: u32) -> bool;
+        fn Vehicle_GetDoorStates(vehicle: &Vehicle) -> Vec<SimpleVehicleDoor>;
+
+        // Wheel physics
+        fn Vehicle_GetWheelPhysicsControls(vehicle: &Vehicle) -> Vec<SimpleWheelPhysicsControl>;
+        fn Vehicle_SetWheelPhysicsControls(vehicle: &Vehicle, wheels: &[SimpleWheelPhysicsControl]);
+
+        // Gear physics
+        fn Vehicle_GetGearPhysicsControls(vehicle: &Vehicle) -> Vec<SimpleGearPhysicsControl>;
+        fn Vehicle_SetGearPhysicsControls(vehicle: &Vehicle, gears: &[SimpleGearPhysicsControl]);
+
         // Walker methods
         fn Walker_ApplyControl(walker: &Walker, control: &SimpleWalkerControl);
         fn Walker_GetControl(walker: &Walker) -> SimpleWalkerControl;
@@ -322,8 +413,11 @@ pub use bridge::{
     Sensor_Listen,
     // Sensor methods
     Sensor_Stop,
+    // Control structures
+    SimpleAckermannControl,
     SimpleBoundingBox,
     SimpleGNSSData,
+    SimpleGearPhysicsControl,
     SimpleIMUData,
     SimpleImageData,
     SimpleLiDARPoint,
@@ -334,9 +428,11 @@ pub use bridge::{
     SimpleTransform,
     SimpleVector2D,
     SimpleVector3D,
-    // Control structures
     SimpleVehicleControl,
+    SimpleVehicleDoor,
+    SimpleVehiclePhysicsControl,
     SimpleWalkerControl,
+    SimpleWheelPhysicsControl,
     TrafficLight,
     TrafficLight_Freeze,
     TrafficLight_GetElapsedTime,
@@ -369,13 +465,31 @@ pub use bridge::{
     // Specific actor types
     Vehicle,
     // Vehicle methods
+    Vehicle_ApplyAckermannControl,
     Vehicle_ApplyControl,
+    Vehicle_ApplyPhysicsControl,
+    Vehicle_CloseDoor,
+    Vehicle_GetAcceleration,
+    Vehicle_GetAckermannControl,
+    Vehicle_GetAngularVelocity,
     Vehicle_GetControl,
+    Vehicle_GetDoorStates,
+    Vehicle_GetEngineRpm,
+    Vehicle_GetGearPhysicsControls,
+    Vehicle_GetGearRatio,
     Vehicle_GetLightState,
+    Vehicle_GetPhysicsControl,
     Vehicle_GetSpeed,
     Vehicle_GetSpeedLimit,
+    Vehicle_GetTireFriction,
+    Vehicle_GetVelocity,
+    Vehicle_GetWheelPhysicsControls,
+    Vehicle_IsDoorOpen,
+    Vehicle_OpenDoor,
     Vehicle_SetAutopilot,
+    Vehicle_SetGearPhysicsControls,
     Vehicle_SetLightState,
+    Vehicle_SetWheelPhysicsControls,
     Walker,
     // Walker methods
     Walker_ApplyControl,

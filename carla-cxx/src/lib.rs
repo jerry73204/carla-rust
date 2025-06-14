@@ -58,7 +58,11 @@ pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
 pub use sensor::{GNSSData, IMUData, ImageData, LiDARData, RadarData, SensorData, SensorWrapper};
 pub use traffic_light::{TrafficLightState, TrafficLightTiming, TrafficLightWrapper};
-pub use vehicle::{VehicleControl, VehicleLightState, VehicleWrapper};
+pub use vehicle::{
+    AckermannControl, EnginePhysics, GearPhysicsControl, SteeringPhysics, TransmissionPhysics,
+    VehicleControl, VehicleDoorState, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
+    VehicleWrapper, WheelPhysicsControl,
+};
 pub use walker::{WalkerControl, WalkerWrapper};
 
 // Re-export geometry implementations (they're implemented as trait impls on the ffi types)

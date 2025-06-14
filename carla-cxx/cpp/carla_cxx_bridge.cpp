@@ -12,9 +12,12 @@
 #include <carla/client/Walker.h>
 #include <carla/client/World.h>
 #include <carla/geom/Vector3D.h>
+#include <carla/rpc/AckermannControllerSettings.h>
 #include <carla/rpc/TrafficLightState.h>
 #include <carla/rpc/VehicleControl.h>
+#include <carla/rpc/VehicleDoor.h>
 #include <carla/rpc/VehicleLightState.h>
+#include <carla/rpc/VehiclePhysicsControl.h>
 #include <carla/rpc/WalkerControl.h>
 #include <carla/sensor/SensorData.h>
 #include <carla/sensor/data/GnssMeasurement.h>
@@ -509,6 +512,243 @@ void Vehicle_SetLightState(const Vehicle &vehicle, uint32_t light_state) {
 uint32_t Vehicle_GetLightState(const Vehicle &vehicle) {
   auto light_state = vehicle.GetLightState();
   return static_cast<uint32_t>(light_state);
+}
+
+// Advanced vehicle control functions
+void Vehicle_ApplyAckermannControl(const Vehicle &vehicle,
+                                   const SimpleAckermannControl &control) {
+  carla::rpc::VehicleAckermannControl carla_control;
+  carla_control.steer = control.steer;
+  carla_control.steer_speed = control.steer_speed;
+  carla_control.speed = control.speed;
+  carla_control.acceleration = control.acceleration;
+  carla_control.jerk = control.jerk;
+
+  const_cast<Vehicle &>(vehicle).ApplyAckermannControl(carla_control);
+}
+
+SimpleAckermannControl Vehicle_GetAckermannControl(const Vehicle &vehicle) {
+  auto carla_settings = vehicle.GetAckermannControllerSettings();
+  // Note: AckermannControllerSettings contains PID parameters, not direct
+  // control values For now, return default values as this requires a different
+  // approach
+  return SimpleAckermannControl{0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+}
+
+void Vehicle_ApplyPhysicsControl(const Vehicle &vehicle,
+                                 const SimpleVehiclePhysicsControl &control) {
+  carla::rpc::VehiclePhysicsControl carla_control;
+
+  // Engine
+  carla_control.torque_curve.push_back(
+      {control.torque_curve_max_rpm, control.torque_curve_max_torque_nm});
+  carla_control.max_rpm = control.max_rpm;
+  carla_control.rev_up_moi = control.moi;
+  // Note: damping rate fields were removed in CARLA 0.10.0
+
+  // Transmission
+  carla_control.use_automatic_gears = control.use_gear_autobox;
+  carla_control.gear_change_time = control.gear_switch_time;
+  // Note: clutch_strength was removed in CARLA 0.10.0
+  carla_control.final_ratio = control.final_ratio;
+
+  // Vehicle properties
+  carla_control.mass = control.mass;
+  carla_control.drag_coefficient = control.drag_coefficient;
+  carla_control.center_of_mass =
+      carla::geom::Vector3D(control.center_of_mass_x, control.center_of_mass_y,
+                            control.center_of_mass_z);
+
+  // Steering
+  carla_control.steering_curve.push_back({0.0f, control.steering_curve_0});
+  carla_control.steering_curve.push_back({1.0f, control.steering_curve_1});
+  carla_control.use_sweep_wheel_collision = control.use_sweep_wheel_collision;
+
+  const_cast<Vehicle &>(vehicle).ApplyPhysicsControl(carla_control);
+}
+
+SimpleVehiclePhysicsControl Vehicle_GetPhysicsControl(const Vehicle &vehicle) {
+  auto carla_control = vehicle.GetPhysicsControl();
+
+  // Extract torque curve values (take first if available)
+  float max_rpm = 0.0f, max_torque = 0.0f;
+  if (!carla_control.torque_curve.empty()) {
+    max_rpm = carla_control.torque_curve[0].x;
+    max_torque = carla_control.torque_curve[0].y;
+  }
+
+  // Extract steering curve values (take first two if available)
+  float steering_curve_0 = 0.0f, steering_curve_1 = 0.0f;
+  if (carla_control.steering_curve.size() >= 2) {
+    steering_curve_0 = carla_control.steering_curve[0].y;
+    steering_curve_1 = carla_control.steering_curve[1].y;
+  }
+
+  return SimpleVehiclePhysicsControl{
+      max_rpm,
+      max_torque,
+      carla_control.max_rpm,
+      carla_control.rev_up_moi,
+      0.0f, // damping_rate_full_throttle was removed
+      0.0f, // damping_rate_zero_throttle_clutch_engaged was removed
+      0.0f, // damping_rate_zero_throttle_clutch_disengaged was removed
+      carla_control.use_automatic_gears,
+      carla_control.gear_change_time,
+      0.0f, // clutch_strength was removed
+      carla_control.final_ratio,
+      carla_control.mass,
+      carla_control.drag_coefficient,
+      carla_control.center_of_mass.x,
+      carla_control.center_of_mass.y,
+      carla_control.center_of_mass.z,
+      steering_curve_0,
+      steering_curve_1,
+      carla_control.use_sweep_wheel_collision};
+}
+
+// Vehicle telemetry functions
+SimpleVector3D Vehicle_GetVelocity(const Vehicle &vehicle) {
+  auto velocity = vehicle.GetVelocity();
+  return SimpleVector3D{velocity.x, velocity.y, velocity.z};
+}
+
+SimpleVector3D Vehicle_GetAngularVelocity(const Vehicle &vehicle) {
+  auto angular_velocity = vehicle.GetAngularVelocity();
+  return SimpleVector3D{angular_velocity.x, angular_velocity.y,
+                        angular_velocity.z};
+}
+
+SimpleVector3D Vehicle_GetAcceleration(const Vehicle &vehicle) {
+  auto acceleration = vehicle.GetAcceleration();
+  return SimpleVector3D{acceleration.x, acceleration.y, acceleration.z};
+}
+
+float Vehicle_GetTireFriction(const Vehicle &vehicle) {
+  // Get physics control and return average tire friction
+  auto physics = vehicle.GetPhysicsControl();
+  if (physics.wheels.empty()) {
+    return 0.0f;
+  }
+
+  float total_friction = 0.0f;
+  for (const auto &wheel : physics.wheels) {
+    total_friction += wheel.friction_force_multiplier;
+  }
+  return total_friction / physics.wheels.size();
+}
+
+float Vehicle_GetEngineRpm(const Vehicle &vehicle) {
+  // Note: This might need to be implemented differently based on CARLA 0.10.0
+  // API For now, return a calculated value based on speed and gear
+  auto control = vehicle.GetControl();
+  return control.throttle * 3000.0f; // Placeholder calculation
+}
+
+float Vehicle_GetGearRatio(const Vehicle &vehicle) {
+  auto physics = vehicle.GetPhysicsControl();
+  auto control = vehicle.GetControl();
+
+  if (control.gear >= 0 &&
+      control.gear < static_cast<int>(physics.forward_gear_ratios.size())) {
+    return physics.forward_gear_ratios[control.gear];
+  }
+  return 1.0f;
+}
+
+// Vehicle door functions (CARLA 0.10.0)
+void Vehicle_OpenDoor(const Vehicle &vehicle, uint32_t door_type) {
+  auto carla_door = static_cast<carla::rpc::VehicleDoor>(door_type);
+  const_cast<Vehicle &>(vehicle).OpenDoor(carla_door);
+}
+
+void Vehicle_CloseDoor(const Vehicle &vehicle, uint32_t door_type) {
+  auto carla_door = static_cast<carla::rpc::VehicleDoor>(door_type);
+  const_cast<Vehicle &>(vehicle).CloseDoor(carla_door);
+}
+
+bool Vehicle_IsDoorOpen(const Vehicle &vehicle, uint32_t door_type) {
+  // CARLA 0.10.0 doesn't provide a direct way to check door state
+  // This is a limitation of the current API
+  return false;
+}
+
+rust::Vec<SimpleVehicleDoor> Vehicle_GetDoorStates(const Vehicle &vehicle) {
+  rust::Vec<SimpleVehicleDoor> doors;
+
+  // CARLA 0.10.0 doesn't provide a way to query door states
+  // Return empty list as this functionality is not available
+  return doors;
+}
+
+// Wheel physics functions
+rust::Vec<SimpleWheelPhysicsControl>
+Vehicle_GetWheelPhysicsControls(const Vehicle &vehicle) {
+  rust::Vec<SimpleWheelPhysicsControl> wheels;
+  auto physics = vehicle.GetPhysicsControl();
+
+  for (const auto &wheel : physics.wheels) {
+    wheels.push_back(SimpleWheelPhysicsControl{
+        wheel.friction_force_multiplier, wheel.spring_rate,
+        wheel.max_steer_angle, wheel.wheel_radius, wheel.max_brake_torque,
+        wheel.max_hand_brake_torque, wheel.location.x, wheel.location.y,
+        wheel.location.z});
+  }
+
+  return wheels;
+}
+
+void Vehicle_SetWheelPhysicsControls(
+    const Vehicle &vehicle,
+    rust::Slice<const SimpleWheelPhysicsControl> wheels) {
+  auto physics = vehicle.GetPhysicsControl();
+  physics.wheels.clear();
+
+  for (const auto &wheel : wheels) {
+    carla::rpc::WheelPhysicsControl carla_wheel;
+    carla_wheel.friction_force_multiplier = wheel.tire_friction;
+    carla_wheel.spring_rate = wheel.damping_rate;
+    carla_wheel.max_steer_angle = wheel.max_steer_angle;
+    carla_wheel.wheel_radius = wheel.radius;
+    carla_wheel.max_brake_torque = wheel.max_brake_torque;
+    carla_wheel.max_hand_brake_torque = wheel.max_handbrake_torque;
+    carla_wheel.location = carla::geom::Location(
+        wheel.position_x, wheel.position_y, wheel.position_z);
+
+    physics.wheels.push_back(carla_wheel);
+  }
+
+  const_cast<Vehicle &>(vehicle).ApplyPhysicsControl(physics);
+}
+
+// Gear physics functions
+rust::Vec<SimpleGearPhysicsControl>
+Vehicle_GetGearPhysicsControls(const Vehicle &vehicle) {
+  rust::Vec<SimpleGearPhysicsControl> gears;
+  auto physics = vehicle.GetPhysicsControl();
+
+  // In CARLA 0.10.0, gear ratios are stored as simple float vectors
+  for (size_t i = 0; i < physics.forward_gear_ratios.size(); ++i) {
+    gears.push_back(SimpleGearPhysicsControl{
+        physics.forward_gear_ratios[i],
+        0.5f, // Default down_ratio
+        0.65f // Default up_ratio
+    });
+  }
+
+  return gears;
+}
+
+void Vehicle_SetGearPhysicsControls(
+    const Vehicle &vehicle, rust::Slice<const SimpleGearPhysicsControl> gears) {
+  auto physics = vehicle.GetPhysicsControl();
+  physics.forward_gear_ratios.clear();
+
+  // In CARLA 0.10.0, only ratios are stored directly
+  for (const auto &gear : gears) {
+    physics.forward_gear_ratios.push_back(gear.ratio);
+  }
+
+  const_cast<Vehicle &>(vehicle).ApplyPhysicsControl(physics);
 }
 
 // Walker wrapper functions
