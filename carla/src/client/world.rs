@@ -1,409 +1,257 @@
-use super::ActorList;
-use crate::geom::{Transform, TransformExt};
-use anyhow::{anyhow, Result};
-use carla_sys::*;
-use nalgebra::Translation3;
-use std::{ptr, time::Duration};
+//! World management and simulation control.
 
-const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
+use crate::{
+    client::{Actor, ActorBlueprint, ActorId, BlueprintLibrary},
+    error::CarlaResult,
+    geom::Transform,
+    road::Map,
+    time::Timestamp,
+};
+use std::time::Duration;
 
-/// The world contains the map and assets of a simulation,
-/// corresponding to `carla.World` in Python API.
+/// Represents the simulation world.
 #[derive(Debug)]
 pub struct World {
-    pub(crate) inner: *mut carla_world_t,
+    // Internal handle to carla-cxx World
+    // This will be implemented when we integrate with carla-cxx
 }
 
 impl World {
-    /// Create a World from a raw C pointer.
-    ///
-    /// # Safety
-    /// The pointer must be valid and not null.
-    pub(crate) fn from_raw_ptr(ptr: *mut carla_world_t) -> Result<Self> {
-        if ptr.is_null() {
-            return Err(anyhow!("Null world pointer"));
-        }
-        Ok(Self { inner: ptr })
+    /// Get the world ID.
+    pub fn get_id(&self) -> u64 {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_id not yet implemented with carla-cxx FFI")
     }
 
-    pub fn id(&self) -> u64 {
-        unsafe { carla_world_get_id(self.inner) }
+    /// Get the map for this world.
+    pub fn get_map(&self) -> CarlaResult<Map> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_map not yet implemented with carla-cxx FFI")
     }
 
-    pub fn map(&self) -> Result<super::Map> {
-        let map_ptr = unsafe { carla_world_get_map(self.inner) };
-        if map_ptr.is_null() {
-            return Err(anyhow!("Failed to get map from world"));
-        }
-        super::Map::from_raw_ptr(map_ptr)
+    /// Get the blueprint library.
+    pub fn get_blueprint_library(&self) -> CarlaResult<BlueprintLibrary> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_blueprint_library not yet implemented with carla-cxx FFI")
     }
 
-    pub fn light_manager(&self) -> Result<()> {
-        // Note: Light Manager is deprecated in CARLA 0.10.0
-        Err(anyhow!("Light Manager API is deprecated in CARLA 0.10.0"))
+    /// Get the spectator actor (main camera).
+    pub fn get_spectator(&self) -> CarlaResult<Actor> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_spectator not yet implemented with carla-cxx FFI")
     }
 
-    pub fn load_level_layer(&self, map_layers: u32) -> Result<()> {
-        // Note: Level layer loading needs to be implemented in C wrapper
-        Err(anyhow!(
-            "Level layer loading not yet implemented in C wrapper"
-        ))
+    /// Get weather parameters.
+    pub fn get_weather(&self) -> CarlaResult<WeatherParameters> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_weather not yet implemented with carla-cxx FFI")
     }
 
-    pub fn unload_level_layer(&self, map_layers: u32) -> Result<()> {
-        // Note: Level layer unloading needs to be implemented in C wrapper
-        Err(anyhow!(
-            "Level layer unloading not yet implemented in C wrapper"
-        ))
+    /// Set weather parameters.
+    pub fn set_weather(&self, weather: &WeatherParameters) -> CarlaResult<()> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _weather = weather;
+        todo!("World::set_weather not yet implemented with carla-cxx FFI")
     }
 
-    pub fn blueprint_library(&self) -> Result<super::BlueprintLibrary> {
-        let bp_lib_ptr = unsafe { carla_world_get_blueprint_library(self.inner) };
-        if bp_lib_ptr.is_null() {
-            return Err(anyhow!("Failed to get blueprint library"));
-        }
-        super::BlueprintLibrary::from_raw_ptr(bp_lib_ptr)
+    /// Get a snapshot of the current world state.
+    pub fn get_snapshot(&self) -> CarlaResult<WorldSnapshot> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_snapshot not yet implemented with carla-cxx FFI")
     }
 
-    pub fn vehicle_light_states(&self) -> Result<()> {
-        // Note: Vehicle light states need to be implemented in C wrapper
-        Err(anyhow!(
-            "Vehicle light states not yet implemented in C wrapper"
-        ))
-    }
-
-    pub fn random_location_from_navigation(&self) -> Result<Translation3<f32>> {
-        let transform_list_ptr =
-            unsafe { carla_world_get_random_location_from_navigation(self.inner) };
-        if transform_list_ptr.is_null() {
-            return Err(anyhow!("Failed to get random location from navigation"));
-        }
-
-        let size = unsafe { carla_transform_list_size(transform_list_ptr) };
-        if size == 0 {
-            unsafe { carla_transform_list_free(transform_list_ptr as *mut _) };
-            return Err(anyhow!("No random location available"));
-        }
-
-        let transform = unsafe { carla_transform_list_get(transform_list_ptr, 0) };
-        unsafe { carla_transform_list_free(transform_list_ptr as *mut _) };
-
-        Ok(Translation3::new(
-            transform.location.x,
-            transform.location.y,
-            transform.location.z,
-        ))
-    }
-
-    pub fn spectator(&self) -> Result<super::Actor> {
-        let actor_ptr = unsafe { carla_world_get_spectator(self.inner) };
-        if actor_ptr.is_null() {
-            return Err(anyhow!("Failed to get spectator actor"));
-        }
-        super::Actor::from_raw_ptr(actor_ptr)
-    }
-
-    // TODO: Implement settings when EpisodeSettings is available
-    /*
-    pub fn settings(&self) -> EpisodeSettings {
-        // C wrapper function needed
-        unimplemented!("Episode settings not implemented in C wrapper yet")
-    }
-    */
-
-    pub fn snapshot(&self) -> Result<carla_world_snapshot_t> {
-        let snapshot = unsafe { carla_world_get_snapshot(self.inner) };
-        Ok(snapshot)
-    }
-
-    // TODO: Implement when C wrapper provides this function
-    /*
-    pub fn names_of_all_objects(&self) -> Vec<String> {
-        // C wrapper function needed
-        Vec::new()
-    }
-    */
-
-    pub fn actor(&self, actor_id: u32) -> Option<super::Actor> {
-        let actor_ptr = unsafe { carla_world_get_actor(self.inner, actor_id) };
-        if actor_ptr.is_null() {
-            None
-        } else {
-            super::Actor::from_raw_ptr(actor_ptr).ok()
-        }
+    /// Get an actor by ID.
+    pub fn get_actor(&self, actor_id: ActorId) -> CarlaResult<Option<Actor>> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _actor_id = actor_id;
+        todo!("World::get_actor not yet implemented with carla-cxx FFI")
     }
 
     /// Get all actors in the world.
-    pub fn actors(&self) -> Result<ActorList> {
-        let actor_list_ptr = unsafe { carla_world_get_actors(self.inner) };
-        if actor_list_ptr.is_null() {
-            return Err(anyhow!("Failed to get actors from world"));
-        }
-        ActorList::from_raw_ptr(actor_list_ptr)
+    pub fn get_actors(&self) -> CarlaResult<Vec<Actor>> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_actors not yet implemented with carla-cxx FFI")
     }
 
-    /// Get actors by their IDs.
-    pub fn actors_by_ids(&self, ids: &[u32]) -> Result<ActorList> {
-        let actor_list_ptr =
-            unsafe { carla_world_get_actors_by_id(self.inner, ids.as_ptr(), ids.len()) };
-        if actor_list_ptr.is_null() {
-            return Err(anyhow!("Failed to get actors by IDs"));
-        }
-        ActorList::from_raw_ptr(actor_list_ptr)
+    /// Get actors filtered by type.
+    pub fn get_actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _actor_type = actor_type;
+        todo!("World::get_actors_by_type not yet implemented with carla-cxx FFI")
     }
 
-    // TODO: Uncomment when Waypoint and Actor modules are migrated
-    /*
-    pub fn traffic_lights_from_waypoint(&self, waypoint: &Waypoint, distance: f64) -> ActorVec {
-        // C wrapper function needed
-        unimplemented!("Traffic lights from waypoint not implemented in C wrapper yet")
-    }
-
-    pub fn traffic_lights_in_junction(&self, junc_id: i32) -> ActorVec {
-        // C wrapper function needed
-        unimplemented!("Traffic lights in junction not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Uncomment when EpisodeSettings is migrated
-    /*
-    pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
-        // C wrapper function needed
-        unimplemented!("Apply settings not implemented in C wrapper yet")
-    }
-    */
-
+    /// Spawn an actor.
     pub fn spawn_actor(
-        &mut self,
-        blueprint: &super::ActorBlueprint,
+        &self,
+        blueprint: &ActorBlueprint,
         transform: &Transform,
-    ) -> Result<super::Actor> {
-        self.spawn_actor_opt(blueprint, transform, None)
+        parent: Option<&Actor>,
+    ) -> CarlaResult<Actor> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _blueprint = blueprint;
+        let _transform = transform;
+        let _parent = parent;
+        todo!("World::spawn_actor not yet implemented with carla-cxx FFI")
     }
 
-    pub fn spawn_actor_opt(
-        &mut self,
-        blueprint: &super::ActorBlueprint,
-        transform: &Transform,
-        parent: Option<&super::Actor>,
-    ) -> Result<super::Actor> {
-        let parent_ptr = parent
-            .map(|parent| parent.raw_ptr())
-            .unwrap_or(ptr::null_mut());
-
-        let c_transform = transform.to_c_transform();
-
-        let spawn_result = unsafe {
-            carla_world_spawn_actor(self.inner, blueprint.raw_ptr(), &c_transform, parent_ptr)
-        };
-
-        if spawn_result.error != carla_error_t_CARLA_ERROR_NONE {
-            return Err(anyhow!(
-                "Failed to spawn actor: error code {}",
-                spawn_result.error
-            ));
-        }
-
-        if spawn_result.actor.is_null() {
-            return Err(anyhow!("Failed to spawn actor - null actor returned"));
-        }
-
-        super::Actor::from_raw_ptr(spawn_result.actor)
-    }
-
+    /// Try to spawn an actor (returns None if location is occupied).
     pub fn try_spawn_actor(
-        &mut self,
-        blueprint: &super::ActorBlueprint,
+        &self,
+        blueprint: &ActorBlueprint,
         transform: &Transform,
-    ) -> Result<Option<super::Actor>> {
-        self.try_spawn_actor_opt(blueprint, transform, None)
+        parent: Option<&Actor>,
+    ) -> CarlaResult<Option<Actor>> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _blueprint = blueprint;
+        let _transform = transform;
+        let _parent = parent;
+        todo!("World::try_spawn_actor not yet implemented with carla-cxx FFI")
     }
 
-    pub fn try_spawn_actor_opt(
-        &mut self,
-        blueprint: &super::ActorBlueprint,
-        transform: &Transform,
-        parent: Option<&super::Actor>,
-    ) -> Result<Option<super::Actor>> {
-        let parent_ptr = parent
-            .map(|parent| parent.raw_ptr())
-            .unwrap_or(ptr::null_mut());
-
-        let c_transform = transform.to_c_transform();
-
-        let spawn_result = unsafe {
-            carla_world_try_spawn_actor(self.inner, blueprint.raw_ptr(), &c_transform, parent_ptr)
-        };
-
-        match spawn_result.error {
-            carla_error_t_CARLA_ERROR_NONE => {
-                if spawn_result.actor.is_null() {
-                    Ok(None)
-                } else {
-                    Ok(Some(super::Actor::from_raw_ptr(spawn_result.actor)?))
-                }
-            }
-            _ => {
-                // For try_spawn, we return None instead of error for some cases
-                Ok(None)
-            }
-        }
+    /// Tick the world (advance simulation by one step).
+    pub fn tick(&self) -> CarlaResult<WorldSnapshot> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::tick not yet implemented with carla-cxx FFI")
     }
 
-    pub fn wait_for_tick(&self) -> Result<carla_world_snapshot_t> {
-        loop {
-            if let Some(snapshot) = self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)? {
-                return Ok(snapshot);
-            }
-        }
+    /// Wait for a tick with timeout.
+    pub fn wait_for_tick(&self, timeout: Option<Duration>) -> CarlaResult<WorldSnapshot> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _timeout = timeout;
+        todo!("World::wait_for_tick not yet implemented with carla-cxx FFI")
     }
 
-    // TODO: Uncomment when ActorBuilder is migrated
-    /*
-    pub fn actor_builder(&mut self, key: &str) -> Result<ActorBuilder<'_>> {
-        ActorBuilder::new(self, key)
-    }
-    */
-
-    #[must_use]
-    pub fn wait_for_tick_or_timeout(
-        &self,
-        timeout: Duration,
-    ) -> Result<Option<carla_world_snapshot_t>> {
-        unsafe {
-            carla_world_wait_for_tick(self.inner, timeout.as_millis() as u64);
-        }
-        // Return the current snapshot after waiting
-        Ok(Some(self.snapshot()?))
+    /// Enable/disable synchronous mode.
+    pub fn set_synchronous_mode(&self, enabled: bool) -> CarlaResult<()> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _enabled = enabled;
+        todo!("World::set_synchronous_mode not yet implemented with carla-cxx FFI")
     }
 
-    pub fn tick_or_timeout(&mut self, timeout: Duration) -> u64 {
-        unsafe { carla_world_tick(self.inner, timeout.as_millis() as u64) }
+    /// Get simulation settings.
+    pub fn get_settings(&self) -> CarlaResult<WorldSettings> {
+        // TODO: Implement using carla-cxx FFI interface
+        todo!("World::get_settings not yet implemented with carla-cxx FFI")
     }
 
-    pub fn tick(&mut self) -> u64 {
-        self.tick_or_timeout(DEFAULT_TICK_TIMEOUT)
+    /// Apply simulation settings.
+    pub fn apply_settings(&self, settings: &WorldSettings) -> CarlaResult<()> {
+        // TODO: Implement using carla-cxx FFI interface
+        let _settings = settings;
+        todo!("World::apply_settings not yet implemented with carla-cxx FFI")
     }
-
-    // TODO: Implement when C wrapper provides these functions
-    /*
-    pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
-        // C wrapper function needed
-        unimplemented!("Set pedestrians cross factor not implemented in C wrapper yet")
-    }
-
-    pub fn set_pedestrians_seed(&mut self, seed: usize) {
-        // C wrapper function needed
-        unimplemented!("Set pedestrians seed not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Uncomment when Landmark and Actor modules are migrated
-    /*
-    pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
-        // C wrapper function needed
-        unimplemented!("Traffic sign at landmark not implemented in C wrapper yet")
-    }
-
-    pub fn traffic_light_at(&self, landmark: &Landmark) -> Option<Actor> {
-        // C wrapper function needed
-        unimplemented!("Traffic light at landmark not implemented in C wrapper yet")
-    }
-
-    pub fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
-        // C wrapper function needed
-        unimplemented!("Traffic light from OpenDRIVE not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Implement when C wrapper provides these functions
-    /*
-    pub fn freeze_all_traffic_lights(&mut self, frozen: bool) {
-        // C wrapper function needed
-        unimplemented!("Freeze all traffic lights not implemented in C wrapper yet")
-    }
-
-    pub fn reset_all_traffic_lights(&mut self) {
-        // C wrapper function needed
-        unimplemented!("Reset all traffic lights not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Uncomment when BoundingBoxList is migrated
-    /*
-    pub fn level_bounding_boxes(&self, queried_tag: u8) -> BoundingBoxList {
-        // C wrapper function needed
-        unimplemented!("Level bounding boxes not implemented in C wrapper yet")
-    }
-    */
-
-    pub fn weather(&self) -> carla_weather_parameters_t {
-        unsafe { carla_world_get_weather(self.inner) }
-    }
-
-    pub fn set_weather(&mut self, weather: &carla_weather_parameters_t) {
-        unsafe { carla_world_set_weather(self.inner, weather) };
-    }
-
-    // TODO: Uncomment when EnvironmentObjectList is migrated
-    /*
-    pub fn environment_objects(&self, queried_tag: u8) -> EnvironmentObjectList {
-        // C wrapper function needed
-        unimplemented!("Environment objects not implemented in C wrapper yet")
-    }
-
-    pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) {
-        // C wrapper function needed
-        unimplemented!("Enable environment objects not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Uncomment when LabelledPoint is migrated
-    /*
-    pub fn project_point(
-        &self,
-        location: &Translation3<f32>,
-        direction: &Vector3<f32>,
-        search_distance: f32,
-    ) -> Option<LabelledPoint> {
-        // C wrapper function needed
-        unimplemented!("Project point not implemented in C wrapper yet")
-    }
-
-    pub fn ground_projection(
-        &self,
-        location: &Translation3<f32>,
-        search_distance: f32,
-    ) -> Option<LabelledPoint> {
-        // C wrapper function needed
-        unimplemented!("Ground projection not implemented in C wrapper yet")
-    }
-    */
-
-    // TODO: Uncomment when LabelledPointList is migrated
-    /*
-    pub fn cast_ray(
-        &self,
-        start: &Translation3<f32>,
-        end: &Translation3<f32>,
-    ) -> LabelledPointList {
-        // C wrapper function needed
-        unimplemented!("Cast ray not implemented in C wrapper yet")
-    }
-    */
 }
 
-impl Drop for World {
-    fn drop(&mut self) {
-        if !self.inner.is_null() {
-            unsafe {
-                carla_world_free(self.inner);
-            }
-            self.inner = ptr::null_mut();
+/// World snapshot containing all actor states at a given time.
+#[derive(Debug, Clone)]
+pub struct WorldSnapshot {
+    /// Snapshot timestamp
+    pub timestamp: Timestamp,
+    /// Actor snapshots
+    pub actors: Vec<ActorSnapshot>,
+}
+
+/// Snapshot of an actor's state.
+#[derive(Debug, Clone)]
+pub struct ActorSnapshot {
+    /// Actor ID
+    pub id: ActorId,
+    /// Actor transform
+    pub transform: Transform,
+    /// Actor velocity
+    pub velocity: crate::geom::Vector3D,
+    /// Actor angular velocity
+    pub angular_velocity: crate::geom::Vector3D,
+    /// Actor acceleration
+    pub acceleration: crate::geom::Vector3D,
+}
+
+/// Weather parameters for the simulation.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WeatherParameters {
+    /// Cloud amount [0.0, 100.0]
+    pub cloudiness: f32,
+    /// Precipitation amount [0.0, 100.0]
+    pub precipitation: f32,
+    /// Precipitation deposits [0.0, 100.0]
+    pub precipitation_deposits: f32,
+    /// Wind intensity [0.0, 100.0]
+    pub wind_intensity: f32,
+    /// Sun azimuth angle in degrees [0.0, 360.0]
+    pub sun_azimuth_angle: f32,
+    /// Sun altitude angle in degrees [-90.0, 90.0]
+    pub sun_altitude_angle: f32,
+    /// Fog density [0.0, 100.0]
+    pub fog_density: f32,
+    /// Fog distance in meters
+    pub fog_distance: f32,
+    /// Fog falloff
+    pub fog_falloff: f32,
+    /// Wetness [0.0, 100.0]
+    pub wetness: f32,
+    /// Scattering intensity [0.0, 100.0]
+    pub scattering_intensity: f32,
+    /// Mie scattering scale [0.0, 100.0]
+    pub mie_scattering_scale: f32,
+    /// Rayleigh scattering scale [0.0, 100.0]
+    pub rayleigh_scattering_scale: f32,
+}
+
+impl Default for WeatherParameters {
+    fn default() -> Self {
+        Self {
+            cloudiness: 0.0,
+            precipitation: 0.0,
+            precipitation_deposits: 0.0,
+            wind_intensity: 0.0,
+            sun_azimuth_angle: 0.0,
+            sun_altitude_angle: 45.0,
+            fog_density: 0.0,
+            fog_distance: 0.0,
+            fog_falloff: 0.2,
+            wetness: 0.0,
+            scattering_intensity: 1.0,
+            mie_scattering_scale: 0.03,
+            rayleigh_scattering_scale: 0.0331,
         }
     }
 }
 
-// SAFETY: World wraps a thread-safe C API
-unsafe impl Send for World {}
-unsafe impl Sync for World {}
+/// World simulation settings.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WorldSettings {
+    /// Synchronous mode enabled
+    pub synchronous_mode: bool,
+    /// Fixed delta time for synchronous mode
+    pub fixed_delta_seconds: Option<f64>,
+    /// Substepping enabled
+    pub substepping: bool,
+    /// Maximum substep delta time
+    pub max_substep_delta_time: f64,
+    /// Maximum substeps
+    pub max_substeps: i32,
+    /// Max culling distance
+    pub max_culling_distance: f32,
+    /// Deterministic ragdolls
+    pub deterministic_ragdolls: bool,
+    /// Tile stream distance
+    pub tile_stream_distance: f32,
+    /// Actor active distance
+    pub actor_active_distance: f32,
+}
+
+impl Default for WorldSettings {
+    fn default() -> Self {
+        Self {
+            synchronous_mode: false,
+            fixed_delta_seconds: None,
+            substepping: true,
+            max_substep_delta_time: 0.01,
+            max_substeps: 10,
+            max_culling_distance: 0.0,
+            deterministic_ragdolls: true,
+            tile_stream_distance: 3000.0,
+            actor_active_distance: 2000.0,
+        }
+    }
+}

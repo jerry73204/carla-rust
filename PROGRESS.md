@@ -2,416 +2,494 @@
 
 ## Overview
 
-This document tracks the progress of creating a complete Rust API that mirrors the C++ API structure for CARLA simulator version 0.10.0. Progress is tracked for both the C wrapper implementation and the Rust API layer.
+This document tracks the progress of creating a complete Rust API that mirrors the C++ API structure for CARLA simulator version 0.10.0. The architecture is now based on a two-layer approach:
+
+1. **CXX Direct FFI** (`carla-cxx`) - Low-level CXX bindings to CARLA C++ API
+2. **High-Level Rust API** (`carla`) - Idiomatic Rust API mirroring C++ CARLA structure
+
+## New Architecture Proposal
+
+### Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    carla (High-Level API)                   │
+│  ┌─────────────────┬─────────────────┬─────────────────┐    │
+│  │  carla::client  │  carla::sensor  │ carla::traffic  │    │
+│  │     ::World     │     ::Camera    │   ::TrafficMgr  │    │
+│  │     ::Actor     │     ::Lidar     │   ::TrafficLt   │    │
+│  │     ::Vehicle   │     ::Radar     │                 │    │
+│  │     ::Walker    │     ::IMU       │                 │    │
+│  └─────────────────┴─────────────────┴─────────────────┘    │
+├─────────────────────────────────────────────────────────────┤
+│                   carla-cxx (FFI Layer)                     │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │            CXX Bridge to CARLA C++ API                 │ │
+│  │  • Direct C++ interop without C wrapper               │ │
+│  │  • Memory-safe through CXX abstractions               │ │
+│  │  • Exception → Result conversion                      │ │
+│  └─────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│                    CARLA C++ Library                        │
+│            (carla::client, carla::sensor, etc.)             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### New `carla/` Crate Structure
+
+The new `carla/` crate will mirror the C++ CARLA API structure exactly, providing an idiomatic Rust interface:
+
+```
+carla/
+├── src/
+│   ├── lib.rs                    // Main crate exports, mirroring carla:: namespace
+│   ├── client/                   // carla::client equivalents
+│   │   ├── mod.rs
+│   │   ├── client.rs            // carla::client::Client
+│   │   ├── world.rs             // carla::client::World  
+│   │   ├── actor.rs             // carla::client::Actor (base)
+│   │   ├── vehicle.rs           // carla::client::Vehicle
+│   │   ├── walker.rs            // carla::client::Walker
+│   │   ├── sensor.rs            // carla::client::Sensor
+│   │   ├── traffic_light.rs     // carla::client::TrafficLight
+│   │   ├── traffic_sign.rs      // carla::client::TrafficSign
+│   │   ├── blueprint.rs         // carla::client::ActorBlueprint
+│   │   └── blueprint_library.rs // carla::client::BlueprintLibrary
+│   ├── sensor/                  // carla::sensor equivalents
+│   │   ├── mod.rs
+│   │   ├── data.rs             // carla::sensor::data
+│   │   ├── camera.rs           // Camera sensor implementations
+│   │   ├── lidar.rs            // LiDAR sensor implementations  
+│   │   ├── radar.rs            // Radar sensor implementations
+│   │   ├── imu.rs              // IMU sensor implementations
+│   │   ├── gnss.rs             // GNSS sensor implementations
+│   │   ├── collision.rs        // Collision detector
+│   │   └── lane_invasion.rs    // Lane invasion detector
+│   ├── traffic_manager/         // carla::traffic_manager equivalents
+│   │   ├── mod.rs
+│   │   ├── traffic_manager.rs  // carla::traffic_manager::TrafficManager
+│   │   └── types.rs            // Traffic manager specific types
+│   ├── road/                   // carla::road equivalents
+│   │   ├── mod.rs
+│   │   ├── map.rs              // carla::road::Map
+│   │   ├── waypoint.rs         // carla::road::element::Waypoint
+│   │   ├── junction.rs         // carla::road::Junction
+│   │   ├── lane.rs             // carla::road::Lane
+│   │   └── road_types.rs       // Road-related enums and types
+│   ├── geom/                   // carla::geom equivalents
+│   │   ├── mod.rs
+│   │   ├── location.rs         // carla::geom::Location
+│   │   ├── rotation.rs         // carla::geom::Rotation
+│   │   ├── transform.rs        // carla::geom::Transform
+│   │   ├── vector.rs           // carla::geom::Vector2D, Vector3D
+│   │   └── bounding_box.rs     // carla::geom::BoundingBox
+│   ├── rpc/                    // carla::rpc equivalents
+│   │   ├── mod.rs
+│   │   ├── actor_id.rs         // carla::rpc::ActorId
+│   │   ├── vehicle_control.rs  // carla::rpc::VehicleControl
+│   │   ├── walker_control.rs   // carla::rpc::WalkerControl
+│   │   └── command.rs          // carla::rpc::Command
+│   ├── time/                   // carla::time equivalents
+│   │   ├── mod.rs
+│   │   └── timestamp.rs        // carla::time::Timestamp
+│   └── streaming/              // carla::streaming (if needed)
+│       ├── mod.rs
+│       └── sensor_stream.rs    // Sensor data streaming
+├── examples/                   // Usage examples
+│   ├── getting_started.rs
+│   ├── spawn_vehicles.rs
+│   ├── sensor_tutorial.rs
+│   └── traffic_management.rs
+└── tests/                      // Integration tests
+    ├── client_tests.rs
+    ├── sensor_tests.rs
+    └── traffic_tests.rs
+```
+
+### Design Principles
+
+#### 1. Mirror C++ API Structure
+- **Namespace Mapping**: `carla::client::Client` → `carla::client::Client`
+- **Method Names**: C++ snake_case → Rust snake_case (natural mapping)
+- **Type Hierarchy**: Preserve C++ inheritance through Rust traits
+- **Error Handling**: C++ exceptions → Rust `Result<T, E>`
+
+#### 2. Rust-Specific Improvements
+- **Memory Safety**: Automatic through Rust ownership
+- **Type Safety**: Strong typing for IDs, handles, and state
+- **Error Handling**: Comprehensive `Result` types with detailed error info
+- **Iterators**: Rust iterators for collections (actor lists, waypoints, etc.)
+- **Traits**: Common behavior through traits (e.g., `ActorT`, `SensorT`)
+
+#### 3. API Design Patterns
+
+```rust
+// Example API structure mirroring C++
+
+// carla::client::Client equivalent
+pub struct Client {
+    inner: carla_cxx::ClientWrapper,
+}
+
+impl Client {
+    pub fn new(host: &str, port: u16, worker_threads: Option<usize>) -> Result<Self, ClientError> {
+        let inner = carla_cxx::ClientWrapper::new(host, port)?;
+        // Configure worker threads if specified
+        Ok(Self { inner })
+    }
+    
+    pub fn get_world(&self) -> World {
+        World::from(self.inner.get_world())
+    }
+    
+    pub fn get_available_maps(&self) -> Result<Vec<String>, ClientError> {
+        self.inner.get_available_maps()
+    }
+    
+    pub fn load_world(&self, map_name: &str) -> Result<World, ClientError> {
+        let world = self.inner.load_world(map_name)?;
+        Ok(World::from(world))
+    }
+}
+
+// carla::client::World equivalent
+pub struct World {
+    inner: carla_cxx::WorldWrapper,
+}
+
+impl World {
+    pub fn get_blueprint_library(&self) -> BlueprintLibrary {
+        BlueprintLibrary::from(self.inner.get_blueprint_library())
+    }
+    
+    pub fn spawn_actor(
+        &self, 
+        blueprint: &ActorBlueprint,
+        transform: &Transform,
+        attach_to: Option<&Actor>
+    ) -> Result<Actor, SpawnError> {
+        let actor = self.inner.spawn_actor(blueprint, transform, attach_to)?;
+        Ok(Actor::from(actor))
+    }
+    
+    pub fn get_actors(&self) -> ActorList {
+        ActorList::from(self.inner.get_actors())
+    }
+    
+    pub fn tick(&self, timeout: Option<Duration>) -> Result<WorldSnapshot, WorldError> {
+        let snapshot = self.inner.tick(timeout.unwrap_or(Duration::from_secs(2)))?;
+        Ok(WorldSnapshot::from(snapshot))
+    }
+}
+
+// carla::client::Actor base with type-safe downcasting
+pub struct Actor {
+    inner: carla_cxx::ActorWrapper,
+}
+
+impl Actor {
+    pub fn get_id(&self) -> ActorId { /* ... */ }
+    pub fn get_type_id(&self) -> String { /* ... */ }
+    pub fn get_transform(&self) -> Transform { /* ... */ }
+    pub fn set_transform(&self, transform: &Transform) -> Result<(), ActorError> { /* ... */ }
+    
+    // Type-safe downcasting
+    pub fn as_vehicle(&self) -> Option<Vehicle> {
+        if self.inner.is_vehicle() {
+            Some(Vehicle { inner: self.inner.clone() })
+        } else {
+            None
+        }
+    }
+    
+    pub fn as_walker(&self) -> Option<Walker> { /* ... */ }
+    pub fn as_sensor(&self) -> Option<Sensor> { /* ... */ }
+}
+
+// carla::client::Vehicle with vehicle-specific methods
+pub struct Vehicle {
+    inner: carla_cxx::ActorWrapper, // or VehicleWrapper if specialized
+}
+
+impl Vehicle {
+    pub fn apply_control(&self, control: &VehicleControl) -> Result<(), VehicleError> {
+        self.inner.apply_vehicle_control(control)
+    }
+    
+    pub fn get_control(&self) -> VehicleControl {
+        self.inner.get_vehicle_control()
+    }
+    
+    pub fn set_autopilot(&self, enabled: bool, traffic_manager_port: Option<u16>) -> Result<(), VehicleError> {
+        self.inner.set_autopilot(enabled, traffic_manager_port.unwrap_or(8000))
+    }
+}
+
+// Type-safe error handling
+#[derive(Debug, thiserror::Error)]
+pub enum ClientError {
+    #[error("Connection failed: {0}")]
+    ConnectionFailed(String),
+    #[error("Invalid host: {0}")]
+    InvalidHost(String),
+    #[error("Timeout: {0}")]
+    Timeout(Duration),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum SpawnError {
+    #[error("Spawn location occupied")]
+    LocationOccupied,
+    #[error("Invalid blueprint: {0}")]
+    InvalidBlueprint(String),
+    #[error("World error: {0}")]
+    WorldError(#[from] WorldError),
+}
+```
+
+#### 4. Trait-Based Architecture
+
+```rust
+// Common actor behaviors
+pub trait ActorT {
+    fn get_id(&self) -> ActorId;
+    fn get_transform(&self) -> Transform;
+    fn set_transform(&self, transform: &Transform) -> Result<(), ActorError>;
+    fn destroy(&self) -> Result<(), ActorError>;
+}
+
+// Sensor-specific behaviors  
+pub trait SensorT: ActorT {
+    type DataType: SensorData;
+    
+    fn listen<F>(&self, callback: F) -> Result<(), SensorError>
+    where F: Fn(Self::DataType) + Send + 'static;
+    
+    fn stop(&self) -> Result<(), SensorError>;
+    fn is_listening(&self) -> bool;
+}
+
+// Vehicle-specific behaviors
+pub trait VehicleT: ActorT {
+    fn apply_control(&self, control: &VehicleControl) -> Result<(), VehicleError>;
+    fn get_control(&self) -> VehicleControl;
+    fn get_velocity(&self) -> Vector3D;
+    fn get_acceleration(&self) -> Vector3D;
+}
+```
 
 ## Current Status (January 2025)
 
-**Overall Progress**: ~70% complete (core functionality working)
-
-### Legend
-- ✅ **Complete** - Fully implemented and tested
-- 🔄 **In Progress** - Partially implemented
-- ❌ **Not Started** - No implementation
-- 🚫 **Blocked** - Waiting for dependencies
-- 📝 **Planned** - Design complete, implementation pending
-
-## Module Progress Matrix
-
-### Core Client Infrastructure
-
-| Module                | C Wrapper | Rust API | Status   | Notes                                |
-|-----------------------|-----------|----------|----------|--------------------------------------|
-| **Client Connection** | ✅        | ✅       | Complete | Basic connection and world access    |
-| **World Management**  | ✅        | ✅       | Complete | World state, ticking, settings       |
-| **Actor Base System** | ✅        | ✅       | Complete | Actor lifecycle, physics, transforms |
-| **Blueprint System**  | ✅        | ✅       | Complete | ActorBlueprint, BlueprintLibrary     |
-
-### Actor System
-
-| Module             | C Wrapper | Rust API | Status   | Notes                                 |
-|--------------------|-----------|----------|----------|---------------------------------------|
-| **Base Actor**     | ✅        | ✅       | Complete | Physics, transforms, lifecycle        |
-| **Vehicle Actor**  | ✅        | ✅       | Complete | Control, physics, telemetry           |
-| **Walker Actor**   | 🔄        | ✅       | Partial  | Basic wrapper, AI controller pending  |
-| **Sensor Actor**   | ✅        | ✅       | Complete | Callbacks, configuration, calibration |
-| **Traffic Light**  | 🔄        | 🔄       | Partial  | Placeholder implementation            |
-| **Traffic Sign**   | 🔄        | 🔄       | Partial  | Placeholder implementation            |
-| **ActorList**      | ❌        | ❌       | Missing  | Collection management needed          |
-| **Actor Spawning** | ✅        | ✅       | Complete | World spawn methods                   |
-
-### Sensor System
-
-| Module               | C Wrapper | Rust API | Status   | Notes                                      |
-|----------------------|-----------|----------|----------|--------------------------------------------|
-| **Sensor Base**      | ✅        | ✅       | Complete | Listen, stop, callbacks                    |
-| **Image Data**       | ✅        | ✅       | Complete | RGB, depth, semantic segmentation          |
-| **LiDAR Data**       | ✅        | ✅       | Complete | Point clouds, semantic LiDAR               |
-| **Radar Data**       | ✅        | ✅       | Complete | Detection points                           |
-| **IMU Data**         | ✅        | ✅       | Complete | Accelerometer, gyroscope                   |
-| **GNSS Data**        | ✅        | ✅       | Complete | GPS positioning                            |
-| **Collision Events** | ✅        | 🔄       | Partial  | Data structure exists, integration pending |
-| **Lane Invasion**    | ✅        | 🔄       | Partial  | Data structure exists, integration pending |
-| **DVS Events**       | 🔄        | 🔄       | Partial  | Advanced sensor type                       |
-| **Optical Flow**     | 🔄        | 🔄       | Partial  | Advanced sensor type                       |
-
-### Vehicle Control System
-
-| Module                | C Wrapper | Rust API | Status   | Notes                            |
-|-----------------------|-----------|----------|----------|----------------------------------|
-| **Vehicle Control**   | ✅        | ✅       | Complete | Throttle, brake, steering        |
-| **Ackermann Control** | ✅        | ✅       | Complete | Advanced vehicle control         |
-| **Physics Control**   | 🔄        | ✅       | Partial  | Rust complete, C wrapper partial |
-| **Wheel Physics**     | 🔄        | 🔄       | Partial  | Advanced physics pending         |
-| **Gear Physics**      | 🔄        | 🔄       | Partial  | Advanced physics pending         |
-| **Vehicle Lights**    | ✅        | ✅       | Complete | Light state control              |
-| **Vehicle Doors**     | ❌        | 📝       | Planned  | CARLA 0.10.0 feature             |
-| **Vehicle Damage**    | 🔄        | 🔄       | Partial  | Placeholder implementation       |
-
-### Walker Control System
-
-| Module                | C Wrapper | Rust API | Status   | Notes                          |
-|-----------------------|-----------|----------|----------|--------------------------------|
-| **Walker Control**    | ✅        | ✅       | Complete | Basic movement                 |
-| **Walker AI**         | 🚫        | 🚫       | Blocked  | Awaiting C++ API stabilization |
-| **Bone Control**      | 🚫        | 🚫       | Blocked  | Advanced animation system      |
-| **Walker Navigation** | ❌        | ❌       | Missing  | Pathfinding integration        |
-
-### Map and Navigation
-
-| Module                | C Wrapper | Rust API | Status   | Notes                      |
-|-----------------------|-----------|----------|----------|----------------------------|
-| **Map Base**          | ✅        | ✅       | Complete | Map loading and access     |
-| **Waypoint System**   | ✅        | ✅       | Complete | Lane navigation            |
-| **OpenDRIVE Support** | 🚫        | 🚫       | Blocked  | Awaiting C API completion  |
-| **Road Topology**     | 🔄        | 🔄       | Partial  | Basic elements implemented |
-| **Lane Markings**     | ✅        | ✅       | Complete | Lane marking detection     |
-| **Junctions**         | ❌        | ❌       | Missing  | Complex road intersections |
-| **Landmarks**         | ❌        | ❌       | Missing  | Traffic signs, signals     |
-
-### Traffic Management
-
-| Module               | C Wrapper | Rust API | Status   | Notes                         |
-|----------------------|-----------|----------|----------|-------------------------------|
-| **Traffic Manager**  | ✅        | ✅       | Complete | Full implementation           |
-| **Vehicle Behavior** | ✅        | ✅       | Complete | Speed, collision, lane change |
-| **Traffic Lights**   | ✅        | ✅       | Complete | State management              |
-| **Traffic Flow**     | ✅        | ✅       | Complete | Global parameters             |
-| **Route Planning**   | ✅        | ✅       | Complete | Actor route assignment        |
-
-### ROS2 Integration
-
-| Module               | C Wrapper | Rust API | Status  | Notes                                 |
-|----------------------|-----------|----------|---------|---------------------------------------|
-| **ROS2 Node**        | 🔄        | 🔄       | Partial | Basic structure, methods TODO         |
-| **Publishers**       | 🔄        | 🔄       | Partial | Structure exists, implementation TODO |
-| **Subscribers**      | 🔄        | 🔄       | Partial | Structure exists, implementation TODO |
-| **Message Types**    | 🔄        | 🔄       | Partial | Conversion methods TODO               |
-| **TF2 Integration**  | ❌        | ❌       | Missing | Transform broadcasts                  |
-| **Parameter Server** | ❌        | ❌       | Missing | ROS2 parameters                       |
-
-### Geometry and Math
-
-| Module                   | C Wrapper | Rust API | Status   | Notes                         |
-|--------------------------|-----------|----------|----------|-------------------------------|
-| **Vector3D**             | ✅        | ✅       | Complete | 3D vector operations          |
-| **Vector2D**             | 🔄        | ✅       | Partial  | Using Vector3D as placeholder |
-| **Transform**            | ✅        | ✅       | Complete | Position and rotation         |
-| **Location/Rotation**    | ✅        | ✅       | Complete | Basic geometry                |
-| **Bounding Box**         | ✅        | ✅       | Complete | AABB and OBB                  |
-| **Nalgebra Integration** | ✅        | ✅       | Complete | Linear algebra bridge         |
-
-### Utility Systems
-
-| Module                | C Wrapper | Rust API | Status   | Notes                      |
-|-----------------------|-----------|----------|----------|----------------------------|
-| **Error Handling**    | ✅        | ✅       | Complete | Comprehensive error system |
-| **String Conversion** | ✅        | ✅       | Complete | C string utilities         |
-| **Memory Management** | ✅        | ✅       | Complete | Safe pointer handling      |
-| **Thread Safety**     | ✅        | ✅       | Complete | Send/Sync implementations  |
-
-## C Wrapper Implementation Status
-
-### libcarla_c Project
-- 📍 **Location**: `libcarla_c/` directory
-- 🔨 **Build System**: CMake-based
-- 📦 **Dependencies**: CARLA C++ library, standard C libraries
-- 🎯 **Coverage**: ~75% of CARLA C++ API
-
-### Completed C Wrappers
-- ✅ **Core Client**: Connection, world management
-- ✅ **Actor System**: Actor lifecycle, physics
-- ✅ **Sensor System**: Data acquisition, callbacks
-- ✅ **Vehicle Control**: Movement, physics
-- ✅ **Traffic Manager**: Behavior control
-- ✅ **Geometry**: Transforms, vectors
-
-### Pending C Wrappers
-- 🔄 **Advanced Physics**: Wheel/gear control (partial)
-- ❌ **OpenDRIVE**: Map generation and parsing
-- ❌ **ActorList**: Collection management
-- ❌ **Walker AI**: Advanced pedestrian control
-- ❌ **ROS2 Native**: Native ROS2 integration
-
-## Rust API Implementation Status
-
-### Module Organization
-- ✅ **Architecture**: `module.rs` + `module/` pattern
-- ✅ **Re-exports**: Clean public API structure
-- ✅ **Documentation**: Comprehensive rustdoc
-- ✅ **Type Safety**: Newtype wrappers for actors
-
-### Completed Rust APIs
-- ✅ **Client**: Connection and world management
-- ✅ **Actor**: Complete lifecycle with physics
-- ✅ **Sensor**: Enhanced management and data processing
-- ✅ **Vehicle**: Full control and telemetry
-- ✅ **Walker**: Basic movement and control
-- ✅ **Traffic Manager**: Complete implementation
-- ✅ **Geometry**: Full nalgebra integration
-
-### Pending Rust APIs
-- 🔄 **Actor Collections**: ActorList implementation
-- 🔄 **Advanced Sensors**: DVS, optical flow
-- 🔄 **Map Navigation**: Junction, landmark support
-- 🔄 **ROS2**: Complete message system
-- ❌ **Testing**: Unit and integration tests
-
-## Implementation Priorities
-
-### Immediate (Next Sprint)
-1. **ActorList Implementation** - Collection management for actors
-2. **Advanced Traffic Actors** - Complete TrafficLight and TrafficSign
-3. **Enhanced Map System** - Junction and landmark support
-
-### Medium Term (Next Month)
-1. **ROS2 Completion** - Full message system and native integration
-2. **Advanced Sensor Types** - DVS and optical flow implementations
-3. **Testing Framework** - Unit and integration test suite
-
-### Long Term (Next Quarter)
-1. **CARLA 0.10.0 Features** - Vehicle doors, Chaos physics
-2. **OpenDRIVE Support** - When C++ API stabilizes
-3. **Performance Optimization** - Benchmarking and optimization
-
-## Detailed TODOs by Module
-
-### Core Infrastructure
-**File**: `carla/src/stubs.rs` (165 total TODOs identified)
-- 🔧 **Remove all stub types** when actual C API types are available
-- 🔧 **Implement walker control retrieval** when C API is available  
-- 🔧 **Implement actor type checking** functions (walker, traffic light, traffic sign, sensor)
-- 🔧 **Implement carla_actor_get_parent** when C API is available
-- 🔧 **Implement blueprint attribute functions** when C API is available
-- 🔧 **Implement traffic sign functions** when C API is available
-
-### Sensor System
-**Files**: `carla/src/sensor.rs`, `carla/src/sensor/sensor_data.rs`
-- 🔧 **Enable sensor data submodules** when Phase 6 C API types are ready
-- 🔧 **Define SensorDataType** when sensor type system is finalized
-- 🔧 **Implement sensor calibration data** conversion when C API is available
-- 🔧 **Implement data size retrieval** when C API provides `carla_sensor_data_get_size`
-- 🔧 **Re-enable disabled modules** (data, fusion, image_analysis, lidar_analysis, motion)
-
-**File**: `carla/src/client/sensor.rs`
-- 🔧 **Implement sensor attribute enumeration** when C API provides `carla_sensor_get_all_attributes`
-- 🔧 **Implement sensor buffering** when C API provides sensor buffering
-- 🔧 **Implement sensor synchronization** when C API provides functionality
-- 🔧 **Implement performance metrics** when C API provides them
-
-### World Management
-**File**: `carla/src/client/world.rs` (25+ commented functions)
-- 🔧 **Implement episode settings** when EpisodeSettings is available
-- 🔧 **Implement names_of_all_objects** when C wrapper provides function
-- 🔧 **Enable ActorList methods** when module is migrated
-- 🔧 **Enable actors_by_ids** when ActorList module is migrated
-- 🔧 **Enable traffic light methods** when Waypoint and Actor modules are migrated
-- 🔧 **Enable apply_settings** when EpisodeSettings is migrated
-- 🔧 **Enable actor_builder** when ActorBuilder is migrated
-- 🔧 **Implement pedestrian control** functions when C wrapper provides them
-- 🔧 **Enable traffic sign/light methods** when Landmark and Actor modules are migrated
-- 🔧 **Implement traffic light control** functions when C wrapper provides them
-- 🔧 **Enable level_bounding_boxes** when BoundingBoxList is migrated
-- 🔧 **Enable environment object methods** when EnvironmentObjectList is migrated
-- 🔧 **Enable projection methods** when LabelledPoint is migrated
-- 🔧 **Enable cast_ray** when LabelledPointList is migrated
-
-### ROS2 Integration (Completely Unimplemented)
-**File**: `carla/src/ros2.rs`
-- ❌ **Implement ROS2 node creation** using `carla_ros2_create_node()`
-- ❌ **Implement ROS2 node spinning** using `carla_ros2_node_spin_once()`
-- ❌ **Implement node status check** using `carla_ros2_node_is_active()`
-- ❌ **Implement node shutdown** using `carla_ros2_node_shutdown()`
-- ❌ **Implement proper cleanup** with `carla_ros2_node_destroy()`
-- ❌ **Implement additional ROS2 features** (Parameter server, Services, Actions, TF2, Diagnostics)
-
-**File**: `carla/src/ros2/messages.rs`
-- ❌ **Re-enable sensor data imports** when Phase 5.1 is complete
-- ❌ **Re-enable message conversion** implementations when Phase 6 ready
-- ❌ **Implement Image to ROS2 ImageMsg** conversion
-- ❌ **Implement LidarMeasurement to ROS2 PointCloud2** conversion
-- ❌ **Implement Transform to ROS2 TransformMsg** conversion
-- ❌ **Implement Twist to Vector3D** conversion
-- ❌ **Implement TransformMsg to Transform** conversion
-- ❌ **Implement coordinate system conversion** (UE4 to ROS2)
-- ❌ **Add more message types** (sensor_msgs/Imu, NavSatFix, etc.)
-
-**File**: `carla/src/ros2/publisher.rs`
-- ❌ **Implement publisher creation** using `carla_ros2_create_publisher()`
-- ❌ **Implement message publishing** using `carla_ros2_publisher_publish()`
-- ❌ **Implement subscription count** using `carla_ros2_publisher_get_subscription_count()`
-- ❌ **Re-enable specialized publishers** when Phase 6 ready
-- ❌ **Implement image publishing** using `carla_ros2_publish_image()`
-- ❌ **Implement point cloud publishing** using `carla_ros2_publish_pointcloud()`
-- ❌ **Implement publisher cleanup** with `carla_ros2_publisher_destroy()`
-
-**File**: `carla/src/ros2/subscriber.rs`
-- ❌ **Implement subscriber creation** using `carla_ros2_create_subscriber()`
-- ❌ **Implement publisher count** using `carla_ros2_subscriber_get_publisher_count()`
-- ❌ **Implement vehicle control subscriber**
-- ❌ **Implement walker control subscriber**
-- ❌ **Implement callback wrapper** for C message to Rust type conversion
-- ❌ **Implement subscriber cleanup** with `carla_ros2_subscriber_destroy()`
-- ❌ **Add specialized subscribers** (Map data, Sensor data, Traffic info)
-
-### Vehicle System
-**File**: `carla/src/client/vehicle.rs`
-- 🔧 **Implement vehicle physics control** when C API provides `carla_vehicle_apply_physics_control()`
-- 🔧 **Implement physics control retrieval** when C API provides `carla_vehicle_get_physics_control()`
-- 🔧 **Implement vehicle damage system**
-- 🔧 **Implement vehicle door control** (CARLA 0.10.0 feature)
-- 🔧 **Implement advanced wheel physics**
-- 🔧 **Implement gear physics control**
-
-### Road Network
-**File**: `carla/src/road.rs`
-- 🚫 **Update road module** to use new C API functions when available
-- 🚫 **Re-enable opendrive module** when C API types are available
-- 🚫 **Re-enable OpenDriveGenerator** when opendrive module is ready
-- 🔧 **Add more lane types** when C API is integrated
-
-### Actor System
-**File**: `carla/src/client/actor.rs`
-- 🔧 **Remove placeholder traffic light and traffic sign types** when proper implementations are ready
-- 🔧 **Implement carla_actor_attach_to** when available in C API
-
-### Sensor Analysis (All Unimplemented)
-**File**: `carla/src/sensor/analysis/fusion.rs`
-- ❌ **Implement camera-LiDAR fusion** using `carla_sensor_fusion_camera_lidar()`
-- ❌ **Implement sensor data synchronization**
-- ❌ **Implement multi-sensor localization**
-- ❌ **Implement object tracking** across sensors
-
-**File**: `carla/src/sensor/analysis/lidar_analysis.rs`
-- ❌ **Implement obstacle detection** using `carla_lidar_detect_obstacles()`
-- ❌ **Implement ground segmentation** using `carla_lidar_segment_ground()`
-- ❌ **Implement point cloud filtering**
-- ❌ **Implement organized point cloud conversion**
-
-### Client Module
-**File**: `carla/src/client.rs`
-- 🔧 **Uncomment modules** as they are migrated to new C API
-- 🔧 **Re-enable sensor data types** temporarily disabled for Phase 5.1
-
-## TODO Priority Classification
-
-### 🚨 **Critical (Blocking Core Functionality)**
-1. Complete C API integration in `stubs.rs` (165 TODOs)
-2. World management functions (25+ commented functions)
-3. Actor type checking and conversion
-4. Vehicle physics control
-
-### 🔥 **High Priority (Enhanced Functionality)**
-1. Sensor data system (Phase 6 migration)
-2. ActorList and collection management
-3. Advanced vehicle features
-4. Map and navigation enhancements
-
-### 📋 **Medium Priority (Advanced Features)**
-1. ROS2 integration (all modules - 50+ TODOs)
-2. Sensor analysis and fusion
-3. Road network and OpenDRIVE support
-4. Performance metrics and monitoring
-
-### 📌 **Low Priority (Nice-to-Have)**
-1. Advanced sensor synchronization
-2. Additional ROS2 message types
-3. Diagnostic and debugging features
-4. Test coverage improvements
-
-## Estimated Development Effort
-
-### **Phase 5.2** (Next 2-4 weeks)
-- Complete basic C API integration and remove stubs
-- Enable commented world management functions
-- Implement missing actor type checking
-
-### **Phase 6** (Next 1-2 months)
-- Sensor system reorganization and advanced data types
-- Enable sensor analysis modules
-- Complete vehicle physics control
-
-### **Phase 7** (Next 2-3 months)
-- ROS2 native integration (50+ TODOs)
-- Advanced sensor fusion capabilities
-- Map and navigation enhancements
-
-### **Phase 8** (Next 3-6 months)
-- Performance optimization and monitoring
-- Comprehensive testing framework
-- Documentation and examples
-
-## Technical Debt and Issues
-
-### Known Issues
-- 🔧 **Vector2D**: Currently using Vector3D as placeholder
-- 🔧 **ROS2 TODOs**: 50+ methods have placeholder implementations
-- 🔧 **C API Gaps**: 165+ stub implementations await C wrapper completion
-- 🔧 **Test Coverage**: Limited unit test coverage
-- 🔧 **Commented Code**: 25+ world management functions disabled
-
-### Architecture Decisions
-- ✅ **Newtype Wrappers**: Chosen for type safety
-- ✅ **Module Organization**: `module.rs` + `module/` pattern adopted
-- ✅ **Error Handling**: `anyhow::Result` for error propagation
-- ✅ **Memory Safety**: RAII and Drop trait for cleanup
-
-## Migration Notes
-
-### From C++ API
-- 🔄 **Naming**: Rust follows snake_case conventions
-- 🔄 **Error Handling**: Results instead of exceptions
-- 🔄 **Memory**: Automatic via RAII instead of manual
-- 🔄 **Threading**: Explicit Send/Sync bounds
-
-### Breaking Changes
-- ⚠️ **v0.12.0**: Module reorganization
-- ⚠️ **v0.12.0**: Enhanced actor type system
-- ⚠️ **v0.12.0**: Sensor callback system changes
-
-## Build and Development
-
-### Build Commands
-```bash
-# Standard build
-cargo build
-
-# With CARLA from source
-cargo build --features build-lib
-
-# Documentation
-cargo doc --open
-
-# Tests (when available)
-cargo test
+**Overall Progress**: ~30% complete (carla-cxx complete, new carla architecture proposed)
+
+### Recent Updates
+- 🔄 **New Architecture Proposed** (January 2025) - Complete redesign of carla crate to mirror C++ API
+- ✅ **Old carla Crate Removed** (January 2025) - Clean slate for new implementation
+- ✅ **CXX Foundation Complete** (January 2025) - carla-cxx provides solid FFI foundation
+- ✅ **C++ API Analysis** (January 2025) - Comprehensive mapping of C++ to Rust structures
+
+### Implementation Status
+
+#### ✅ Foundation Complete
+- **carla-cxx FFI Layer**: 75% complete, major systems implemented
+- **Build System**: Stable CXX-based compilation
+- **Core Types**: All geometry and basic types implemented
+- **Error Handling**: CXX exception to Result conversion working
+
+#### 🔄 New carla Crate (Proposed)
+- **Architecture**: Designed to mirror C++ CARLA exactly
+- **Modules**: Complete module structure planned
+- **Type Safety**: Enhanced with Rust's type system
+- **Memory Safety**: Automatic through Rust ownership
+- **API Compatibility**: 1:1 mapping with C++ API
+
+## Module Implementation Plan
+
+### Priority 1: Core Infrastructure
+| Module | Status | Notes |
+|--------|--------|--------|
+| **carla::client::Client** | 📝 Planned | Connection management, world loading |
+| **carla::client::World** | 📝 Planned | Actor spawning, tick management |
+| **carla::client::Actor** | 📝 Planned | Base actor with type-safe downcasting |
+| **carla::geom** | 📝 Planned | Transform, Location, Rotation types |
+
+### Priority 2: Actor System  
+| Module | Status | Notes |
+|--------|--------|--------|
+| **carla::client::Vehicle** | 📝 Planned | Vehicle control and physics |
+| **carla::client::Walker** | 📝 Planned | Pedestrian simulation |
+| **carla::client::Sensor** | 📝 Planned | Base sensor functionality |
+| **carla::client::Blueprint** | 📝 Planned | Actor spawning system |
+
+### Priority 3: Sensor System
+| Module | Status | Notes |
+|--------|--------|--------|
+| **carla::sensor::Camera** | 📝 Planned | RGB, depth, semantic cameras |
+| **carla::sensor::Lidar** | 📝 Planned | Point cloud sensors |
+| **carla::sensor::Radar** | 📝 Planned | Detection sensors |
+| **carla::sensor::IMU** | 📝 Planned | Inertial measurement |
+
+### Priority 4: Advanced Features
+| Module | Status | Notes |
+|--------|--------|--------|
+| **carla::traffic_manager** | 📝 Planned | Traffic simulation |
+| **carla::road::Map** | 📝 Planned | Road network navigation |
+| **carla::road::Waypoint** | 📝 Planned | Path planning |
+| **carla::streaming** | 📝 Planned | Sensor data streaming |
+
+## API Design Examples
+
+### Client Usage
+```rust
+use carla::{Client, Transform, Location, Rotation};
+
+// Connect to CARLA - mirrors carla::client::Client
+let client = Client::new("localhost", 2000, None)?;
+let world = client.get_world();
+
+// Load a different map
+let new_world = client.load_world("Town02")?;
 ```
 
-### Development Setup
-1. **CARLA Simulator**: Version 0.10.0 required
-2. **Rust Toolchain**: 1.70+ with latest stable
-3. **C++ Compiler**: Clang 12+ for Ubuntu 22.04+
-4. **CMake**: 3.16+ for libcarla_c build
+### Actor Management
+```rust
+// Get blueprint library - mirrors C++ exactly
+let blueprint_lib = world.get_blueprint_library();
+let vehicle_bp = blueprint_lib.find("vehicle.tesla.model3")?;
+
+// Spawn actor with type safety
+let spawn_transform = Transform::new(
+    Location::new(0.0, 0.0, 0.5),
+    Rotation::default()
+);
+
+let actor = world.spawn_actor(&vehicle_bp, &spawn_transform, None)?;
+
+// Type-safe downcasting (Rust improvement over C++)
+if let Some(vehicle) = actor.as_vehicle() {
+    let control = VehicleControl {
+        throttle: 0.8,
+        steer: 0.0,
+        brake: 0.0,
+        ..Default::default()
+    };
+    vehicle.apply_control(&control)?;
+}
+```
+
+### Sensor Usage
+```rust
+// Camera sensor with callback - mirrors C++ pattern
+let camera_bp = blueprint_lib.find("sensor.camera.rgb")?;
+let camera_transform = Transform::new(Location::new(2.0, 0.0, 1.5), Rotation::default());
+
+let camera = world.spawn_actor(&camera_bp, &camera_transform, Some(&vehicle))?
+    .as_sensor()
+    .expect("Should be sensor");
+
+// Type-safe sensor listening
+camera.listen(|image: RGBImage| {
+    println!("Received image: {}x{}", image.width(), image.height());
+    // Process image data...
+})?;
+```
+
+### Traffic Manager
+```rust
+// Traffic manager - direct C++ API mapping
+let traffic_manager = client.get_traffic_manager(8000)?;
+
+// Register vehicles for autopilot
+traffic_manager.set_global_speed_percentage(-30.0)?; // 30% slower
+traffic_manager.register_vehicles(&[&vehicle])?;
+vehicle.set_autopilot(true, Some(8000))?;
+```
+
+## Implementation Roadmap
+
+### Phase 1: Foundation (2-3 weeks)
+1. **Project Setup**: New carla crate structure
+2. **Core Types**: Implement carla::geom module 
+3. **Client/World**: Basic connection and world management
+4. **Actor Base**: Basic actor system with type-safe downcasting
+
+### Phase 2: Actor System (3-4 weeks)  
+1. **Vehicle Control**: Complete vehicle implementation
+2. **Walker System**: Pedestrian simulation
+3. **Blueprint System**: Actor spawning framework
+4. **Actor Collections**: Lists and iterators
+
+### Phase 3: Sensor System (4-5 weeks)
+1. **Camera Sensors**: RGB, depth, semantic segmentation
+2. **LiDAR/Radar**: Point cloud and detection sensors
+3. **Sensor Callbacks**: Async data streaming
+4. **Sensor Synchronization**: Multi-sensor coordination
+
+### Phase 4: Advanced Features (4-6 weeks)
+1. **Traffic Manager**: Complete traffic simulation
+2. **Map System**: Road network and waypoints  
+3. **Performance**: Optimization and benchmarking
+4. **Documentation**: Complete API documentation
+
+### Phase 5: Polish (2-3 weeks)
+1. **Examples**: Comprehensive example collection
+2. **Testing**: Integration test suite
+3. **Error Handling**: Comprehensive error types
+4. **Documentation**: Tutorials and guides
+
+## Technical Decisions
+
+### Memory Management
+- **Rust Ownership**: Automatic memory safety through Rust's ownership system
+- **CXX Bridge**: Safe C++ object lifetime management through CXX
+- **RAII**: Automatic cleanup of CARLA resources through Drop trait
+
+### Error Handling
+- **Result Types**: All fallible operations return `Result<T, E>`
+- **Error Hierarchy**: Structured error types using `thiserror`
+- **Error Context**: Rich error information with context chains
+
+### Async/Threading
+- **Sensor Callbacks**: Thread-safe callbacks using channels
+- **World Ticking**: Async-compatible world simulation
+- **Connection Management**: Async client connections when beneficial
+
+### Type Safety
+- **Strong Types**: Wrapper types for IDs, handles, and state
+- **Trait System**: Behavior-based abstractions
+- **Compile-time Safety**: Prevent common C++ API misuse
+
+## Testing Strategy
+
+### Unit Tests
+- **Individual Modules**: Test each module in isolation
+- **Type Conversions**: Verify C++ ↔ Rust type conversions
+- **Error Handling**: Ensure proper error propagation
+
+### Integration Tests  
+- **End-to-End**: Complete workflows from client to sensors
+- **Performance**: Benchmarks against C++ client
+- **Memory Safety**: Stress tests for memory leaks
+
+### Example Programs
+- **Tutorial Examples**: Step-by-step learning examples
+- **Real-world Usage**: Complex simulation scenarios
+- **Performance Demos**: Optimized usage patterns
+
+## Migration Path
+
+### For Existing Users
+- **Clear Migration Guide**: Step-by-step migration from old API
+- **Compatibility Layer**: Temporary facade for critical migrations
+- **Documentation**: Side-by-side API comparisons
+
+### Breaking Changes
+- **v0.13.0**: Complete API redesign (major version bump)
+- **Clean Slate**: No backward compatibility (justified by major improvements)
+- **Future Stability**: Commitment to API stability post-v1.0
 
 ---
 
-*Last Updated: January 2025*
-*Progress Tracking: https://github.com/carla-simulator/carla-rust*
+*Last Updated: January 2025*  
+*Status: Architecture Redesigned, Implementation Starting*  
+*Target: Full C++ API Parity with Rust Improvements*
