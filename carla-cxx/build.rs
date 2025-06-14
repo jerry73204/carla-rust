@@ -27,11 +27,12 @@ fn main() -> anyhow::Result<()> {
     let carla_lib = carla_root.join("lib");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-changed=include/carla_cxx_bridge.h");
     println!("cargo:rerun-if-changed=cpp/carla_cxx_bridge.cpp");
 
     // Build CXX bridge
-    let mut bridge = cxx_build::bridge("src/lib.rs");
+    let mut bridge = cxx_build::bridge("src/ffi.rs");
 
     bridge
         .file("cpp/carla_cxx_bridge.cpp")

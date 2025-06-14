@@ -1,5 +1,5 @@
 #include "carla_cxx_bridge.h"
-#include "carla-cxx/src/lib.rs.h"
+#include "carla-cxx/src/ffi.rs.h"
 
 // Must include the actual CARLA headers
 #include <carla/Time.h>
@@ -7,8 +7,10 @@
 #include <carla/client/BlueprintLibrary.h>
 #include <carla/client/Client.h>
 #include <carla/client/World.h>
+#include <carla/geom/Vector3D.h>
 
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -220,6 +222,187 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
   std::string value_str(value);
   // const_cast is needed because CARLA's API is not const-correct
   const_cast<ActorBlueprint &>(blueprint).SetAttribute(id_str, value_str);
+}
+
+// Geometry utility functions implementations
+double Vector2D_Length(const SimpleVector2D &vector) {
+  return std::sqrt(vector.x * vector.x + vector.y * vector.y);
+}
+
+double Vector2D_SquaredLength(const SimpleVector2D &vector) {
+  return vector.x * vector.x + vector.y * vector.y;
+}
+
+double Vector2D_Distance(const SimpleVector2D &a, const SimpleVector2D &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  return std::sqrt(dx * dx + dy * dy);
+}
+
+double Vector2D_DistanceSquared(const SimpleVector2D &a,
+                                const SimpleVector2D &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+double Vector2D_Dot(const SimpleVector2D &a, const SimpleVector2D &b) {
+  return a.x * b.x + a.y * b.y;
+}
+
+double Vector3D_Length(const SimpleVector3D &vector) {
+  return std::sqrt(vector.x * vector.x + vector.y * vector.y +
+                   vector.z * vector.z);
+}
+
+double Vector3D_SquaredLength(const SimpleVector3D &vector) {
+  return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
+}
+
+double Vector3D_Distance(const SimpleVector3D &a, const SimpleVector3D &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  double dz = a.z - b.z;
+  return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+double Vector3D_DistanceSquared(const SimpleVector3D &a,
+                                const SimpleVector3D &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  double dz = a.z - b.z;
+  return dx * dx + dy * dy + dz * dz;
+}
+
+double Vector3D_Dot(const SimpleVector3D &a, const SimpleVector3D &b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+SimpleVector3D Vector3D_Cross(const SimpleVector3D &a,
+                              const SimpleVector3D &b) {
+  return SimpleVector3D{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+                        a.x * b.y - a.y * b.x};
+}
+
+double Location_Distance(const SimpleLocation &a, const SimpleLocation &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  double dz = a.z - b.z;
+  return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+double Location_DistanceSquared(const SimpleLocation &a,
+                                const SimpleLocation &b) {
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  double dz = a.z - b.z;
+  return dx * dx + dy * dy + dz * dz;
+}
+
+SimpleLocation Transform_TransformPoint(const SimpleTransform &transform,
+                                        const SimpleLocation &point) {
+  // Convert to CARLA types
+  carla::geom::Transform carla_transform(
+      carla::geom::Location(transform.location.x, transform.location.y,
+                            transform.location.z),
+      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                            transform.rotation.roll));
+  carla::geom::Vector3D carla_point(point.x, point.y, point.z);
+
+  // Transform the point (modifies carla_point in-place)
+  carla_transform.TransformPoint(carla_point);
+
+  return SimpleLocation{carla_point.x, carla_point.y, carla_point.z};
+}
+
+SimpleLocation Transform_InverseTransformPoint(const SimpleTransform &transform,
+                                               const SimpleLocation &point) {
+  // Convert to CARLA types
+  carla::geom::Transform carla_transform(
+      carla::geom::Location(transform.location.x, transform.location.y,
+                            transform.location.z),
+      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                            transform.rotation.roll));
+  carla::geom::Vector3D carla_point(point.x, point.y, point.z);
+
+  // Inverse transform the point (modifies carla_point in-place)
+  carla_transform.InverseTransformPoint(carla_point);
+
+  return SimpleLocation{carla_point.x, carla_point.y, carla_point.z};
+}
+
+SimpleVector3D Transform_GetForwardVector(const SimpleTransform &transform) {
+  // Convert to CARLA rotation
+  carla::geom::Rotation carla_rotation(transform.rotation.pitch,
+                                       transform.rotation.yaw,
+                                       transform.rotation.roll);
+
+  // Get forward vector from rotation
+  auto forward = carla_rotation.GetForwardVector();
+
+  return SimpleVector3D{forward.x, forward.y, forward.z};
+}
+
+SimpleVector3D Transform_GetRightVector(const SimpleTransform &transform) {
+  // Convert to CARLA rotation
+  carla::geom::Rotation carla_rotation(transform.rotation.pitch,
+                                       transform.rotation.yaw,
+                                       transform.rotation.roll);
+
+  // Get right vector from rotation
+  auto right = carla_rotation.GetRightVector();
+
+  return SimpleVector3D{right.x, right.y, right.z};
+}
+
+SimpleVector3D Transform_GetUpVector(const SimpleTransform &transform) {
+  // Convert to CARLA rotation
+  carla::geom::Rotation carla_rotation(transform.rotation.pitch,
+                                       transform.rotation.yaw,
+                                       transform.rotation.roll);
+
+  // Get up vector from rotation
+  auto up = carla_rotation.GetUpVector();
+
+  return SimpleVector3D{up.x, up.y, up.z};
+}
+
+bool BoundingBox_Contains(const SimpleBoundingBox &bbox,
+                          const SimpleLocation &point) {
+  // Check if point is within the bounding box
+  double min_x = bbox.location.x - bbox.extent.x;
+  double max_x = bbox.location.x + bbox.extent.x;
+  double min_y = bbox.location.y - bbox.extent.y;
+  double max_y = bbox.location.y + bbox.extent.y;
+  double min_z = bbox.location.z - bbox.extent.z;
+  double max_z = bbox.location.z + bbox.extent.z;
+
+  return (point.x >= min_x && point.x <= max_x && point.y >= min_y &&
+          point.y <= max_y && point.z >= min_z && point.z <= max_z);
+}
+
+rust::Vec<SimpleLocation>
+BoundingBox_GetVertices(const SimpleBoundingBox &bbox) {
+  rust::Vec<SimpleLocation> vertices;
+
+  // Calculate all 8 vertices of the bounding box
+  double min_x = bbox.location.x - bbox.extent.x;
+  double max_x = bbox.location.x + bbox.extent.x;
+  double min_y = bbox.location.y - bbox.extent.y;
+  double max_y = bbox.location.y + bbox.extent.y;
+  double min_z = bbox.location.z - bbox.extent.z;
+  double max_z = bbox.location.z + bbox.extent.z;
+
+  vertices.push_back(SimpleLocation{min_x, min_y, min_z}); // 0: min corner
+  vertices.push_back(SimpleLocation{max_x, min_y, min_z}); // 1: +x
+  vertices.push_back(SimpleLocation{min_x, max_y, min_z}); // 2: +y
+  vertices.push_back(SimpleLocation{max_x, max_y, min_z}); // 3: +x+y
+  vertices.push_back(SimpleLocation{min_x, min_y, max_z}); // 4: +z
+  vertices.push_back(SimpleLocation{max_x, min_y, max_z}); // 5: +x+z
+  vertices.push_back(SimpleLocation{min_x, max_y, max_z}); // 6: +y+z
+  vertices.push_back(SimpleLocation{max_x, max_y, max_z}); // 7: max corner
+
+  return vertices;
 }
 
 } // namespace client

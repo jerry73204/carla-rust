@@ -16,9 +16,12 @@
 #include <carla/geom/Transform.h>
 
 // Forward declare our simple types from the generated header
+struct SimpleVector2D;
+struct SimpleVector3D;
 struct SimpleLocation;
 struct SimpleRotation;
 struct SimpleTransform;
+struct SimpleBoundingBox;
 
 // CXX Bridge functions
 namespace carla {
@@ -74,6 +77,39 @@ bool ActorBlueprint_ContainsAttribute(const ActorBlueprint &blueprint,
                                       rust::Str id);
 void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
                                  rust::Str value);
+
+// Geometry utility functions
+double Vector2D_Length(const SimpleVector2D &vector);
+double Vector2D_SquaredLength(const SimpleVector2D &vector);
+double Vector2D_Distance(const SimpleVector2D &a, const SimpleVector2D &b);
+double Vector2D_DistanceSquared(const SimpleVector2D &a,
+                                const SimpleVector2D &b);
+double Vector2D_Dot(const SimpleVector2D &a, const SimpleVector2D &b);
+
+double Vector3D_Length(const SimpleVector3D &vector);
+double Vector3D_SquaredLength(const SimpleVector3D &vector);
+double Vector3D_Distance(const SimpleVector3D &a, const SimpleVector3D &b);
+double Vector3D_DistanceSquared(const SimpleVector3D &a,
+                                const SimpleVector3D &b);
+double Vector3D_Dot(const SimpleVector3D &a, const SimpleVector3D &b);
+SimpleVector3D Vector3D_Cross(const SimpleVector3D &a, const SimpleVector3D &b);
+
+double Location_Distance(const SimpleLocation &a, const SimpleLocation &b);
+double Location_DistanceSquared(const SimpleLocation &a,
+                                const SimpleLocation &b);
+
+SimpleLocation Transform_TransformPoint(const SimpleTransform &transform,
+                                        const SimpleLocation &point);
+SimpleLocation Transform_InverseTransformPoint(const SimpleTransform &transform,
+                                               const SimpleLocation &point);
+SimpleVector3D Transform_GetForwardVector(const SimpleTransform &transform);
+SimpleVector3D Transform_GetRightVector(const SimpleTransform &transform);
+SimpleVector3D Transform_GetUpVector(const SimpleTransform &transform);
+
+bool BoundingBox_Contains(const SimpleBoundingBox &bbox,
+                          const SimpleLocation &point);
+rust::Vec<SimpleLocation>
+BoundingBox_GetVertices(const SimpleBoundingBox &bbox);
 
 } // namespace client
 } // namespace carla
