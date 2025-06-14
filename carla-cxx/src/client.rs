@@ -434,6 +434,12 @@ impl WorldWrapper {
     pub fn set_pedestrians_seed(&self, seed: u32) {
         ffi::World_SetPedestriansSeed(&self.inner, seed);
     }
+
+    /// Get the light manager for controlling lights in the world
+    pub fn get_light_manager(&self) -> crate::light_manager::LightManagerWrapper {
+        let light_manager_ptr = ffi::bridge::World_GetLightManager(&self.inner);
+        crate::light_manager::LightManagerWrapper::new(light_manager_ptr)
+    }
 }
 
 /// High-level wrapper for CARLA Actor

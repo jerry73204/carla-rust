@@ -260,6 +260,28 @@ pub mod bridge {
         pub ego_dynamics_on_route: String, // Ego vehicle dynamics (serialized)
     }
 
+    // Light management data structures
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleLightState {
+        pub intensity: f32,     // Light intensity in lumens
+        pub color: SimpleColor, // RGB color values
+        pub group: u8,          // LightGroup enum as u8
+        pub active: bool,       // On/off state
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleLight {
+        pub id: u32,                  // Light ID
+        pub location: SimpleLocation, // 3D position
+        pub state: SimpleLightState,  // Current light state
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleLightManager {
+        pub day_night_cycle: bool, // Day/night cycle enabled
+        pub lights_count: u32,     // Total number of lights
+    }
+
     // Debug visualization structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleColor {
@@ -627,6 +649,9 @@ pub mod bridge {
         type Waypoint;
         type Junction;
 
+        // Light management types
+        type LightManager;
+
         // Client creation
         fn create_client(host: &str, port: u16, worker_threads: usize) -> UniquePtr<Client>;
 
@@ -778,6 +803,28 @@ pub mod bridge {
 
         // Pedestrian navigation
         fn World_SetPedestriansSeed(world: &World, seed: u32);
+
+        // Light management functions
+        fn World_GetLightManager(world: &World) -> SharedPtr<LightManager>;
+        fn LightManager_GetAllLights(light_manager: &LightManager, group: u8) -> Vec<SimpleLight>;
+        fn LightManager_SetDayNightCycle(light_manager: &LightManager, active: bool);
+        fn LightManager_TurnOnLights(light_manager: &LightManager, light_ids: &[u32]);
+        fn LightManager_TurnOffLights(light_manager: &LightManager, light_ids: &[u32]);
+        fn LightManager_SetLightIntensities(
+            light_manager: &LightManager,
+            light_ids: &[u32],
+            intensity: f32,
+        );
+        fn LightManager_SetLightColors(
+            light_manager: &LightManager,
+            light_ids: &[u32],
+            color: SimpleColor,
+        );
+        fn LightManager_SetLightStates(
+            light_manager: &LightManager,
+            light_ids: &[u32],
+            state: SimpleLightState,
+        );
 
         // Actor methods
         fn Actor_GetId(actor: &Actor) -> u32;

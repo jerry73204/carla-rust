@@ -42,6 +42,7 @@ pub mod client;
 pub mod debug_helper;
 pub mod ffi;
 pub mod geometry;
+pub mod light_manager;
 pub mod map;
 pub mod recording;
 pub mod sensor;
@@ -74,6 +75,7 @@ pub use batch_operations::{
 };
 pub use blueprint::ActorBlueprintExt;
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
+pub use light_manager::{LightGroup, LightInfo, LightManagerWrapper, LightState};
 pub use map::{
     JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
     MapWrapper, SignalOrientation, WaypointWrapper,

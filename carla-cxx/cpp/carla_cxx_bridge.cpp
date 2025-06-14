@@ -9,6 +9,8 @@
 #include <carla/client/Client.h>
 #include <carla/client/Junction.h>
 #include <carla/client/Landmark.h>
+#include <carla/client/Light.h>
+#include <carla/client/LightManager.h>
 #include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
 #include <carla/client/TrafficLight.h>
@@ -2317,6 +2319,152 @@ rust::Vec<rust::String> World_GetNamesOfAllObjects(const World &world) {
 // Pedestrian navigation
 void World_SetPedestriansSeed(const World &world, uint32_t seed) {
   const_cast<World &>(world).SetPedestriansSeed(seed);
+}
+
+// Light management functions
+
+std::shared_ptr<LightManager> World_GetLightManager(const World &world) {
+  return const_cast<World &>(world).GetLightManager();
+}
+
+rust::Vec<SimpleLight>
+LightManager_GetAllLights(const LightManager &light_manager, uint8_t group) {
+  rust::Vec<SimpleLight> simple_lights;
+
+  // Convert group enum
+  carla::rpc::LightState::LightGroup light_group =
+      static_cast<carla::rpc::LightState::LightGroup>(group);
+
+  // Get all lights from the light manager
+  auto lights =
+      const_cast<LightManager &>(light_manager).GetAllLights(light_group);
+
+  for (const auto &light : lights) {
+    SimpleLight simple_light;
+    simple_light.id = light.GetId();
+
+    auto location = light.GetLocation();
+    simple_light.location.x = location.x;
+    simple_light.location.y = location.y;
+    simple_light.location.z = location.z;
+
+    auto light_state = light.GetLightState();
+    simple_light.state.intensity = light_state._intensity;
+    simple_light.state.color.r = light_state._color.r;
+    simple_light.state.color.g = light_state._color.g;
+    simple_light.state.color.b = light_state._color.b;
+    simple_light.state.group = static_cast<uint8_t>(light_state._group);
+    simple_light.state.active = light_state._active;
+
+    simple_lights.push_back(simple_light);
+  }
+
+  return simple_lights;
+}
+
+void LightManager_SetDayNightCycle(const LightManager &light_manager,
+                                   bool active) {
+  const_cast<LightManager &>(light_manager).SetDayNightCycle(active);
+}
+
+// NOTE: CARLA LightManager doesn't expose a getter for day/night cycle status
+// bool LightManager_IsNightCycleActive(const LightManager &light_manager) {
+//   return const_cast<LightManager &>(light_manager).IsNightCycleActive();
+// }
+
+void LightManager_TurnOnLights(const LightManager &light_manager,
+                               rust::Slice<const uint32_t> light_ids) {
+  for (auto id : light_ids) {
+    const_cast<LightManager &>(light_manager).SetActive(id, true);
+  }
+}
+
+void LightManager_TurnOffLights(const LightManager &light_manager,
+                                rust::Slice<const uint32_t> light_ids) {
+  for (auto id : light_ids) {
+    const_cast<LightManager &>(light_manager).SetActive(id, false);
+  }
+}
+
+void LightManager_SetLightIntensities(const LightManager &light_manager,
+                                      rust::Slice<const uint32_t> light_ids,
+                                      float intensity) {
+  for (auto id : light_ids) {
+    const_cast<LightManager &>(light_manager).SetIntensity(id, intensity);
+  }
+}
+
+void LightManager_SetLightColors(const LightManager &light_manager,
+                                 rust::Slice<const uint32_t> light_ids,
+                                 SimpleColor color) {
+  carla::client::Color carla_color(color.r, color.g, color.b);
+  for (auto id : light_ids) {
+    const_cast<LightManager &>(light_manager).SetColor(id, carla_color);
+  }
+}
+
+void LightManager_SetLightStates(const LightManager &light_manager,
+                                 rust::Slice<const uint32_t> light_ids,
+                                 SimpleLightState state) {
+  carla::client::LightState carla_state;
+  carla_state._intensity = state.intensity;
+  carla_state._color =
+      carla::client::Color(state.color.r, state.color.g, state.color.b);
+  carla_state._group =
+      static_cast<carla::client::LightState::LightGroup>(state.group);
+  carla_state._active = state.active;
+
+  for (auto id : light_ids) {
+    const_cast<LightManager &>(light_manager).SetLightState(id, carla_state);
+  }
+}
+
+uint32_t Light_GetId(const Light &light) { return light.GetId(); }
+
+SimpleLocation Light_GetLocation(const Light &light) {
+  auto location = light.GetLocation();
+  SimpleLocation simple_location;
+  simple_location.x = location.x;
+  simple_location.y = location.y;
+  simple_location.z = location.z;
+  return simple_location;
+}
+
+SimpleLightState Light_GetState(const Light &light) {
+  auto light_state = light.GetLightState();
+  SimpleLightState simple_state;
+  simple_state.intensity = light_state._intensity;
+  simple_state.color.r = light_state._color.r;
+  simple_state.color.g = light_state._color.g;
+  simple_state.color.b = light_state._color.b;
+  simple_state.group = static_cast<uint8_t>(light_state._group);
+  simple_state.active = light_state._active;
+  return simple_state;
+}
+
+void Light_SetState(const Light &light, SimpleLightState state) {
+  carla::client::LightState carla_state;
+  carla_state._intensity = state.intensity;
+  carla_state._color =
+      carla::client::Color(state.color.r, state.color.g, state.color.b);
+  carla_state._group =
+      static_cast<carla::client::LightState::LightGroup>(state.group);
+  carla_state._active = state.active;
+
+  const_cast<Light &>(light).SetLightState(carla_state);
+}
+
+void Light_TurnOn(const Light &light) { const_cast<Light &>(light).TurnOn(); }
+
+void Light_TurnOff(const Light &light) { const_cast<Light &>(light).TurnOff(); }
+
+void Light_SetIntensity(const Light &light, float intensity) {
+  const_cast<Light &>(light).SetIntensity(intensity);
+}
+
+void Light_SetColor(const Light &light, SimpleColor color) {
+  carla::client::Color carla_color(color.r, color.g, color.b);
+  const_cast<Light &>(light).SetColor(carla_color);
 }
 
 // Batch operations helper functions

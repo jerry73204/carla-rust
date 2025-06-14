@@ -21,6 +21,8 @@
 #include <carla/client/WalkerAIController.h>
 #include <carla/client/Waypoint.h>
 #include <carla/client/World.h>
+#include <carla/client/LightManager.h>
+#include <carla/client/Light.h>
 #include <carla/geom/GeoLocation.h>
 #include <carla/geom/Transform.h>
 #include <carla/trafficmanager/TrafficManager.h>
@@ -86,6 +88,9 @@ struct SimpleObstacleDetectionEvent;
 struct SimpleSemanticLidarDetection;
 struct SimpleSemanticLidarData;
 struct SimpleRssResponse;
+struct SimpleLightState;
+struct SimpleLight;
+struct SimpleLightManager;
 
 // CXX Bridge functions
 namespace carla {
@@ -221,6 +226,16 @@ rust::Vec<rust::String> World_GetNamesOfAllObjects(const World &world);
 
 // Pedestrian navigation
 void World_SetPedestriansSeed(const World &world, uint32_t seed);
+
+// Light management functions
+std::shared_ptr<LightManager> World_GetLightManager(const World &world);
+rust::Vec<SimpleLight> LightManager_GetAllLights(const LightManager &light_manager, uint8_t group);
+void LightManager_SetDayNightCycle(const LightManager &light_manager, bool active);
+void LightManager_TurnOnLights(const LightManager &light_manager, rust::Slice<const uint32_t> light_ids);
+void LightManager_TurnOffLights(const LightManager &light_manager, rust::Slice<const uint32_t> light_ids);
+void LightManager_SetLightIntensities(const LightManager &light_manager, rust::Slice<const uint32_t> light_ids, float intensity);
+void LightManager_SetLightColors(const LightManager &light_manager, rust::Slice<const uint32_t> light_ids, SimpleColor color);
+void LightManager_SetLightStates(const LightManager &light_manager, rust::Slice<const uint32_t> light_ids, SimpleLightState state);
 
 // Actor wrapper functions
 uint32_t Actor_GetId(const Actor &actor);
