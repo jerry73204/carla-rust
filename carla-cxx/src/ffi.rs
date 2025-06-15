@@ -676,6 +676,12 @@ pub mod bridge {
         fn Client_GetTimeout(client: Pin<&mut Client>) -> f64;
         fn Client_GetWorld(client: &Client) -> SharedPtr<World>;
 
+        // World/Map management methods
+        fn Client_GetAvailableMaps(client: &Client) -> Vec<String>;
+        fn Client_LoadWorld(client: &Client, map_name: &str) -> SharedPtr<World>;
+        fn Client_ReloadWorld(client: &Client, reset_settings: bool) -> SharedPtr<World>;
+        fn Client_GenerateOpenDriveWorld(client: &Client, opendrive: &str) -> SharedPtr<World>;
+
         // Recording methods
         fn Client_StartRecorder(client: &Client, filename: &str, additional_data: bool) -> String;
         fn Client_StopRecorder(client: &Client);
@@ -1259,9 +1265,13 @@ pub use bridge::{
     BoundingBox_Contains,
     BoundingBox_GetVertices,
     Client,
+    Client_GenerateOpenDriveWorld,
+    Client_GetAvailableMaps,
     Client_GetServerVersion,
     Client_GetTimeout,
     Client_GetWorld,
+    Client_LoadWorld,
+    Client_ReloadWorld,
     Client_ReplayFile,
     Client_SetReplayerIgnoreHero,
     Client_SetReplayerIgnoreSpectator,

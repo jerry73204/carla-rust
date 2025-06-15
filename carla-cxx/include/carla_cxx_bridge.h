@@ -109,6 +109,15 @@ double Client_GetTimeout(Client &client);
 rust::String Client_GetServerVersion(const Client &client);
 std::shared_ptr<World> Client_GetWorld(const Client &client);
 
+// World/Map management functions
+rust::Vec<rust::String> Client_GetAvailableMaps(const Client &client);
+std::shared_ptr<World> Client_LoadWorld(const Client &client,
+                                        rust::Str map_name);
+std::shared_ptr<World> Client_ReloadWorld(const Client &client,
+                                          bool reset_settings);
+std::shared_ptr<World> Client_GenerateOpenDriveWorld(const Client &client,
+                                                     rust::Str opendrive);
+
 // Recording functions
 rust::String Client_StartRecorder(const Client &client, rust::Str filename,
                                   bool additional_data);

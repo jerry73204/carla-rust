@@ -46,6 +46,31 @@ impl ClientWrapper {
         WorldWrapper { inner: world_ptr }
     }
 
+    // World/Map management methods
+
+    /// Get list of available maps
+    pub fn get_available_maps(&self) -> Vec<String> {
+        ffi::Client_GetAvailableMaps(&self.inner)
+    }
+
+    /// Load a new world/map
+    pub fn load_world(&self, map_name: &str) -> WorldWrapper {
+        let world_ptr = ffi::Client_LoadWorld(&self.inner, map_name);
+        WorldWrapper { inner: world_ptr }
+    }
+
+    /// Reload the current world
+    pub fn reload_world(&self, reset_settings: bool) -> WorldWrapper {
+        let world_ptr = ffi::Client_ReloadWorld(&self.inner, reset_settings);
+        WorldWrapper { inner: world_ptr }
+    }
+
+    /// Generate OpenDRIVE world from string
+    pub fn generate_opendrive_world(&self, opendrive: &str) -> WorldWrapper {
+        let world_ptr = ffi::Client_GenerateOpenDriveWorld(&self.inner, opendrive);
+        WorldWrapper { inner: world_ptr }
+    }
+
     // Recording methods
 
     /// Start recording simulation data to a file

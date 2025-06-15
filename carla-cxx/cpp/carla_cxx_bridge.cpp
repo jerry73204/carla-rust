@@ -33,6 +33,7 @@
 #include <carla/rpc/MapLayer.h>
 #include <carla/rpc/MaterialParameter.h>
 #include <carla/rpc/ObjectLabel.h>
+#include <carla/rpc/OpendriveGenerationParameters.h>
 #include <carla/rpc/Texture.h>
 #include <carla/rpc/TrafficLightState.h>
 #include <carla/rpc/VehicleControl.h>
@@ -99,6 +100,40 @@ rust::String Client_GetServerVersion(const Client &client) {
 std::shared_ptr<World> Client_GetWorld(const Client &client) {
   // GetWorld returns by value, we need to wrap it in a shared_ptr
   return std::make_shared<World>(client.GetWorld());
+}
+
+// World/Map management wrapper functions
+rust::Vec<rust::String> Client_GetAvailableMaps(const Client &client) {
+  auto maps = const_cast<Client &>(client).GetAvailableMaps();
+  rust::Vec<rust::String> result;
+  for (const auto &map : maps) {
+    result.push_back(rust::String(map));
+  }
+  return result;
+}
+
+std::shared_ptr<World> Client_LoadWorld(const Client &client,
+                                        rust::Str map_name) {
+  std::string map_str(map_name);
+  auto world = const_cast<Client &>(client).LoadWorld(
+      map_str, true, carla::rpc::MapLayer::All);
+  return std::make_shared<World>(std::move(world));
+}
+
+std::shared_ptr<World> Client_ReloadWorld(const Client &client,
+                                          bool reset_settings) {
+  auto world = const_cast<Client &>(client).ReloadWorld(reset_settings);
+  return std::make_shared<World>(std::move(world));
+}
+
+std::shared_ptr<World> Client_GenerateOpenDriveWorld(const Client &client,
+                                                     rust::Str opendrive) {
+  std::string opendrive_str(opendrive);
+  // Use default OpendriveGenerationParameters
+  carla::rpc::OpendriveGenerationParameters params;
+  auto world = const_cast<Client &>(client).GenerateOpenDriveWorld(
+      opendrive_str, params, true);
+  return std::make_shared<World>(std::move(world));
 }
 
 // Recording wrapper functions
