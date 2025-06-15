@@ -134,8 +134,51 @@ The CARLA simulator has been updated to version 0.10.0, which introduces major c
 cd libcarla_c && rm -rf build && cmake -B build -S . -DCMAKE_INSTALL_PREFIX=./install && cmake --build build && cmake --install build
 ```
 
+## Development Guidelines
+
+### Missing FFI Functionality
+When implementing Rust API functions that require FFI functionality not available in carla-cxx:
+
+**DO:**
+- Use `todo!("FunctionName not yet implemented - missing FFI function FunctionName_Something")` for clear failure
+- Add detailed TODO comments explaining what FFI functions are needed
+- Use `#[allow(unused_variables)]` if needed to silence warnings on parameters
+
+**DON'T:**
+- Return dummy values (empty Vec, 0, false, etc.) without explicit TODO markers
+- Use regular comments without todo!() macro for missing functionality
+- Create silent errors that hide missing features from users
+
+**Example of correct approach:**
+```rust
+pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
+    // TODO: Implement using carla-cxx FFI interface
+    // This requires adding TrafficLight_GetAffectedLaneWaypoints FFI function
+    todo!("TrafficLight::get_affected_lane_waypoints not yet implemented with carla-cxx FFI")
+}
+```
+
+**Example of incorrect approach (causes silent errors):**
+```rust
+pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
+    // This function would require additional FFI functions
+    Vec::new()  // Silent error - user won't know this doesn't work
+}
+```
+
+### FFI Implementation Priority
+1. First implement FFI functions in carla-cxx (C++ bridge + Rust declarations)
+2. Then implement high-level Rust API using the FFI functions
+3. Use todo!() macro for any missing pieces to make them explicit
+4. Document in comments what specific FFI functions are needed
+
 ## Memories
 
 - Run the script libcarla_c/build_libcarla_c.sh to build the C library for testing.
 - Please prefix commands with `source /opt/ros/humble/setup.bash` to enable ROS2 libraries.
 - Run `cargo build --all-targets --all-features` at the top-level directory to build the whole Rust workspace.
+- Run `cargo test --all-targets --all-features` to build and test the whole Rust project.
+- Please use client.rs + client/submod.rs instead of client/mod.rs, similar for the other Rust modules.
+- The carla-cxx crate only provides C++ interface and essential items for Rust type conversion.
+- If any FFI item is need by the Rust library but is missing in the FFI crate, leave todo!() and comments in the Rust library instead of silent errors.
+- Use clang-format to format C/C++ code. Be aware that it might break the source code. Use "// clang-format on" and "// clang-format off" marks to protect lines that would be broken by clang-format.
