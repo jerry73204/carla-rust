@@ -8,10 +8,29 @@ pub struct TrafficLightWrapper {
     inner: SharedPtr<TrafficLight>,
 }
 
+impl std::fmt::Debug for TrafficLightWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TrafficLightWrapper")
+            .field("inner", &"SharedPtr<TrafficLight>")
+            .finish()
+    }
+}
+
 impl TrafficLightWrapper {
     /// Create a TrafficLightWrapper from an Actor (performs cast)
     pub fn from_actor(actor: &Actor) -> Option<Self> {
         let traffic_light_ptr = ffi::Actor_CastToTrafficLight(actor);
+        if traffic_light_ptr.is_null() {
+            None
+        } else {
+            Some(Self {
+                inner: traffic_light_ptr,
+            })
+        }
+    }
+
+    /// Create a TrafficLightWrapper from a SharedPtr<TrafficLight>
+    pub fn from_shared_ptr(traffic_light_ptr: SharedPtr<TrafficLight>) -> Option<Self> {
         if traffic_light_ptr.is_null() {
             None
         } else {
@@ -75,6 +94,86 @@ impl TrafficLightWrapper {
     /// Check if the traffic light is frozen
     pub fn is_frozen(&self) -> bool {
         ffi::TrafficLight_IsFrozen(&self.inner)
+    }
+
+    /// Get the traffic light's type ID
+    pub fn get_type_id(&self) -> String {
+        ffi::TrafficLight_GetTypeId(&self.inner)
+    }
+
+    /// Get the traffic light's transform
+    pub fn get_transform(&self) -> crate::ffi::SimpleTransform {
+        ffi::TrafficLight_GetTransform(&self.inner)
+    }
+
+    /// Set the traffic light's transform
+    pub fn set_transform(&self, transform: &crate::ffi::SimpleTransform) {
+        ffi::TrafficLight_SetTransform(&self.inner, transform);
+    }
+
+    /// Get the traffic light's velocity
+    pub fn get_velocity(&self) -> crate::ffi::SimpleVector3D {
+        ffi::TrafficLight_GetVelocity(&self.inner)
+    }
+
+    /// Get the traffic light's angular velocity
+    pub fn get_angular_velocity(&self) -> crate::ffi::SimpleVector3D {
+        ffi::TrafficLight_GetAngularVelocity(&self.inner)
+    }
+
+    /// Get the traffic light's acceleration
+    pub fn get_acceleration(&self) -> crate::ffi::SimpleVector3D {
+        ffi::TrafficLight_GetAcceleration(&self.inner)
+    }
+
+    /// Check if the traffic light is alive
+    pub fn is_alive(&self) -> bool {
+        ffi::TrafficLight_IsAlive(&self.inner)
+    }
+
+    /// Destroy the traffic light
+    pub fn destroy(&self) -> bool {
+        ffi::TrafficLight_Destroy(&self.inner)
+    }
+
+    /// Set physics simulation for the traffic light
+    pub fn set_simulate_physics(&self, enabled: bool) {
+        ffi::TrafficLight_SetSimulatePhysics(&self.inner, enabled);
+    }
+
+    /// Add impulse to the traffic light
+    pub fn add_impulse(&self, impulse: &crate::ffi::SimpleVector3D) {
+        ffi::TrafficLight_AddImpulse(&self.inner, impulse);
+    }
+
+    /// Add force to the traffic light
+    pub fn add_force(&self, force: &crate::ffi::SimpleVector3D) {
+        ffi::TrafficLight_AddForce(&self.inner, force);
+    }
+
+    /// Add torque to the traffic light
+    pub fn add_torque(&self, torque: &crate::ffi::SimpleVector3D) {
+        ffi::TrafficLight_AddTorque(&self.inner, torque);
+    }
+
+    /// Get affected lane waypoints for this traffic light
+    pub fn get_affected_lane_waypoints(&self) -> Vec<crate::ffi::bridge::SimpleWaypointInfo> {
+        todo!("TrafficLight_GetAffectedLaneWaypoints FFI function added but CXX bridge integration needs debugging")
+    }
+
+    /// Get the pole index for this traffic light
+    pub fn get_pole_index(&self) -> u32 {
+        todo!("TrafficLight_GetPoleIndex FFI function added but CXX bridge integration needs debugging")
+    }
+
+    /// Get all traffic lights in the same group
+    pub fn get_group_traffic_lights(&self) -> Vec<crate::ffi::bridge::SimpleTrafficLightInfo> {
+        todo!("TrafficLight_GetGroupTrafficLights FFI function added but CXX bridge integration needs debugging")
+    }
+
+    /// Get the inner SharedPtr for direct FFI access
+    pub fn get_inner_traffic_light(&self) -> &cxx::SharedPtr<TrafficLight> {
+        &self.inner
     }
 }
 

@@ -484,6 +484,26 @@ float TrafficLight_GetGreenTime(const TrafficLight &traffic_light);
 void TrafficLight_Freeze(const TrafficLight &traffic_light, bool freeze);
 bool TrafficLight_IsFrozen(const TrafficLight &traffic_light);
 
+// Traffic Light Actor interface functions
+rust::String TrafficLight_GetTypeId(const TrafficLight &traffic_light);
+SimpleTransform TrafficLight_GetTransform(const TrafficLight &traffic_light);
+void TrafficLight_SetTransform(const TrafficLight &traffic_light,
+                               const SimpleTransform &transform);
+SimpleVector3D TrafficLight_GetVelocity(const TrafficLight &traffic_light);
+SimpleVector3D
+TrafficLight_GetAngularVelocity(const TrafficLight &traffic_light);
+SimpleVector3D TrafficLight_GetAcceleration(const TrafficLight &traffic_light);
+bool TrafficLight_IsAlive(const TrafficLight &traffic_light);
+bool TrafficLight_Destroy(const TrafficLight &traffic_light);
+void TrafficLight_SetSimulatePhysics(const TrafficLight &traffic_light,
+                                     bool enabled);
+void TrafficLight_AddImpulse(const TrafficLight &traffic_light,
+                             const SimpleVector3D &impulse);
+void TrafficLight_AddForce(const TrafficLight &traffic_light,
+                           const SimpleVector3D &force);
+void TrafficLight_AddTorque(const TrafficLight &traffic_light,
+                            const SimpleVector3D &torque);
+
 // Traffic Sign wrapper functions
 rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign);
 SimpleBoundingBox TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign);

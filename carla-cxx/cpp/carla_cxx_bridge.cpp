@@ -1588,6 +1588,144 @@ bool TrafficLight_IsFrozen(const TrafficLight &traffic_light) {
   return traffic_light.IsFrozen();
 }
 
+// Traffic Light Actor interface functions
+rust::String TrafficLight_GetTypeId(const TrafficLight &traffic_light) {
+  return rust::String(traffic_light.GetTypeId());
+}
+
+SimpleTransform TrafficLight_GetTransform(const TrafficLight &traffic_light) {
+  carla::geom::Transform carla_transform = traffic_light.GetTransform();
+  return SimpleTransform{SimpleLocation{carla_transform.location.x,
+                                        carla_transform.location.y,
+                                        carla_transform.location.z},
+                         SimpleRotation{carla_transform.rotation.pitch,
+                                        carla_transform.rotation.yaw,
+                                        carla_transform.rotation.roll}};
+}
+
+void TrafficLight_SetTransform(const TrafficLight &traffic_light,
+                               const SimpleTransform &transform) {
+  carla::geom::Transform carla_transform(
+      carla::geom::Location(transform.location.x, transform.location.y,
+                            transform.location.z),
+      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                            transform.rotation.roll));
+  const_cast<TrafficLight &>(traffic_light).SetTransform(carla_transform);
+}
+
+SimpleVector3D TrafficLight_GetVelocity(const TrafficLight &traffic_light) {
+  auto vel = traffic_light.GetVelocity();
+  return SimpleVector3D{vel.x, vel.y, vel.z};
+}
+
+SimpleVector3D
+TrafficLight_GetAngularVelocity(const TrafficLight &traffic_light) {
+  auto vel = traffic_light.GetAngularVelocity();
+  return SimpleVector3D{vel.x, vel.y, vel.z};
+}
+
+SimpleVector3D TrafficLight_GetAcceleration(const TrafficLight &traffic_light) {
+  auto acc = traffic_light.GetAcceleration();
+  return SimpleVector3D{acc.x, acc.y, acc.z};
+}
+
+bool TrafficLight_IsAlive(const TrafficLight &traffic_light) {
+  return traffic_light.IsAlive();
+}
+
+bool TrafficLight_Destroy(const TrafficLight &traffic_light) {
+  return const_cast<TrafficLight &>(traffic_light).Destroy();
+}
+
+void TrafficLight_SetSimulatePhysics(const TrafficLight &traffic_light,
+                                     bool enabled) {
+  const_cast<TrafficLight &>(traffic_light).SetSimulatePhysics(enabled);
+}
+
+void TrafficLight_AddImpulse(const TrafficLight &traffic_light,
+                             const SimpleVector3D &impulse) {
+  auto carla_impulse = carla::geom::Vector3D(impulse.x, impulse.y, impulse.z);
+  const_cast<TrafficLight &>(traffic_light).AddImpulse(carla_impulse);
+}
+
+void TrafficLight_AddForce(const TrafficLight &traffic_light,
+                           const SimpleVector3D &force) {
+  auto carla_force = carla::geom::Vector3D(force.x, force.y, force.z);
+  const_cast<TrafficLight &>(traffic_light).AddForce(carla_force);
+}
+
+void TrafficLight_AddTorque(const TrafficLight &traffic_light,
+                            const SimpleVector3D &torque) {
+  auto carla_torque = carla::geom::Vector3D(torque.x, torque.y, torque.z);
+  const_cast<TrafficLight &>(traffic_light).AddTorque(carla_torque);
+}
+
+// Traffic Light advanced methods
+rust::Vec<SimpleWaypointInfo>
+TrafficLight_GetAffectedLaneWaypoints(const TrafficLight &traffic_light) {
+  rust::Vec<SimpleWaypointInfo> waypoints;
+  auto carla_waypoints =
+      traffic_light.GetAffectedLaneWaypoints(); // This method is const
+  for (const auto &waypoint : carla_waypoints) {
+    SimpleWaypointInfo waypoint_info;
+    waypoint_info.id = waypoint->GetId();
+    waypoint_info.road_id = waypoint->GetRoadId();
+    waypoint_info.section_id = waypoint->GetSectionId();
+    waypoint_info.lane_id = waypoint->GetLaneId();
+    waypoint_info.s = waypoint->GetDistance();
+
+    auto transform = waypoint->GetTransform();
+    waypoint_info.transform = SimpleTransform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+
+    waypoint_info.is_junction = waypoint->IsJunction();
+    waypoint_info.lane_width = waypoint->GetLaneWidth();
+    waypoint_info.lane_type = static_cast<uint32_t>(waypoint->GetType());
+    waypoint_info.lane_change = static_cast<uint8_t>(waypoint->GetLaneChange());
+
+    waypoints.push_back(waypoint_info);
+  }
+  return waypoints;
+}
+
+uint32_t TrafficLight_GetPoleIndex(const TrafficLight &traffic_light) {
+  return const_cast<TrafficLight &>(traffic_light).GetPoleIndex();
+}
+
+rust::Vec<SimpleTrafficLightInfo>
+TrafficLight_GetGroupTrafficLights(const TrafficLight &traffic_light) {
+  rust::Vec<SimpleTrafficLightInfo> traffic_lights;
+  auto carla_traffic_lights =
+      const_cast<TrafficLight &>(traffic_light).GetGroupTrafficLights();
+  for (const auto &tl : carla_traffic_lights) {
+    SimpleTrafficLightInfo tl_info;
+    tl_info.actor_id = tl->GetId();
+    tl_info.type_id = rust::String(tl->GetTypeId());
+
+    auto transform = tl->GetTransform();
+    tl_info.transform = SimpleTransform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+
+    tl_info.state = static_cast<uint32_t>(tl->GetState());
+    tl_info.pole_index = tl->GetPoleIndex();
+
+    traffic_lights.push_back(tl_info);
+  }
+  return traffic_lights;
+}
+
+} // namespace client
+} // namespace carla
+
+namespace carla {
+namespace client {
+
 // Traffic Sign wrapper functions
 rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign) {
   return rust::String(traffic_sign.GetSignId());

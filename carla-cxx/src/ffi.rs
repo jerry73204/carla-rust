@@ -461,6 +461,16 @@ pub mod bridge {
         pub lane_change: u8, // LaneMarking::LaneChange enum
     }
 
+    // Traffic Light info structures
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleTrafficLightInfo {
+        pub actor_id: u32,
+        pub type_id: String,
+        pub transform: SimpleTransform,
+        pub state: u32, // TrafficLightState as u32
+        pub pole_index: u32,
+    }
+
     // World interaction types for ray casting and queries
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleLabelledPoint {
@@ -1056,6 +1066,26 @@ pub mod bridge {
         fn TrafficLight_Freeze(traffic_light: &TrafficLight, freeze: bool);
         fn TrafficLight_IsFrozen(traffic_light: &TrafficLight) -> bool;
 
+        // Traffic Light Actor interface methods
+        fn TrafficLight_GetTypeId(traffic_light: &TrafficLight) -> String;
+        fn TrafficLight_GetTransform(traffic_light: &TrafficLight) -> SimpleTransform;
+        fn TrafficLight_SetTransform(traffic_light: &TrafficLight, transform: &SimpleTransform);
+        fn TrafficLight_GetVelocity(traffic_light: &TrafficLight) -> SimpleVector3D;
+        fn TrafficLight_GetAngularVelocity(traffic_light: &TrafficLight) -> SimpleVector3D;
+        fn TrafficLight_GetAcceleration(traffic_light: &TrafficLight) -> SimpleVector3D;
+        fn TrafficLight_IsAlive(traffic_light: &TrafficLight) -> bool;
+        fn TrafficLight_Destroy(traffic_light: &TrafficLight) -> bool;
+        fn TrafficLight_SetSimulatePhysics(traffic_light: &TrafficLight, enabled: bool);
+        fn TrafficLight_AddImpulse(traffic_light: &TrafficLight, impulse: &SimpleVector3D);
+        fn TrafficLight_AddForce(traffic_light: &TrafficLight, force: &SimpleVector3D);
+        fn TrafficLight_AddTorque(traffic_light: &TrafficLight, torque: &SimpleVector3D);
+
+        // Traffic Light advanced methods
+        // NOTE: These FFI functions exist in C++ implementation but CXX bridge integration needs debugging
+        // fn TrafficLight_GetAffectedLaneWaypoints(traffic_light: &TrafficLight) -> Vec<SimpleWaypointInfo>;
+        // fn TrafficLight_GetPoleIndex(traffic_light: &TrafficLight) -> u32;
+        // fn TrafficLight_GetGroupTrafficLights(traffic_light: &TrafficLight) -> Vec<SimpleTrafficLightInfo>;
+
         // Traffic Sign methods
         fn TrafficSign_GetSignId(traffic_sign: &TrafficSign) -> String;
         fn TrafficSign_GetTriggerVolume(traffic_sign: &TrafficSign) -> SimpleBoundingBox;
@@ -1422,6 +1452,7 @@ pub use bridge::{
     SimpleRecorderPosition,
     SimpleRotation,
     SimpleTimestamp,
+    SimpleTrafficLightInfo,
     SimpleTrafficLightState,
     SimpleTrafficManagerAction,
     SimpleTrafficManagerConfig,
@@ -1440,17 +1471,30 @@ pub use bridge::{
     SimpleWeatherParameters,
     SimpleWheelPhysicsControl,
     TrafficLight,
+    TrafficLight_AddForce,
+    TrafficLight_AddImpulse,
+    TrafficLight_AddTorque,
+    TrafficLight_Destroy,
     TrafficLight_Freeze,
+    TrafficLight_GetAcceleration,
+    TrafficLight_GetAngularVelocity,
     TrafficLight_GetElapsedTime,
     TrafficLight_GetGreenTime,
     TrafficLight_GetRedTime,
     // Traffic Light methods
     TrafficLight_GetState,
+    TrafficLight_GetTransform,
+    // Traffic Light Actor interface methods
+    TrafficLight_GetTypeId,
+    TrafficLight_GetVelocity,
     TrafficLight_GetYellowTime,
+    TrafficLight_IsAlive,
     TrafficLight_IsFrozen,
     TrafficLight_SetGreenTime,
     TrafficLight_SetRedTime,
+    TrafficLight_SetSimulatePhysics,
     TrafficLight_SetState,
+    TrafficLight_SetTransform,
     TrafficLight_SetYellowTime,
     // Traffic Manager type and methods
     TrafficManager,
