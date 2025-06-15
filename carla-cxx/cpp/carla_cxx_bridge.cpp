@@ -13,6 +13,7 @@
 #include <carla/client/LightManager.h>
 #include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
+#include <carla/client/ServerSideSensor.h>
 #include <carla/client/TrafficLight.h>
 #include <carla/client/TrafficSign.h>
 #include <carla/client/Vehicle.h>
@@ -2941,4 +2942,64 @@ void World_SetWeather(const carla::client::World &world,
 
 bool World_IsWeatherEnabled(const carla::client::World &world) {
   return const_cast<carla::client::World &>(world).IsWeatherEnabled();
+}
+
+// ROS2 integration functions (simplified sensor control only)
+void Sensor_EnableForROS(const carla::client::Sensor &sensor) {
+  try {
+    // First cast to Actor, then to non-const Sensor, then to ServerSideSensor
+    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
+        sensor.shared_from_this());
+    auto sensor_ptr =
+        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
+    if (sensor_ptr) {
+      auto server_side_sensor =
+          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
+              sensor_ptr);
+      if (server_side_sensor) {
+        server_side_sensor->EnableForROS();
+      }
+    }
+  } catch (...) {
+    // Handle error silently - sensor might not be a ServerSideSensor
+  }
+}
+
+void Sensor_DisableForROS(const carla::client::Sensor &sensor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
+        sensor.shared_from_this());
+    auto sensor_ptr =
+        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
+    if (sensor_ptr) {
+      auto server_side_sensor =
+          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
+              sensor_ptr);
+      if (server_side_sensor) {
+        server_side_sensor->DisableForROS();
+      }
+    }
+  } catch (...) {
+    // Handle error silently
+  }
+}
+
+bool Sensor_IsEnabledForROS(const carla::client::Sensor &sensor) {
+  try {
+    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
+        sensor.shared_from_this());
+    auto sensor_ptr =
+        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
+    if (sensor_ptr) {
+      auto server_side_sensor =
+          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
+              sensor_ptr);
+      if (server_side_sensor) {
+        return server_side_sensor->IsEnabledForROS();
+      }
+    }
+  } catch (...) {
+    // Handle error silently
+  }
+  return false;
 }

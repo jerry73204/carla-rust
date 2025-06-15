@@ -46,6 +46,7 @@ pub mod landmark;
 pub mod light_manager;
 pub mod map;
 pub mod recording;
+pub mod ros2;
 pub mod sensor;
 pub mod time;
 pub mod traffic_light;
@@ -82,6 +83,7 @@ pub use map::{
     JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
     MapWrapper, SignalOrientation, WaypointWrapper,
 };
+pub use ros2::{ros2_utils, SensorROS2Ext, VehicleControlCommand};
 pub use sensor::{
     CollisionData,
     CrossedLaneMarking,

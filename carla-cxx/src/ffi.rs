@@ -282,6 +282,18 @@ pub mod bridge {
         pub lights_count: u32,     // Total number of lights
     }
 
+    // ROS2 integration data structures (simplified)
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleVehicleControlCommand {
+        pub throttle: f32,
+        pub steer: f32,
+        pub brake: f32,
+        pub hand_brake: bool,
+        pub reverse: bool,
+        pub gear: i32,
+        pub manual_gear_shift: bool,
+    }
+
     // Debug visualization structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleColor {
@@ -652,6 +664,8 @@ pub mod bridge {
 
         // Light management types
         type LightManager;
+
+        // ROS2 integration types (simplified - no ROS2 singleton exposure)
 
         // Client creation
         fn create_client(host: &str, port: u16, worker_threads: usize) -> UniquePtr<Client>;
@@ -1195,6 +1209,11 @@ pub mod bridge {
         fn World_GetWeather(world: &World) -> SimpleWeatherParameters;
         fn World_SetWeather(world: &World, weather: &SimpleWeatherParameters);
         fn World_IsWeatherEnabled(world: &World) -> bool;
+
+        // ROS2 integration functions (simplified sensor control only)
+        fn Sensor_EnableForROS(sensor: &Sensor);
+        fn Sensor_DisableForROS(sensor: &Sensor);
+        fn Sensor_IsEnabledForROS(sensor: &Sensor) -> bool;
     }
 
     #[namespace = "carla::traffic_manager"]

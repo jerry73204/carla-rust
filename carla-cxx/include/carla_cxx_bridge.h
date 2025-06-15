@@ -17,6 +17,7 @@
 #include <carla/client/LightManager.h>
 #include <carla/client/Map.h>
 #include <carla/client/Sensor.h>
+#include <carla/client/ServerSideSensor.h>
 #include <carla/client/TrafficLight.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
@@ -25,6 +26,7 @@
 #include <carla/client/World.h>
 #include <carla/geom/GeoLocation.h>
 #include <carla/geom/Transform.h>
+#include <carla/ros2/ROS2.h>
 #include <carla/trafficmanager/TrafficManager.h>
 
 // Forward declare our simple types from the generated header
@@ -91,6 +93,7 @@ struct SimpleRssResponse;
 struct SimpleLightState;
 struct SimpleLight;
 struct SimpleLightManager;
+struct SimpleVehicleControlCommand;
 
 // CXX Bridge functions
 namespace carla {
@@ -612,3 +615,8 @@ SimpleWeatherParameters World_GetWeather(const carla::client::World &world);
 void World_SetWeather(const carla::client::World &world,
                       const SimpleWeatherParameters &weather);
 bool World_IsWeatherEnabled(const carla::client::World &world);
+
+// Global namespace ROS2 integration functions (simplified sensor control only)
+void Sensor_EnableForROS(const carla::client::Sensor &sensor);
+void Sensor_DisableForROS(const carla::client::Sensor &sensor);
+bool Sensor_IsEnabledForROS(const carla::client::Sensor &sensor);
