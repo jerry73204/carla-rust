@@ -16,6 +16,12 @@ pub struct Sensor {
 }
 
 impl Sensor {
+    /// Create a sensor from a carla-cxx SensorWrapper.
+    /// TODO: Need Sensor to Actor conversion in carla-cxx FFI
+    pub fn new(_sensor_wrapper: carla_cxx::SensorWrapper) -> Self {
+        todo!("Sensor::new - need Sensor to Actor conversion FFI function")
+    }
+
     /// Create a sensor from an actor.
     pub fn from_actor(actor: Actor) -> Self {
         Self { actor }

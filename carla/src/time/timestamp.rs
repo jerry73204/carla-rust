@@ -84,3 +84,26 @@ impl std::fmt::Display for Timestamp {
         )
     }
 }
+
+// Conversion to/from carla-cxx types
+impl From<carla_cxx::Timestamp> for Timestamp {
+    fn from(cxx_timestamp: carla_cxx::Timestamp) -> Self {
+        Self::new(
+            cxx_timestamp.frame,
+            cxx_timestamp.elapsed_seconds,
+            cxx_timestamp.delta_seconds,
+            cxx_timestamp.platform_timestamp,
+        )
+    }
+}
+
+impl From<Timestamp> for carla_cxx::Timestamp {
+    fn from(timestamp: Timestamp) -> Self {
+        Self::new(
+            timestamp.frame,
+            timestamp.elapsed_seconds,
+            timestamp.delta_seconds,
+            timestamp.platform_timestamp,
+        )
+    }
+}

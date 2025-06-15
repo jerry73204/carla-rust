@@ -10,6 +10,14 @@ pub struct ClientWrapper {
     inner: UniquePtr<Client>,
 }
 
+impl std::fmt::Debug for ClientWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ClientWrapper")
+            .field("inner", &"<UniquePtr<Client>>")
+            .finish()
+    }
+}
+
 impl ClientWrapper {
     /// Create a new CARLA client connection
     pub fn new(host: &str, port: u16) -> Result<Self> {
@@ -169,6 +177,14 @@ impl ClientWrapper {
 /// High-level wrapper for CARLA World
 pub struct WorldWrapper {
     inner: SharedPtr<World>,
+}
+
+impl std::fmt::Debug for WorldWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WorldWrapper")
+            .field("inner", &"<SharedPtr<World>>")
+            .finish()
+    }
 }
 
 impl WorldWrapper {
@@ -472,6 +488,14 @@ pub struct ActorWrapper {
     inner: SharedPtr<Actor>,
 }
 
+impl std::fmt::Debug for ActorWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ActorWrapper")
+            .field("inner", &"<SharedPtr<Actor>>")
+            .finish()
+    }
+}
+
 impl ActorWrapper {
     /// Get reference to the inner Actor for casting
     pub fn get_actor(&self) -> &Actor {
@@ -527,6 +551,14 @@ impl ActorWrapper {
 /// High-level wrapper for CARLA BlueprintLibrary
 pub struct BlueprintLibraryWrapper {
     inner: SharedPtr<BlueprintLibrary>,
+}
+
+impl std::fmt::Debug for BlueprintLibraryWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BlueprintLibraryWrapper")
+            .field("inner", &"<SharedPtr<BlueprintLibrary>>")
+            .finish()
+    }
 }
 
 impl BlueprintLibraryWrapper {

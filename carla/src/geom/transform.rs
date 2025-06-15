@@ -288,6 +288,25 @@ impl ToCxx<carla_cxx::SimpleTransform> for Transform {
     }
 }
 
+// Standard From/Into conversions for easier use
+impl From<&Transform> for carla_cxx::SimpleTransform {
+    fn from(transform: &Transform) -> Self {
+        transform.to_cxx()
+    }
+}
+
+impl From<Transform> for carla_cxx::SimpleTransform {
+    fn from(transform: Transform) -> Self {
+        transform.to_cxx()
+    }
+}
+
+impl From<carla_cxx::SimpleTransform> for Transform {
+    fn from(simple: carla_cxx::SimpleTransform) -> Self {
+        Self::from_cxx(simple)
+    }
+}
+
 // Multiplication operator for transform composition
 impl std::ops::Mul for Transform {
     type Output = Transform;

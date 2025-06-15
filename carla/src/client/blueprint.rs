@@ -12,6 +12,8 @@ pub struct ActorBlueprint {
     pub tags: Vec<String>,
     /// Blueprint attributes
     pub attributes: HashMap<String, ActorAttribute>,
+    /// Internal handle to carla-cxx ActorBlueprint - TODO: Use proper wrapper type
+    inner: Option<String>, // Placeholder - should use carla_cxx::ActorBlueprint
 }
 
 impl ActorBlueprint {
@@ -21,7 +23,28 @@ impl ActorBlueprint {
             id,
             tags: Vec::new(),
             attributes: HashMap::new(),
+            inner: None,
         }
+    }
+
+    /// Create a blueprint from a carla-cxx ActorBlueprint.
+    pub fn from_cxx(_inner: String) -> Self {
+        // TODO: Extract id, tags, and attributes from inner blueprint
+        // Need to implement using carla-cxx FFI functions
+        let id = "TODO".to_string(); // carla_cxx::ActorBlueprint_GetId(&inner);
+        let tags = Vec::new(); // carla_cxx::ActorBlueprint_GetTags(&inner);
+
+        Self {
+            id,
+            tags,
+            attributes: HashMap::new(), // TODO: Extract attributes
+            inner: None,                // TODO: Store wrapper properly
+        }
+    }
+
+    /// Get reference to the inner carla-cxx ActorBlueprint for FFI operations
+    pub fn get_inner(&self) -> Option<&str> {
+        todo!("ActorBlueprint::get_inner - need proper carla-cxx ActorBlueprint wrapper")
     }
 
     /// Set an attribute value.

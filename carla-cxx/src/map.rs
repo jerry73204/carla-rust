@@ -15,6 +15,14 @@ pub struct MapWrapper {
     inner: SharedPtr<Map>,
 }
 
+impl std::fmt::Debug for MapWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MapWrapper")
+            .field("inner", &"<SharedPtr<Map>>")
+            .finish()
+    }
+}
+
 impl MapWrapper {
     /// Create a new MapWrapper from a SharedPtr<Map>
     pub fn new(map: SharedPtr<Map>) -> Self {

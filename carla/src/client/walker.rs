@@ -17,6 +17,12 @@ pub struct Walker {
 }
 
 impl Walker {
+    /// Create a walker from a carla-cxx WalkerWrapper.
+    /// TODO: Need Walker to Actor conversion in carla-cxx FFI
+    pub fn new(_walker_wrapper: carla_cxx::WalkerWrapper) -> Self {
+        todo!("Walker::new - need Walker to Actor conversion FFI function")
+    }
+
     /// Create a walker from an actor.
     pub fn from_actor(actor: Actor) -> Self {
         Self { actor }

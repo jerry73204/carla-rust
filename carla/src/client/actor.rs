@@ -3,7 +3,7 @@
 use crate::{
     client::{ActorId, Sensor, Vehicle, Walker},
     error::CarlaResult,
-    geom::{Transform, Vector3D},
+    geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::ActorT,
 };
 
@@ -12,27 +12,59 @@ use crate::{
 pub struct Actor {
     /// Actor ID
     pub id: ActorId,
-    // Internal handle to carla-cxx Actor
-    // This will be implemented when we integrate with carla-cxx
+    /// Internal handle to carla-cxx Actor
+    inner: carla_cxx::ActorWrapper,
 }
 
 impl Actor {
+    /// Create a new Actor from a carla-cxx ActorWrapper
+    pub fn new(inner: carla_cxx::ActorWrapper) -> Self {
+        let id = inner.get_id();
+        Self { id, inner }
+    }
+
+    /// Get reference to the inner ActorWrapper for FFI operations
+    pub fn get_actor_wrapper(&self) -> &carla_cxx::ActorWrapper {
+        &self.inner
+    }
+
+    /// Get reference to the inner Actor for FFI operations
+    pub fn get_inner_actor(&self) -> &carla_cxx::Actor {
+        self.inner.get_actor()
+    }
+
     /// Try to cast this actor to a vehicle.
     pub fn as_vehicle(&self) -> Option<Vehicle> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::as_vehicle not yet implemented with carla-cxx FFI")
+        if let Some(_vehicle_wrapper) =
+            carla_cxx::VehicleWrapper::from_actor(self.inner.get_actor())
+        {
+            // TODO: Need Vehicle to Actor conversion in carla-cxx FFI - Vehicle_CastToActor() missing
+            todo!("Actor::as_vehicle - need Vehicle to Actor conversion FFI function")
+        } else {
+            None
+        }
     }
 
     /// Try to cast this actor to a walker.
     pub fn as_walker(&self) -> Option<Walker> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::as_walker not yet implemented with carla-cxx FFI")
+        if let Some(_walker_wrapper) = carla_cxx::WalkerWrapper::from_actor(self.inner.get_actor())
+        {
+            // TODO: Need Walker to Actor conversion in carla-cxx FFI - Walker_CastToActor() missing
+            todo!("Actor::as_walker - need Walker to Actor conversion FFI function")
+        } else {
+            None
+        }
     }
 
     /// Try to cast this actor to a sensor.
     pub fn as_sensor(&self) -> Option<Sensor> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::as_sensor not yet implemented with carla-cxx FFI")
+        if let Some(_sensor_wrapper) = carla_cxx::SensorWrapper::from_actor(self.inner.get_actor())
+        {
+            // TODO: Need Sensor to Actor conversion in carla-cxx FFI - Sensor_CastToActor() missing
+            todo!("Actor::as_sensor - need Sensor to Actor conversion FFI function")
+        } else {
+            None
+        }
     }
 
     /// Get the actor's bounding box.
@@ -55,31 +87,29 @@ impl Actor {
 
     /// Check if actor is a specific type.
     pub fn is_type(&self, type_pattern: &str) -> bool {
-        // TODO: Implement using carla-cxx FFI interface
-        let _type_pattern = type_pattern;
-        todo!("Actor::is_type not yet implemented with carla-cxx FFI")
+        let type_id = self.inner.get_type_id();
+        type_id.contains(type_pattern)
     }
 }
 
 impl ActorT for Actor {
     fn get_id(&self) -> ActorId {
-        self.id
+        self.inner.get_id()
     }
 
     fn get_type_id(&self) -> String {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::get_type_id not yet implemented with carla-cxx FFI")
+        self.inner.get_type_id()
     }
 
     fn get_transform(&self) -> Transform {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::get_transform not yet implemented with carla-cxx FFI")
+        let simple_transform = self.inner.get_transform();
+        Transform::from_cxx(simple_transform)
     }
 
     fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        let _transform = transform;
-        todo!("Actor::set_transform not yet implemented with carla-cxx FFI")
+        let simple_transform = transform.to_cxx();
+        self.inner.set_transform(&simple_transform);
+        Ok(())
     }
 
     fn get_velocity(&self) -> Vector3D {
@@ -98,13 +128,19 @@ impl ActorT for Actor {
     }
 
     fn is_alive(&self) -> bool {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::is_alive not yet implemented with carla-cxx FFI")
+        self.inner.is_alive()
     }
 
     fn destroy(&self) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Actor::destroy not yet implemented with carla-cxx FFI")
+        let success = self.inner.destroy();
+        if success {
+            Ok(())
+        } else {
+            Err(
+                crate::error::ActorError::OperationFailed("Failed to destroy actor".to_string())
+                    .into(),
+            )
+        }
     }
 
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {

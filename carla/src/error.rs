@@ -68,6 +68,15 @@ pub enum ClientError {
     #[error("Connection timeout after {0:?}")]
     Timeout(Duration),
 
+    /// Requested map not found
+    #[error("Map '{map_name}' not found. Available maps: {available_maps:?}")]
+    MapNotFound {
+        /// Requested map name
+        map_name: String,
+        /// List of available maps
+        available_maps: Vec<String>,
+    },
+
     /// Server version mismatch
     #[error("Version mismatch: client {client_version}, server {server_version}")]
     VersionMismatch {
@@ -153,6 +162,10 @@ pub enum ActorError {
     /// Control application failed
     #[error("Control application failed: {0}")]
     ControlFailed(String),
+
+    /// Generic operation failed
+    #[error("Operation failed: {0}")]
+    OperationFailed(String),
 }
 
 /// Errors related to actor spawning.

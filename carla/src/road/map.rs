@@ -9,15 +9,19 @@ use crate::{
 /// Represents the road map.
 #[derive(Debug)]
 pub struct Map {
-    // Internal handle to carla-cxx Map
-    // This will be implemented when we integrate with carla-cxx
+    /// Internal handle to carla-cxx Map
+    inner: carla_cxx::MapWrapper,
 }
 
 impl Map {
+    /// Create a new Map from a carla-cxx MapWrapper.
+    pub fn new(inner: carla_cxx::MapWrapper) -> Self {
+        Self { inner }
+    }
+
     /// Get the name of this map.
     pub fn get_name(&self) -> String {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Map::get_name not yet implemented with carla-cxx FFI")
+        self.inner.get_name()
     }
 
     /// Get a waypoint at the given location.

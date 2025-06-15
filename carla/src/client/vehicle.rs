@@ -20,6 +20,12 @@ pub struct Vehicle {
 }
 
 impl Vehicle {
+    /// Create a vehicle from a carla-cxx VehicleWrapper.
+    /// TODO: Need Vehicle to Actor conversion in carla-cxx FFI
+    pub fn new(_vehicle_wrapper: carla_cxx::VehicleWrapper) -> Self {
+        todo!("Vehicle::new - need Vehicle to Actor conversion FFI function")
+    }
+
     /// Create a vehicle from an actor.
     pub fn from_actor(actor: Actor) -> Self {
         Self { actor }
