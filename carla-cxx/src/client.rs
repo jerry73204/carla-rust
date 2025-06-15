@@ -497,6 +497,11 @@ impl std::fmt::Debug for ActorWrapper {
 }
 
 impl ActorWrapper {
+    /// Create a new ActorWrapper from a SharedPtr<Actor>
+    pub fn new(inner: SharedPtr<Actor>) -> Self {
+        Self { inner }
+    }
+
     /// Get reference to the inner Actor for casting
     pub fn get_actor(&self) -> &Actor {
         &self.inner

@@ -17,15 +17,18 @@
 //! ## Quick Start
 //!
 //! ```rust,no_run
-//! use carla::{Client, Location, Rotation, Transform};
+//! use carla::{Client, Location, Rotation, Transform, VehicleControl, VehicleT};
 //!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Connect to CARLA server
 //! let client = Client::new("localhost", 2000, None)?;
-//! let world = client.get_world();
+//! let world = client.get_world()?;
 //!
 //! // Spawn a vehicle
-//! let blueprint_lib = world.get_blueprint_library();
-//! let vehicle_bp = blueprint_lib.find("vehicle.tesla.model3")?;
+//! let blueprint_lib = world.get_blueprint_library()?;
+//! let vehicle_bp = blueprint_lib
+//!     .find("vehicle.tesla.model3")?
+//!     .ok_or("Vehicle blueprint not found")?;
 //!
 //! let spawn_transform = Transform::new(Location::new(0.0, 0.0, 0.5), Rotation::default());
 //!
@@ -40,7 +43,8 @@
 //!     };
 //!     vehicle.apply_control(&control)?;
 //! }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Features

@@ -115,7 +115,7 @@ pub use traffic_sign::{TrafficSignType, TrafficSignWrapper};
 pub use vehicle::{
     AckermannControl, EnginePhysics, GearPhysicsControl, SteeringPhysics, TransmissionPhysics,
     VehicleControl, VehicleDoorState, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
-    VehicleWrapper, WheelPhysicsControl,
+    VehicleTelemetryData, VehicleWrapper, WheelPhysicsControl,
 };
 pub use walker::{Vector3D, WalkerControl, WalkerWrapper};
 pub use walker_ai::{Location as WalkerLocation, WalkerAIBehavior, WalkerAIControllerWrapper};

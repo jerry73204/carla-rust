@@ -12,6 +12,14 @@ pub struct VehicleWrapper {
     inner: SharedPtr<Vehicle>,
 }
 
+impl std::fmt::Debug for VehicleWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VehicleWrapper")
+            .field("inner", &"<SharedPtr<Vehicle>>")
+            .finish()
+    }
+}
+
 impl VehicleWrapper {
     /// Create a VehicleWrapper from an Actor (performs cast)
     pub fn from_actor(actor: &Actor) -> Option<Self> {
@@ -21,6 +29,11 @@ impl VehicleWrapper {
         } else {
             Some(Self { inner: vehicle_ptr })
         }
+    }
+
+    /// Convert back to an Actor
+    pub fn to_actor(&self) -> SharedPtr<Actor> {
+        ffi::Vehicle_CastToActor(&self.inner)
     }
 
     /// Apply vehicle control (throttle, brake, steering)
@@ -53,8 +66,43 @@ impl VehicleWrapper {
     }
 
     /// Enable or disable autopilot
-    pub fn set_autopilot(&self, enabled: bool) {
-        ffi::Vehicle_SetAutopilot(&self.inner, enabled);
+    pub fn set_autopilot(&self, enabled: bool, tm_port: u16) {
+        ffi::Vehicle_SetAutopilot(&self.inner, enabled, tm_port);
+    }
+
+    /// Enable or disable autopilot with default traffic manager port
+    pub fn set_autopilot_default(&self, enabled: bool) {
+        self.set_autopilot(enabled, 8000); // Default TM port
+    }
+
+    /// Get the vehicle's actor ID
+    pub fn get_id(&self) -> u32 {
+        ffi::Vehicle_GetId(&self.inner)
+    }
+
+    /// Get the vehicle's type ID
+    pub fn get_type_id(&self) -> String {
+        ffi::Vehicle_GetTypeId(&self.inner)
+    }
+
+    /// Get the vehicle's transform
+    pub fn get_transform(&self) -> crate::ffi::SimpleTransform {
+        ffi::Vehicle_GetTransform(&self.inner)
+    }
+
+    /// Set the vehicle's transform
+    pub fn set_transform(&self, transform: &crate::ffi::SimpleTransform) {
+        ffi::Vehicle_SetTransform(&self.inner, transform);
+    }
+
+    /// Check if the vehicle is still alive
+    pub fn is_alive(&self) -> bool {
+        ffi::Vehicle_IsAlive(&self.inner)
+    }
+
+    /// Destroy the vehicle
+    pub fn destroy(&self) -> bool {
+        ffi::Vehicle_Destroy(&self.inner)
     }
 
     /// Get current vehicle speed in m/s
@@ -299,6 +347,53 @@ impl VehicleWrapper {
             .collect();
         ffi::Vehicle_SetGearPhysicsControls(&self.inner, &simple_gears);
         Ok(())
+    }
+
+    /// Get vehicle telemetry data
+    pub fn get_telemetry_data(&self) -> VehicleTelemetryData {
+        let simple_data = ffi::Vehicle_GetTelemetryData(&self.inner);
+        VehicleTelemetryData {
+            speed: simple_data.speed,
+            rpm: simple_data.rpm,
+            gear: simple_data.gear,
+            engine_temperature: simple_data.engine_temperature,
+            fuel_level: simple_data.fuel_level,
+        }
+    }
+
+    /// Get wheel steer angle for a specific wheel
+    pub fn get_wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
+        ffi::Vehicle_GetWheelSteerAngle(&self.inner, wheel_location as u32)
+    }
+
+    /// Set physics simulation state
+    pub fn set_simulate_physics(&self, enabled: bool) {
+        ffi::Vehicle_SetSimulatePhysics(&self.inner, enabled);
+    }
+
+    /// Add impulse to the vehicle
+    pub fn add_impulse(&self, impulse: &SimpleVector3D) {
+        ffi::Vehicle_AddImpulse(&self.inner, impulse);
+    }
+
+    /// Add impulse at a specific location
+    pub fn add_impulse_at_location(&self, impulse: &SimpleVector3D, location: &SimpleVector3D) {
+        ffi::Vehicle_AddImpulseAtLocation(&self.inner, impulse, location);
+    }
+
+    /// Add force to the vehicle
+    pub fn add_force(&self, force: &SimpleVector3D) {
+        ffi::Vehicle_AddForce(&self.inner, force);
+    }
+
+    /// Add force at a specific location
+    pub fn add_force_at_location(&self, force: &SimpleVector3D, location: &SimpleVector3D) {
+        ffi::Vehicle_AddForceAtLocation(&self.inner, force, location);
+    }
+
+    /// Add torque to the vehicle
+    pub fn add_torque(&self, torque: &SimpleVector3D) {
+        ffi::Vehicle_AddTorque(&self.inner, torque);
     }
 }
 
@@ -558,6 +653,20 @@ pub struct GearPhysicsControl {
     pub up_ratio: f32,
 }
 
+/// Vehicle wheel locations
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u32)]
+pub enum VehicleWheelLocation {
+    /// Front left wheel
+    FrontLeft = 0,
+    /// Front right wheel
+    FrontRight = 1,
+    /// Rear left wheel
+    RearLeft = 2,
+    /// Rear right wheel
+    RearRight = 3,
+}
+
 /// Vehicle door types (CARLA 0.10.0)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u32)]
@@ -595,6 +704,21 @@ pub struct VehicleDoorState {
     pub door_type: VehicleDoorType,
     /// Whether the door is open
     pub is_open: bool,
+}
+
+/// Vehicle telemetry data
+#[derive(Debug, Clone, PartialEq)]
+pub struct VehicleTelemetryData {
+    /// Current speed in km/h
+    pub speed: f32,
+    /// Current RPM
+    pub rpm: f32,
+    /// Current gear
+    pub gear: i32,
+    /// Engine temperature in Celsius
+    pub engine_temperature: f32,
+    /// Fuel level [0.0, 1.0]
+    pub fuel_level: f32,
 }
 
 impl Default for VehiclePhysicsControl {

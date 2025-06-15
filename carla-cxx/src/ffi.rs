@@ -130,6 +130,16 @@ pub mod bridge {
         pub is_open: bool,
     }
 
+    // Vehicle telemetry data
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct SimpleVehicleTelemetryData {
+        pub speed: f32,
+        pub rpm: f32,
+        pub gear: i32,
+        pub engine_temperature: f32,
+        pub fuel_level: f32,
+    }
+
     // Walker control structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleWalkerControl {
@@ -883,6 +893,7 @@ pub mod bridge {
 
         // Actor type checking and casting
         fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
+        fn Vehicle_CastToActor(vehicle: &Vehicle) -> SharedPtr<Actor>;
         fn Actor_CastToWalker(actor: &Actor) -> SharedPtr<Walker>;
         fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
         fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
@@ -892,11 +903,22 @@ pub mod bridge {
         // Vehicle methods
         fn Vehicle_ApplyControl(vehicle: &Vehicle, control: &SimpleVehicleControl);
         fn Vehicle_GetControl(vehicle: &Vehicle) -> SimpleVehicleControl;
-        fn Vehicle_SetAutopilot(vehicle: &Vehicle, enabled: bool);
+        fn Vehicle_SetAutopilot(vehicle: &Vehicle, enabled: bool, tm_port: u16);
         fn Vehicle_GetSpeed(vehicle: &Vehicle) -> f32;
         fn Vehicle_GetSpeedLimit(vehicle: &Vehicle) -> f32;
         fn Vehicle_SetLightState(vehicle: &Vehicle, light_state: u32);
         fn Vehicle_GetLightState(vehicle: &Vehicle) -> u32;
+
+        // Vehicle telemetry data
+        fn Vehicle_GetTelemetryData(vehicle: &Vehicle) -> SimpleVehicleTelemetryData;
+
+        // Vehicle ID and basic actor properties
+        fn Vehicle_GetId(vehicle: &Vehicle) -> u32;
+        fn Vehicle_GetTypeId(vehicle: &Vehicle) -> String;
+        fn Vehicle_GetTransform(vehicle: &Vehicle) -> SimpleTransform;
+        fn Vehicle_SetTransform(vehicle: &Vehicle, transform: &SimpleTransform);
+        fn Vehicle_IsAlive(vehicle: &Vehicle) -> bool;
+        fn Vehicle_Destroy(vehicle: &Vehicle) -> bool;
 
         // Advanced vehicle control
         fn Vehicle_ApplyAckermannControl(vehicle: &Vehicle, control: &SimpleAckermannControl);
@@ -925,6 +947,25 @@ pub mod bridge {
         // Gear physics
         fn Vehicle_GetGearPhysicsControls(vehicle: &Vehicle) -> Vec<SimpleGearPhysicsControl>;
         fn Vehicle_SetGearPhysicsControls(vehicle: &Vehicle, gears: &[SimpleGearPhysicsControl]);
+
+        // Wheel steer angle
+        fn Vehicle_GetWheelSteerAngle(vehicle: &Vehicle, wheel_location: u32) -> f32;
+
+        // Actor physics methods (from Actor base class)
+        fn Vehicle_SetSimulatePhysics(vehicle: &Vehicle, enabled: bool);
+        fn Vehicle_AddImpulse(vehicle: &Vehicle, impulse: &SimpleVector3D);
+        fn Vehicle_AddImpulseAtLocation(
+            vehicle: &Vehicle,
+            impulse: &SimpleVector3D,
+            location: &SimpleVector3D,
+        );
+        fn Vehicle_AddForce(vehicle: &Vehicle, force: &SimpleVector3D);
+        fn Vehicle_AddForceAtLocation(
+            vehicle: &Vehicle,
+            force: &SimpleVector3D,
+            location: &SimpleVector3D,
+        );
+        fn Vehicle_AddTorque(vehicle: &Vehicle, torque: &SimpleVector3D);
 
         // Walker methods
         fn Walker_ApplyControl(walker: &Walker, control: &SimpleWalkerControl);
@@ -1361,6 +1402,7 @@ pub use bridge::{
     SimpleVehicleControl,
     SimpleVehicleDoor,
     SimpleVehiclePhysicsControl,
+    SimpleVehicleTelemetryData,
     SimpleWalkerControl,
     SimpleWalkerDestination,
     SimpleWaypointInfo,
@@ -1442,11 +1484,18 @@ pub use bridge::{
     Vector3D_SquaredLength,
     // Specific actor types
     Vehicle,
+    Vehicle_AddForce,
+    Vehicle_AddForceAtLocation,
+    Vehicle_AddImpulse,
+    Vehicle_AddImpulseAtLocation,
+    Vehicle_AddTorque,
     // Vehicle methods
     Vehicle_ApplyAckermannControl,
     Vehicle_ApplyControl,
     Vehicle_ApplyPhysicsControl,
+    Vehicle_CastToActor,
     Vehicle_CloseDoor,
+    Vehicle_Destroy,
     Vehicle_GetAcceleration,
     Vehicle_GetAckermannControl,
     Vehicle_GetAngularVelocity,
@@ -1455,18 +1504,26 @@ pub use bridge::{
     Vehicle_GetEngineRpm,
     Vehicle_GetGearPhysicsControls,
     Vehicle_GetGearRatio,
+    Vehicle_GetId,
     Vehicle_GetLightState,
     Vehicle_GetPhysicsControl,
     Vehicle_GetSpeed,
     Vehicle_GetSpeedLimit,
+    Vehicle_GetTelemetryData,
     Vehicle_GetTireFriction,
+    Vehicle_GetTransform,
+    Vehicle_GetTypeId,
     Vehicle_GetVelocity,
     Vehicle_GetWheelPhysicsControls,
+    Vehicle_GetWheelSteerAngle,
+    Vehicle_IsAlive,
     Vehicle_IsDoorOpen,
     Vehicle_OpenDoor,
     Vehicle_SetAutopilot,
     Vehicle_SetGearPhysicsControls,
     Vehicle_SetLightState,
+    Vehicle_SetSimulatePhysics,
+    Vehicle_SetTransform,
     Vehicle_SetWheelPhysicsControls,
     Walker,
     WalkerAIController,

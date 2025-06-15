@@ -37,6 +37,10 @@ pub enum CarlaError {
     #[error("Map error: {0}")]
     Map(#[from] MapError),
 
+    /// Vehicle operation errors
+    #[error("Vehicle error: {0}")]
+    Vehicle(#[from] VehicleError),
+
     /// Generic CARLA runtime error
     #[error("CARLA runtime error: {0}")]
     Runtime(String),
@@ -143,6 +147,10 @@ pub enum ActorError {
     /// Actor is destroyed
     #[error("Actor {0} is destroyed")]
     Destroyed(u32),
+
+    /// Actor destruction failed
+    #[error("Failed to destroy actor {0}")]
+    DestroyFailed(u32),
 
     /// Transform operation failed
     #[error("Transform operation failed: {0}")]
@@ -294,6 +302,30 @@ pub enum MapError {
     /// Navigation error
     #[error("Navigation error: {0}")]
     Navigation(String),
+}
+
+/// Errors related to vehicle operations.
+#[derive(Debug, Error)]
+pub enum VehicleError {
+    /// Vehicle control command failed
+    #[error("Vehicle control failed: {0}")]
+    ControlFailed(String),
+
+    /// Physics control application failed
+    #[error("Vehicle physics control failed: {0}")]
+    PhysicsControlFailed(String),
+
+    /// Light state operation failed
+    #[error("Vehicle light state operation failed: {0}")]
+    LightStateFailed(String),
+
+    /// Door operation failed
+    #[error("Vehicle door operation failed: {0}")]
+    DoorOperationFailed(String),
+
+    /// Autopilot operation failed
+    #[error("Vehicle autopilot operation failed: {0}")]
+    AutopilotFailed(String),
 }
 
 impl From<crate::rpc::VehicleControl> for String {

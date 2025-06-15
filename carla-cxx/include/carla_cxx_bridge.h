@@ -42,6 +42,7 @@ struct SimpleVehiclePhysicsControl;
 struct SimpleWheelPhysicsControl;
 struct SimpleGearPhysicsControl;
 struct SimpleVehicleDoor;
+struct SimpleVehicleTelemetryData;
 struct SimpleWalkerControl;
 struct SimpleWalkerDestination;
 struct SimpleTrafficLightState;
@@ -304,6 +305,7 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
 
 // Actor casting functions
 std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);
+std::shared_ptr<Actor> Vehicle_CastToActor(const Vehicle &vehicle);
 std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor);
 std::shared_ptr<WalkerAIController>
 Actor_CastToWalkerAIController(const Actor &actor);
@@ -315,11 +317,24 @@ std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor);
 void Vehicle_ApplyControl(const Vehicle &vehicle,
                           const SimpleVehicleControl &control);
 SimpleVehicleControl Vehicle_GetControl(const Vehicle &vehicle);
-void Vehicle_SetAutopilot(const Vehicle &vehicle, bool enabled);
+void Vehicle_SetAutopilot(const Vehicle &vehicle, bool enabled,
+                          uint16_t tm_port);
 float Vehicle_GetSpeed(const Vehicle &vehicle);
 float Vehicle_GetSpeedLimit(const Vehicle &vehicle);
 void Vehicle_SetLightState(const Vehicle &vehicle, uint32_t light_state);
 uint32_t Vehicle_GetLightState(const Vehicle &vehicle);
+
+// Vehicle telemetry
+SimpleVehicleTelemetryData Vehicle_GetTelemetryData(const Vehicle &vehicle);
+
+// Vehicle ID and actor properties
+uint32_t Vehicle_GetId(const Vehicle &vehicle);
+rust::String Vehicle_GetTypeId(const Vehicle &vehicle);
+SimpleTransform Vehicle_GetTransform(const Vehicle &vehicle);
+void Vehicle_SetTransform(const Vehicle &vehicle,
+                          const SimpleTransform &transform);
+bool Vehicle_IsAlive(const Vehicle &vehicle);
+bool Vehicle_Destroy(const Vehicle &vehicle);
 
 // Advanced vehicle control
 void Vehicle_ApplyAckermannControl(const Vehicle &vehicle,
@@ -355,6 +370,22 @@ rust::Vec<SimpleGearPhysicsControl>
 Vehicle_GetGearPhysicsControls(const Vehicle &vehicle);
 void Vehicle_SetGearPhysicsControls(
     const Vehicle &vehicle, rust::Slice<const SimpleGearPhysicsControl> gears);
+
+// Wheel steer angle
+float Vehicle_GetWheelSteerAngle(const Vehicle &vehicle,
+                                 uint32_t wheel_location);
+
+// Actor physics methods (from Actor base class)
+void Vehicle_SetSimulatePhysics(const Vehicle &vehicle, bool enabled);
+void Vehicle_AddImpulse(const Vehicle &vehicle, const SimpleVector3D &impulse);
+void Vehicle_AddImpulseAtLocation(const Vehicle &vehicle,
+                                  const SimpleVector3D &impulse,
+                                  const SimpleVector3D &location);
+void Vehicle_AddForce(const Vehicle &vehicle, const SimpleVector3D &force);
+void Vehicle_AddForceAtLocation(const Vehicle &vehicle,
+                                const SimpleVector3D &force,
+                                const SimpleVector3D &location);
+void Vehicle_AddTorque(const Vehicle &vehicle, const SimpleVector3D &torque);
 
 // Walker wrapper functions
 void Walker_ApplyControl(const Walker &walker,
