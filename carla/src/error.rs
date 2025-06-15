@@ -41,6 +41,10 @@ pub enum CarlaError {
     #[error("Vehicle error: {0}")]
     Vehicle(#[from] VehicleError),
 
+    /// Walker (pedestrian) operation errors
+    #[error("Walker error: {0}")]
+    Walker(#[from] WalkerError),
+
     /// Generic CARLA runtime error
     #[error("CARLA runtime error: {0}")]
     Runtime(String),
@@ -326,6 +330,26 @@ pub enum VehicleError {
     /// Autopilot operation failed
     #[error("Vehicle autopilot operation failed: {0}")]
     AutopilotFailed(String),
+}
+
+/// Errors related to walker (pedestrian) operations.
+#[derive(Debug, Error)]
+pub enum WalkerError {
+    /// Walker control command failed
+    #[error("Walker control failed: {0}")]
+    ControlFailed(String),
+
+    /// Walker pose control operation failed
+    #[error("Walker pose control failed: {0}")]
+    PoseControlFailed(String),
+
+    /// Walker navigation operation failed
+    #[error("Walker navigation failed: {0}")]
+    NavigationFailed(String),
+
+    /// Walker bone control operation failed
+    #[error("Walker bone control failed: {0}")]
+    BoneControlFailed(String),
 }
 
 impl From<crate::rpc::VehicleControl> for String {

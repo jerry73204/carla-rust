@@ -895,6 +895,7 @@ pub mod bridge {
         fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
         fn Vehicle_CastToActor(vehicle: &Vehicle) -> SharedPtr<Actor>;
         fn Actor_CastToWalker(actor: &Actor) -> SharedPtr<Walker>;
+        fn Walker_CastToActor(walker: &Walker) -> SharedPtr<Actor>;
         fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
         fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
         fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
@@ -977,6 +978,20 @@ pub mod bridge {
         fn Walker_ShowPose(walker: &Walker);
         fn Walker_HidePose(walker: &Walker);
         fn Walker_GetPoseFromAnimation(walker: &Walker);
+
+        // Walker Actor interface methods
+        fn Walker_GetTypeId(walker: &Walker) -> String;
+        fn Walker_GetTransform(walker: &Walker) -> SimpleTransform;
+        fn Walker_SetTransform(walker: &Walker, transform: &SimpleTransform);
+        fn Walker_GetVelocity(walker: &Walker) -> SimpleVector3D;
+        fn Walker_GetAngularVelocity(walker: &Walker) -> SimpleVector3D;
+        fn Walker_GetAcceleration(walker: &Walker) -> SimpleVector3D;
+        fn Walker_IsAlive(walker: &Walker) -> bool;
+        fn Walker_Destroy(walker: &Walker) -> bool;
+        fn Walker_SetSimulatePhysics(walker: &Walker, enabled: bool);
+        fn Walker_AddImpulse(walker: &Walker, impulse: &SimpleVector3D);
+        fn Walker_AddForce(walker: &Walker, force: &SimpleVector3D);
+        fn Walker_AddTorque(walker: &Walker, torque: &SimpleVector3D);
 
         // Walker AI Controller methods
         fn WalkerAIController_Start(controller: &WalkerAIController);
@@ -1534,12 +1549,25 @@ pub use bridge::{
     WalkerAIController_Start,
     WalkerAIController_Stop,
     // Walker methods
+    Walker_AddForce,
+    Walker_AddImpulse,
+    Walker_AddTorque,
     Walker_ApplyControl,
     Walker_BlendPose,
+    Walker_CastToActor,
+    Walker_Destroy,
+    Walker_GetAcceleration,
+    Walker_GetAngularVelocity,
     Walker_GetControl,
     Walker_GetPoseFromAnimation,
     Walker_GetSpeed,
+    Walker_GetTransform,
+    Walker_GetTypeId,
+    Walker_GetVelocity,
     Walker_HidePose,
+    Walker_IsAlive,
+    Walker_SetSimulatePhysics,
+    Walker_SetTransform,
     Walker_ShowPose,
     Waypoint,
     Waypoint_GetDistance,

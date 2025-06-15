@@ -3,130 +3,226 @@
 use crate::{
     client::{Actor, ActorId},
     error::CarlaResult,
-    geom::{Transform, Vector3D},
+    geom::{FromCxx, ToCxx, Transform, Vector3D},
     rpc::WalkerControl,
     traits::{ActorT, WalkerT},
 };
+use carla_cxx::WalkerWrapper;
 
 /// Walker (pedestrian) actor.
 #[derive(Debug)]
 pub struct Walker {
-    /// Base actor
-    pub actor: Actor,
-    // Additional walker-specific fields
+    /// Actor ID
+    id: ActorId,
+    /// Internal walker wrapper for FFI calls
+    inner: WalkerWrapper,
 }
 
 impl Walker {
-    /// Create a walker from a carla-cxx WalkerWrapper.
-    /// TODO: Need Walker to Actor conversion in carla-cxx FFI
-    pub fn new(_walker_wrapper: carla_cxx::WalkerWrapper) -> Self {
-        todo!("Walker::new - need Walker to Actor conversion FFI function")
+    /// Create a walker from a carla-cxx WalkerWrapper and actor ID.
+    pub fn new(walker_wrapper: WalkerWrapper, id: ActorId) -> CarlaResult<Self> {
+        Ok(Self {
+            id,
+            inner: walker_wrapper,
+        })
     }
 
-    /// Create a walker from an actor.
-    pub fn from_actor(actor: Actor) -> Self {
-        Self { actor }
+    /// Create a walker from an actor by casting.
+    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
+        let actor_ref = actor.get_inner_actor();
+        let actor_id = actor.get_id();
+        if let Some(walker_wrapper) = WalkerWrapper::from_actor(actor_ref) {
+            Ok(Some(Self {
+                id: actor_id,
+                inner: walker_wrapper,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
-    /// Get the underlying actor.
-    pub fn as_actor(&self) -> &Actor {
-        &self.actor
+    /// Get the walker's actor ID.
+    pub fn get_id(&self) -> ActorId {
+        self.id
     }
 
     /// Get the current speed in m/s.
     pub fn get_speed(&self) -> f32 {
-        self.get_velocity().length()
+        self.inner.get_speed()
     }
 
-    /// Make the walker go to a specific location.
-    pub fn go_to_location(&self, destination: &crate::geom::Location) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        let _destination = destination;
-        todo!("Walker::go_to_location not yet implemented with carla-cxx FFI")
-    }
-
-    /// Start walker navigation.
-    pub fn start_navigation(&self) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Walker::start_navigation not yet implemented with carla-cxx FFI")
-    }
-
-    /// Stop walker navigation.
-    pub fn stop_navigation(&self) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Walker::stop_navigation not yet implemented with carla-cxx FFI")
-    }
+    /// Note about navigation functionality.
+    ///
+    /// Navigation functions like go_to_location, start/stop navigation, and set_max_speed
+    /// are provided by WalkerAIController, not the Walker itself. WalkerAIController
+    /// is a separate actor that needs to be spawned independently using World::spawn_actor
+    /// with a walker AI controller blueprint.
+    ///
+    /// The WalkerAIController will then control this Walker's movement automatically.
 
     /// Set walker's maximum speed.
-    pub fn set_max_speed(&self, speed: f32) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        let _speed = speed;
-        todo!("Walker::set_max_speed not yet implemented with carla-cxx FFI")
+    ///
+    /// **Note**: In CARLA, speed control is done through WalkerControl.speed in apply_control().
+    /// There is no separate max_speed API on the Walker class itself.
+    /// Use apply_control() with the desired speed instead.
+    #[deprecated(note = "Use apply_control() with WalkerControl::speed instead")]
+    pub fn set_max_speed(&self, _speed: f32) -> CarlaResult<()> {
+        Err(crate::error::CarlaError::Walker(crate::error::WalkerError::ControlFailed(
+            "set_max_speed not available on Walker - use apply_control() with WalkerControl::speed".to_string()
+        )))
+    }
+
+    /// Blend between animation pose and custom pose.
+    pub fn blend_pose(&self, blend: f32) -> CarlaResult<()> {
+        self.inner.blend_pose(blend).map_err(|e| {
+            crate::error::CarlaError::Walker(crate::error::WalkerError::PoseControlFailed(
+                e.to_string(),
+            ))
+        })
+    }
+
+    /// Show custom pose (blend = 1.0).
+    pub fn show_pose(&self) -> CarlaResult<()> {
+        self.inner.show_pose().map_err(|e| {
+            crate::error::CarlaError::Walker(crate::error::WalkerError::PoseControlFailed(
+                e.to_string(),
+            ))
+        })
+    }
+
+    /// Hide custom pose (blend = 0.0).
+    pub fn hide_pose(&self) -> CarlaResult<()> {
+        self.inner.hide_pose().map_err(|e| {
+            crate::error::CarlaError::Walker(crate::error::WalkerError::PoseControlFailed(
+                e.to_string(),
+            ))
+        })
+    }
+
+    /// Get pose from current animation frame.
+    pub fn get_pose_from_animation(&self) -> CarlaResult<()> {
+        self.inner.get_pose_from_animation().map_err(|e| {
+            crate::error::CarlaError::Walker(crate::error::WalkerError::PoseControlFailed(
+                e.to_string(),
+            ))
+        })
     }
 }
 
 impl ActorT for Walker {
     fn get_id(&self) -> ActorId {
-        self.actor.get_id()
+        self.id
     }
     fn get_type_id(&self) -> String {
-        self.actor.get_type_id()
+        carla_cxx::ffi::Walker_GetTypeId(self.inner.get_inner_walker())
     }
     fn get_transform(&self) -> Transform {
-        self.actor.get_transform()
+        let cxx_transform = carla_cxx::ffi::Walker_GetTransform(self.inner.get_inner_walker());
+        Transform::from(cxx_transform)
     }
     fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        self.actor.set_transform(transform)
+        let cxx_transform = transform.to_cxx();
+        carla_cxx::ffi::Walker_SetTransform(self.inner.get_inner_walker(), &cxx_transform);
+        Ok(())
     }
     fn get_velocity(&self) -> Vector3D {
-        self.actor.get_velocity()
+        let vel = carla_cxx::ffi::Walker_GetVelocity(self.inner.get_inner_walker());
+        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn get_angular_velocity(&self) -> Vector3D {
-        self.actor.get_angular_velocity()
+        let vel = carla_cxx::ffi::Walker_GetAngularVelocity(self.inner.get_inner_walker());
+        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn get_acceleration(&self) -> Vector3D {
-        self.actor.get_acceleration()
+        let acc = carla_cxx::ffi::Walker_GetAcceleration(self.inner.get_inner_walker());
+        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
     }
     fn is_alive(&self) -> bool {
-        self.actor.is_alive()
+        carla_cxx::ffi::Walker_IsAlive(self.inner.get_inner_walker())
     }
     fn destroy(&self) -> CarlaResult<()> {
-        self.actor.destroy()
+        if carla_cxx::ffi::Walker_Destroy(self.inner.get_inner_walker()) {
+            Ok(())
+        } else {
+            Err(crate::error::CarlaError::Actor(
+                crate::error::ActorError::DestroyFailed(self.id),
+            ))
+        }
     }
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        self.actor.set_simulate_physics(enabled)
+        carla_cxx::ffi::Walker_SetSimulatePhysics(self.inner.get_inner_walker(), enabled);
+        Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_impulse(impulse)
+        let cxx_impulse = carla_cxx::SimpleVector3D {
+            x: impulse.x as f64,
+            y: impulse.y as f64,
+            z: impulse.z as f64,
+        };
+        carla_cxx::ffi::Walker_AddImpulse(self.inner.get_inner_walker(), &cxx_impulse);
+        Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_force(force)
+        let cxx_force = carla_cxx::SimpleVector3D {
+            x: force.x as f64,
+            y: force.y as f64,
+            z: force.z as f64,
+        };
+        carla_cxx::ffi::Walker_AddForce(self.inner.get_inner_walker(), &cxx_force);
+        Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_torque(torque)
+        let cxx_torque = carla_cxx::SimpleVector3D {
+            x: torque.x as f64,
+            y: torque.y as f64,
+            z: torque.z as f64,
+        };
+        carla_cxx::ffi::Walker_AddTorque(self.inner.get_inner_walker(), &cxx_torque);
+        Ok(())
     }
 }
 
 impl WalkerT for Walker {
     fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        let _control = control;
-        todo!("Walker::apply_control not yet implemented with carla-cxx FFI")
+        // Convert high-level WalkerControl to carla-cxx WalkerControl
+        let cxx_control = carla_cxx::walker::WalkerControl {
+            direction: carla_cxx::walker::Vector3D {
+                x: control.direction.x as f64,
+                y: control.direction.y as f64,
+                z: control.direction.z as f64,
+            },
+            speed: control.speed,
+            jump: control.jump,
+        };
+        self.inner.apply_control(&cxx_control).map_err(|e| {
+            crate::error::CarlaError::Walker(crate::error::WalkerError::ControlFailed(
+                e.to_string(),
+            ))
+        })
     }
 
     fn get_control(&self) -> WalkerControl {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Walker::get_control not yet implemented with carla-cxx FFI")
+        let cxx_control = self.inner.get_control();
+        WalkerControl {
+            direction: crate::geom::Vector3D::new(
+                cxx_control.direction.x as f32,
+                cxx_control.direction.y as f32,
+                cxx_control.direction.z as f32,
+            ),
+            speed: cxx_control.speed,
+            jump: cxx_control.jump,
+        }
     }
 
     fn get_bones(&self) -> Vec<String> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Walker::get_bones not yet implemented with carla-cxx FFI")
+        // Bone control is available through WalkerWrapper but limited
+        // Return an empty list as the CXX implementation doesn't expose bone names
+        todo!("Walker::get_bones requires advanced bone FFI not implemented in CXX layer")
     }
 
     fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
+        // Bone control is available through blend_pose but not individual bone transforms
         let _bone_transforms = bone_transforms;
-        todo!("Walker::set_bones not yet implemented with carla-cxx FFI")
+        todo!("Walker::set_bones requires advanced bone FFI not implemented in CXX layer")
     }
 }

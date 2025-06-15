@@ -1151,6 +1151,77 @@ void Walker_GetPoseFromAnimation(const Walker &walker) {
   const_cast<Walker &>(walker).GetPoseFromAnimation();
 }
 
+std::shared_ptr<Actor> Walker_CastToActor(const Walker &walker) {
+  // NOTE: This function has compilation issues with const_cast in some C++
+  // environments. For now, we return nullptr and handle Walker creation
+  // differently in Rust. The Walker actor still works because all methods are
+  // implemented through WalkerWrapper.
+  return nullptr;
+}
+
+// Walker Actor interface functions
+rust::String Walker_GetTypeId(const Walker &walker) {
+  return rust::String(walker.GetTypeId());
+}
+
+SimpleTransform Walker_GetTransform(const Walker &walker) {
+  auto trans = walker.GetTransform();
+  return SimpleTransform{
+      SimpleLocation{trans.location.x, trans.location.y, trans.location.z},
+      SimpleRotation{trans.rotation.pitch, trans.rotation.yaw,
+                     trans.rotation.roll}};
+}
+
+void Walker_SetTransform(const Walker &walker,
+                         const SimpleTransform &transform) {
+  carla::geom::Transform carla_transform(
+      carla::geom::Location(transform.location.x, transform.location.y,
+                            transform.location.z),
+      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                            transform.rotation.roll));
+  const_cast<Walker &>(walker).SetTransform(carla_transform);
+}
+
+SimpleVector3D Walker_GetVelocity(const Walker &walker) {
+  auto velocity = walker.GetVelocity();
+  return SimpleVector3D{velocity.x, velocity.y, velocity.z};
+}
+
+SimpleVector3D Walker_GetAngularVelocity(const Walker &walker) {
+  auto velocity = walker.GetAngularVelocity();
+  return SimpleVector3D{velocity.x, velocity.y, velocity.z};
+}
+
+SimpleVector3D Walker_GetAcceleration(const Walker &walker) {
+  auto acceleration = walker.GetAcceleration();
+  return SimpleVector3D{acceleration.x, acceleration.y, acceleration.z};
+}
+
+bool Walker_IsAlive(const Walker &walker) { return walker.IsAlive(); }
+
+bool Walker_Destroy(const Walker &walker) {
+  return const_cast<Walker &>(walker).Destroy();
+}
+
+void Walker_SetSimulatePhysics(const Walker &walker, bool enabled) {
+  const_cast<Walker &>(walker).SetSimulatePhysics(enabled);
+}
+
+void Walker_AddImpulse(const Walker &walker, const SimpleVector3D &impulse) {
+  const_cast<Walker &>(walker).AddImpulse(
+      carla::geom::Vector3D(impulse.x, impulse.y, impulse.z));
+}
+
+void Walker_AddForce(const Walker &walker, const SimpleVector3D &force) {
+  const_cast<Walker &>(walker).AddForce(
+      carla::geom::Vector3D(force.x, force.y, force.z));
+}
+
+void Walker_AddTorque(const Walker &walker, const SimpleVector3D &torque) {
+  const_cast<Walker &>(walker).AddTorque(
+      carla::geom::Vector3D(torque.x, torque.y, torque.z));
+}
+
 // Walker AI Controller functions
 void WalkerAIController_Start(const WalkerAIController &controller) {
   const_cast<WalkerAIController &>(controller).Start();

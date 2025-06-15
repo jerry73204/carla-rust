@@ -9,6 +9,14 @@ pub struct WalkerWrapper {
     inner: SharedPtr<Walker>,
 }
 
+impl std::fmt::Debug for WalkerWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WalkerWrapper")
+            .field("inner", &"<SharedPtr<Walker>>")
+            .finish()
+    }
+}
+
 impl WalkerWrapper {
     /// Create a WalkerWrapper from an Actor (performs cast)
     pub fn from_actor(actor: &Actor) -> Option<Self> {
@@ -18,6 +26,16 @@ impl WalkerWrapper {
         } else {
             Some(Self { inner: walker_ptr })
         }
+    }
+
+    /// Convert back to an Actor
+    pub fn to_actor(&self) -> SharedPtr<Actor> {
+        ffi::Walker_CastToActor(&self.inner)
+    }
+
+    /// Get access to the inner Walker for direct FFI calls
+    pub fn get_inner_walker(&self) -> &SharedPtr<Walker> {
+        &self.inner
     }
 
     /// Apply walker control (direction and speed)

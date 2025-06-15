@@ -307,6 +307,7 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
 std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);
 std::shared_ptr<Actor> Vehicle_CastToActor(const Vehicle &vehicle);
 std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor);
+std::shared_ptr<Actor> Walker_CastToActor(const Walker &walker);
 std::shared_ptr<WalkerAIController>
 Actor_CastToWalkerAIController(const Actor &actor);
 std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
@@ -398,6 +399,21 @@ void Walker_BlendPose(const Walker &walker, float blend);
 void Walker_ShowPose(const Walker &walker);
 void Walker_HidePose(const Walker &walker);
 void Walker_GetPoseFromAnimation(const Walker &walker);
+
+// Walker Actor interface functions
+rust::String Walker_GetTypeId(const Walker &walker);
+SimpleTransform Walker_GetTransform(const Walker &walker);
+void Walker_SetTransform(const Walker &walker,
+                         const SimpleTransform &transform);
+SimpleVector3D Walker_GetVelocity(const Walker &walker);
+SimpleVector3D Walker_GetAngularVelocity(const Walker &walker);
+SimpleVector3D Walker_GetAcceleration(const Walker &walker);
+bool Walker_IsAlive(const Walker &walker);
+bool Walker_Destroy(const Walker &walker);
+void Walker_SetSimulatePhysics(const Walker &walker, bool enabled);
+void Walker_AddImpulse(const Walker &walker, const SimpleVector3D &impulse);
+void Walker_AddForce(const Walker &walker, const SimpleVector3D &force);
+void Walker_AddTorque(const Walker &walker, const SimpleVector3D &torque);
 
 // Walker AI Controller functions
 void WalkerAIController_Start(const WalkerAIController &controller);
