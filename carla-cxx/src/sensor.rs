@@ -8,6 +8,14 @@ pub struct SensorWrapper {
     inner: SharedPtr<Sensor>,
 }
 
+impl std::fmt::Debug for SensorWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SensorWrapper")
+            .field("inner", &"SharedPtr<Sensor>")
+            .finish()
+    }
+}
+
 impl SensorWrapper {
     /// Create a SensorWrapper from an Actor (performs cast)
     pub fn from_actor(actor: &Actor) -> Option<Self> {
@@ -110,6 +118,11 @@ impl SensorWrapper {
     pub fn get_last_rss_data(&self) -> RssResponse {
         let simple_data = ffi::bridge::Sensor_GetLastRssData(&self.inner);
         RssResponse::from(simple_data)
+    }
+
+    /// Get the inner sensor for FFI calls
+    pub fn get_inner_sensor(&self) -> &SharedPtr<Sensor> {
+        &self.inner
     }
 }
 
@@ -241,7 +254,7 @@ impl From<ffi::SimpleGNSSData> for GNSSData {
 #[derive(Debug, Clone, Copy)]
 pub struct CollisionData {
     pub other_actor_id: u32,
-    pub normal_impulse: crate::ffi::SimpleVector3D,
+    pub normal_impulse: crate::ffi::bridge::SimpleVector3D,
 }
 
 impl CollisionData {
@@ -359,10 +372,10 @@ impl From<ffi::bridge::SimpleObstacleDetectionEvent> for ObstacleDetectionEvent 
 /// Semantic LiDAR detection point
 #[derive(Debug, Clone, Copy)]
 pub struct SemanticLidarDetection {
-    pub point: crate::ffi::SimpleLocation, // 3D point location (x, y, z)
-    pub cos_inc_angle: f32,                // Cosine of incidence angle
-    pub object_idx: u32,                   // Object instance index
-    pub object_tag: u32,                   // Semantic tag/label
+    pub point: crate::ffi::bridge::SimpleLocation, // 3D point location (x, y, z)
+    pub cos_inc_angle: f32,                        // Cosine of incidence angle
+    pub object_idx: u32,                           // Object instance index
+    pub object_tag: u32,                           // Semantic tag/label
 }
 
 impl From<ffi::bridge::SimpleSemanticLidarDetection> for SemanticLidarDetection {

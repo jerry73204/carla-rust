@@ -18,7 +18,7 @@ pub use actor::{Actor, ActorSnapshot};
 pub use blueprint::{ActorAttribute, ActorAttributeType, ActorBlueprint};
 pub use blueprint_library::BlueprintLibrary;
 pub use client::Client;
-pub use sensor::Sensor;
+pub use sensor::{Camera, CollisionSensor, LaneInvasionSensor, LiDAR, Radar, Sensor, GNSS, IMU};
 pub use traffic_light::TrafficLight;
 pub use traffic_sign::TrafficSign;
 pub use vehicle::Vehicle;

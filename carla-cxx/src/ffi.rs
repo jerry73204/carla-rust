@@ -898,6 +898,7 @@ pub mod bridge {
         fn Walker_CastToActor(walker: &Walker) -> SharedPtr<Actor>;
         fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
         fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
+        fn Sensor_CastToActor(sensor: &Sensor) -> SharedPtr<Actor>;
         fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
         fn Actor_CastToTrafficSign(actor: &Actor) -> SharedPtr<TrafficSign>;
 
@@ -1010,6 +1011,20 @@ pub mod bridge {
         fn Sensor_Stop(sensor: &Sensor);
         fn Sensor_IsListening(sensor: &Sensor) -> bool;
         fn Sensor_Listen(sensor: &Sensor);
+
+        // Sensor Actor interface methods
+        fn Sensor_GetTypeId(sensor: &Sensor) -> String;
+        fn Sensor_GetTransform(sensor: &Sensor) -> SimpleTransform;
+        fn Sensor_SetTransform(sensor: &Sensor, transform: &SimpleTransform);
+        fn Sensor_GetVelocity(sensor: &Sensor) -> SimpleVector3D;
+        fn Sensor_GetAngularVelocity(sensor: &Sensor) -> SimpleVector3D;
+        fn Sensor_GetAcceleration(sensor: &Sensor) -> SimpleVector3D;
+        fn Sensor_IsAlive(sensor: &Sensor) -> bool;
+        fn Sensor_Destroy(sensor: &Sensor) -> bool;
+        fn Sensor_SetSimulatePhysics(sensor: &Sensor, enabled: bool);
+        fn Sensor_AddImpulse(sensor: &Sensor, impulse: &SimpleVector3D);
+        fn Sensor_AddForce(sensor: &Sensor, force: &SimpleVector3D);
+        fn Sensor_AddTorque(sensor: &Sensor, torque: &SimpleVector3D);
 
         // Sensor data retrieval - polling approach
         fn Sensor_GetLastImageData(sensor: &Sensor) -> SimpleImageData;
@@ -1359,6 +1374,8 @@ pub use bridge::{
     Map_GetWaypoint,
     Map_GetWaypointXODR,
     Sensor,
+    // Sensor methods
+    Sensor_CastToActor,
     // Sensor data retrieval
     Sensor_GetImageDataBuffer,
     Sensor_GetLastCollisionData,
@@ -1371,7 +1388,6 @@ pub use bridge::{
     Sensor_HasNewData,
     Sensor_IsListening,
     Sensor_Listen,
-    // Sensor methods
     Sensor_Stop,
     // Control structures
     SimpleAckermannControl,

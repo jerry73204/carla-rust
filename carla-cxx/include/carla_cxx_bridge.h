@@ -311,6 +311,7 @@ std::shared_ptr<Actor> Walker_CastToActor(const Walker &walker);
 std::shared_ptr<WalkerAIController>
 Actor_CastToWalkerAIController(const Actor &actor);
 std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
+std::shared_ptr<Actor> Sensor_CastToActor(const Sensor &sensor);
 std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
 std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor);
 
@@ -452,6 +453,21 @@ SimpleObstacleDetectionEvent
 Sensor_GetLastObstacleDetectionData(const Sensor &sensor);
 SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor);
 SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor);
+
+// Sensor Actor interface functions
+rust::String Sensor_GetTypeId(const Sensor &sensor);
+SimpleTransform Sensor_GetTransform(const Sensor &sensor);
+void Sensor_SetTransform(const Sensor &sensor,
+                         const SimpleTransform &transform);
+SimpleVector3D Sensor_GetVelocity(const Sensor &sensor);
+SimpleVector3D Sensor_GetAngularVelocity(const Sensor &sensor);
+SimpleVector3D Sensor_GetAcceleration(const Sensor &sensor);
+bool Sensor_IsAlive(const Sensor &sensor);
+bool Sensor_Destroy(const Sensor &sensor);
+void Sensor_SetSimulatePhysics(const Sensor &sensor, bool enabled);
+void Sensor_AddImpulse(const Sensor &sensor, const SimpleVector3D &impulse);
+void Sensor_AddForce(const Sensor &sensor, const SimpleVector3D &force);
+void Sensor_AddTorque(const Sensor &sensor, const SimpleVector3D &torque);
 
 // Traffic Light wrapper functions
 uint32_t TrafficLight_GetState(const TrafficLight &traffic_light);
