@@ -4,10 +4,7 @@
 //! to detect and analyze traffic signs, speed limits, and other road infrastructure.
 
 use anyhow::Result;
-use carla_cxx::{
-    landmark_utils, ClientWrapper, LandmarkInfo, LandmarkType, SignalOrientation, SimpleLocation,
-    SimpleTransform,
-};
+use carla_cxx::{landmark_utils, ClientWrapper, LandmarkInfo, LandmarkType, LaneType};
 
 fn main() -> Result<()> {
     println!("🛑 CARLA Landmark and Signal System Demo");
@@ -145,7 +142,9 @@ fn main() -> Result<()> {
         );
 
         // Get waypoint at this location
-        if let Some(waypoint) = map.get_waypoint(&spawn_point.location, true, 0x01) {
+        if let Some(waypoint) =
+            map.get_waypoint(&spawn_point.location, true, Some(LaneType::Driving))
+        {
             println!("  Found waypoint on road ID: {}", waypoint.get_road_id());
 
             // Search for landmarks within 100m

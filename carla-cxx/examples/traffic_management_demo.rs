@@ -8,10 +8,7 @@
 //! - Synchronous mode operation
 
 use anyhow::Result;
-use carla_cxx::{
-    ActorWrapper, ClientWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
-    TrafficManagerWrapper, Vehicle,
-};
+use carla_cxx::{ClientWrapper, SimpleTransform, TrafficManagerWrapper};
 use std::time::Duration;
 
 fn main() -> Result<()> {

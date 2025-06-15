@@ -4,7 +4,7 @@
 //! to control lights in the simulation world.
 
 use anyhow::Result;
-use carla_cxx::{ClientWrapper, LightGroup, LightManagerWrapper, LightState, SimpleLocation};
+use carla_cxx::{ClientWrapper, LightGroup, LightState};
 
 fn main() -> Result<()> {
     println!("🔆 CARLA Light Management Demo");
