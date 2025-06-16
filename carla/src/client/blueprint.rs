@@ -2,7 +2,6 @@
 
 use crate::error::CarlaResult;
 use carla_cxx::ActorBlueprintWrapper;
-use std::marker::PhantomData;
 
 /// Actor blueprint for spawning.
 #[derive(Debug, Clone)]
@@ -13,7 +12,7 @@ pub struct ActorBlueprint {
 
 impl ActorBlueprint {
     /// Create a blueprint from a carla-cxx ActorBlueprintWrapper.
-    pub fn new(inner: ActorBlueprintWrapper) -> Self {
+    pub fn from_cxx(inner: ActorBlueprintWrapper) -> Self {
         Self { inner }
     }
 
@@ -32,23 +31,64 @@ impl ActorBlueprint {
         &self.inner
     }
 
-    /// TODO: Implement this method. It returns an entry to an
-    /// attribute if the corresponding key exists. The entry can be used to get or set the value.
+    /// Get an entry to an attribute if the corresponding key exists.
+    /// The entry can be used to get or set the value.
     pub fn attribute_entry(&mut self, key: &str) -> Option<ActorAttribute<'_>> {
-        todo!()
+        if self.contains_attribute(key) {
+            Some(ActorAttribute::new(self, key.to_string()))
+        } else {
+            None
+        }
     }
 
-    /// TODO: Implement this method. It returns the value of the attribute. The method is designed for convenience.
+    /// Get the value of the attribute. Convenience method.
     pub fn get_attribute(&self, key: &str) -> Option<AttributeValue> {
-        todo!()
+        let value_str = self.inner.get_attribute(key)?;
+        let attr_type = ActorAttributeType::from(self.inner.get_attribute_type(key));
+
+        // Parse the string value based on the attribute type
+        match attr_type {
+            ActorAttributeType::Bool => value_str.parse::<bool>().ok().map(AttributeValue::Bool),
+            ActorAttributeType::Int => value_str.parse::<i64>().ok().map(AttributeValue::Int),
+            ActorAttributeType::Float => value_str.parse::<f64>().ok().map(AttributeValue::Float),
+            ActorAttributeType::String => Some(AttributeValue::String(value_str)),
+            ActorAttributeType::RGBColor => {
+                // Parse RGB color from string format "r,g,b"
+                let parts: Vec<&str> = value_str.split(',').collect();
+                if parts.len() == 3 {
+                    let r = parts[0].parse::<u8>().ok()?;
+                    let g = parts[1].parse::<u8>().ok()?;
+                    let b = parts[2].parse::<u8>().ok()?;
+                    Some(AttributeValue::RGBColor(RGBColor::new(r, g, b)))
+                } else {
+                    None
+                }
+            }
+        }
     }
 
-    /// TODO: Implement this method. It returns the value of the attribute. The method is designed for convenience.
+    /// Set the value of the attribute. Convenience method.
     pub fn set_attribute<V>(&mut self, key: &str, value: V) -> CarlaResult<()>
     where
         V: Into<AttributeValue>,
     {
-        todo!()
+        if !self.inner.is_attribute_modifiable(key) {
+            return Err(crate::error::CarlaError::Actor(
+                crate::error::ActorError::AttributeNotModifiable(key.to_string()),
+            ));
+        }
+
+        let attr_value = value.into();
+        let value_str = match attr_value {
+            AttributeValue::Bool(b) => b.to_string(),
+            AttributeValue::Int(i) => i.to_string(),
+            AttributeValue::Float(f) => f.to_string(),
+            AttributeValue::String(s) => s,
+            AttributeValue::RGBColor(color) => format!("{},{},{}", color.r, color.g, color.b),
+        };
+
+        self.inner.set_attribute(key, &value_str);
+        Ok(())
     }
 
     /// Check if blueprint has a specific attribute.
@@ -66,60 +106,169 @@ impl ActorBlueprint {
         self.inner.match_tags(pattern)
     }
 
-    pub fn attribute_iter() {
-        todo!("return an iterator of attribute entries")
+    /// Get an iterator over all attribute IDs in this blueprint.
+    pub fn attribute_ids(&self) -> impl Iterator<Item = String> {
+        self.inner.get_attribute_ids().into_iter()
     }
 
-    pub fn len(&self) -> usize {
-        todo!("Return the number of attributes. Rename this method to an informative name")
+    /// Get the number of attributes in this blueprint.
+    pub fn attribute_count(&self) -> usize {
+        self.inner.get_attribute_count()
     }
 }
 
-// TODO: Re-design this struct API.
 /// Actor attribute for blueprint configuration.
-#[derive(Debug, Clone)]
+///
+/// Provides access to an attribute of an actor blueprint, allowing
+/// reading and modification of the attribute value.
+#[derive(Debug)]
 pub struct ActorAttribute<'a> {
-    _phanton: PhantomData<&'a ()>, // Placeholder value. Please keep a reference to the parent ActorBlueprint
+    /// Reference to the parent blueprint
+    blueprint: &'a mut ActorBlueprint,
+    /// Attribute ID/key
+    attribute_id: String,
 }
 
-// TODO: Re-design the API.
 impl<'a> ActorAttribute<'a> {
+    /// Create a new ActorAttribute reference
+    pub fn new(blueprint: &'a mut ActorBlueprint, attribute_id: String) -> Self {
+        Self {
+            blueprint,
+            attribute_id,
+        }
+    }
+
+    /// Get the attribute ID
     pub fn id(&self) -> &str {
-        todo!()
+        &self.attribute_id
     }
 
+    /// Check if this attribute can be modified
     pub fn is_modifiable(&self) -> bool {
-        todo!()
+        self.blueprint
+            .inner
+            .is_attribute_modifiable(&self.attribute_id)
     }
+
+    /// Get recommended values for this attribute
     pub fn recommended_values(&self) -> Vec<String> {
-        todo!()
+        self.blueprint
+            .inner
+            .get_attribute_recommended_values(&self.attribute_id)
     }
 
+    /// Get the type of this attribute
     pub fn ty(&self) -> ActorAttributeType {
-        todo!()
+        let type_value = self.blueprint.inner.get_attribute_type(&self.attribute_id);
+        ActorAttributeType::from(type_value)
     }
 
-    pub fn get(&self) -> AttributeValue {
-        todo!()
+    /// Get the current value of this attribute
+    pub fn get(&self) -> Option<AttributeValue> {
+        let value_str = self.blueprint.inner.get_attribute(&self.attribute_id)?;
+        let attr_type = self.ty();
+
+        // Parse the string value based on the attribute type
+        match attr_type {
+            ActorAttributeType::Bool => value_str.parse::<bool>().ok().map(AttributeValue::Bool),
+            ActorAttributeType::Int => value_str.parse::<i64>().ok().map(AttributeValue::Int),
+            ActorAttributeType::Float => value_str.parse::<f64>().ok().map(AttributeValue::Float),
+            ActorAttributeType::String => Some(AttributeValue::String(value_str)),
+            ActorAttributeType::RGBColor => {
+                // Parse RGB color from string format "r,g,b"
+                let parts: Vec<&str> = value_str.split(',').collect();
+                if parts.len() == 3 {
+                    let r = parts[0].parse::<u8>().ok()?;
+                    let g = parts[1].parse::<u8>().ok()?;
+                    let b = parts[2].parse::<u8>().ok()?;
+                    Some(AttributeValue::RGBColor(RGBColor::new(r, g, b)))
+                } else {
+                    None
+                }
+            }
+        }
     }
 
-    // TODO: The input argument performs automatic type conversion
+    /// Set the value of this attribute
     pub fn set<V>(&mut self, value: V) -> CarlaResult<()>
     where
         V: Into<AttributeValue>,
     {
-        // Valid only when is_modifiable() is true.
-        todo!()
+        if !self.is_modifiable() {
+            return Err(crate::error::CarlaError::Actor(
+                crate::error::ActorError::AttributeNotModifiable(self.attribute_id.clone()),
+            ));
+        }
+
+        let attr_value = value.into();
+        let value_str = match attr_value {
+            AttributeValue::Bool(b) => b.to_string(),
+            AttributeValue::Int(i) => i.to_string(),
+            AttributeValue::Float(f) => f.to_string(),
+            AttributeValue::String(s) => s,
+            AttributeValue::RGBColor(color) => format!("{},{},{}", color.r, color.g, color.b),
+        };
+
+        self.blueprint
+            .inner
+            .set_attribute(&self.attribute_id, &value_str);
+        Ok(())
     }
 }
 
-// TODO: implement the enum. Each variant corresponds to an attribute type and holds a value of that type.
+/// RGB color type for CARLA attributes.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RGBColor {
+    /// Red component (0-255)
+    pub r: u8,
+    /// Green component (0-255)  
+    pub g: u8,
+    /// Blue component (0-255)
+    pub b: u8,
+}
+
+impl RGBColor {
+    /// Create a new RGB color.
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b }
+    }
+}
+
+impl From<(u8, u8, u8)> for RGBColor {
+    fn from((r, g, b): (u8, u8, u8)) -> Self {
+        Self::new(r, g, b)
+    }
+}
+
+impl From<carla_cxx::SimpleColor> for RGBColor {
+    fn from(color: carla_cxx::SimpleColor) -> Self {
+        Self::new(color.r, color.g, color.b)
+    }
+}
+
+impl From<RGBColor> for carla_cxx::SimpleColor {
+    fn from(color: RGBColor) -> Self {
+        Self {
+            r: color.r,
+            g: color.g,
+            b: color.b,
+        }
+    }
+}
+
+/// Attribute value that can be assigned to an actor blueprint attribute.
+#[derive(Debug, Clone, PartialEq)]
 pub enum AttributeValue {
+    /// Boolean value
     Bool(bool),
+    /// Integer value
     Int(i64),
+    /// Float value
     Float(f64),
+    /// String value
     String(String),
-    RGBColor(()), // TODO: fill in a proper type and create a "impl From<XXX> for AttributeValue" for this variant.
+    /// RGB color value
+    RGBColor(RGBColor),
 }
 
 impl From<String> for AttributeValue {
@@ -152,6 +301,18 @@ impl From<bool> for AttributeValue {
     }
 }
 
+impl From<RGBColor> for AttributeValue {
+    fn from(v: RGBColor) -> Self {
+        Self::RGBColor(v)
+    }
+}
+
+impl From<(u8, u8, u8)> for AttributeValue {
+    fn from(v: (u8, u8, u8)) -> Self {
+        Self::RGBColor(RGBColor::from(v))
+    }
+}
+
 /// Actor attribute types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActorAttributeType {
@@ -165,4 +326,17 @@ pub enum ActorAttributeType {
     String,
     /// RGB color attribute
     RGBColor,
+}
+
+impl From<u8> for ActorAttributeType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::Bool,
+            1 => Self::Int,
+            2 => Self::Float,
+            3 => Self::String,
+            4 => Self::RGBColor,
+            _ => Self::String, // Default to String for unknown types
+        }
+    }
 }

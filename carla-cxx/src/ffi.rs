@@ -1297,6 +1297,10 @@ pub mod bridge {
             -> SharedPtr<ActorBlueprint>;
         fn BlueprintLibrary_Size(library: &BlueprintLibrary) -> usize;
         fn BlueprintLibrary_GetAll(library: &BlueprintLibrary) -> SimpleBlueprintList;
+        fn BlueprintLibrary_Filter(
+            library: &BlueprintLibrary,
+            wildcard_pattern: &str,
+        ) -> SimpleBlueprintList;
         fn BlueprintLibrary_FilterByTags(
             library: &BlueprintLibrary,
             tags: Vec<String>,
@@ -1319,6 +1323,14 @@ pub mod bridge {
         fn ActorBlueprint_ContainsAttribute(blueprint: &ActorBlueprint, id: &str) -> bool;
         fn ActorBlueprint_SetAttribute(blueprint: &ActorBlueprint, id: &str, value: &str);
         fn ActorBlueprint_GetAttributeIds(blueprint: &ActorBlueprint) -> Vec<String>;
+        fn ActorBlueprint_GetAttribute(blueprint: &ActorBlueprint, id: &str) -> String;
+        fn ActorBlueprint_GetAttributeType(blueprint: &ActorBlueprint, id: &str) -> u8;
+        fn ActorBlueprint_IsAttributeModifiable(blueprint: &ActorBlueprint, id: &str) -> bool;
+        fn ActorBlueprint_GetAttributeRecommendedValues(
+            blueprint: &ActorBlueprint,
+            id: &str,
+        ) -> Vec<String>;
+        fn ActorBlueprint_GetAttributeCount(blueprint: &ActorBlueprint) -> usize;
 
         // Geometry utility functions
         fn Vector2D_Length(vector: &SimpleVector2D) -> f64;
@@ -1432,9 +1444,14 @@ pub use bridge::{
     ActorBlueprint,
     ActorBlueprint_ContainsAttribute,
     ActorBlueprint_ContainsTag,
+    ActorBlueprint_GetAttribute,
+    ActorBlueprint_GetAttributeCount,
     ActorBlueprint_GetAttributeIds,
+    ActorBlueprint_GetAttributeRecommendedValues,
+    ActorBlueprint_GetAttributeType,
     ActorBlueprint_GetId,
     ActorBlueprint_GetTags,
+    ActorBlueprint_IsAttributeModifiable,
     ActorBlueprint_MatchTags,
     ActorBlueprint_SetAttribute,
     Actor_AddForce,
@@ -1467,6 +1484,7 @@ pub use bridge::{
     Actor_SetSimulatePhysics,
     Actor_SetTransform,
     BlueprintLibrary,
+    BlueprintLibrary_Filter,
     BlueprintLibrary_FilterByAttribute,
     BlueprintLibrary_FilterByTags,
     BlueprintLibrary_Find,

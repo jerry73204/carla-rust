@@ -178,6 +178,10 @@ pub enum ActorError {
     /// Generic operation failed
     #[error("Operation failed: {0}")]
     OperationFailed(String),
+
+    /// Attribute is not modifiable
+    #[error("Attribute '{0}' is not modifiable")]
+    AttributeNotModifiable(String),
 }
 
 /// Errors related to actor spawning.

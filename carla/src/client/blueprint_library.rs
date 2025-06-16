@@ -18,30 +18,27 @@ impl BlueprintLibrary {
     /// Find a blueprint by ID.
     pub fn find(&self, blueprint_id: &str) -> CarlaResult<Option<ActorBlueprint>> {
         match self.inner.find(blueprint_id) {
-            Some(blueprint_wrapper) => Ok(Some(ActorBlueprint::new(blueprint_wrapper))),
+            Some(blueprint_wrapper) => Ok(Some(ActorBlueprint::from_cxx(blueprint_wrapper))),
             None => Ok(None),
         }
     }
 
     /// Filter blueprints by wildcard pattern.
-    pub fn filter(&self, wildcard_pattern: &str) -> CarlaResult<Self> {
-        todo!("BlueprintLibrary::filter - missing FFI for wildcard pattern matching")
+    pub fn filter(&self, wildcard_pattern: &str) -> CarlaResult<Vec<ActorBlueprint>> {
+        let blueprints = self.inner.filter(wildcard_pattern);
+        Ok(blueprints.into_iter().map(ActorBlueprint::from_cxx).collect())
     }
-
-    // TODO: The method is not supported in C++ library. Remove it and related FFI items.
-    // /// Filter blueprints by tags.
-    // pub fn filter_by_tags(&self, tags: &[&str]) -> CarlaResult<Vec<ActorBlueprint>> {
-    //     let blueprints = self.inner.filter_by_tags(tags);
-    //     Ok(blueprints.into_iter().map(ActorBlueprint::new).collect())
-    // }
 
     /// Get blueprints that have a specific attribute.
     pub fn filter_by_attribute(
         &self,
         attribute_name: &str,
-        attribute_value: Option<&str>,
-    ) -> CarlaResult<Self> {
-        todo!()
+        attribute_value: &str,
+    ) -> CarlaResult<Vec<ActorBlueprint>> {
+        let blueprints = self
+            .inner
+            .filter_by_attribute(attribute_name, attribute_value);
+        Ok(blueprints.into_iter().map(ActorBlueprint::from_cxx).collect())
     }
 
     /// Get the number of blueprints in the library.
@@ -49,8 +46,8 @@ impl BlueprintLibrary {
         self.inner.size()
     }
 
-    // TODO: return an iterator of ActorBlueprint
-    pub fn iter(&self) {
-        todo!()
+    /// Get an iterator over all blueprints in the library.
+    pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> {
+        self.inner.get_all().into_iter().map(ActorBlueprint::from_cxx)
     }
 }

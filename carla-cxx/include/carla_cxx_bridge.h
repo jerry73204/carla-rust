@@ -322,6 +322,8 @@ BlueprintLibrary_FilterByAttribute(const BlueprintLibrary &library,
                                    rust::Str attribute_value);
 SimpleBlueprintList BlueprintLibrary_Search(const BlueprintLibrary &library,
                                             rust::Str search_term);
+SimpleBlueprintList BlueprintLibrary_Filter(const BlueprintLibrary &library,
+                                            rust::Str wildcard_pattern);
 
 // ActorBlueprint wrapper functions
 rust::String ActorBlueprint_GetId(const ActorBlueprint &blueprint);
@@ -335,6 +337,21 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
                                  rust::Str value);
 rust::Vec<rust::String>
 ActorBlueprint_GetAttributeIds(const ActorBlueprint &blueprint);
+
+rust::String ActorBlueprint_GetAttribute(const ActorBlueprint &blueprint,
+                                         rust::Str id);
+
+uint8_t ActorBlueprint_GetAttributeType(const ActorBlueprint &blueprint,
+                                        rust::Str id);
+
+bool ActorBlueprint_IsAttributeModifiable(const ActorBlueprint &blueprint,
+                                          rust::Str id);
+
+rust::Vec<rust::String>
+ActorBlueprint_GetAttributeRecommendedValues(const ActorBlueprint &blueprint,
+                                             rust::Str id);
+
+size_t ActorBlueprint_GetAttributeCount(const ActorBlueprint &blueprint);
 
 // Actor casting functions
 std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);

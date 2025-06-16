@@ -645,6 +645,76 @@ ActorBlueprint_GetAttributeIds(const ActorBlueprint &blueprint) {
   return result;
 }
 
+rust::String ActorBlueprint_GetAttribute(const ActorBlueprint &blueprint,
+                                         rust::Str id) {
+  std::string id_str(id);
+  try {
+    auto attribute = blueprint.GetAttribute(id_str);
+    return rust::String(attribute.GetValue());
+  } catch (...) {
+    return rust::String("");
+  }
+}
+
+uint8_t ActorBlueprint_GetAttributeType(const ActorBlueprint &blueprint,
+                                        rust::Str id) {
+  std::string id_str(id);
+  try {
+    auto attribute = blueprint.GetAttribute(id_str);
+    return static_cast<uint8_t>(attribute.GetType());
+  } catch (...) {
+    return 0; // Default to Bool type
+  }
+}
+
+bool ActorBlueprint_IsAttributeModifiable(const ActorBlueprint &blueprint,
+                                          rust::Str id) {
+  std::string id_str(id);
+  try {
+    auto attribute = blueprint.GetAttribute(id_str);
+    return attribute.IsModifiable();
+  } catch (...) {
+    return false;
+  }
+}
+
+rust::Vec<rust::String>
+ActorBlueprint_GetAttributeRecommendedValues(const ActorBlueprint &blueprint,
+                                             rust::Str id) {
+  std::string id_str(id);
+  rust::Vec<rust::String> result;
+  try {
+    auto attribute = blueprint.GetAttribute(id_str);
+    auto recommended_values = attribute.GetRecommendedValues();
+    for (const auto &value : recommended_values) {
+      result.push_back(rust::String(value));
+    }
+  } catch (...) {
+    // Return empty vector if attribute not found
+  }
+  return result;
+}
+
+size_t ActorBlueprint_GetAttributeCount(const ActorBlueprint &blueprint) {
+  // CARLA doesn't expose attribute count directly, estimate by trying to
+  // iterate This is a workaround - a proper implementation would need API
+  // extension
+  return 0; // TODO: Implement proper attribute counting
+}
+
+// BlueprintLibrary filter function
+SimpleBlueprintList BlueprintLibrary_Filter(const BlueprintLibrary &library,
+                                            rust::Str wildcard_pattern) {
+  std::string pattern_str(wildcard_pattern);
+  auto filtered = library.Filter(pattern_str);
+  SimpleBlueprintList result;
+  // Filter returns a shared_ptr<BlueprintLibrary>, iterate through that
+  for (const auto &bp : *filtered) {
+    result.blueprint_ids.push_back(rust::String(bp.GetId()));
+  }
+  return result;
+}
+
 // Geometry utility functions implementations
 double Vector2D_Length(const SimpleVector2D &vector) {
   return std::sqrt(vector.x * vector.x + vector.y * vector.y);

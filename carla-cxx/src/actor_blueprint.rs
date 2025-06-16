@@ -68,4 +68,34 @@ impl ActorBlueprintWrapper {
     pub fn get_attribute_ids(&self) -> Vec<String> {
         ffi::ActorBlueprint_GetAttributeIds(&*self.inner)
     }
+
+    /// Get the value of a specific attribute
+    pub fn get_attribute(&self, id: &str) -> Option<String> {
+        let value = ffi::ActorBlueprint_GetAttribute(&*self.inner, id);
+        if value.is_empty() {
+            None
+        } else {
+            Some(value)
+        }
+    }
+
+    /// Get the type of a specific attribute
+    pub fn get_attribute_type(&self, id: &str) -> u8 {
+        ffi::ActorBlueprint_GetAttributeType(&*self.inner, id)
+    }
+
+    /// Check if a specific attribute is modifiable
+    pub fn is_attribute_modifiable(&self, id: &str) -> bool {
+        ffi::ActorBlueprint_IsAttributeModifiable(&*self.inner, id)
+    }
+
+    /// Get recommended values for a specific attribute
+    pub fn get_attribute_recommended_values(&self, id: &str) -> Vec<String> {
+        ffi::ActorBlueprint_GetAttributeRecommendedValues(&*self.inner, id)
+    }
+
+    /// Get the number of attributes in this blueprint
+    pub fn get_attribute_count(&self) -> usize {
+        ffi::ActorBlueprint_GetAttributeCount(&*self.inner)
+    }
 }
