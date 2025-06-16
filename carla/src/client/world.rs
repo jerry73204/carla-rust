@@ -1,7 +1,8 @@
 //! World management and simulation control.
 
 use crate::{
-    client::{Actor, ActorBlueprint, ActorId, BlueprintLibrary},
+    actor::{Actor, ActorId},
+    client::{ActorBlueprint, BlueprintLibrary},
     error::CarlaResult,
     geom::Transform,
     road::Map,

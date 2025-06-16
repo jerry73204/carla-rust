@@ -1,6 +1,6 @@
 //! Radar sensor implementations.
 
-use crate::{geom::Transform, sensor::SensorData, time::Timestamp};
+use crate::{geom::Transform, sensor_data::SensorData, time::Timestamp};
 
 /// Radar sensor data.
 #[derive(Debug, Clone)]

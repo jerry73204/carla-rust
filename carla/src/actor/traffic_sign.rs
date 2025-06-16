@@ -1,8 +1,8 @@
 //! Traffic sign actor implementation.
 
 use crate::{
-    client::{Actor, ActorId},
-    error::{ActorError, CarlaError, CarlaResult},
+    actor::{Actor, ActorId},
+    error::CarlaResult,
     geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::ActorT,
 };

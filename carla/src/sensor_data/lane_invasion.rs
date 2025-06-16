@@ -1,6 +1,6 @@
 //! Lane invasion detection sensor.
 
-use crate::{geom::Transform, road::LaneMarkingType, sensor::SensorData, time::Timestamp};
+use crate::{geom::Transform, road::LaneMarkingType, sensor_data::SensorData, time::Timestamp};
 
 /// Lane invasion detection sensor data.
 #[derive(Debug, Clone)]

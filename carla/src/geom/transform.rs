@@ -1,7 +1,7 @@
 //! Transform type for 3D transformations.
 
 use super::{FromCxx, Location, Rotation, ToCxx, Vector3D};
-use nalgebra::{Isometry3, Matrix4, Point3, Translation3, UnitQuaternion, Vector3};
+use nalgebra::{Isometry3, Matrix4, Translation3, UnitQuaternion, Vector3};
 
 /// Represents a 3D transformation (position + rotation).
 ///

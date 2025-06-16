@@ -9,7 +9,7 @@
 //! The GNSS sensor provides geographic coordinates converted from the actor's
 //! local position using CARLA's geographic reference point.
 
-use crate::{geom::Transform, sensor::SensorData, time::Timestamp};
+use crate::{geom::Transform, sensor_data::SensorData, time::Timestamp};
 
 /// GNSS (GPS) sensor data.
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -1,7 +1,7 @@
 //! Vehicle actor implementation.
 
 use crate::{
-    client::{Actor, ActorId},
+    actor::{Actor, ActorId},
     error::CarlaResult,
     geom::{FromCxx, ToCxx, Transform, Vector3D},
     rpc::{

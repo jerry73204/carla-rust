@@ -1,7 +1,7 @@
 //! Sensor actor implementation.
 
 use crate::{
-    client::{Actor, ActorId},
+    actor::{Actor, ActorId},
     error::{CarlaResult, SensorError},
     geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::{ActorT, SensorT},

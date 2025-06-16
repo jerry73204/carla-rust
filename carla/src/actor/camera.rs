@@ -1,10 +1,10 @@
 //! Camera sensor implementation.
 
 use crate::{
-    client::{ActorId, Sensor},
+    actor::{ActorId, Sensor},
     error::CarlaResult,
     geom::{Transform, Vector3D},
-    sensor::{
+    sensor_data::{
         DepthImageData, ImageData, InstanceSegmentationImageData, RGBImageData,
         SemanticSegmentationImageData,
     },

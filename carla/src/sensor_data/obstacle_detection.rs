@@ -1,6 +1,6 @@
 //! Obstacle Detection sensor implementations.
 
-use crate::{client::ActorId, geom::Transform, sensor::SensorData, time::Timestamp};
+use crate::{actor::ActorId, geom::Transform, sensor_data::SensorData, time::Timestamp};
 
 /// Obstacle Detection sensor data.
 #[derive(Debug, Clone)]

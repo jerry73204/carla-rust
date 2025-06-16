@@ -2,7 +2,7 @@
 
 use crate::{
     geom::Transform,
-    sensor::{ImageData, SensorData},
+    sensor_data::{ImageData, SensorData},
     time::Timestamp,
 };
 

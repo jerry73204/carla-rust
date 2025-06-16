@@ -2,7 +2,7 @@
 
 use crate::{
     geom::{Transform, Vector2D},
-    sensor::SensorData,
+    sensor_data::SensorData,
     time::Timestamp,
 };
 

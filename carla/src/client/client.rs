@@ -1,7 +1,7 @@
 //! CARLA client for connecting to server.
 
-use crate::{client::World, error::CarlaResult, road::Map};
-use carla_cxx::{ffi, ClientWrapper};
+use crate::{client::World, error::CarlaResult};
+use carla_cxx::ClientWrapper;
 use std::time::Duration;
 
 /// Main client for connecting to CARLA server.

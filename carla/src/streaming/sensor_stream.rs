@@ -1,9 +1,9 @@
 //! Sensor data streaming implementation.
 
 use crate::{
-    client::ActorId,
+    actor::ActorId,
     error::{CarlaResult, SensorError},
-    sensor::SensorData,
+    sensor_data::SensorData,
 };
 use std::{
     collections::HashMap,

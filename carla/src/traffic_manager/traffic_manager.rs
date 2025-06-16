@@ -2,7 +2,7 @@
 
 use super::TrafficManagerConfig;
 use crate::{
-    client::{ActorId, Vehicle},
+    actor::{ActorId, Vehicle},
     error::CarlaResult,
     geom::Location,
 };

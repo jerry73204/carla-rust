@@ -10,7 +10,7 @@
 //! Additional methods provide convenient access to event data filtering and analysis
 //! that builds upon the raw event data that CARLA provides.
 
-use crate::{geom::Transform, sensor::SensorData, time::Timestamp};
+use crate::{geom::Transform, sensor_data::SensorData, time::Timestamp};
 
 /// Dynamic Vision Sensor (DVS) event array data.
 #[derive(Debug, Clone)]

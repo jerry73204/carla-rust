@@ -1,7 +1,7 @@
 //! Base actor functionality.
 
+use super::{ActorId, Sensor, Vehicle, Walker};
 use crate::{
-    client::{ActorId, Sensor, Vehicle, Walker},
     error::CarlaResult,
     geom::{BoundingBox, FromCxx, ToCxx, Transform, Vector3D},
     traits::ActorT,

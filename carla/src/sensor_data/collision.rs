@@ -10,9 +10,9 @@
 //! on the data that CARLA already provides.
 
 use crate::{
-    client::ActorId,
+    actor::ActorId,
     geom::{Transform, Vector3D},
-    sensor::SensorData,
+    sensor_data::SensorData,
     time::Timestamp,
 };
 

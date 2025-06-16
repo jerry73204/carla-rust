@@ -1,8 +1,8 @@
 //! Actor blueprint for spawning.
 
-use crate::error::{CarlaResult, SpawnError};
+use crate::error::CarlaResult;
 use carla_cxx::ActorBlueprintWrapper;
-use std::{collections::HashMap, marker::PhantomData};
+use std::marker::PhantomData;
 
 /// Actor blueprint for spawning.
 #[derive(Debug, Clone)]

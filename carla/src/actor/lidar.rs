@@ -1,10 +1,10 @@
 //! LiDAR sensor implementation.
 
 use crate::{
-    client::{ActorId, Sensor},
+    actor::{ActorId, Sensor},
     error::CarlaResult,
     geom::{Transform, Vector3D},
-    sensor::{LiDARData, LiDARPoint, SemanticLiDARData},
+    sensor_data::{LiDARData, LiDARPoint, LiDARStatistics, SemanticLiDARData},
     traits::{ActorT, SensorT},
 };
 
@@ -65,7 +65,7 @@ impl LiDAR {
     }
 
     /// Get LiDAR statistics from the last measurement.
-    pub fn get_statistics(&self) -> Option<crate::sensor::LiDARStatistics> {
+    pub fn get_statistics(&self) -> Option<LiDARStatistics> {
         self.get_last_lidar_data().map(|data| data.get_statistics())
     }
 
