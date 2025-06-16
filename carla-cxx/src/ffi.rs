@@ -174,6 +174,17 @@ pub mod bridge {
         pub intensity: f32,
     }
 
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleLiDARData {
+        pub timestamp: SimpleTimestamp,
+        pub transform: SimpleTransform,
+        pub sensor_id: u32,
+        pub channels: u32,
+        pub horizontal_fov: f32,
+        pub points_per_second: u32,
+        pub points: Vec<SimpleLiDARPoint>,
+    }
+
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleRadarDetection {
         pub velocity: f32,
@@ -1052,6 +1063,7 @@ pub mod bridge {
         fn Sensor_IsCamera(sensor: &Sensor) -> bool;
         fn Sensor_GetCameraType(sensor: &Sensor) -> u8; // 0=RGB, 1=Depth, 2=SemanticSeg, 3=InstanceSeg
         fn Sensor_GetLastLiDARData(sensor: &Sensor) -> Vec<SimpleLiDARPoint>;
+        fn Sensor_GetLastLiDARDataFull(sensor: &Sensor) -> SimpleLiDARData;
         fn Sensor_GetLastRadarData(sensor: &Sensor) -> Vec<SimpleRadarDetection>;
         fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
         fn Sensor_GetLastGNSSData(sensor: &Sensor) -> SimpleGNSSData;

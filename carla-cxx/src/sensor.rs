@@ -68,10 +68,16 @@ impl SensorWrapper {
         ffi::Sensor_GetImageDataBuffer(&self.inner, buffer)
     }
 
-    /// Get the last LiDAR data
+    /// Get the last LiDAR data (points only)
     pub fn get_last_lidar_data(&self) -> LiDARData {
         let points = ffi::Sensor_GetLastLiDARData(&self.inner);
         LiDARData::from(points)
+    }
+
+    /// Get the last LiDAR data with full metadata
+    pub fn get_last_lidar_data_full(&self) -> LiDARDataFull {
+        let data = ffi::bridge::Sensor_GetLastLiDARDataFull(&self.inner);
+        LiDARDataFull::from(data)
     }
 
     /// Get the last radar data
@@ -236,6 +242,43 @@ impl From<Vec<ffi::SimpleLiDARPoint>> for LiDARData {
             })
             .collect();
         Self { points }
+    }
+}
+
+/// LiDAR sensor data with full metadata
+#[derive(Debug, Clone)]
+pub struct LiDARDataFull {
+    pub timestamp: crate::time::Timestamp,
+    pub transform: crate::ffi::SimpleTransform,
+    pub sensor_id: u32,
+    pub channels: u32,
+    pub horizontal_fov: f32,
+    pub points_per_second: u32,
+    pub points: Vec<LiDARPoint>,
+}
+
+impl From<ffi::bridge::SimpleLiDARData> for LiDARDataFull {
+    fn from(simple: ffi::bridge::SimpleLiDARData) -> Self {
+        let points = simple
+            .points
+            .into_iter()
+            .map(|p| LiDARPoint {
+                x: p.x,
+                y: p.y,
+                z: p.z,
+                intensity: p.intensity,
+            })
+            .collect();
+
+        Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
+            channels: simple.channels,
+            horizontal_fov: simple.horizontal_fov,
+            points_per_second: simple.points_per_second,
+            points,
+        }
     }
 }
 

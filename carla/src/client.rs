@@ -8,6 +8,7 @@ mod blueprint;
 mod blueprint_library;
 mod camera;
 mod client;
+mod lidar;
 mod sensor;
 mod traffic_light;
 mod traffic_sign;
@@ -20,7 +21,11 @@ pub use blueprint::{ActorAttribute, ActorAttributeType, ActorBlueprint};
 pub use blueprint_library::BlueprintLibrary;
 pub use camera::{CameraSensor, CameraType};
 pub use client::Client;
-pub use sensor::{Camera, CollisionSensor, LaneInvasionSensor, LiDAR, Radar, Sensor, GNSS, IMU};
+pub use lidar::LiDARSensor;
+pub use sensor::{
+    Camera, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR, ObstacleDetectionSensor,
+    OpticalFlowCamera, RSSensor, Radar, Sensor, GNSS, IMU,
+};
 pub use traffic_light::TrafficLight;
 pub use traffic_sign::TrafficSign;
 pub use vehicle::Vehicle;

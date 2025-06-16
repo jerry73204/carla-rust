@@ -89,6 +89,28 @@ impl SensorData for LiDARData {
 }
 
 impl LiDARData {
+    /// Create LiDARData from carla-cxx LiDARDataFull
+    pub fn from_cxx(cxx_data: carla_cxx::sensor::LiDARDataFull) -> Self {
+        let points = cxx_data
+            .points
+            .iter()
+            .map(|p| LiDARPoint::new(p.x, p.y, p.z, p.intensity))
+            .collect();
+
+        let transform = crate::geom::Transform::from(cxx_data.transform);
+        let timestamp = crate::time::Timestamp::from(cxx_data.timestamp);
+
+        Self {
+            timestamp,
+            transform,
+            sensor_id: cxx_data.sensor_id,
+            channels: cxx_data.channels,
+            horizontal_fov: cxx_data.horizontal_fov,
+            points_per_second: cxx_data.points_per_second,
+            points,
+        }
+    }
+
     /// Get point cloud as location array.
     pub fn get_locations(&self) -> Vec<Location> {
         self.points
@@ -277,5 +299,106 @@ impl Default for LiDARStatistics {
             min_intensity: 0.0,
             max_intensity: 0.0,
         }
+    }
+}
+
+/// Semantic LiDAR sensor data.
+#[derive(Debug, Clone)]
+pub struct SemanticLiDARData {
+    /// Sensor timestamp
+    pub timestamp: Timestamp,
+    /// Sensor transform when captured
+    pub transform: Transform,
+    /// Sensor ID
+    pub sensor_id: u32,
+    /// Current horizontal rotation angle
+    pub horizontal_angle: f32,
+    /// Number of laser channels
+    pub channel_count: u32,
+    /// Semantic detections
+    pub detections: Vec<SemanticLiDARDetection>,
+}
+
+/// Individual semantic LiDAR detection.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SemanticLiDARDetection {
+    /// 3D point location
+    pub point: Location,
+    /// Cosine of incidence angle
+    pub cos_inc_angle: f32,
+    /// Object instance index
+    pub object_idx: u32,
+    /// Semantic tag/label
+    pub object_tag: u32,
+}
+
+impl SensorData for SemanticLiDARData {
+    fn timestamp(&self) -> Timestamp {
+        self.timestamp
+    }
+
+    fn transform(&self) -> Transform {
+        self.transform
+    }
+
+    fn sensor_id(&self) -> u32 {
+        self.sensor_id
+    }
+
+    fn size(&self) -> usize {
+        self.detections.len() * std::mem::size_of::<SemanticLiDARDetection>()
+    }
+}
+
+impl SemanticLiDARData {
+    /// Create SemanticLiDARData from carla-cxx SemanticLidarData
+    pub fn from_cxx(cxx_data: carla_cxx::sensor::SemanticLidarData) -> Self {
+        let detections = cxx_data
+            .detections
+            .iter()
+            .map(|d| SemanticLiDARDetection {
+                point: Location::new(d.point.x as f64, d.point.y as f64, d.point.z as f64),
+                cos_inc_angle: d.cos_inc_angle,
+                object_idx: d.object_idx,
+                object_tag: d.object_tag,
+            })
+            .collect();
+
+        Self {
+            // TODO: Extract proper metadata from carla-cxx LiDARDataFull structure
+            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx LiDARDataFull
+            timestamp: todo!("LiDARData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
+            transform: todo!("LiDARData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
+            sensor_id: todo!("LiDARData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),
+            horizontal_angle: cxx_data.horizontal_angle,
+            channel_count: cxx_data.channel_count,
+            detections,
+        }
+    }
+
+    /// Filter detections by semantic tag/label.
+    pub fn filter_by_tag(&self, tag: u32) -> Vec<SemanticLiDARDetection> {
+        self.detections
+            .iter()
+            .filter(|d| d.object_tag == tag)
+            .copied()
+            .collect()
+    }
+
+    /// Filter detections by object instance.
+    pub fn filter_by_instance(&self, instance: u32) -> Vec<SemanticLiDARDetection> {
+        self.detections
+            .iter()
+            .filter(|d| d.object_idx == instance)
+            .copied()
+            .collect()
+    }
+
+    /// Get all unique semantic tags in the data.
+    pub fn get_unique_tags(&self) -> Vec<u32> {
+        let mut tags: Vec<u32> = self.detections.iter().map(|d| d.object_tag).collect();
+        tags.sort_unstable();
+        tags.dedup();
+        tags
     }
 }

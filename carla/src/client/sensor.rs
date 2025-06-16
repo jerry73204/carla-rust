@@ -88,24 +88,28 @@ impl Sensor {
 
     /// Get the sensor's data frame number (increments with each measurement).
     pub fn get_frame(&self) -> u64 {
-        // Frame number is not directly available in CARLA C++ API
-        // This is typically available through sensor data, not the sensor itself
-        0
+        // TODO: Implement frame number retrieval from sensor state
+        // This requires adding Sensor_GetFrame FFI function
+        todo!("Sensor::get_frame not yet implemented - missing FFI function Sensor_GetFrame")
     }
 
     /// Get the timestamp of the last sensor measurement.
     pub fn get_timestamp(&self) -> f64 {
-        // Timestamp is not directly available in CARLA C++ API
-        // This is typically available through sensor data, not the sensor itself
-        0.0
+        // TODO: Implement timestamp retrieval from sensor state
+        // This requires adding Sensor_GetTimestamp FFI function
+        todo!(
+            "Sensor::get_timestamp not yet implemented - missing FFI function Sensor_GetTimestamp"
+        )
     }
 
     /// Get sensor-specific attribute.
     pub fn get_attribute(&self, name: &str) -> Option<String> {
         let _name = name;
-        // Sensor attributes are available through the ActorBlueprint, not the Actor itself
-        // This would require access to the blueprint which isn't stored in the Sensor
-        None
+        // TODO: Implement sensor attribute retrieval
+        // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference
+        todo!(
+            "Sensor::get_attribute not yet implemented - missing FFI function Sensor_GetAttribute"
+        )
     }
 
     /// Enable sensor recording.
@@ -355,14 +359,34 @@ impl LiDAR {
         &self.0
     }
 
-    /// Get the last LiDAR data from the sensor.
-    pub fn get_last_lidar_data(&self) -> carla_cxx::sensor::LiDARData {
-        self.0.inner.get_last_lidar_data()
+    /// Get the last LiDAR data from the sensor with full metadata.
+    pub fn get_last_lidar_data(&self) -> Option<crate::sensor::LiDARData> {
+        let cxx_data = self.0.inner.get_last_lidar_data_full();
+        if cxx_data.points.is_empty() {
+            None
+        } else {
+            Some(crate::sensor::LiDARData::from_cxx(cxx_data))
+        }
+    }
+
+    /// Get the last LiDAR points only (without metadata) for performance.
+    pub fn get_last_lidar_points(&self) -> Vec<crate::sensor::LiDARPoint> {
+        let cxx_data = self.0.inner.get_last_lidar_data();
+        cxx_data
+            .points
+            .iter()
+            .map(|p| crate::sensor::LiDARPoint::new(p.x, p.y, p.z, p.intensity))
+            .collect()
     }
 
     /// Get the last Semantic LiDAR data from the sensor.
-    pub fn get_last_semantic_lidar_data(&self) -> carla_cxx::sensor::SemanticLidarData {
-        self.0.inner.get_last_semantic_lidar_data()
+    pub fn get_last_semantic_lidar_data(&self) -> Option<crate::sensor::SemanticLiDARData> {
+        let cxx_data = self.0.inner.get_last_semantic_lidar_data();
+        if cxx_data.detections.is_empty() {
+            None
+        } else {
+            Some(crate::sensor::SemanticLiDARData::from_cxx(cxx_data))
+        }
     }
 }
 
@@ -435,8 +459,13 @@ impl Radar {
     }
 
     /// Get the last Radar data from the sensor.
-    pub fn get_last_radar_data(&self) -> carla_cxx::sensor::RadarData {
-        self.0.inner.get_last_radar_data()
+    pub fn get_last_radar_data(&self) -> Option<crate::sensor::RadarData> {
+        let cxx_data = self.0.inner.get_last_radar_data();
+        if cxx_data.detections.is_empty() {
+            None
+        } else {
+            Some(crate::sensor::RadarData::from_cxx(cxx_data))
+        }
     }
 }
 
@@ -509,8 +538,10 @@ impl IMU {
     }
 
     /// Get the last IMU data from the sensor.
-    pub fn get_last_imu_data(&self) -> carla_cxx::sensor::IMUData {
-        self.0.inner.get_last_imu_data()
+    pub fn get_last_imu_data(&self) -> Option<crate::sensor::IMUData> {
+        let cxx_data = self.0.inner.get_last_imu_data();
+        // For IMU data, we'll always return Some unless there's an error in FFI
+        Some(crate::sensor::IMUData::from_cxx(cxx_data))
     }
 }
 
@@ -583,8 +614,10 @@ impl GNSS {
     }
 
     /// Get the last GNSS data from the sensor.
-    pub fn get_last_gnss_data(&self) -> carla_cxx::sensor::GNSSData {
-        self.0.inner.get_last_gnss_data()
+    pub fn get_last_gnss_data(&self) -> Option<crate::sensor::GNSSData> {
+        let cxx_data = self.0.inner.get_last_gnss_data();
+        // For GNSS data, we'll always return Some unless there's an error in FFI
+        Some(crate::sensor::GNSSData::from_cxx(cxx_data))
     }
 }
 
@@ -657,8 +690,14 @@ impl CollisionSensor {
     }
 
     /// Get the last collision data from the sensor.
-    pub fn get_last_collision_data(&self) -> carla_cxx::sensor::CollisionData {
-        self.0.inner.get_last_collision_data()
+    pub fn get_last_collision_data(&self) -> Option<crate::sensor::CollisionData> {
+        let cxx_data = self.0.inner.get_last_collision_data();
+        // For collision data, we check if there was actually a collision
+        if cxx_data.other_actor_id == 0 {
+            None // No collision
+        } else {
+            Some(crate::sensor::CollisionData::from_cxx(cxx_data))
+        }
     }
 }
 
@@ -731,12 +770,331 @@ impl LaneInvasionSensor {
     }
 
     /// Get the last lane invasion data from the sensor.
-    pub fn get_last_lane_invasion_data(&self) -> carla_cxx::sensor::LaneInvasionData {
-        self.0.inner.get_last_lane_invasion_data()
+    pub fn get_last_lane_invasion_data(&self) -> Option<crate::sensor::LaneInvasionData> {
+        let cxx_data = self.0.inner.get_last_lane_invasion_data();
+        if cxx_data.crossed_lane_markings.is_empty() {
+            None // No lane invasion
+        } else {
+            Some(crate::sensor::LaneInvasionData::from_cxx(cxx_data))
+        }
     }
 }
 
 impl ActorT for LaneInvasionSensor {
+    fn get_id(&self) -> ActorId {
+        self.0.get_id()
+    }
+    fn get_type_id(&self) -> String {
+        self.0.get_type_id()
+    }
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
+        self.0.set_transform(transform)
+    }
+    fn get_velocity(&self) -> Vector3D {
+        self.0.get_velocity()
+    }
+    fn get_angular_velocity(&self) -> Vector3D {
+        self.0.get_angular_velocity()
+    }
+    fn get_acceleration(&self) -> Vector3D {
+        self.0.get_acceleration()
+    }
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
+    }
+    fn destroy(&self) -> CarlaResult<()> {
+        self.0.destroy()
+    }
+    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
+        self.0.set_simulate_physics(enabled)
+    }
+    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        self.0.add_impulse(impulse)
+    }
+    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        self.0.add_force(force)
+    }
+    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        self.0.add_torque(torque)
+    }
+}
+
+/// DVS (Dynamic Vision Sensor) camera for event-based vision.
+#[derive(Debug)]
+pub struct DVSCamera(Sensor);
+
+impl DVSCamera {
+    /// Try to create a DVSCamera from a generic Sensor.
+    /// Returns None if the sensor is not a DVS camera.
+    pub fn from_sensor(sensor: Sensor) -> Option<Self> {
+        let type_id = sensor.get_type_id();
+        if type_id.contains("dvs") || type_id.contains("event") {
+            Some(DVSCamera(sensor))
+        } else {
+            None
+        }
+    }
+
+    /// Convert back to generic Sensor.
+    pub fn into_sensor(self) -> Sensor {
+        self.0
+    }
+
+    /// Get reference to the underlying sensor.
+    pub fn as_sensor(&self) -> &Sensor {
+        &self.0
+    }
+
+    /// Get the last DVS data from the sensor.
+    pub fn get_last_dvs_data(&self) -> Option<crate::sensor::DVSData> {
+        let cxx_data = self.0.inner.get_last_dvs_data();
+        if cxx_data.events.is_empty() {
+            None
+        } else {
+            Some(crate::sensor::DVSData::from_cxx(cxx_data))
+        }
+    }
+}
+
+impl ActorT for DVSCamera {
+    fn get_id(&self) -> ActorId {
+        self.0.get_id()
+    }
+    fn get_type_id(&self) -> String {
+        self.0.get_type_id()
+    }
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
+        self.0.set_transform(transform)
+    }
+    fn get_velocity(&self) -> Vector3D {
+        self.0.get_velocity()
+    }
+    fn get_angular_velocity(&self) -> Vector3D {
+        self.0.get_angular_velocity()
+    }
+    fn get_acceleration(&self) -> Vector3D {
+        self.0.get_acceleration()
+    }
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
+    }
+    fn destroy(&self) -> CarlaResult<()> {
+        self.0.destroy()
+    }
+    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
+        self.0.set_simulate_physics(enabled)
+    }
+    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        self.0.add_impulse(impulse)
+    }
+    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        self.0.add_force(force)
+    }
+    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        self.0.add_torque(torque)
+    }
+}
+
+/// Optical Flow camera for motion detection.
+#[derive(Debug)]
+pub struct OpticalFlowCamera(Sensor);
+
+impl OpticalFlowCamera {
+    /// Try to create an OpticalFlowCamera from a generic Sensor.
+    /// Returns None if the sensor is not an optical flow camera.
+    pub fn from_sensor(sensor: Sensor) -> Option<Self> {
+        let type_id = sensor.get_type_id();
+        if type_id.contains("optical_flow") || type_id.contains("flow") {
+            Some(OpticalFlowCamera(sensor))
+        } else {
+            None
+        }
+    }
+
+    /// Convert back to generic Sensor.
+    pub fn into_sensor(self) -> Sensor {
+        self.0
+    }
+
+    /// Get reference to the underlying sensor.
+    pub fn as_sensor(&self) -> &Sensor {
+        &self.0
+    }
+
+    /// Get the last optical flow data from the sensor.
+    /// Note: This is a placeholder implementation since OpticalFlow FFI is not yet available.
+    pub fn get_last_optical_flow_data(&self) -> Option<crate::sensor::OpticalFlowData> {
+        // TODO: Implement using carla-cxx FFI interface
+        // This requires adding Sensor_GetLastOpticalFlowData FFI function
+        todo!("OpticalFlowCamera::get_last_optical_flow_data not yet implemented - missing FFI function")
+    }
+}
+
+impl ActorT for OpticalFlowCamera {
+    fn get_id(&self) -> ActorId {
+        self.0.get_id()
+    }
+    fn get_type_id(&self) -> String {
+        self.0.get_type_id()
+    }
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
+        self.0.set_transform(transform)
+    }
+    fn get_velocity(&self) -> Vector3D {
+        self.0.get_velocity()
+    }
+    fn get_angular_velocity(&self) -> Vector3D {
+        self.0.get_angular_velocity()
+    }
+    fn get_acceleration(&self) -> Vector3D {
+        self.0.get_acceleration()
+    }
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
+    }
+    fn destroy(&self) -> CarlaResult<()> {
+        self.0.destroy()
+    }
+    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
+        self.0.set_simulate_physics(enabled)
+    }
+    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        self.0.add_impulse(impulse)
+    }
+    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        self.0.add_force(force)
+    }
+    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        self.0.add_torque(torque)
+    }
+}
+
+/// Obstacle Detection sensor for collision avoidance.
+#[derive(Debug)]
+pub struct ObstacleDetectionSensor(Sensor);
+
+impl ObstacleDetectionSensor {
+    /// Try to create an ObstacleDetectionSensor from a generic Sensor.
+    /// Returns None if the sensor is not an obstacle detection sensor.
+    pub fn from_sensor(sensor: Sensor) -> Option<Self> {
+        let type_id = sensor.get_type_id();
+        if type_id.contains("obstacle") || type_id.contains("detection") {
+            Some(ObstacleDetectionSensor(sensor))
+        } else {
+            None
+        }
+    }
+
+    /// Convert back to generic Sensor.
+    pub fn into_sensor(self) -> Sensor {
+        self.0
+    }
+
+    /// Get reference to the underlying sensor.
+    pub fn as_sensor(&self) -> &Sensor {
+        &self.0
+    }
+
+    /// Get the last obstacle detection data from the sensor.
+    pub fn get_last_obstacle_detection_data(&self) -> Option<crate::sensor::ObstacleDetectionData> {
+        let cxx_event = self.0.inner.get_last_obstacle_detection_data();
+        if cxx_event.other_actor_id == 0 {
+            None // No obstacle detected
+        } else {
+            Some(crate::sensor::ObstacleDetectionData::from_cxx(cxx_event))
+        }
+    }
+}
+
+impl ActorT for ObstacleDetectionSensor {
+    fn get_id(&self) -> ActorId {
+        self.0.get_id()
+    }
+    fn get_type_id(&self) -> String {
+        self.0.get_type_id()
+    }
+    fn get_transform(&self) -> Transform {
+        self.0.get_transform()
+    }
+    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
+        self.0.set_transform(transform)
+    }
+    fn get_velocity(&self) -> Vector3D {
+        self.0.get_velocity()
+    }
+    fn get_angular_velocity(&self) -> Vector3D {
+        self.0.get_angular_velocity()
+    }
+    fn get_acceleration(&self) -> Vector3D {
+        self.0.get_acceleration()
+    }
+    fn is_alive(&self) -> bool {
+        self.0.is_alive()
+    }
+    fn destroy(&self) -> CarlaResult<()> {
+        self.0.destroy()
+    }
+    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
+        self.0.set_simulate_physics(enabled)
+    }
+    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        self.0.add_impulse(impulse)
+    }
+    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        self.0.add_force(force)
+    }
+    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        self.0.add_torque(torque)
+    }
+}
+
+/// RSS (Road Safety) sensor for safety compliance monitoring.
+#[derive(Debug)]
+pub struct RSSensor(Sensor);
+
+impl RSSensor {
+    /// Try to create an RSSensor from a generic Sensor.
+    /// Returns None if the sensor is not an RSS sensor.
+    pub fn from_sensor(sensor: Sensor) -> Option<Self> {
+        let type_id = sensor.get_type_id();
+        if type_id.contains("rss") || type_id.contains("safety") {
+            Some(RSSensor(sensor))
+        } else {
+            None
+        }
+    }
+
+    /// Convert back to generic Sensor.
+    pub fn into_sensor(self) -> Sensor {
+        self.0
+    }
+
+    /// Get reference to the underlying sensor.
+    pub fn as_sensor(&self) -> &Sensor {
+        &self.0
+    }
+
+    /// Get the last RSS data from the sensor.
+    pub fn get_last_rss_data(&self) -> Option<crate::sensor::RSSData> {
+        let cxx_response = self.0.inner.get_last_rss_data();
+        if !cxx_response.response_valid {
+            None // Invalid RSS response
+        } else {
+            Some(crate::sensor::RSSData::from_cxx(cxx_response))
+        }
+    }
+}
+
+impl ActorT for RSSensor {
     fn get_id(&self) -> ActorId {
         self.0.get_id()
     }

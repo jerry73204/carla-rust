@@ -89,6 +89,26 @@ pub enum LaneMarkingType {
     Curb,
 }
 
+impl LaneMarkingType {
+    /// Convert from u32 value
+    pub fn from_u32(value: u32) -> Self {
+        match value {
+            0 => LaneMarkingType::None,
+            1 => LaneMarkingType::Other,
+            2 => LaneMarkingType::Broken,
+            3 => LaneMarkingType::Solid,
+            4 => LaneMarkingType::SolidSolid,
+            5 => LaneMarkingType::SolidBroken,
+            6 => LaneMarkingType::BrokenSolid,
+            7 => LaneMarkingType::BrokenBroken,
+            8 => LaneMarkingType::BottsDots,
+            9 => LaneMarkingType::Grass,
+            10 => LaneMarkingType::Curb,
+            _ => LaneMarkingType::Other,
+        }
+    }
+}
+
 /// Lane marking colors.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaneMarkingColor {

@@ -48,6 +48,7 @@ struct SimpleWalkerControl;
 struct SimpleWalkerDestination;
 struct SimpleTrafficLightState;
 struct SimpleLiDARPoint;
+struct SimpleLiDARData;
 struct SimpleRadarDetection;
 struct SimpleIMUData;
 struct SimpleGNSSData;
@@ -457,6 +458,7 @@ bool Sensor_GetImageDataBuffer(const Sensor &sensor,
 bool Sensor_IsCamera(const Sensor &sensor);
 uint8_t Sensor_GetCameraType(const Sensor &sensor);
 rust::Vec<SimpleLiDARPoint> Sensor_GetLastLiDARData(const Sensor &sensor);
+SimpleLiDARData Sensor_GetLastLiDARDataFull(const Sensor &sensor);
 rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor);
 SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor);
 SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor);

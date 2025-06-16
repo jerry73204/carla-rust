@@ -82,8 +82,9 @@ mod utils;
 // Re-export commonly used types for convenience
 pub use client::{
     Actor, ActorBlueprint, ActorId, BlueprintLibrary, Camera, CameraSensor, CameraType, Client,
-    CollisionSensor, LaneInvasionSensor, LiDAR, Radar, Sensor, TrafficLight, TrafficSign, Vehicle,
-    Walker, World, WorldSnapshot, GNSS, IMU,
+    CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR, LiDARSensor, ObstacleDetectionSensor,
+    OpticalFlowCamera, RSSensor, Radar, Sensor, TrafficLight, TrafficSign, Vehicle, Walker, World,
+    WorldSnapshot, GNSS, IMU,
 };
 
 pub use geom::{BoundingBox, Location, Rotation, Transform, Vector2D, Vector3D};
@@ -94,9 +95,10 @@ pub use rpc::{
 };
 
 pub use sensor::{
-    CollisionData, DepthImageData, GNSSData, IMUData, ImageData, InstanceSegmentationImageData,
-    LaneInvasionData, LiDARData, RGBImageData, RadarData, SemanticSegmentationImageData,
-    SensorData,
+    CollisionData, DVSData, DepthImageData, GNSSData, IMUData, ImageData,
+    InstanceSegmentationImageData, LaneInvasionData, LiDARData, ObstacleDetectionData,
+    OpticalFlowData, RGBImageData, RSSData, RadarData, SemanticLiDARData,
+    SemanticSegmentationImageData, SensorData,
 };
 
 pub use traffic_manager::{TrafficManager, TrafficManagerConfig};

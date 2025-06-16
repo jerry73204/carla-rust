@@ -1505,6 +1505,71 @@ rust::Vec<SimpleLiDARPoint> Sensor_GetLastLiDARData(const Sensor &sensor) {
   return points;
 }
 
+SimpleLiDARData Sensor_GetLastLiDARDataFull(const Sensor &sensor) {
+  if (!g_last_sensor_data) {
+    // Return empty LiDAR data
+    return SimpleLiDARData{
+        SimpleTimestamp{0, 0.0, 0.0, 0.0},
+        SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}},
+        0,    // sensor_id
+        0,    // channels
+        0.0f, // horizontal_fov
+        0,    // points_per_second
+        rust::Vec<SimpleLiDARPoint>()};
+  }
+
+  auto lidar_data =
+      std::dynamic_pointer_cast<carla::sensor::data::LidarMeasurement>(
+          g_last_sensor_data);
+  if (lidar_data) {
+    // Get sensor transform
+    auto transform = lidar_data->GetSensorTransform();
+    SimpleTransform simple_transform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+
+    // Get timestamp
+    SimpleTimestamp simple_timestamp{
+        lidar_data->GetFrame(),
+        lidar_data->GetTimestamp(), // elapsed_seconds
+        0.0,                        // delta_seconds (not available)
+        0.0                         // platform_timestamp (not available)
+    };
+
+    // Convert points
+    rust::Vec<SimpleLiDARPoint> points;
+    for (const auto &detection : *lidar_data) {
+      points.push_back(SimpleLiDARPoint{detection.point.x, detection.point.y,
+                                        detection.point.z,
+                                        detection.intensity});
+    }
+
+    // Extract LiDAR parameters (these may need to be hardcoded or retrieved
+    // differently) CARLA's LidarMeasurement doesn't directly expose these
+    // attributes
+    uint32_t channels = 32;        // Default for most LiDAR sensors
+    float horizontal_fov = 360.0f; // Default horizontal FOV
+    uint32_t points_per_second =
+        lidar_data->size() * 10; // Estimate based on data size
+
+    return SimpleLiDARData{
+        simple_timestamp, simple_transform,  sensor.GetId(),   channels,
+        horizontal_fov,   points_per_second, std::move(points)};
+  }
+
+  // Return empty LiDAR data if cast failed
+  return SimpleLiDARData{
+      SimpleTimestamp{0, 0.0, 0.0, 0.0},
+      SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}},
+      0,    // sensor_id
+      0,    // channels
+      0.0f, // horizontal_fov
+      0,    // points_per_second
+      rust::Vec<SimpleLiDARPoint>()};
+}
+
 rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor) {
   rust::Vec<SimpleRadarDetection> detections;
 
