@@ -45,6 +45,7 @@
 #include <carla/rpc/WalkerControl.h>
 #include <carla/rpc/WeatherParameters.h>
 #include <carla/sensor/SensorData.h>
+#include <carla/sensor/data/CollisionEvent.h>
 #include <carla/sensor/data/GnssMeasurement.h>
 #include <carla/sensor/data/IMUMeasurement.h>
 #include <carla/sensor/data/Image.h>
@@ -1627,9 +1628,55 @@ SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor) {
 }
 
 SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor) {
-  // TODO: Implement actual collision data retrieval
-  // For now, return empty collision data
-  return SimpleCollisionData{0, SimpleVector3D{0.0, 0.0, 0.0}};
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to collision event
+    auto collision_event =
+        std::dynamic_pointer_cast<carla::sensor::data::CollisionEvent>(
+            g_last_sensor_data);
+    if (collision_event) {
+      // Extract timestamp (simplified - frame and elapsed seconds)
+      auto timestamp = collision_event->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          collision_event->GetFrame(), // Frame number
+          timestamp,                   // elapsed_seconds (timestamp is double)
+          0.0,                         // delta_seconds (not directly available)
+          timestamp // platform_timestamp (use same as elapsed)
+      };
+
+      // Extract transform (sensor's transform when collision occurred)
+      auto transform = collision_event->GetSensorTransform();
+      SimpleTransform simple_transform{
+          SimpleLocation{transform.location.x, transform.location.y,
+                         transform.location.z},
+          SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                         transform.rotation.roll}};
+
+      // Extract sensor ID (use frame as sensor ID - not ideal but available)
+      uint32_t sensor_id = collision_event->GetFrame();
+
+      // Extract other actor ID
+      uint32_t other_actor_id = collision_event->GetOtherActor()->GetId();
+
+      // Extract normal impulse
+      auto impulse = collision_event->GetNormalImpulse();
+      SimpleVector3D simple_impulse{impulse.x, impulse.y, impulse.z};
+
+      return SimpleCollisionData{simple_timestamp, simple_transform, sensor_id,
+                                 other_actor_id, simple_impulse};
+    }
+  }
+
+  // Return empty collision data if no collision data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{SimpleLocation{0.0, 0.0, 0.0},
+                                  SimpleRotation{0.0, 0.0, 0.0}};
+  return SimpleCollisionData{
+      empty_timestamp, empty_transform,
+      0,                            // sensor_id
+      0,                            // other_actor_id
+      SimpleVector3D{0.0, 0.0, 0.0} // normal_impulse
+  };
 }
 
 rust::Vec<SimpleCrossedLaneMarking>

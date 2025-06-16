@@ -368,6 +368,9 @@ impl From<ffi::SimpleGNSSData> for GNSSData {
 /// Collision sensor data
 #[derive(Debug, Clone, Copy)]
 pub struct CollisionData {
+    pub timestamp: crate::time::Timestamp,
+    pub transform: crate::ffi::SimpleTransform,
+    pub sensor_id: u32,
     pub other_actor_id: u32,
     pub normal_impulse: crate::ffi::bridge::SimpleVector3D,
 }
@@ -384,6 +387,9 @@ impl CollisionData {
 impl From<ffi::SimpleCollisionData> for CollisionData {
     fn from(simple: ffi::SimpleCollisionData) -> Self {
         Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             other_actor_id: simple.other_actor_id,
             normal_impulse: simple.normal_impulse,
         }

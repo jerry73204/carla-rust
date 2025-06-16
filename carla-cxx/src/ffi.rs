@@ -224,6 +224,9 @@ pub mod bridge {
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleCollisionData {
+        pub timestamp: SimpleTimestamp,
+        pub transform: SimpleTransform,
+        pub sensor_id: u32,
         pub other_actor_id: u32,
         pub normal_impulse: SimpleVector3D,
     }
