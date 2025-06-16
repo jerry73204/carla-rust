@@ -87,9 +87,13 @@ mod utils;
 
 // Re-export commonly used types for convenience
 pub use actor::{
-    Actor, ActorId, Camera, CameraType, LiDAR, Sensor, TrafficLight, TrafficSign, Vehicle, Walker,
+    Actor, ActorId, Camera, CameraType, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR,
+    Radar, Sensor, TrafficLight, TrafficSign, Vehicle, Walker, GNSS, IMU,
 };
-pub use client::{ActorBlueprint, BlueprintLibrary, Client, World, WorldSnapshot};
+pub use client::{
+    ActorAttribute, ActorAttributeType, ActorBlueprint, AttributeValue, BlueprintLibrary, Client,
+    RGBColor, World, WorldSnapshot,
+};
 
 pub use geom::{BoundingBox, Location, Rotation, Transform, Vector2D, Vector3D};
 
