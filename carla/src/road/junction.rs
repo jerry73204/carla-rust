@@ -14,9 +14,9 @@ pub struct Junction {
 
 impl Junction {
     /// Get waypoints in this junction.
-    pub fn get_waypoints(&self, lane_type: LaneType) -> CarlaResult<Vec<Waypoint>> {
+    pub fn waypoints(&self, lane_type: LaneType) -> CarlaResult<Vec<Waypoint>> {
         // TODO: Implement using carla-cxx FFI interface
         let _lane_type = lane_type;
-        todo!("Junction::get_waypoints not yet implemented with carla-cxx FFI")
+        todo!("Junction::waypoints not yet implemented with carla-cxx FFI")
     }
 }

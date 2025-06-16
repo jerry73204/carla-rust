@@ -65,12 +65,12 @@ impl LaneInvasionSensor {
     }
 
     /// Get the latest lane invasion event.
-    pub fn get_data(&self) -> Option<LaneInvasionData> {
+    pub fn data(&self) -> Option<LaneInvasionData> {
         if self.inner.has_new_data() {
             // TODO: Implement lane invasion data retrieval from sensor
             // This requires adding LaneInvasionSensor_GetData FFI function
             todo!(
-                "LaneInvasionSensor::get_data not yet implemented - missing FFI function LaneInvasionSensor_GetData"
+                "LaneInvasionSensor::data not yet implemented - missing FFI function LaneInvasionSensor_GetData"
             )
         } else {
             None
@@ -180,7 +180,7 @@ impl SensorT for LaneInvasionSensor {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

@@ -67,12 +67,12 @@ impl Camera {
     }
 
     /// Get the camera type (RGB, Depth, Semantic, etc.)
-    pub fn get_camera_type(&self) -> CameraType {
+    pub fn camera_type(&self) -> CameraType {
         CameraType::from(self.0.inner().get_camera_type())
     }
 
     /// Get the last image data from the camera.
-    pub fn get_last_image_data(&self) -> Option<ImageData> {
+    pub fn last_image_data(&self) -> Option<ImageData> {
         let cxx_data = self.0.inner().get_last_image_data();
         if cxx_data.is_empty() {
             None
@@ -83,53 +83,53 @@ impl Camera {
 
     /// Get image data into a provided buffer.
     /// Returns true if data was copied successfully.
-    pub fn get_image_data_buffer(&self, buffer: &mut [u8]) -> bool {
+    pub fn image_data_buffer(&self, buffer: &mut [u8]) -> bool {
         self.0.inner().get_image_data_buffer(buffer)
     }
 
     /// Get the last captured RGB image data.
     ///
     /// Returns None if the camera is not an RGB camera or no data is available.
-    pub fn get_rgb_data(&self) -> Option<RGBImageData> {
-        if self.get_camera_type() != CameraType::RGB {
+    pub fn rgb_data(&self) -> Option<RGBImageData> {
+        if self.camera_type() != CameraType::RGB {
             return None;
         }
 
-        self.get_last_image_data()
+        self.last_image_data()
     }
 
     /// Get the last captured depth data.
     ///
     /// Returns None if the camera is not a depth camera or no data is available.
-    pub fn get_depth_data(&self) -> Option<DepthImageData> {
-        if self.get_camera_type() != CameraType::Depth {
+    pub fn depth_data(&self) -> Option<DepthImageData> {
+        if self.camera_type() != CameraType::Depth {
             return None;
         }
 
-        self.get_last_image_data().map(DepthImageData::new)
+        self.last_image_data().map(DepthImageData::new)
     }
 
     /// Get the last captured semantic segmentation data.
     ///
     /// Returns None if the camera is not a semantic segmentation camera or no data is available.
-    pub fn get_semantic_segmentation_data(&self) -> Option<SemanticSegmentationImageData> {
-        if self.get_camera_type() != CameraType::SemanticSegmentation {
+    pub fn semantic_segmentation_data(&self) -> Option<SemanticSegmentationImageData> {
+        if self.camera_type() != CameraType::SemanticSegmentation {
             return None;
         }
 
-        self.get_last_image_data()
+        self.last_image_data()
             .map(SemanticSegmentationImageData::new)
     }
 
     /// Get the last captured instance segmentation data.
     ///
     /// Returns None if the camera is not an instance segmentation camera or no data is available.
-    pub fn get_instance_segmentation_data(&self) -> Option<InstanceSegmentationImageData> {
-        if self.get_camera_type() != CameraType::InstanceSegmentation {
+    pub fn instance_segmentation_data(&self) -> Option<InstanceSegmentationImageData> {
+        if self.camera_type() != CameraType::InstanceSegmentation {
             return None;
         }
 
-        self.get_last_image_data()
+        self.last_image_data()
             .map(InstanceSegmentationImageData::new)
     }
 }
@@ -205,8 +205,8 @@ impl SensorT for Camera {
         self.0.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
-        self.0.get_attribute(name)
+    fn attribute(&self, name: &str) -> Option<String> {
+        self.0.attribute(name)
     }
 
     fn enable_recording(&self, filename: &str) -> CarlaResult<()> {

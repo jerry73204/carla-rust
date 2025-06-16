@@ -35,13 +35,13 @@ impl Client {
     }
 
     /// Get the client version.
-    pub fn get_client_version(&self) -> String {
+    pub fn client_version(&self) -> String {
         // Return the version from the carla crate
         env!("CARGO_PKG_VERSION").to_string()
     }
 
     /// Get the server version.
-    pub fn get_server_version(&self) -> CarlaResult<String> {
+    pub fn server_version(&self) -> CarlaResult<String> {
         Ok(self.inner.get_server_version())
     }
 
@@ -52,18 +52,18 @@ impl Client {
     }
 
     /// Get current connection timeout.
-    pub fn get_timeout(&mut self) -> CarlaResult<Duration> {
+    pub fn timeout(&mut self) -> CarlaResult<Duration> {
         Ok(self.inner.get_timeout())
     }
 
     /// Get the current world.
-    pub fn get_world(&self) -> CarlaResult<World> {
+    pub fn world(&self) -> CarlaResult<World> {
         let world_wrapper = self.inner.get_world();
         Ok(World::from_cxx(world_wrapper))
     }
 
     /// Get available maps.
-    pub fn get_available_maps(&self) -> CarlaResult<Vec<String>> {
+    pub fn available_maps(&self) -> CarlaResult<Vec<String>> {
         Ok(self.inner.get_available_maps())
     }
 
@@ -237,13 +237,13 @@ impl Client {
 
     /// Get available maps as an alias for get_available_maps.
     pub fn list_available_maps(&self) -> CarlaResult<Vec<String>> {
-        self.get_available_maps()
+        self.available_maps()
     }
 
     /// Load world with error handling for invalid map names.
     pub fn load_map(&self, map_name: &str) -> CarlaResult<World> {
         // First check if the map exists
-        let available_maps = self.get_available_maps()?;
+        let available_maps = self.available_maps()?;
         if !available_maps.iter().any(|m| m == map_name) {
             return Err(crate::error::CarlaError::Client(
                 crate::error::ClientError::MapNotFound {

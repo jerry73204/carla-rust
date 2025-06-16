@@ -115,7 +115,7 @@ impl SensorStream {
     }
 
     /// Get the number of buffered items for a sensor.
-    pub fn get_buffer_size(&self, sensor_id: ActorId) -> usize {
+    pub fn buffer_size(&self, sensor_id: ActorId) -> usize {
         let subscriptions = self.subscriptions.lock().unwrap();
 
         if let Some(subscription) = subscriptions.get(&sensor_id) {
@@ -150,7 +150,7 @@ impl SensorStream {
     }
 
     /// Get list of all subscribed sensor IDs.
-    pub fn get_subscribed_sensors(&self) -> Vec<ActorId> {
+    pub fn subscribed_sensors(&self) -> Vec<ActorId> {
         let subscriptions = self.subscriptions.lock().unwrap();
         subscriptions.keys().copied().collect()
     }

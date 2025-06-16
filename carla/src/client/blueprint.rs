@@ -17,17 +17,17 @@ impl ActorBlueprint {
     }
 
     /// Get the blueprint ID.
-    pub fn get_id(&self) -> String {
+    pub fn id(&self) -> String {
         self.inner.get_id()
     }
 
     /// Get the blueprint tags.
-    pub fn get_tags(&self) -> Vec<String> {
+    pub fn tags(&self) -> Vec<String> {
         self.inner.get_tags()
     }
 
     /// Get reference to the inner carla-cxx ActorBlueprint wrapper
-    pub fn get_inner(&self) -> &ActorBlueprintWrapper {
+    pub(crate) fn inner(&self) -> &ActorBlueprintWrapper {
         &self.inner
     }
 
@@ -42,7 +42,7 @@ impl ActorBlueprint {
     }
 
     /// Get the value of the attribute. Convenience method.
-    pub fn get_attribute(&self, key: &str) -> Option<AttributeValue> {
+    pub fn attribute(&self, key: &str) -> Option<AttributeValue> {
         let value_str = self.inner.get_attribute(key)?;
         let attr_type = ActorAttributeType::from(self.inner.get_attribute_type(key));
 

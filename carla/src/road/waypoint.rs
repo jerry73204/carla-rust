@@ -44,15 +44,15 @@ impl Waypoint {
     }
 
     /// Get the right lane waypoint.
-    pub fn get_right_lane(&self) -> CarlaResult<Option<Waypoint>> {
+    pub fn right_lane(&self) -> CarlaResult<Option<Waypoint>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Waypoint::get_right_lane not yet implemented with carla-cxx FFI")
+        todo!("Waypoint::right_lane not yet implemented with carla-cxx FFI")
     }
 
     /// Get the left lane waypoint.
-    pub fn get_left_lane(&self) -> CarlaResult<Option<Waypoint>> {
+    pub fn left_lane(&self) -> CarlaResult<Option<Waypoint>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Waypoint::get_left_lane not yet implemented with carla-cxx FFI")
+        todo!("Waypoint::left_lane not yet implemented with carla-cxx FFI")
     }
 
     /// Get the distance to another waypoint.
@@ -66,8 +66,8 @@ impl Waypoint {
     }
 
     /// Get the junction this waypoint belongs to.
-    pub fn get_junction(&self) -> CarlaResult<Option<Junction>> {
+    pub fn junction(&self) -> CarlaResult<Option<Junction>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Waypoint::get_junction not yet implemented with carla-cxx FFI")
+        todo!("Waypoint::junction not yet implemented with carla-cxx FFI")
     }
 }

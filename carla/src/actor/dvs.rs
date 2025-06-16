@@ -63,13 +63,11 @@ impl DVSCamera {
     }
 
     /// Get the latest DVS event array.
-    pub fn get_data(&self) -> Option<DVSData> {
+    pub fn data(&self) -> Option<DVSData> {
         if self.inner.has_new_data() {
             // TODO: Implement DVS data retrieval from sensor
             // This requires adding DVSCamera_GetData FFI function
-            todo!(
-                "DVSCamera::get_data not yet implemented - missing FFI function DVSCamera_GetData"
-            )
+            todo!("DVSCamera::data not yet implemented - missing FFI function DVSCamera_GetData")
         } else {
             None
         }
@@ -178,7 +176,7 @@ impl SensorT for DVSCamera {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

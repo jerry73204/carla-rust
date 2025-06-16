@@ -23,7 +23,7 @@ impl TrafficManager {
     }
 
     /// Get the port this traffic manager is running on.
-    pub fn get_port(&self) -> u16 {
+    pub fn port(&self) -> u16 {
         self.inner.get_port()
     }
 
@@ -329,28 +329,25 @@ impl TrafficManager {
     // ========================================
 
     /// Get current traffic manager configuration.
-    pub fn get_config(&self) -> CarlaResult<TrafficManagerConfig> {
+    pub fn config(&self) -> CarlaResult<TrafficManagerConfig> {
         let config = self.inner.get_config();
         Ok(TrafficManagerConfig::from_cxx(config))
     }
 
     /// Get vehicle-specific configuration.
-    pub fn get_vehicle_config(
-        &self,
-        vehicle: &Vehicle,
-    ) -> CarlaResult<TrafficManagerVehicleConfig> {
+    pub fn vehicle_config(&self, vehicle: &Vehicle) -> CarlaResult<TrafficManagerVehicleConfig> {
         let config = self.inner.get_vehicle_config(vehicle.as_ffi());
         Ok(TrafficManagerVehicleConfig::from_cxx(config))
     }
 
     /// Get traffic manager statistics.
-    pub fn get_stats(&self) -> CarlaResult<TrafficManagerStats> {
+    pub fn stats(&self) -> CarlaResult<TrafficManagerStats> {
         let stats = self.inner.get_stats();
         Ok(TrafficManagerStats::from_cxx(stats))
     }
 
     /// Get next action for a specific vehicle.
-    pub fn get_next_action(&self, vehicle: &Vehicle) -> CarlaResult<TrafficManagerAction> {
+    pub fn next_action(&self, vehicle: &Vehicle) -> CarlaResult<TrafficManagerAction> {
         let action = self.inner.get_next_action(vehicle.as_ffi());
         Ok(TrafficManagerAction::from_cxx(action))
     }

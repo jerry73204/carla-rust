@@ -46,20 +46,20 @@ impl Transform {
     }
 
     /// Get the forward direction vector (X-axis after rotation).
-    pub fn get_forward_vector(&self) -> Vector3D {
-        let forward = self.rotation.get_forward_vector();
+    pub fn forward_vector(&self) -> Vector3D {
+        let forward = self.rotation.forward_vector();
         Vector3D::new(forward.x, forward.y, forward.z)
     }
 
     /// Get the right direction vector (Y-axis after rotation).
-    pub fn get_right_vector(&self) -> Vector3D {
-        let right = self.rotation.get_right_vector();
+    pub fn right_vector(&self) -> Vector3D {
+        let right = self.rotation.right_vector();
         Vector3D::new(right.x, right.y, right.z)
     }
 
     /// Get the up direction vector (Z-axis after rotation).
-    pub fn get_up_vector(&self) -> Vector3D {
-        let up = self.rotation.get_up_vector();
+    pub fn up_vector(&self) -> Vector3D {
+        let up = self.rotation.up_vector();
         Vector3D::new(up.x, up.y, up.z)
     }
 

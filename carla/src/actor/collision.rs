@@ -63,12 +63,12 @@ impl CollisionSensor {
     }
 
     /// Get the latest collision event.
-    pub fn get_data(&self) -> Option<CollisionData> {
+    pub fn data(&self) -> Option<CollisionData> {
         if self.inner.has_new_data() {
             // TODO: Implement collision data retrieval from sensor
             // This requires adding CollisionSensor_GetData FFI function
             todo!(
-                "CollisionSensor::get_data not yet implemented - missing FFI function CollisionSensor_GetData"
+                "CollisionSensor::data not yet implemented - missing FFI function CollisionSensor_GetData"
             )
         } else {
             None
@@ -178,12 +178,12 @@ impl SensorT for CollisionSensor {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference
         todo!(
-            "CollisionSensor::get_attribute not yet implemented - missing FFI function Sensor_GetAttribute"
+            "CollisionSensor::attribute not yet implemented - missing FFI function Sensor_GetAttribute"
         )
     }
 

@@ -79,7 +79,7 @@ pub trait SensorT: ActorT {
     fn has_new_data(&self) -> bool;
 
     /// Get sensor-specific attribute.
-    fn get_attribute(&self, name: &str) -> Option<String>;
+    fn attribute(&self, name: &str) -> Option<String>;
 
     /// Enable sensor recording to file.
     fn enable_recording(&self, filename: &str) -> CarlaResult<()>;
@@ -102,7 +102,7 @@ pub trait VehicleT: ActorT {
     fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()>;
 
     /// Get the current vehicle control state.
-    fn get_control(&self) -> VehicleControl;
+    fn control(&self) -> VehicleControl;
 
     /// Enable or disable autopilot mode.
     ///
@@ -112,13 +112,13 @@ pub trait VehicleT: ActorT {
     fn set_autopilot(&self, enabled: bool, traffic_manager_port: Option<u16>) -> CarlaResult<()>;
 
     /// Get vehicle physics control parameters.
-    fn get_physics_control(&self) -> VehiclePhysicsControl;
+    fn physics_control(&self) -> VehiclePhysicsControl;
 
     /// Apply new physics control parameters.
     fn apply_physics_control(&self, physics_control: &VehiclePhysicsControl) -> CarlaResult<()>;
 
     /// Get the current speed in km/h.
-    fn get_speed(&self) -> f32 {
+    fn speed(&self) -> f32 {
         // Convert m/s to km/h
         self.velocity().length() * 3.6
     }
@@ -127,13 +127,13 @@ pub trait VehicleT: ActorT {
     fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()>;
 
     /// Get current vehicle light state.
-    fn get_light_state(&self) -> VehicleLightState;
+    fn light_state(&self) -> VehicleLightState;
 
     /// Open/close vehicle door (CARLA 0.10.0 feature).
     fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()>;
 
     /// Get telemetry data from the vehicle.
-    fn get_telemetry_data(&self) -> VehicleTelemetryData;
+    fn telemetry_data(&self) -> VehicleTelemetryData;
 }
 
 /// Trait for walker (pedestrian) specific behavior.
@@ -147,16 +147,16 @@ pub trait WalkerT: ActorT {
     fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()>;
 
     /// Get the current walker control state.
-    fn get_control(&self) -> WalkerControl;
+    fn control(&self) -> WalkerControl;
 
     /// Get walker bone names for animation control.
-    fn get_bones(&self) -> Vec<String>;
+    fn bones(&self) -> Vec<String>;
 
     /// Set bone transforms for custom walker animation.
     fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()>;
 
     /// Get the current speed in m/s.
-    fn get_speed(&self) -> f32 {
+    fn speed(&self) -> f32 {
         self.velocity().length()
     }
 }

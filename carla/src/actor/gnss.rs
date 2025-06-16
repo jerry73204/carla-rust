@@ -63,11 +63,11 @@ impl GNSS {
     }
 
     /// Get the latest GNSS measurement.
-    pub fn get_data(&self) -> Option<GNSSData> {
+    pub fn data(&self) -> Option<GNSSData> {
         if self.inner.has_new_data() {
             // TODO: Implement GNSS data retrieval from sensor
             // This requires adding GNSS_GetData FFI function
-            todo!("GNSS::get_data not yet implemented - missing FFI function GNSS_GetData")
+            todo!("GNSS::data not yet implemented - missing FFI function GNSS_GetData")
         } else {
             None
         }
@@ -176,7 +176,7 @@ impl SensorT for GNSS {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

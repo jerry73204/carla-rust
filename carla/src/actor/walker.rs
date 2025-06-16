@@ -38,7 +38,7 @@ impl Walker {
     /// Get the walker's actor ID.
 
     /// Get the current speed in m/s.
-    pub fn get_speed(&self) -> f32 {
+    pub fn speed(&self) -> f32 {
         self.inner.get_speed()
     }
 
@@ -91,7 +91,7 @@ impl Walker {
     }
 
     /// Get pose from current animation frame.
-    pub fn get_pose_from_animation(&self) -> CarlaResult<()> {
+    pub fn pose_from_animation(&self) -> CarlaResult<()> {
         self.inner.get_pose_from_animation().map_err(|e| {
             crate::error::CarlaError::Walker(crate::error::WalkerError::PoseControlFailed(
                 e.to_string(),
@@ -207,7 +207,7 @@ impl WalkerT for Walker {
         })
     }
 
-    fn get_control(&self) -> WalkerControl {
+    fn control(&self) -> WalkerControl {
         let cxx_control = self.inner.get_control();
         WalkerControl {
             direction: crate::geom::Vector3D::new(
@@ -220,10 +220,10 @@ impl WalkerT for Walker {
         }
     }
 
-    fn get_bones(&self) -> Vec<String> {
+    fn bones(&self) -> Vec<String> {
         // Bone control is available through WalkerWrapper but limited
         // Return an empty list as the CXX implementation doesn't expose bone names
-        todo!("Walker::get_bones requires advanced bone FFI not implemented in CXX layer")
+        todo!("Walker::bones requires advanced bone FFI not implemented in CXX layer")
     }
 
     fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()> {

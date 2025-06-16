@@ -63,11 +63,11 @@ impl IMU {
     }
 
     /// Get the latest IMU measurement.
-    pub fn get_data(&self) -> Option<IMUData> {
+    pub fn data(&self) -> Option<IMUData> {
         if self.inner.has_new_data() {
             // TODO: Implement IMU data retrieval from sensor
             // This requires adding IMU_GetData FFI function
-            todo!("IMU::get_data not yet implemented - missing FFI function IMU_GetData")
+            todo!("IMU::data not yet implemented - missing FFI function IMU_GetData")
         } else {
             None
         }
@@ -176,7 +176,7 @@ impl SensorT for IMU {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

@@ -50,7 +50,7 @@ impl BoundingBox {
     }
 
     /// Get the minimum corner of the bounding box.
-    pub fn get_min(&self) -> Location {
+    pub fn min(&self) -> Location {
         Location::new(
             self.location.x - self.extent.x as f64,
             self.location.y - self.extent.y as f64,
@@ -59,7 +59,7 @@ impl BoundingBox {
     }
 
     /// Get the maximum corner of the bounding box.
-    pub fn get_max(&self) -> Location {
+    pub fn max(&self) -> Location {
         Location::new(
             self.location.x + self.extent.x as f64,
             self.location.y + self.extent.y as f64,
@@ -68,9 +68,9 @@ impl BoundingBox {
     }
 
     /// Get all 8 vertices of the bounding box.
-    pub fn get_vertices(&self) -> [Location; 8] {
-        let min = self.get_min();
-        let max = self.get_max();
+    pub fn vertices(&self) -> [Location; 8] {
+        let min = self.min();
+        let max = self.max();
 
         [
             Location::new(min.x, min.y, min.z), // 0: min corner
@@ -85,37 +85,37 @@ impl BoundingBox {
     }
 
     /// Get the width (X extent * 2).
-    pub fn get_width(&self) -> f32 {
+    pub fn width(&self) -> f32 {
         self.extent.x * 2.0
     }
 
     /// Get the length (Y extent * 2).
-    pub fn get_length(&self) -> f32 {
+    pub fn length(&self) -> f32 {
         self.extent.y * 2.0
     }
 
     /// Get the height (Z extent * 2).
-    pub fn get_height(&self) -> f32 {
+    pub fn height(&self) -> f32 {
         self.extent.z * 2.0
     }
 
     /// Get the volume of the bounding box.
-    pub fn get_volume(&self) -> f32 {
-        self.get_width() * self.get_length() * self.get_height()
+    pub fn volume(&self) -> f32 {
+        self.width() * self.length() * self.height()
     }
 
     /// Get the surface area of the bounding box.
-    pub fn get_surface_area(&self) -> f32 {
-        let w = self.get_width();
-        let l = self.get_length();
-        let h = self.get_height();
+    pub fn surface_area(&self) -> f32 {
+        let w = self.width();
+        let l = self.length();
+        let h = self.height();
         2.0 * (w * l + w * h + l * h)
     }
 
     /// Check if a point is inside this bounding box.
     pub fn contains(&self, point: &Location) -> bool {
-        let min = self.get_min();
-        let max = self.get_max();
+        let min = self.min();
+        let max = self.max();
 
         point.x >= min.x
             && point.x <= max.x
@@ -127,10 +127,10 @@ impl BoundingBox {
 
     /// Check if this bounding box intersects with another.
     pub fn intersects(&self, other: &BoundingBox) -> bool {
-        let self_min = self.get_min();
-        let self_max = self.get_max();
-        let other_min = other.get_min();
-        let other_max = other.get_max();
+        let self_min = self.min();
+        let self_max = self.max();
+        let other_min = other.min();
+        let other_max = other.max();
 
         self_max.x >= other_min.x
             && self_min.x <= other_max.x
@@ -147,10 +147,10 @@ impl BoundingBox {
             return None;
         }
 
-        let self_min = self.get_min();
-        let self_max = self.get_max();
-        let other_min = other.get_min();
-        let other_max = other.get_max();
+        let self_min = self.min();
+        let self_max = self.max();
+        let other_min = other.min();
+        let other_max = other.max();
 
         let intersection_min = Location::new(
             self_min.x.max(other_min.x),
@@ -172,10 +172,10 @@ impl BoundingBox {
 
     /// Get the union of this bounding box with another.
     pub fn union(&self, other: &BoundingBox) -> BoundingBox {
-        let self_min = self.get_min();
-        let self_max = self.get_max();
-        let other_min = other.get_min();
-        let other_max = other.get_max();
+        let self_min = self.min();
+        let self_max = self.max();
+        let other_min = other.min();
+        let other_max = other.max();
 
         let union_min = Location::new(
             self_min.x.min(other_min.x),
@@ -197,7 +197,7 @@ impl BoundingBox {
     /// Note: This creates an axis-aligned bounding box that contains
     /// the transformed oriented bounding box.
     pub fn transform(&self, transform: &Transform) -> BoundingBox {
-        let vertices = self.get_vertices();
+        let vertices = self.vertices();
         let transformed_vertices: Vec<Location> = vertices
             .iter()
             .map(|v| transform.transform_location(v))
@@ -228,8 +228,8 @@ impl BoundingBox {
     /// Calculate the distance from a point to this bounding box.
     /// Returns 0 if the point is inside the box.
     pub fn distance_to_point(&self, point: &Location) -> f64 {
-        let min = self.get_min();
-        let max = self.get_max();
+        let min = self.min();
+        let max = self.max();
 
         let dx = (min.x - point.x).max(0.0).max(point.x - max.x);
         let dy = (min.y - point.y).max(0.0).max(point.y - max.y);
@@ -240,8 +240,8 @@ impl BoundingBox {
 
     /// Get the closest point on the bounding box to a given point.
     pub fn closest_point(&self, point: &Location) -> Location {
-        let min = self.get_min();
-        let max = self.get_max();
+        let min = self.min();
+        let max = self.max();
 
         Location::new(
             point.x.clamp(min.x, max.x),

@@ -25,24 +25,24 @@ impl World {
     }
 
     /// Get the world ID.
-    pub fn get_id(&self) -> u64 {
+    pub fn id(&self) -> u64 {
         self.inner.get_id()
     }
 
     /// Get the map for this world.
-    pub fn get_map(&self) -> CarlaResult<Map> {
+    pub fn map(&self) -> CarlaResult<Map> {
         let map_wrapper = self.inner.get_map();
         Ok(Map::new(map_wrapper))
     }
 
     /// Get the blueprint library.
-    pub fn get_blueprint_library(&self) -> CarlaResult<BlueprintLibrary> {
+    pub fn blueprint_library(&self) -> CarlaResult<BlueprintLibrary> {
         let blueprint_library_wrapper = self.inner.get_blueprint_library();
         Ok(BlueprintLibrary::from_cxx(blueprint_library_wrapper))
     }
 
     /// Get the spectator actor (main camera).
-    pub fn get_spectator(&self) -> CarlaResult<Actor> {
+    pub fn spectator(&self) -> CarlaResult<Actor> {
         self.inner
             .get_spectator()
             .map(|actor_wrapper| Actor::from_cxx(actor_wrapper))
@@ -54,7 +54,7 @@ impl World {
     }
 
     /// Get weather parameters.
-    pub fn get_weather(&self) -> CarlaResult<WeatherParameters> {
+    pub fn weather(&self) -> CarlaResult<WeatherParameters> {
         let simple_weather = self.inner.get_weather();
         Ok(WeatherParameters::from(simple_weather))
     }
@@ -67,7 +67,7 @@ impl World {
     }
 
     /// Get a snapshot of the current world state.
-    pub fn get_snapshot(&self) -> CarlaResult<WorldSnapshot> {
+    pub fn snapshot(&self) -> CarlaResult<WorldSnapshot> {
         let cxx_timestamp = self.inner.get_snapshot();
         let timestamp = crate::time::Timestamp::from(cxx_timestamp);
         // For now, return a basic snapshot with just the timestamp
@@ -79,7 +79,7 @@ impl World {
     }
 
     /// Get an actor by ID.
-    pub fn get_actor(&self, actor_id: ActorId) -> CarlaResult<Option<Actor>> {
+    pub fn actor(&self, actor_id: ActorId) -> CarlaResult<Option<Actor>> {
         Ok(self
             .inner
             .get_actor(actor_id)
@@ -87,7 +87,7 @@ impl World {
     }
 
     /// Get all actors in the world.
-    pub fn get_actors(&self) -> CarlaResult<Vec<Actor>> {
+    pub fn actors(&self) -> CarlaResult<Vec<Actor>> {
         let actor_list = self.inner.get_actors();
         // Convert SimpleActorList to Vec<Actor>
         // This would require additional FFI functions to iterate through the list
@@ -96,7 +96,7 @@ impl World {
     }
 
     /// Get actors filtered by type.
-    pub fn get_actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
+    pub fn actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
         // TODO: Implement using carla-cxx FFI interface - needs actor list iteration support
         let _actor_type = actor_type;
         todo!("World::get_actors_by_type not yet implemented with carla-cxx FFI")
@@ -114,7 +114,7 @@ impl World {
 
         match self
             .inner
-            .spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
+            .spawn_actor(blueprint.inner(), &simple_transform, parent_actor)
         {
             Ok(actor_wrapper) => Ok(Actor::from_cxx(actor_wrapper)),
             Err(_e) => Err(crate::error::SpawnError::LocationOccupied {
@@ -136,7 +136,7 @@ impl World {
 
         match self
             .inner
-            .try_spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
+            .try_spawn_actor(blueprint.inner(), &simple_transform, parent_actor)
         {
             Some(actor_wrapper) => Ok(Some(Actor::from_cxx(actor_wrapper))),
             None => Ok(None),
@@ -179,7 +179,7 @@ impl World {
     }
 
     /// Get simulation settings.
-    pub fn get_settings(&self) -> CarlaResult<WorldSettings> {
+    pub fn settings(&self) -> CarlaResult<WorldSettings> {
         let simple_settings = self.inner.get_settings_raw();
         Ok(WorldSettings::from(simple_settings))
     }

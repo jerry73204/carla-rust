@@ -233,7 +233,7 @@ impl LiDARData {
     }
 
     /// Get statistics about the point cloud.
-    pub fn get_statistics(&self) -> LiDARStatistics {
+    pub fn statistics(&self) -> LiDARStatistics {
         if self.points.is_empty() {
             return LiDARStatistics::default();
         }

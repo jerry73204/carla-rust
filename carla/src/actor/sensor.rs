@@ -72,23 +72,21 @@ impl Sensor {
     }
 
     /// Get the sensor's data frame number (increments with each measurement).
-    pub fn get_frame(&self) -> u64 {
+    pub fn frame(&self) -> u64 {
         // TODO: Implement frame number retrieval from sensor state
         // This requires adding Sensor_GetFrame FFI function
-        todo!("Sensor::get_frame not yet implemented - missing FFI function Sensor_GetFrame")
+        todo!("Sensor::frame not yet implemented - missing FFI function Sensor_GetFrame")
     }
 
     /// Get the timestamp of the last sensor measurement.
-    pub fn get_timestamp(&self) -> f64 {
+    pub fn timestamp(&self) -> f64 {
         // TODO: Implement timestamp retrieval from sensor state
         // This requires adding Sensor_GetTimestamp FFI function
-        todo!(
-            "Sensor::get_timestamp not yet implemented - missing FFI function Sensor_GetTimestamp"
-        )
+        todo!("Sensor::timestamp not yet implemented - missing FFI function Sensor_GetTimestamp")
     }
 
     /// Get sensor-specific attribute.
-    pub fn get_attribute(&self, name: &str) -> Option<String> {
+    pub fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference
@@ -228,7 +226,7 @@ impl SensorT for Sensor {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

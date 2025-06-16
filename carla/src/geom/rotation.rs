@@ -69,7 +69,7 @@ impl Rotation {
     }
 
     /// Get the forward direction vector (X-axis after rotation).
-    pub fn get_forward_vector(&self) -> Vector3<f32> {
+    pub fn forward_vector(&self) -> Vector3<f32> {
         let (pitch, yaw, _) = self.to_radians();
         Vector3::new(
             pitch.cos() * yaw.cos(),
@@ -79,13 +79,13 @@ impl Rotation {
     }
 
     /// Get the right direction vector (Y-axis after rotation).
-    pub fn get_right_vector(&self) -> Vector3<f32> {
+    pub fn right_vector(&self) -> Vector3<f32> {
         let (_, yaw, roll) = self.to_radians();
         Vector3::new(-yaw.sin() * roll.cos(), yaw.cos() * roll.cos(), roll.sin())
     }
 
     /// Get the up direction vector (Z-axis after rotation).
-    pub fn get_up_vector(&self) -> Vector3<f32> {
+    pub fn up_vector(&self) -> Vector3<f32> {
         let (pitch, yaw, roll) = self.to_radians();
         Vector3::new(
             -pitch.sin() * yaw.cos() * roll.cos() + yaw.sin() * roll.sin(),

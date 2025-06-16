@@ -43,7 +43,7 @@ impl Vehicle {
     }
 
     /// Get the vehicle's actor ID.
-    pub fn get_id(&self) -> ActorId {
+    pub fn id(&self) -> ActorId {
         self.id
     }
 
@@ -58,7 +58,7 @@ impl Vehicle {
     }
 
     /// Get the vehicle's wheel physics parameters.
-    pub fn get_wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
+    pub fn wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
         use carla_cxx::vehicle::VehicleWheelLocation;
 
         let cxx_wheel_location = match wheel_location {
@@ -71,7 +71,7 @@ impl Vehicle {
     }
 
     /// Get the vehicle's forward speed in km/h.
-    pub fn get_speed(&self) -> f32 {
+    pub fn speed(&self) -> f32 {
         // VehicleWrapper returns speed in m/s, convert to km/h
         self.inner.get_speed() * 3.6
     }
@@ -180,7 +180,7 @@ impl VehicleT for Vehicle {
         })
     }
 
-    fn get_control(&self) -> VehicleControl {
+    fn control(&self) -> VehicleControl {
         let cxx_control = self.inner.get_control();
         VehicleControl {
             throttle: cxx_control.throttle,
@@ -199,7 +199,7 @@ impl VehicleT for Vehicle {
         Ok(())
     }
 
-    fn get_physics_control(&self) -> VehiclePhysicsControl {
+    fn physics_control(&self) -> VehiclePhysicsControl {
         let cxx_physics = self.inner.get_physics_control();
 
         // Convert carla-cxx VehiclePhysicsControl to high-level VehiclePhysicsControl
@@ -285,7 +285,7 @@ impl VehicleT for Vehicle {
         Ok(())
     }
 
-    fn get_light_state(&self) -> VehicleLightState {
+    fn light_state(&self) -> VehicleLightState {
         let cxx_light_state = self.inner.get_light_state();
         VehicleLightState {
             lights: cxx_light_state.bits(),
@@ -309,7 +309,7 @@ impl VehicleT for Vehicle {
         Ok(())
     }
 
-    fn get_telemetry_data(&self) -> VehicleTelemetryData {
+    fn telemetry_data(&self) -> VehicleTelemetryData {
         let cxx_telemetry = self.inner.get_telemetry_data();
         VehicleTelemetryData {
             speed: cxx_telemetry.speed,

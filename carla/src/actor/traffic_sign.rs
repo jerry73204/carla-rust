@@ -44,25 +44,25 @@ impl TrafficSign {
     }
 
     /// Get the traffic sign's actor ID.
-    pub fn get_id(&self) -> ActorId {
+    pub fn id(&self) -> ActorId {
         self.id
     }
 
     /// Get the traffic sign type by parsing the sign ID.
-    pub fn get_sign_type(&self) -> TrafficSignType {
+    pub fn sign_type(&self) -> TrafficSignType {
         let sign_id = self.inner.get_sign_id();
         TrafficSignType::from_sign_id(&sign_id)
     }
 
     /// Get the trigger volume for this traffic sign.
-    pub fn get_trigger_volume(&self) -> crate::geom::BoundingBox {
+    pub fn trigger_volume(&self) -> crate::geom::BoundingBox {
         let simple_bbox = self.inner.get_trigger_volume();
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 
     /// Check if a location is within the sign's influence area.
     pub fn is_in_trigger_volume(&self, location: &crate::geom::Location) -> bool {
-        let trigger_volume = self.get_trigger_volume();
+        let trigger_volume = self.trigger_volume();
         trigger_volume.contains(location)
     }
 }

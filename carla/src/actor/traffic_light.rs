@@ -45,12 +45,12 @@ impl TrafficLight {
     }
 
     /// Get the traffic light's actor ID.
-    pub fn get_id(&self) -> ActorId {
+    pub fn id(&self) -> ActorId {
         self.id
     }
 
     /// Get current traffic light state.
-    pub fn get_state(&self) -> TrafficLightState {
+    pub fn state(&self) -> TrafficLightState {
         let cxx_state = self.inner.get_state();
         TrafficLightState::from_cxx(cxx_state)
     }
@@ -63,25 +63,25 @@ impl TrafficLight {
     }
 
     /// Get the remaining time for current state.
-    pub fn get_elapsed_time(&self) -> Duration {
+    pub fn elapsed_time(&self) -> Duration {
         let elapsed_seconds = self.inner.get_elapsed_time();
         Duration::from_secs_f32(elapsed_seconds)
     }
 
     /// Get traffic light group (affected lanes).
     /// Returns waypoint information for lanes affected by this traffic light.
-    pub fn get_affected_lane_waypoints(&self) -> Vec<carla_cxx::ffi::bridge::SimpleWaypointInfo> {
+    pub fn affected_lane_waypoints(&self) -> Vec<carla_cxx::ffi::bridge::SimpleWaypointInfo> {
         todo!("TrafficLight_GetAffectedLaneWaypoints FFI function added but CXX bridge integration needs debugging")
     }
 
     /// Get traffic light pole index.
-    pub fn get_pole_index(&self) -> u32 {
+    pub fn pole_index(&self) -> u32 {
         todo!("TrafficLight_GetPoleIndex FFI function added but CXX bridge integration needs debugging")
     }
 
     /// Get all traffic lights in the same group.
     /// Returns information about all traffic lights in the same group as this one.
-    pub fn get_group_traffic_lights(&self) -> Vec<carla_cxx::ffi::bridge::SimpleTrafficLightInfo> {
+    pub fn group_traffic_lights(&self) -> Vec<carla_cxx::ffi::bridge::SimpleTrafficLightInfo> {
         todo!("TrafficLight_GetGroupTrafficLights FFI function added but CXX bridge integration needs debugging")
     }
 
@@ -104,7 +104,7 @@ impl TrafficLight {
     }
 
     /// Get traffic light green time.
-    pub fn get_green_time(&self) -> Duration {
+    pub fn green_time(&self) -> Duration {
         let time_seconds = self.inner.get_green_time();
         Duration::from_secs_f32(time_seconds)
     }
@@ -117,7 +117,7 @@ impl TrafficLight {
     }
 
     /// Get traffic light yellow time.
-    pub fn get_yellow_time(&self) -> Duration {
+    pub fn yellow_time(&self) -> Duration {
         let time_seconds = self.inner.get_yellow_time();
         Duration::from_secs_f32(time_seconds)
     }
@@ -130,7 +130,7 @@ impl TrafficLight {
     }
 
     /// Get traffic light red time.
-    pub fn get_red_time(&self) -> Duration {
+    pub fn red_time(&self) -> Duration {
         let time_seconds = self.inner.get_red_time();
         Duration::from_secs_f32(time_seconds)
     }

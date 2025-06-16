@@ -63,11 +63,11 @@ impl Radar {
     }
 
     /// Get the latest radar measurement.
-    pub fn get_data(&self) -> Option<RadarData> {
+    pub fn data(&self) -> Option<RadarData> {
         if self.inner.has_new_data() {
             // TODO: Implement radar data retrieval from sensor
             // This requires adding Radar_GetData FFI function
-            todo!("Radar::get_data not yet implemented - missing FFI function Radar_GetData")
+            todo!("Radar::data not yet implemented - missing FFI function Radar_GetData")
         } else {
             None
         }
@@ -176,7 +176,7 @@ impl SensorT for Radar {
         self.inner.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
+    fn attribute(&self, name: &str) -> Option<String> {
         let _name = name;
         // TODO: Implement sensor attribute retrieval
         // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference

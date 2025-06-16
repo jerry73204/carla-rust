@@ -20,21 +20,21 @@ impl Map {
     }
 
     /// Get the name of this map.
-    pub fn get_name(&self) -> String {
+    pub fn name(&self) -> String {
         self.inner.get_name()
     }
 
     /// Get a waypoint at the given location.
-    pub fn get_waypoint(&self, location: Location) -> CarlaResult<Option<Waypoint>> {
+    pub fn waypoint(&self, location: Location) -> CarlaResult<Option<Waypoint>> {
         // TODO: Implement using carla-cxx FFI interface
         let _location = location;
-        todo!("Map::get_waypoint not yet implemented with carla-cxx FFI")
+        todo!("Map::waypoint not yet implemented with carla-cxx FFI")
     }
 
     /// Get all spawn points for vehicles.
-    pub fn get_spawn_points(&self) -> CarlaResult<Vec<Transform>> {
+    pub fn spawn_points(&self) -> CarlaResult<Vec<Transform>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Map::get_spawn_points not yet implemented with carla-cxx FFI")
+        todo!("Map::spawn_points not yet implemented with carla-cxx FFI")
     }
 
     /// Generate waypoints along the road network.
@@ -58,21 +58,21 @@ impl Map {
     }
 
     /// Get topology of the road network.
-    pub fn get_topology(&self) -> CarlaResult<Vec<(Waypoint, Waypoint)>> {
+    pub fn topology(&self) -> CarlaResult<Vec<(Waypoint, Waypoint)>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Map::get_topology not yet implemented with carla-cxx FFI")
+        todo!("Map::topology not yet implemented with carla-cxx FFI")
     }
 
     /// Get crosswalks in the map.
-    pub fn get_crosswalks(&self) -> CarlaResult<Vec<Location>> {
+    pub fn crosswalks(&self) -> CarlaResult<Vec<Location>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Map::get_crosswalks not yet implemented with carla-cxx FFI")
+        todo!("Map::crosswalks not yet implemented with carla-cxx FFI")
     }
 
     /// Get all junctions in the map.
-    pub fn get_junctions(&self) -> CarlaResult<Vec<Junction>> {
+    pub fn junctions(&self) -> CarlaResult<Vec<Junction>> {
         // TODO: Implement using carla-cxx FFI interface
-        todo!("Map::get_junctions not yet implemented with carla-cxx FFI")
+        todo!("Map::junctions not yet implemented with carla-cxx FFI")
     }
 
     /// Transform a location from geospatial (lat/lon) to map coordinates.

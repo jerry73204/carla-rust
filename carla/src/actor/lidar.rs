@@ -35,7 +35,7 @@ impl LiDAR {
     }
 
     /// Get the last LiDAR data from the sensor with full metadata.
-    pub fn get_last_lidar_data(&self) -> Option<LiDARData> {
+    pub fn last_lidar_data(&self) -> Option<LiDARData> {
         let cxx_data = self.0.inner().get_last_lidar_data_full();
         if cxx_data.points.is_empty() {
             None
@@ -45,7 +45,7 @@ impl LiDAR {
     }
 
     /// Get the last LiDAR points only (without metadata) for performance.
-    pub fn get_last_lidar_points(&self) -> Vec<LiDARPoint> {
+    pub fn last_lidar_points(&self) -> Vec<LiDARPoint> {
         let cxx_data = self.0.inner().get_last_lidar_data();
         cxx_data
             .points
@@ -55,7 +55,7 @@ impl LiDAR {
     }
 
     /// Get the last Semantic LiDAR data from the sensor.
-    pub fn get_last_semantic_lidar_data(&self) -> Option<SemanticLiDARData> {
+    pub fn last_semantic_lidar_data(&self) -> Option<SemanticLiDARData> {
         let cxx_data = self.0.inner().get_last_semantic_lidar_data();
         if cxx_data.detections.is_empty() {
             None
@@ -65,13 +65,13 @@ impl LiDAR {
     }
 
     /// Get LiDAR statistics from the last measurement.
-    pub fn get_statistics(&self) -> Option<LiDARStatistics> {
-        self.get_last_lidar_data().map(|data| data.get_statistics())
+    pub fn statistics(&self) -> Option<LiDARStatistics> {
+        self.last_lidar_data().map(|data| data.statistics())
     }
 
     /// Filter points by distance range from the last measurement.
     pub fn filter_by_distance(&self, min_distance: f32, max_distance: f32) -> Vec<LiDARPoint> {
-        if let Some(data) = self.get_last_lidar_data() {
+        if let Some(data) = self.last_lidar_data() {
             data.filter_by_distance(min_distance, max_distance)
         } else {
             Vec::new()
@@ -80,7 +80,7 @@ impl LiDAR {
 
     /// Filter points by intensity range from the last measurement.
     pub fn filter_by_intensity(&self, min_intensity: f32, max_intensity: f32) -> Vec<LiDARPoint> {
-        if let Some(data) = self.get_last_lidar_data() {
+        if let Some(data) = self.last_lidar_data() {
             data.filter_by_intensity(min_intensity, max_intensity)
         } else {
             Vec::new()
@@ -89,7 +89,7 @@ impl LiDAR {
 
     /// Filter points by height (Z coordinate) range from the last measurement.
     pub fn filter_by_height(&self, min_height: f32, max_height: f32) -> Vec<LiDARPoint> {
-        if let Some(data) = self.get_last_lidar_data() {
+        if let Some(data) = self.last_lidar_data() {
             data.filter_by_height(min_height, max_height)
         } else {
             Vec::new()
@@ -168,8 +168,8 @@ impl SensorT for LiDAR {
         self.0.has_new_data()
     }
 
-    fn get_attribute(&self, name: &str) -> Option<String> {
-        self.0.get_attribute(name)
+    fn attribute(&self, name: &str) -> Option<String> {
+        self.0.attribute(name)
     }
 
     fn enable_recording(&self, filename: &str) -> CarlaResult<()> {

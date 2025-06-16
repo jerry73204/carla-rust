@@ -7,8 +7,8 @@ use carla::{client::Client, error::CarlaResult, traits::ActorT};
 fn test_blueprint_library() -> CarlaResult<()> {
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
-    let world = client.get_world()?;
-    let blueprint_library = world.get_blueprint_library()?;
+    let world = client.world()?;
+    let blueprint_library = world.blueprint_library()?;
 
     // Test library size
     let size = blueprint_library.len();
@@ -18,8 +18,8 @@ fn test_blueprint_library() -> CarlaResult<()> {
     // Test finding a specific blueprint
     if let Some(vehicle_bp) = blueprint_library.find("vehicle.tesla.model3")? {
         println!("Found Tesla Model 3 blueprint");
-        println!("ID: {}", vehicle_bp.get_id());
-        println!("Tags: {:?}", vehicle_bp.get_tags());
+        println!("ID: {}", vehicle_bp.id());
+        println!("Tags: {:?}", vehicle_bp.tags());
     }
 
     // TODO: Rewrite the code due to API change
@@ -35,8 +35,8 @@ fn test_blueprint_library() -> CarlaResult<()> {
 fn test_blueprint_attributes() -> CarlaResult<()> {
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
-    let world = client.get_world()?;
-    let blueprint_library = world.get_blueprint_library()?;
+    let world = client.world()?;
+    let blueprint_library = world.blueprint_library()?;
 
     // Get a camera blueprint
     if let Some(mut camera_bp) = blueprint_library.find("sensor.camera.rgb")? {
@@ -65,8 +65,8 @@ fn test_blueprint_spawning() -> CarlaResult<()> {
 
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
-    let world = client.get_world()?;
-    let blueprint_library = world.get_blueprint_library()?;
+    let world = client.world()?;
+    let blueprint_library = world.blueprint_library()?;
 
     // Get a vehicle blueprint
     if let Some(vehicle_bp) = blueprint_library.find("vehicle.tesla.model3")? {
