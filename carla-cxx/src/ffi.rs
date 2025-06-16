@@ -1090,6 +1090,20 @@ pub mod bridge {
         fn TrafficSign_GetSignId(traffic_sign: &TrafficSign) -> String;
         fn TrafficSign_GetTriggerVolume(traffic_sign: &TrafficSign) -> SimpleBoundingBox;
 
+        // Traffic Sign Actor interface methods
+        fn TrafficSign_GetTypeId(traffic_sign: &TrafficSign) -> String;
+        fn TrafficSign_GetTransform(traffic_sign: &TrafficSign) -> SimpleTransform;
+        fn TrafficSign_SetTransform(traffic_sign: &TrafficSign, transform: &SimpleTransform);
+        fn TrafficSign_GetVelocity(traffic_sign: &TrafficSign) -> SimpleVector3D;
+        fn TrafficSign_GetAngularVelocity(traffic_sign: &TrafficSign) -> SimpleVector3D;
+        fn TrafficSign_GetAcceleration(traffic_sign: &TrafficSign) -> SimpleVector3D;
+        fn TrafficSign_IsAlive(traffic_sign: &TrafficSign) -> bool;
+        fn TrafficSign_Destroy(traffic_sign: &TrafficSign) -> bool;
+        fn TrafficSign_SetSimulatePhysics(traffic_sign: &TrafficSign, enabled: bool);
+        fn TrafficSign_AddImpulse(traffic_sign: &TrafficSign, impulse: &SimpleVector3D);
+        fn TrafficSign_AddForce(traffic_sign: &TrafficSign, force: &SimpleVector3D);
+        fn TrafficSign_AddTorque(traffic_sign: &TrafficSign, torque: &SimpleVector3D);
+
         // Traffic Manager methods
         fn TrafficManager_GetInstance(client: &Client, port: u16) -> SharedPtr<TrafficManager>;
         fn TrafficManager_RegisterVehicles(tm: &TrafficManager, vehicles: &[*const Vehicle]);
@@ -1539,8 +1553,20 @@ pub use bridge::{
     TrafficManager_SynchronousTick,
     // Traffic Sign type and methods
     TrafficSign,
+    TrafficSign_AddForce,
+    TrafficSign_AddImpulse,
+    TrafficSign_AddTorque,
+    TrafficSign_Destroy,
+    TrafficSign_GetAcceleration,
+    TrafficSign_GetAngularVelocity,
     TrafficSign_GetSignId,
+    TrafficSign_GetTransform,
     TrafficSign_GetTriggerVolume,
+    TrafficSign_GetTypeId,
+    TrafficSign_GetVelocity,
+    TrafficSign_IsAlive,
+    TrafficSign_SetSimulatePhysics,
+    TrafficSign_SetTransform,
     Transform_GetForwardVector,
     Transform_GetRightVector,
     Transform_GetUpVector,

@@ -19,6 +19,7 @@
 #include <carla/client/Sensor.h>
 #include <carla/client/ServerSideSensor.h>
 #include <carla/client/TrafficLight.h>
+#include <carla/client/TrafficSign.h>
 #include <carla/client/Vehicle.h>
 #include <carla/client/Walker.h>
 #include <carla/client/WalkerAIController.h>
@@ -507,6 +508,25 @@ void TrafficLight_AddTorque(const TrafficLight &traffic_light,
 // Traffic Sign wrapper functions
 rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign);
 SimpleBoundingBox TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign);
+
+// Traffic Sign Actor interface functions
+rust::String TrafficSign_GetTypeId(const TrafficSign &traffic_sign);
+SimpleTransform TrafficSign_GetTransform(const TrafficSign &traffic_sign);
+void TrafficSign_SetTransform(const TrafficSign &traffic_sign,
+                              const SimpleTransform &transform);
+SimpleVector3D TrafficSign_GetVelocity(const TrafficSign &traffic_sign);
+SimpleVector3D TrafficSign_GetAngularVelocity(const TrafficSign &traffic_sign);
+SimpleVector3D TrafficSign_GetAcceleration(const TrafficSign &traffic_sign);
+bool TrafficSign_IsAlive(const TrafficSign &traffic_sign);
+bool TrafficSign_Destroy(const TrafficSign &traffic_sign);
+void TrafficSign_SetSimulatePhysics(const TrafficSign &traffic_sign,
+                                    bool enabled);
+void TrafficSign_AddImpulse(const TrafficSign &traffic_sign,
+                            const SimpleVector3D &impulse);
+void TrafficSign_AddForce(const TrafficSign &traffic_sign,
+                          const SimpleVector3D &force);
+void TrafficSign_AddTorque(const TrafficSign &traffic_sign,
+                           const SimpleVector3D &torque);
 
 // Geometry utility functions
 double Vector2D_Length(const SimpleVector2D &vector);

@@ -27,8 +27,76 @@ impl TrafficSignWrapper {
     }
 
     /// Get the trigger volume (bounding box) for this traffic sign
-    pub fn get_trigger_volume(&self) -> crate::SimpleBoundingBox {
+    pub fn get_trigger_volume(&self) -> crate::ffi::bridge::SimpleBoundingBox {
         ffi::TrafficSign_GetTriggerVolume(&self.inner)
+    }
+
+    /// Get the traffic sign's type ID
+    pub fn get_type_id(&self) -> String {
+        ffi::TrafficSign_GetTypeId(&self.inner)
+    }
+
+    /// Get the traffic sign's transform
+    pub fn get_transform(&self) -> crate::ffi::bridge::SimpleTransform {
+        ffi::TrafficSign_GetTransform(&self.inner)
+    }
+
+    /// Set the traffic sign's transform
+    pub fn set_transform(&self, transform: &crate::ffi::bridge::SimpleTransform) {
+        ffi::TrafficSign_SetTransform(&self.inner, transform)
+    }
+
+    /// Get the traffic sign's velocity
+    pub fn get_velocity(&self) -> crate::ffi::bridge::SimpleVector3D {
+        ffi::TrafficSign_GetVelocity(&self.inner)
+    }
+
+    /// Get the traffic sign's angular velocity
+    pub fn get_angular_velocity(&self) -> crate::ffi::bridge::SimpleVector3D {
+        ffi::TrafficSign_GetAngularVelocity(&self.inner)
+    }
+
+    /// Get the traffic sign's acceleration
+    pub fn get_acceleration(&self) -> crate::ffi::bridge::SimpleVector3D {
+        ffi::TrafficSign_GetAcceleration(&self.inner)
+    }
+
+    /// Check if the traffic sign is alive
+    pub fn is_alive(&self) -> bool {
+        ffi::TrafficSign_IsAlive(&self.inner)
+    }
+
+    /// Destroy the traffic sign
+    pub fn destroy(&self) -> bool {
+        ffi::TrafficSign_Destroy(&self.inner)
+    }
+
+    /// Set physics simulation for the traffic sign
+    pub fn set_simulate_physics(&self, enabled: bool) {
+        ffi::TrafficSign_SetSimulatePhysics(&self.inner, enabled)
+    }
+
+    /// Add impulse to the traffic sign
+    pub fn add_impulse(&self, impulse: &crate::ffi::bridge::SimpleVector3D) {
+        ffi::TrafficSign_AddImpulse(&self.inner, impulse)
+    }
+
+    /// Add force to the traffic sign
+    pub fn add_force(&self, force: &crate::ffi::bridge::SimpleVector3D) {
+        ffi::TrafficSign_AddForce(&self.inner, force)
+    }
+
+    /// Add torque to the traffic sign
+    pub fn add_torque(&self, torque: &crate::ffi::bridge::SimpleVector3D) {
+        ffi::TrafficSign_AddTorque(&self.inner, torque)
+    }
+}
+
+impl std::fmt::Debug for TrafficSignWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TrafficSignWrapper")
+            .field("sign_id", &self.get_sign_id())
+            .finish()
     }
 }
 

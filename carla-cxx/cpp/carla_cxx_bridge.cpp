@@ -1739,6 +1739,77 @@ TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign) {
       SimpleVector3D{bbox.extent.x, bbox.extent.y, bbox.extent.z}};
 }
 
+// Traffic Sign Actor interface functions
+rust::String TrafficSign_GetTypeId(const TrafficSign &traffic_sign) {
+  return rust::String(traffic_sign.GetTypeId());
+}
+
+SimpleTransform TrafficSign_GetTransform(const TrafficSign &traffic_sign) {
+  carla::geom::Transform carla_transform = traffic_sign.GetTransform();
+  return SimpleTransform{SimpleLocation{carla_transform.location.x,
+                                        carla_transform.location.y,
+                                        carla_transform.location.z},
+                         SimpleRotation{carla_transform.rotation.pitch,
+                                        carla_transform.rotation.yaw,
+                                        carla_transform.rotation.roll}};
+}
+
+void TrafficSign_SetTransform(const TrafficSign &traffic_sign,
+                              const SimpleTransform &transform) {
+  carla::geom::Transform carla_transform(
+      carla::geom::Location(transform.location.x, transform.location.y,
+                            transform.location.z),
+      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                            transform.rotation.roll));
+  const_cast<TrafficSign &>(traffic_sign).SetTransform(carla_transform);
+}
+
+SimpleVector3D TrafficSign_GetVelocity(const TrafficSign &traffic_sign) {
+  auto vel = traffic_sign.GetVelocity();
+  return SimpleVector3D{vel.x, vel.y, vel.z};
+}
+
+SimpleVector3D TrafficSign_GetAngularVelocity(const TrafficSign &traffic_sign) {
+  auto vel = traffic_sign.GetAngularVelocity();
+  return SimpleVector3D{vel.x, vel.y, vel.z};
+}
+
+SimpleVector3D TrafficSign_GetAcceleration(const TrafficSign &traffic_sign) {
+  auto acc = traffic_sign.GetAcceleration();
+  return SimpleVector3D{acc.x, acc.y, acc.z};
+}
+
+bool TrafficSign_IsAlive(const TrafficSign &traffic_sign) {
+  return traffic_sign.IsAlive();
+}
+
+bool TrafficSign_Destroy(const TrafficSign &traffic_sign) {
+  return const_cast<TrafficSign &>(traffic_sign).Destroy();
+}
+
+void TrafficSign_SetSimulatePhysics(const TrafficSign &traffic_sign,
+                                    bool enabled) {
+  const_cast<TrafficSign &>(traffic_sign).SetSimulatePhysics(enabled);
+}
+
+void TrafficSign_AddImpulse(const TrafficSign &traffic_sign,
+                            const SimpleVector3D &impulse) {
+  auto carla_impulse = carla::geom::Vector3D(impulse.x, impulse.y, impulse.z);
+  const_cast<TrafficSign &>(traffic_sign).AddImpulse(carla_impulse);
+}
+
+void TrafficSign_AddForce(const TrafficSign &traffic_sign,
+                          const SimpleVector3D &force) {
+  auto carla_force = carla::geom::Vector3D(force.x, force.y, force.z);
+  const_cast<TrafficSign &>(traffic_sign).AddForce(carla_force);
+}
+
+void TrafficSign_AddTorque(const TrafficSign &traffic_sign,
+                           const SimpleVector3D &torque) {
+  auto carla_torque = carla::geom::Vector3D(torque.x, torque.y, torque.z);
+  const_cast<TrafficSign &>(traffic_sign).AddTorque(carla_torque);
+}
+
 // Map wrapper functions
 rust::String Map_GetName(const Map &map) { return rust::String(map.GetName()); }
 

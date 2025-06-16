@@ -2,118 +2,135 @@
 
 use crate::{
     client::{Actor, ActorId},
-    error::CarlaResult,
-    geom::{Transform, Vector3D},
+    error::{ActorError, CarlaError, CarlaResult},
+    geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::ActorT,
 };
+use carla_cxx::{TrafficSignType, TrafficSignWrapper};
 
 /// Traffic sign actor.
 #[derive(Debug)]
 pub struct TrafficSign {
-    /// Base actor
-    pub actor: Actor,
+    /// Actor ID
+    id: ActorId,
+    /// Internal traffic sign wrapper for FFI calls
+    inner: TrafficSignWrapper,
 }
 
 impl TrafficSign {
-    /// Create a traffic sign from an actor.
-    pub fn from_actor(actor: Actor) -> Self {
-        Self { actor }
+    /// Create a traffic sign from a carla-cxx TrafficSignWrapper and actor ID.
+    pub fn new(traffic_sign_wrapper: TrafficSignWrapper, id: ActorId) -> CarlaResult<Self> {
+        Ok(Self {
+            id,
+            inner: traffic_sign_wrapper,
+        })
     }
 
-    /// Get the underlying actor.
-    pub fn as_actor(&self) -> &Actor {
-        &self.actor
+    /// Create a traffic sign from an actor by casting.
+    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
+        let actor_ref = actor.get_inner_actor();
+        let actor_id = actor.get_id();
+        if let Some(traffic_sign_wrapper) = TrafficSignWrapper::from_actor(actor_ref) {
+            Ok(Some(Self {
+                id: actor_id,
+                inner: traffic_sign_wrapper,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
-    /// Get the traffic sign type.
+    /// Get the traffic sign's actor ID.
+    pub fn get_id(&self) -> ActorId {
+        self.id
+    }
+
+    /// Get the traffic sign type by parsing the sign ID.
     pub fn get_sign_type(&self) -> TrafficSignType {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("TrafficSign::get_sign_type not yet implemented with carla-cxx FFI")
+        let sign_id = self.inner.get_sign_id();
+        TrafficSignType::from_sign_id(&sign_id)
     }
 
     /// Get the trigger volume for this traffic sign.
     pub fn get_trigger_volume(&self) -> crate::geom::BoundingBox {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("TrafficSign::get_trigger_volume not yet implemented with carla-cxx FFI")
+        let simple_bbox = self.inner.get_trigger_volume();
+        crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 
     /// Check if a location is within the sign's influence area.
     pub fn is_in_trigger_volume(&self, location: &crate::geom::Location) -> bool {
-        // TODO: Implement using carla-cxx FFI interface
-        let _location = location;
-        todo!("TrafficSign::is_in_trigger_volume not yet implemented with carla-cxx FFI")
-    }
-
-    /// Get affected waypoints (for stop signs, etc.).
-    pub fn get_affected_waypoints(&self) -> Vec<crate::road::Waypoint> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("TrafficSign::get_affected_waypoints not yet implemented with carla-cxx FFI")
+        let trigger_volume = self.get_trigger_volume();
+        trigger_volume.contains(location)
     }
 }
 
 impl ActorT for TrafficSign {
     fn get_id(&self) -> ActorId {
-        self.actor.get_id()
+        self.id
     }
     fn get_type_id(&self) -> String {
-        self.actor.get_type_id()
+        self.inner.get_type_id()
     }
     fn get_transform(&self) -> Transform {
-        self.actor.get_transform()
+        let cxx_transform = self.inner.get_transform();
+        Transform::from(cxx_transform)
     }
     fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        self.actor.set_transform(transform)
+        let cxx_transform = transform.to_cxx();
+        self.inner.set_transform(&cxx_transform);
+        Ok(())
     }
     fn get_velocity(&self) -> Vector3D {
-        self.actor.get_velocity()
+        let vel = self.inner.get_velocity();
+        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn get_angular_velocity(&self) -> Vector3D {
-        self.actor.get_angular_velocity()
+        let vel = self.inner.get_angular_velocity();
+        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn get_acceleration(&self) -> Vector3D {
-        self.actor.get_acceleration()
+        let acc = self.inner.get_acceleration();
+        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
     }
     fn is_alive(&self) -> bool {
-        self.actor.is_alive()
+        self.inner.is_alive()
     }
     fn destroy(&self) -> CarlaResult<()> {
-        self.actor.destroy()
+        if self.inner.destroy() {
+            Ok(())
+        } else {
+            Err(CarlaError::Actor(ActorError::DestroyFailed(self.id)))
+        }
     }
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        self.actor.set_simulate_physics(enabled)
+        self.inner.set_simulate_physics(enabled);
+        Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_impulse(impulse)
+        let cxx_impulse = carla_cxx::SimpleVector3D {
+            x: impulse.x as f64,
+            y: impulse.y as f64,
+            z: impulse.z as f64,
+        };
+        self.inner.add_impulse(&cxx_impulse);
+        Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_force(force)
+        let cxx_force = carla_cxx::SimpleVector3D {
+            x: force.x as f64,
+            y: force.y as f64,
+            z: force.z as f64,
+        };
+        self.inner.add_force(&cxx_force);
+        Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        self.actor.add_torque(torque)
-    }
-}
-
-/// Traffic sign types.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TrafficSignType {
-    /// Stop sign
-    Stop,
-    /// Yield sign
-    Yield,
-    /// Speed limit sign
-    SpeedLimit,
-    /// One way sign
-    OneWay,
-    /// No entry sign
-    NoEntry,
-    /// Parking sign
-    Parking,
-    /// Unknown sign type
-    Unknown,
-}
-
-impl Default for TrafficSignType {
-    fn default() -> Self {
-        Self::Unknown
+        let cxx_torque = carla_cxx::SimpleVector3D {
+            x: torque.x as f64,
+            y: torque.y as f64,
+            z: torque.z as f64,
+        };
+        self.inner.add_torque(&cxx_torque);
+        Ok(())
     }
 }
