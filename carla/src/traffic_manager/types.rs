@@ -182,7 +182,7 @@ pub enum ActionType {
 
 impl TrafficManagerConfig {
     /// Create from carla-cxx TrafficManagerConfig.
-    pub fn from_cxx(config: carla_cxx::TrafficManagerConfig) -> Self {
+    pub(crate) fn from_cxx(config: carla_cxx::TrafficManagerConfig) -> Self {
         Self {
             global_speed_percentage_difference: config.global_speed_percentage_difference,
             global_lane_offset: config.global_lane_offset,
@@ -205,7 +205,7 @@ impl TrafficManagerConfig {
 
 impl TrafficManagerVehicleConfig {
     /// Create from carla-cxx TrafficManagerVehicleConfig.
-    pub fn from_cxx(config: carla_cxx::TrafficManagerVehicleConfig) -> Self {
+    pub(crate) fn from_cxx(config: carla_cxx::TrafficManagerVehicleConfig) -> Self {
         Self {
             actor_id: 0, // Not available in FFI struct
             speed_percentage: config.speed_percentage_difference,
@@ -227,7 +227,7 @@ impl TrafficManagerVehicleConfig {
 
 impl TrafficManagerStats {
     /// Create from carla-cxx TrafficManagerStats.
-    pub fn from_cxx(stats: carla_cxx::TrafficManagerStats) -> Self {
+    pub(crate) fn from_cxx(stats: carla_cxx::TrafficManagerStats) -> Self {
         Self {
             registered_vehicles_count: stats.total_registered_vehicles as usize,
             active_vehicles_count: stats.active_vehicle_count as usize,
@@ -241,7 +241,7 @@ impl TrafficManagerStats {
 
 impl TrafficManagerAction {
     /// Create from carla-cxx TrafficManagerAction.
-    pub fn from_cxx(action: carla_cxx::TrafficManagerAction) -> Self {
+    pub(crate) fn from_cxx(action: carla_cxx::TrafficManagerAction) -> Self {
         Self {
             actor_id: 0, // Not available in FFI struct
             action_type: ActionType::from_road_option(action.road_option),
@@ -254,7 +254,7 @@ impl TrafficManagerAction {
 
 impl ActionType {
     /// Create from carla-cxx RoadOption.
-    pub fn from_road_option(road_option: carla_cxx::RoadOption) -> Self {
+    pub(crate) fn from_road_option(road_option: carla_cxx::RoadOption) -> Self {
         match road_option {
             carla_cxx::RoadOption::LaneFollow => ActionType::LaneFollow,
             carla_cxx::RoadOption::ChangeLaneLeft => ActionType::LaneChangeLeft,
@@ -268,7 +268,7 @@ impl ActionType {
     }
 
     /// Create from carla-cxx action type integer.
-    pub fn from_cxx(action_type: u8) -> Self {
+    pub(crate) fn from_cxx(action_type: u8) -> Self {
         match action_type {
             0 => ActionType::LaneFollow,
             1 => ActionType::LaneChangeLeft,

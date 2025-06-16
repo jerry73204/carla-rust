@@ -33,10 +33,9 @@ impl TrafficManager {
 
     /// Register vehicles with this traffic manager.
     pub fn register_vehicles(&self, vehicles: &[&Vehicle]) -> CarlaResult<()> {
-        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> = vehicles
-            .iter()
-            .map(|v| v.inner().inner().as_ref().unwrap())
-            .collect();
+        // Convert Rust Vehicle types to FFI Vehicle types internally
+        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> =
+            vehicles.iter().map(|v| v.as_ffi()).collect();
         self.inner.register_vehicles(&ffi_vehicles);
         Ok(())
     }
@@ -48,10 +47,9 @@ impl TrafficManager {
 
     /// Unregister vehicles from this traffic manager.
     pub fn unregister_vehicles(&self, vehicles: &[&Vehicle]) -> CarlaResult<()> {
-        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> = vehicles
-            .iter()
-            .map(|v| v.inner().inner().as_ref().unwrap())
-            .collect();
+        // Convert Rust Vehicle types to FFI Vehicle types internally
+        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> =
+            vehicles.iter().map(|v| v.as_ffi()).collect();
         self.inner.unregister_vehicles(&ffi_vehicles);
         Ok(())
     }
@@ -63,8 +61,8 @@ impl TrafficManager {
 
     /// Check if a vehicle is registered with this traffic manager.
     pub fn is_vehicle_registered(&self, vehicle: &Vehicle) -> bool {
-        self.inner
-            .is_vehicle_registered(vehicle.inner().inner().as_ref().unwrap())
+        // Convert Rust Vehicle type to FFI Vehicle type internally
+        self.inner.is_vehicle_registered(vehicle.as_ffi())
     }
 
     // ========================================
@@ -137,21 +135,20 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_speed_percentage(vehicle.inner().inner(), percentage);
+            .set_vehicle_speed_percentage(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
     /// Set desired speed for a specific vehicle.
     pub fn set_vehicle_desired_speed(&self, vehicle: &Vehicle, speed: f32) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_desired_speed(vehicle.inner().inner(), speed);
+            .set_vehicle_desired_speed(vehicle.as_ffi(), speed);
         Ok(())
     }
 
     /// Set lane offset for a specific vehicle.
     pub fn set_vehicle_lane_offset(&self, vehicle: &Vehicle, offset: f32) -> CarlaResult<()> {
-        self.inner
-            .set_vehicle_lane_offset(vehicle.inner().inner(), offset);
+        self.inner.set_vehicle_lane_offset(vehicle.as_ffi(), offset);
         Ok(())
     }
 
@@ -162,7 +159,7 @@ impl TrafficManager {
         enabled: bool,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_auto_lane_change(vehicle.inner().inner(), enabled);
+            .set_vehicle_auto_lane_change(vehicle.as_ffi(), enabled);
         Ok(())
     }
 
@@ -170,7 +167,7 @@ impl TrafficManager {
     /// direction: true for left, false for right.
     pub fn force_vehicle_lane_change(&self, vehicle: &Vehicle, direction: bool) -> CarlaResult<()> {
         self.inner
-            .force_vehicle_lane_change(vehicle.inner().inner(), direction);
+            .force_vehicle_lane_change(vehicle.as_ffi(), direction);
         Ok(())
     }
 
@@ -181,7 +178,7 @@ impl TrafficManager {
         distance: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_distance_to_leading_vehicle(vehicle.inner().inner(), distance);
+            .set_vehicle_distance_to_leading_vehicle(vehicle.as_ffi(), distance);
         Ok(())
     }
 
@@ -196,7 +193,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_percentage_running_light(vehicle.inner().inner(), percentage);
+            .set_vehicle_percentage_running_light(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -207,7 +204,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_percentage_running_sign(vehicle.inner().inner(), percentage);
+            .set_vehicle_percentage_running_sign(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -218,7 +215,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_percentage_ignore_walkers(vehicle.inner().inner(), percentage);
+            .set_vehicle_percentage_ignore_walkers(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -229,7 +226,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_percentage_ignore_vehicles(vehicle.inner().inner(), percentage);
+            .set_vehicle_percentage_ignore_vehicles(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -256,18 +253,15 @@ impl TrafficManager {
         vehicle2: &Vehicle,
         detect: bool,
     ) -> CarlaResult<()> {
-        self.inner.set_collision_detection(
-            vehicle1.inner().inner(),
-            vehicle2.inner().inner(),
-            detect,
-        );
+        self.inner
+            .set_collision_detection(vehicle1.as_ffi(), vehicle2.as_ffi(), detect);
         Ok(())
     }
 
     /// Enable/disable vehicle light updates for a specific vehicle.
     pub fn set_vehicle_update_lights(&self, vehicle: &Vehicle, update: bool) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_update_lights(vehicle.inner().inner(), update);
+            .set_vehicle_update_lights(vehicle.as_ffi(), update);
         Ok(())
     }
 
@@ -282,7 +276,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_keep_right_percentage(vehicle.inner().inner(), percentage);
+            .set_vehicle_keep_right_percentage(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -293,7 +287,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_random_left_lane_change_percentage(vehicle.inner().inner(), percentage);
+            .set_vehicle_random_left_lane_change_percentage(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -304,7 +298,7 @@ impl TrafficManager {
         percentage: f32,
     ) -> CarlaResult<()> {
         self.inner
-            .set_vehicle_random_right_lane_change_percentage(vehicle.inner().inner(), percentage);
+            .set_vehicle_random_right_lane_change_percentage(vehicle.as_ffi(), percentage);
         Ok(())
     }
 
@@ -345,7 +339,7 @@ impl TrafficManager {
         &self,
         vehicle: &Vehicle,
     ) -> CarlaResult<TrafficManagerVehicleConfig> {
-        let config = self.inner.get_vehicle_config(vehicle.inner().inner());
+        let config = self.inner.get_vehicle_config(vehicle.as_ffi());
         Ok(TrafficManagerVehicleConfig::from_cxx(config))
     }
 
@@ -357,7 +351,7 @@ impl TrafficManager {
 
     /// Get next action for a specific vehicle.
     pub fn get_next_action(&self, vehicle: &Vehicle) -> CarlaResult<TrafficManagerAction> {
-        let action = self.inner.get_next_action(vehicle.inner().inner());
+        let action = self.inner.get_next_action(vehicle.as_ffi());
         Ok(TrafficManagerAction::from_cxx(action))
     }
 

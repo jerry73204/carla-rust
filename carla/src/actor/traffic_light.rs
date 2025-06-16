@@ -20,7 +20,10 @@ pub struct TrafficLight {
 
 impl TrafficLight {
     /// Create a traffic light from a carla-cxx TrafficLightWrapper and actor ID.
-    pub fn new(traffic_light_wrapper: TrafficLightWrapper, id: ActorId) -> CarlaResult<Self> {
+    pub(crate) fn from_cxx(
+        traffic_light_wrapper: TrafficLightWrapper,
+        id: ActorId,
+    ) -> CarlaResult<Self> {
         Ok(Self {
             id,
             inner: traffic_light_wrapper,

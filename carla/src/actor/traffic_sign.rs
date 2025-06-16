@@ -19,7 +19,10 @@ pub struct TrafficSign {
 
 impl TrafficSign {
     /// Create a traffic sign from a carla-cxx TrafficSignWrapper and actor ID.
-    pub fn new(traffic_sign_wrapper: TrafficSignWrapper, id: ActorId) -> CarlaResult<Self> {
+    pub(crate) fn from_cxx(
+        traffic_sign_wrapper: TrafficSignWrapper,
+        id: ActorId,
+    ) -> CarlaResult<Self> {
         Ok(Self {
             id,
             inner: traffic_sign_wrapper,

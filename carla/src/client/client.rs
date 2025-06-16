@@ -59,7 +59,7 @@ impl Client {
     /// Get the current world.
     pub fn get_world(&self) -> CarlaResult<World> {
         let world_wrapper = self.inner.get_world();
-        Ok(World::new(world_wrapper))
+        Ok(World::from_cxx(world_wrapper))
     }
 
     /// Get available maps.
@@ -70,19 +70,19 @@ impl Client {
     /// Load a new world/map.
     pub fn load_world(&self, map_name: &str) -> CarlaResult<World> {
         let world_wrapper = self.inner.load_world(map_name);
-        Ok(World::new(world_wrapper))
+        Ok(World::from_cxx(world_wrapper))
     }
 
     /// Reload the current world.
     pub fn reload_world(&self) -> CarlaResult<World> {
         let world_wrapper = self.inner.reload_world(true); // reset_settings = true by default
-        Ok(World::new(world_wrapper))
+        Ok(World::from_cxx(world_wrapper))
     }
 
     /// Generate OpenDRIVE map from file.
     pub fn generate_opendrive_world(&self, opendrive: &str) -> CarlaResult<World> {
         let world_wrapper = self.inner.generate_opendrive_world(opendrive);
-        Ok(World::new(world_wrapper))
+        Ok(World::from_cxx(world_wrapper))
     }
 
     // Recording functionality

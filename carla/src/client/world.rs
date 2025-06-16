@@ -20,7 +20,7 @@ pub struct World {
 
 impl World {
     /// Create a new World from a WorldWrapper
-    pub fn new(inner: WorldWrapper) -> Self {
+    pub(crate) fn from_cxx(inner: WorldWrapper) -> Self {
         Self { inner }
     }
 

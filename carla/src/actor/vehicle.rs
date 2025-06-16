@@ -52,6 +52,11 @@ impl Vehicle {
         &self.inner
     }
 
+    /// Get access to the underlying FFI Vehicle type for direct FFI calls.
+    pub(crate) fn as_ffi(&self) -> &carla_cxx::ffi::Vehicle {
+        self.inner.inner().as_ref().unwrap()
+    }
+
     /// Get the vehicle's wheel physics parameters.
     pub fn get_wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
         use carla_cxx::vehicle::VehicleWheelLocation;
