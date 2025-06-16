@@ -1,56 +1,48 @@
 //! Actor blueprint for spawning.
 
 use crate::error::{CarlaResult, SpawnError};
+use carla_cxx::ActorBlueprintWrapper;
 use std::collections::HashMap;
 
 /// Actor blueprint for spawning.
 #[derive(Debug, Clone)]
 pub struct ActorBlueprint {
-    /// Blueprint ID (e.g., "vehicle.tesla.model3")
-    pub id: String,
-    /// Blueprint tags
-    pub tags: Vec<String>,
-    /// Blueprint attributes
-    pub attributes: HashMap<String, ActorAttribute>,
-    /// Internal handle to carla-cxx ActorBlueprint - TODO: Use proper wrapper type
-    inner: Option<String>, // Placeholder - should use carla_cxx::ActorBlueprint
+    /// Internal wrapper from carla-cxx
+    inner: ActorBlueprintWrapper,
+    /// Cached attributes (populated on demand)
+    attributes_cache: Option<HashMap<String, ActorAttribute>>,
 }
 
 impl ActorBlueprint {
-    /// Create a new blueprint.
-    pub fn new(id: String) -> Self {
+    /// Create a blueprint from a carla-cxx ActorBlueprintWrapper.
+    pub fn new(inner: ActorBlueprintWrapper) -> Self {
         Self {
-            id,
-            tags: Vec::new(),
-            attributes: HashMap::new(),
-            inner: None,
+            inner,
+            attributes_cache: None,
         }
     }
 
-    /// Create a blueprint from a carla-cxx ActorBlueprint.
-    pub fn from_cxx(_inner: String) -> Self {
-        // TODO: Extract id, tags, and attributes from inner blueprint
-        // Need to implement using carla-cxx FFI functions
-        let id = "TODO".to_string(); // carla_cxx::ActorBlueprint_GetId(&inner);
-        let tags = Vec::new(); // carla_cxx::ActorBlueprint_GetTags(&inner);
-
-        Self {
-            id,
-            tags,
-            attributes: HashMap::new(), // TODO: Extract attributes
-            inner: None,                // TODO: Store wrapper properly
-        }
+    /// Get the blueprint ID.
+    pub fn get_id(&self) -> String {
+        self.inner.get_id()
     }
 
-    /// Get reference to the inner carla-cxx ActorBlueprint for FFI operations
-    pub fn get_inner(&self) -> Option<&str> {
-        todo!("ActorBlueprint::get_inner - need proper carla-cxx ActorBlueprint wrapper")
+    /// Get the blueprint tags.
+    pub fn get_tags(&self) -> Vec<String> {
+        self.inner.get_tags()
+    }
+
+    /// Get reference to the inner carla-cxx ActorBlueprint wrapper
+    pub fn get_inner(&self) -> &ActorBlueprintWrapper {
+        &self.inner
     }
 
     /// Set an attribute value.
     pub fn set_attribute(&mut self, key: &str, value: &str) -> CarlaResult<()> {
-        if let Some(attr) = self.attributes.get_mut(key) {
-            attr.set_value(value)?;
+        if self.inner.contains_attribute(key) {
+            self.inner.set_attribute(key, value);
+            // Clear cache since attribute changed
+            self.attributes_cache = None;
             Ok(())
         } else {
             Err(SpawnError::AttributeError {
@@ -61,58 +53,19 @@ impl ActorBlueprint {
         }
     }
 
-    /// Get an attribute value.
-    pub fn get_attribute(&self, key: &str) -> Option<&str> {
-        self.attributes.get(key).map(|attr| attr.value.as_str())
+    /// Check if blueprint has a specific attribute.
+    pub fn contains_attribute(&self, key: &str) -> bool {
+        self.inner.contains_attribute(key)
     }
 
     /// Check if blueprint has a specific tag.
     pub fn has_tag(&self, tag: &str) -> bool {
-        self.tags.contains(&tag.to_string())
+        self.inner.contains_tag(tag)
     }
 
-    /// Add a tag to the blueprint.
-    pub fn add_tag(&mut self, tag: String) {
-        if !self.tags.contains(&tag) {
-            self.tags.push(tag);
-        }
-    }
-
-    /// Remove a tag from the blueprint.
-    pub fn remove_tag(&self, tag: &str) -> bool {
-        // Note: We return a new blueprint without the tag rather than mutating
-        // to maintain consistency with CARLA's immutable blueprint behavior
-        self.tags.contains(&tag.to_string())
-    }
-
-    /// Get all attribute keys.
-    pub fn get_attribute_keys(&self) -> Vec<&str> {
-        self.attributes.keys().map(|s| s.as_str()).collect()
-    }
-
-    /// Check if blueprint matches a wildcard pattern.
+    /// Check if blueprint matches a wildcard pattern (for tags).
     pub fn matches_pattern(&self, pattern: &str) -> bool {
-        // Simple wildcard matching with * and ?
-        // TODO: Implement proper glob pattern matching
-        if pattern == "*" {
-            return true;
-        }
-
-        if pattern.contains('*') {
-            // Simple prefix/suffix matching
-            if pattern.starts_with('*') && pattern.ends_with('*') {
-                let middle = &pattern[1..pattern.len() - 1];
-                return self.id.contains(middle);
-            } else if pattern.starts_with('*') {
-                let suffix = &pattern[1..];
-                return self.id.ends_with(suffix);
-            } else if pattern.ends_with('*') {
-                let prefix = &pattern[..pattern.len() - 1];
-                return self.id.starts_with(prefix);
-            }
-        }
-
-        self.id == pattern
+        self.inner.match_tags(pattern)
     }
 }
 
@@ -159,6 +112,7 @@ impl ActorAttribute {
         }
 
         // TODO: Add type validation based on attribute_type
+        todo!();
         self.value = value.to_string();
         Ok(())
     }
@@ -210,6 +164,7 @@ impl ActorAttribute {
             }
             ActorAttributeType::RGBColor => {
                 // TODO: Validate RGB color format (e.g., "255,128,64")
+                todo!();
                 let parts: Vec<&str> = value.split(',').collect();
                 if parts.len() != 3 {
                     return Err(SpawnError::AttributeError {
@@ -219,15 +174,7 @@ impl ActorAttribute {
                     .into());
                 }
                 for part in parts {
-                    if let Ok(val) = part.trim().parse::<u8>() {
-                        if val > 255 {
-                            return Err(SpawnError::AttributeError {
-                                attribute: self.id.clone(),
-                                reason: format!("RGB value out of range: {}", part),
-                            }
-                            .into());
-                        }
-                    } else {
+                    if part.trim().parse::<u8>().is_err() {
                         return Err(SpawnError::AttributeError {
                             attribute: self.id.clone(),
                             reason: format!("Invalid RGB component: {}", part),

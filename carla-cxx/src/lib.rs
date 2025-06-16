@@ -35,6 +35,7 @@
 #![allow(dead_code)]
 
 // Module declarations
+pub mod actor_blueprint;
 pub mod advanced_world;
 pub mod batch_operations;
 pub mod blueprint;
@@ -71,6 +72,7 @@ pub use ffi::{
     Vehicle, Walker, Waypoint, World,
 };
 
+pub use actor_blueprint::ActorBlueprintWrapper;
 pub use batch_operations::{
     BatchCommandBuilder, BatchCommandType, BatchResponseExt,
     TrafficLightState as BatchTrafficLightState, VehicleLightState as BatchVehicleLightState,

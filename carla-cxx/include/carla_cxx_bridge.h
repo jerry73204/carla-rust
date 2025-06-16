@@ -79,6 +79,7 @@ struct SimpleOptionalLabelledPoint;
 struct SimpleOptionalLocation;
 struct SimpleActorId;
 struct SimpleActorList;
+struct SimpleBlueprintList;
 struct SimpleBatchCommand;
 struct SimpleBatchResponse;
 struct SimpleEnvironmentObject;
@@ -292,6 +293,16 @@ bool Actor_IsAlive(const Actor &actor);
 std::shared_ptr<ActorBlueprint>
 BlueprintLibrary_Find(const BlueprintLibrary &library, rust::Str id);
 size_t BlueprintLibrary_Size(const BlueprintLibrary &library);
+SimpleBlueprintList BlueprintLibrary_GetAll(const BlueprintLibrary &library);
+SimpleBlueprintList
+BlueprintLibrary_FilterByTags(const BlueprintLibrary &library,
+                              rust::Vec<rust::String> tags);
+SimpleBlueprintList
+BlueprintLibrary_FilterByAttribute(const BlueprintLibrary &library,
+                                   rust::Str attribute_name,
+                                   rust::Str attribute_value);
+SimpleBlueprintList BlueprintLibrary_Search(const BlueprintLibrary &library,
+                                            rust::Str search_term);
 
 // ActorBlueprint wrapper functions
 rust::String ActorBlueprint_GetId(const ActorBlueprint &blueprint);
@@ -303,6 +314,8 @@ bool ActorBlueprint_ContainsAttribute(const ActorBlueprint &blueprint,
                                       rust::Str id);
 void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
                                  rust::Str value);
+rust::Vec<rust::String>
+ActorBlueprint_GetAttributeIds(const ActorBlueprint &blueprint);
 
 // Actor casting functions
 std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);

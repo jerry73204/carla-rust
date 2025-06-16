@@ -407,6 +407,12 @@ bool Actor_Destroy(const Actor &actor) {
 
 bool Actor_IsAlive(const Actor &actor) { return actor.IsAlive(); }
 
+} // namespace client
+} // namespace carla
+
+namespace carla {
+namespace client {
+
 // BlueprintLibrary wrapper functions
 std::shared_ptr<ActorBlueprint>
 BlueprintLibrary_Find(const BlueprintLibrary &library, rust::Str id) {
@@ -436,6 +442,77 @@ BlueprintLibrary_Find(const BlueprintLibrary &library, rust::Str id) {
 
 size_t BlueprintLibrary_Size(const BlueprintLibrary &library) {
   return library.size();
+}
+
+// Get all blueprints in the library
+SimpleBlueprintList BlueprintLibrary_GetAll(const BlueprintLibrary &library) {
+  SimpleBlueprintList result;
+  // Iterate through all blueprints using the iterator interface
+  for (const auto &blueprint : library) {
+    result.blueprint_ids.push_back(rust::String(blueprint.GetId()));
+  }
+  return result;
+}
+
+// Filter blueprints by tags (simplified version that returns a vector)
+SimpleBlueprintList
+BlueprintLibrary_FilterByTags(const BlueprintLibrary &library,
+                              rust::Vec<rust::String> tags) {
+  SimpleBlueprintList result;
+
+  // First get all blueprints
+  for (const auto &blueprint : library) {
+    bool matches_all_tags = true;
+
+    // Check if blueprint matches all provided tags
+    for (const auto &tag : tags) {
+      std::string tag_str(tag);
+      if (!blueprint.MatchTags(tag_str)) {
+        matches_all_tags = false;
+        break;
+      }
+    }
+
+    if (matches_all_tags) {
+      result.blueprint_ids.push_back(rust::String(blueprint.GetId()));
+    }
+  }
+  return result;
+}
+
+// Filter blueprints by attribute
+SimpleBlueprintList
+BlueprintLibrary_FilterByAttribute(const BlueprintLibrary &library,
+                                   rust::Str attribute_name,
+                                   rust::Str attribute_value) {
+  SimpleBlueprintList result;
+  std::string name_str(attribute_name);
+  std::string value_str(attribute_value);
+
+  // Use CARLA's FilterByAttribute method
+  auto filtered_library = library.FilterByAttribute(name_str, value_str);
+
+  // Convert the filtered library to a vector
+  for (const auto &blueprint : *filtered_library) {
+    result.blueprint_ids.push_back(rust::String(blueprint.GetId()));
+  }
+  return result;
+}
+
+// Search blueprints by name substring
+SimpleBlueprintList BlueprintLibrary_Search(const BlueprintLibrary &library,
+                                            rust::Str search_term) {
+  SimpleBlueprintList result;
+  std::string search_str(search_term);
+
+  // Iterate through all blueprints and check if ID contains search term
+  for (const auto &blueprint : library) {
+    std::string id = blueprint.GetId();
+    if (id.find(search_str) != std::string::npos) {
+      result.blueprint_ids.push_back(rust::String(id));
+    }
+  }
+  return result;
 }
 
 // ActorBlueprint wrapper functions
@@ -476,6 +553,16 @@ void ActorBlueprint_SetAttribute(const ActorBlueprint &blueprint, rust::Str id,
   std::string value_str(value);
   // const_cast is needed because CARLA's API is not const-correct
   const_cast<ActorBlueprint &>(blueprint).SetAttribute(id_str, value_str);
+}
+
+rust::Vec<rust::String>
+ActorBlueprint_GetAttributeIds(const ActorBlueprint &blueprint) {
+  rust::Vec<rust::String> result;
+  // ActorBlueprint doesn't provide a direct method to get attribute IDs
+  // We would need to iterate through the attributes, but the API doesn't expose
+  // this For now, return empty vector - a proper implementation would require
+  // extending the C++ API or using a different approach
+  return result;
 }
 
 // Geometry utility functions implementations

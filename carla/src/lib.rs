@@ -76,7 +76,7 @@ pub mod traffic_manager;
 pub mod error;
 
 // Utility modules
-mod traits;
+pub mod traits;
 mod utils;
 
 // Re-export commonly used types for convenience

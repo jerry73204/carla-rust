@@ -40,8 +40,8 @@ fn main() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("Tesla Model 3 blueprint not found"))?;
 
     // Set ROS2 name attribute on the vehicle blueprint
-    ffi::ActorBlueprint_SetAttribute(&vehicle_bp, "ros_name", "ego_vehicle");
-    ffi::ActorBlueprint_SetAttribute(&vehicle_bp, "role_name", "ego_vehicle");
+    vehicle_bp.set_attribute("ros_name", "ego_vehicle");
+    vehicle_bp.set_attribute("role_name", "ego_vehicle");
 
     // Spawn the vehicle
     let spawn_points = world.get_map().get_recommended_spawn_points();
@@ -62,10 +62,10 @@ fn main() -> anyhow::Result<()> {
         .find("sensor.camera.rgb")
         .ok_or_else(|| anyhow::anyhow!("RGB camera blueprint not found"))?;
 
-    ffi::ActorBlueprint_SetAttribute(&camera_bp, "image_size_x", "800");
-    ffi::ActorBlueprint_SetAttribute(&camera_bp, "image_size_y", "600");
-    ffi::ActorBlueprint_SetAttribute(&camera_bp, "fov", "90.0");
-    ffi::ActorBlueprint_SetAttribute(&camera_bp, "ros_name", "rgb_front");
+    camera_bp.set_attribute("image_size_x", "800");
+    camera_bp.set_attribute("image_size_y", "600");
+    camera_bp.set_attribute("fov", "90.0");
+    camera_bp.set_attribute("ros_name", "rgb_front");
 
     let camera_transform = SimpleTransform::new(
         SimpleLocation::new(2.0, 0.0, 1.5), // Front of vehicle
@@ -88,10 +88,10 @@ fn main() -> anyhow::Result<()> {
         .find("sensor.lidar.ray_cast")
         .ok_or_else(|| anyhow::anyhow!("LiDAR blueprint not found"))?;
 
-    ffi::ActorBlueprint_SetAttribute(&lidar_bp, "range", "50.0");
-    ffi::ActorBlueprint_SetAttribute(&lidar_bp, "rotation_frequency", "10.0");
-    ffi::ActorBlueprint_SetAttribute(&lidar_bp, "channels", "32");
-    ffi::ActorBlueprint_SetAttribute(&lidar_bp, "ros_name", "lidar");
+    lidar_bp.set_attribute("range", "50.0");
+    lidar_bp.set_attribute("rotation_frequency", "10.0");
+    lidar_bp.set_attribute("channels", "32");
+    lidar_bp.set_attribute("ros_name", "lidar");
 
     let lidar_transform = SimpleTransform::new(
         SimpleLocation::new(0.0, 0.0, 2.5), // Top of vehicle
@@ -114,7 +114,7 @@ fn main() -> anyhow::Result<()> {
         .find("sensor.other.imu")
         .ok_or_else(|| anyhow::anyhow!("IMU blueprint not found"))?;
 
-    ffi::ActorBlueprint_SetAttribute(&imu_bp, "ros_name", "imu");
+    imu_bp.set_attribute("ros_name", "imu");
 
     let imu_transform = SimpleTransform::new(
         SimpleLocation::new(0.0, 0.0, 0.0),

@@ -18,11 +18,7 @@ impl BlueprintLibrary {
     /// Find a blueprint by ID.
     pub fn find(&self, blueprint_id: &str) -> CarlaResult<Option<ActorBlueprint>> {
         match self.inner.find(blueprint_id) {
-            Some(blueprint_ptr) => {
-                // TODO: Need ActorBlueprint wrapper integration
-                let _blueprint_ptr = blueprint_ptr;
-                todo!("ActorBlueprint wrapper from carla-cxx SharedPtr not yet implemented")
-            }
+            Some(blueprint_wrapper) => Ok(Some(ActorBlueprint::new(blueprint_wrapper))),
             None => Ok(None),
         }
     }
@@ -30,23 +26,21 @@ impl BlueprintLibrary {
     /// Filter blueprints by wildcard pattern.
     pub fn filter(&self, wildcard_pattern: &str) -> CarlaResult<Vec<ActorBlueprint>> {
         // TODO: Implement using carla-cxx FFI interface - CXX doesn't support Vec<SharedPtr<T>> return types
+        // The filter method needs to use CARLA's pattern matching which is more complex than simple search
         let _wildcard_pattern = wildcard_pattern;
-        todo!(
-            "BlueprintLibrary::filter - missing FFI for Vec<SharedPtr<ActorBlueprint>> return type"
-        )
+        todo!("BlueprintLibrary::filter - missing FFI for wildcard pattern matching")
     }
 
     /// Get all blueprints.
     pub fn get_all(&self) -> CarlaResult<Vec<ActorBlueprint>> {
-        // TODO: Implement using carla-cxx FFI interface - missing FFI function
-        todo!("BlueprintLibrary::get_all - missing FFI function")
+        let blueprints = self.inner.get_all();
+        Ok(blueprints.into_iter().map(ActorBlueprint::new).collect())
     }
 
     /// Filter blueprints by tags.
     pub fn filter_by_tags(&self, tags: &[&str]) -> CarlaResult<Vec<ActorBlueprint>> {
-        // TODO: Implement using carla-cxx FFI interface - missing FFI function
-        let _tags = tags;
-        todo!("BlueprintLibrary::filter_by_tags - missing FFI function")
+        let blueprints = self.inner.filter_by_tags(tags);
+        Ok(blueprints.into_iter().map(ActorBlueprint::new).collect())
     }
 
     /// Get all vehicle blueprints.
@@ -75,17 +69,24 @@ impl BlueprintLibrary {
         attribute_name: &str,
         attribute_value: Option<&str>,
     ) -> CarlaResult<Vec<ActorBlueprint>> {
-        // TODO: Implement using carla-cxx FFI interface - missing FFI function
-        let _attribute_name = attribute_name;
-        let _attribute_value = attribute_value;
-        todo!("BlueprintLibrary::filter_by_attribute - missing FFI function")
+        // If no attribute value is provided, we need to filter by presence of attribute
+        // For now, we'll require an attribute value
+        match attribute_value {
+            Some(value) => {
+                let blueprints = self.inner.filter_by_attribute(attribute_name, value);
+                Ok(blueprints.into_iter().map(ActorBlueprint::new).collect())
+            }
+            None => {
+                // TODO: Implement filtering by attribute presence without value
+                todo!("BlueprintLibrary::filter_by_attribute - filtering by attribute presence not yet implemented")
+            }
+        }
     }
 
     /// Search blueprints by name substring.
     pub fn search(&self, search_term: &str) -> CarlaResult<Vec<ActorBlueprint>> {
-        // TODO: Implement using carla-cxx FFI interface - missing FFI function
-        let _search_term = search_term;
-        todo!("BlueprintLibrary::search - missing FFI function")
+        let blueprints = self.inner.search(search_term);
+        Ok(blueprints.into_iter().map(ActorBlueprint::new).collect())
     }
 
     /// Get the number of blueprints in the library.

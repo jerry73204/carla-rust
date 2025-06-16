@@ -1,6 +1,6 @@
 //! High-level wrapper types for CARLA client functionality.
 
-use crate::ffi::{self, Actor, ActorBlueprint, BlueprintLibrary, Client, SimpleTransform, World};
+use crate::ffi::{self, Actor, BlueprintLibrary, Client, SimpleTransform, World};
 use anyhow::Result;
 use cxx::{SharedPtr, UniquePtr};
 use std::time::Duration;
@@ -223,15 +223,16 @@ impl WorldWrapper {
     /// Spawn an actor in the world (panics if failed)
     pub fn spawn_actor(
         &self,
-        blueprint: &ActorBlueprint,
+        blueprint: &crate::actor_blueprint::ActorBlueprintWrapper,
         transform: &SimpleTransform,
         parent: Option<&Actor>,
     ) -> Result<ActorWrapper> {
         let parent_ptr = parent
             .map(|p| p as *const Actor)
             .unwrap_or(std::ptr::null());
-        let actor_ptr =
-            unsafe { ffi::World_SpawnActor(&self.inner, blueprint, transform, parent_ptr) };
+        let actor_ptr = unsafe {
+            ffi::World_SpawnActor(&self.inner, blueprint.get_inner(), transform, parent_ptr)
+        };
         if actor_ptr.is_null() {
             anyhow::bail!("Failed to spawn actor");
         }
@@ -241,15 +242,16 @@ impl WorldWrapper {
     /// Try to spawn an actor in the world (returns None if failed)
     pub fn try_spawn_actor(
         &self,
-        blueprint: &ActorBlueprint,
+        blueprint: &crate::actor_blueprint::ActorBlueprintWrapper,
         transform: &SimpleTransform,
         parent: Option<&Actor>,
     ) -> Option<ActorWrapper> {
         let parent_ptr = parent
             .map(|p| p as *const Actor)
             .unwrap_or(std::ptr::null());
-        let actor_ptr =
-            unsafe { ffi::World_TrySpawnActor(&self.inner, blueprint, transform, parent_ptr) };
+        let actor_ptr = unsafe {
+            ffi::World_TrySpawnActor(&self.inner, blueprint.get_inner(), transform, parent_ptr)
+        };
         if actor_ptr.is_null() {
             None
         } else {
@@ -568,19 +570,65 @@ impl std::fmt::Debug for BlueprintLibraryWrapper {
 
 impl BlueprintLibraryWrapper {
     /// Find a blueprint by ID
-    pub fn find(&self, id: &str) -> Option<SharedPtr<ActorBlueprint>> {
+    pub fn find(&self, id: &str) -> Option<crate::actor_blueprint::ActorBlueprintWrapper> {
         let blueprint_ptr = ffi::BlueprintLibrary_Find(&self.inner, id);
         if blueprint_ptr.is_null() {
             None
         } else {
-            Some(blueprint_ptr)
+            Some(crate::actor_blueprint::ActorBlueprintWrapper::new(
+                blueprint_ptr,
+            ))
         }
     }
 
-    // TODO: Implement filter method - CXX doesn't support Vec<SharedPtr<T>>
-    // pub fn filter(&self, wildcard_pattern: &str) -> Vec<SharedPtr<ActorBlueprint>> {
-    //     ffi::BlueprintLibrary_Filter(&self.inner, wildcard_pattern)
-    // }
+    /// Get all blueprints in the library
+    pub fn get_all(&self) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
+        let blueprint_list = ffi::BlueprintLibrary_GetAll(&self.inner);
+        blueprint_list
+            .blueprint_ids
+            .into_iter()
+            .filter_map(|id| self.find(&id))
+            .collect()
+    }
+
+    /// Filter blueprints by tags (all tags must match)
+    pub fn filter_by_tags(
+        &self,
+        tags: &[&str],
+    ) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
+        let tags_vec: Vec<String> = tags.iter().map(|&s| s.to_string()).collect();
+        let blueprint_list = ffi::BlueprintLibrary_FilterByTags(&self.inner, tags_vec);
+        blueprint_list
+            .blueprint_ids
+            .into_iter()
+            .filter_map(|id| self.find(&id))
+            .collect()
+    }
+
+    /// Filter blueprints by attribute name and value
+    pub fn filter_by_attribute(
+        &self,
+        attribute_name: &str,
+        attribute_value: &str,
+    ) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
+        let blueprint_list =
+            ffi::BlueprintLibrary_FilterByAttribute(&self.inner, attribute_name, attribute_value);
+        blueprint_list
+            .blueprint_ids
+            .into_iter()
+            .filter_map(|id| self.find(&id))
+            .collect()
+    }
+
+    /// Search blueprints by ID substring
+    pub fn search(&self, search_term: &str) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
+        let blueprint_list = ffi::BlueprintLibrary_Search(&self.inner, search_term);
+        blueprint_list
+            .blueprint_ids
+            .into_iter()
+            .filter_map(|id| self.find(&id))
+            .collect()
+    }
 
     /// Get the number of blueprints in the library
     pub fn size(&self) -> usize {

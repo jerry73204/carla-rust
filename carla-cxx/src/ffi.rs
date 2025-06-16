@@ -501,6 +501,11 @@ pub mod bridge {
         pub actor_ids: Vec<u32>,
     }
 
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleBlueprintList {
+        pub blueprint_ids: Vec<String>,
+    }
+
     // Batch operation types
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleBatchCommand {
@@ -1233,6 +1238,20 @@ pub mod bridge {
         fn BlueprintLibrary_Find(library: &BlueprintLibrary, id: &str)
             -> SharedPtr<ActorBlueprint>;
         fn BlueprintLibrary_Size(library: &BlueprintLibrary) -> usize;
+        fn BlueprintLibrary_GetAll(library: &BlueprintLibrary) -> SimpleBlueprintList;
+        fn BlueprintLibrary_FilterByTags(
+            library: &BlueprintLibrary,
+            tags: Vec<String>,
+        ) -> SimpleBlueprintList;
+        fn BlueprintLibrary_FilterByAttribute(
+            library: &BlueprintLibrary,
+            attribute_name: &str,
+            attribute_value: &str,
+        ) -> SimpleBlueprintList;
+        fn BlueprintLibrary_Search(
+            library: &BlueprintLibrary,
+            search_term: &str,
+        ) -> SimpleBlueprintList;
 
         // ActorBlueprint methods
         fn ActorBlueprint_GetId(blueprint: &ActorBlueprint) -> String;
@@ -1241,6 +1260,7 @@ pub mod bridge {
         fn ActorBlueprint_ContainsTag(blueprint: &ActorBlueprint, tag: &str) -> bool;
         fn ActorBlueprint_ContainsAttribute(blueprint: &ActorBlueprint, id: &str) -> bool;
         fn ActorBlueprint_SetAttribute(blueprint: &ActorBlueprint, id: &str, value: &str);
+        fn ActorBlueprint_GetAttributeIds(blueprint: &ActorBlueprint) -> Vec<String>;
 
         // Geometry utility functions
         fn Vector2D_Length(vector: &SimpleVector2D) -> f64;
@@ -1354,6 +1374,7 @@ pub use bridge::{
     ActorBlueprint,
     ActorBlueprint_ContainsAttribute,
     ActorBlueprint_ContainsTag,
+    ActorBlueprint_GetAttributeIds,
     ActorBlueprint_GetId,
     ActorBlueprint_GetTags,
     ActorBlueprint_MatchTags,
@@ -1375,7 +1396,11 @@ pub use bridge::{
     Actor_SetLocation,
     Actor_SetTransform,
     BlueprintLibrary,
+    BlueprintLibrary_FilterByAttribute,
+    BlueprintLibrary_FilterByTags,
     BlueprintLibrary_Find,
+    BlueprintLibrary_GetAll,
+    BlueprintLibrary_Search,
     BlueprintLibrary_Size,
     BoundingBox_Contains,
     BoundingBox_GetVertices,
@@ -1437,6 +1462,7 @@ pub use bridge::{
     SimpleAckermannControl,
     SimpleActorId,
     SimpleActorList,
+    SimpleBlueprintList,
     SimpleBoundingBox,
     SimpleCollisionData,
     // Debug visualization structures

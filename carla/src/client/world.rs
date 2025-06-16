@@ -108,11 +108,19 @@ impl World {
         transform: &Transform,
         parent: Option<&Actor>,
     ) -> CarlaResult<Actor> {
-        // TODO: Implement using carla-cxx FFI interface - need proper ActorBlueprint wrapper
-        let _simple_transform: carla_cxx::SimpleTransform = transform.into();
-        let _parent_actor = parent.map(|p| p.get_inner_actor());
-        let _blueprint = blueprint;
-        todo!("World::spawn_actor - need proper ActorBlueprint to carla-cxx integration")
+        let simple_transform: carla_cxx::SimpleTransform = transform.into();
+        let parent_actor = parent.map(|p| p.get_inner_actor());
+
+        match self
+            .inner
+            .spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
+        {
+            Ok(actor_wrapper) => Ok(Actor::new(actor_wrapper)),
+            Err(_e) => Err(crate::error::SpawnError::LocationOccupied {
+                location: transform.location.clone(),
+            }
+            .into()),
+        }
     }
 
     /// Try to spawn an actor (returns None if location is occupied).
@@ -122,11 +130,16 @@ impl World {
         transform: &Transform,
         parent: Option<&Actor>,
     ) -> CarlaResult<Option<Actor>> {
-        // TODO: Implement using carla-cxx FFI interface - need proper ActorBlueprint wrapper
-        let _simple_transform: carla_cxx::SimpleTransform = transform.into();
-        let _parent_actor = parent.map(|p| p.get_inner_actor());
-        let _blueprint = blueprint;
-        todo!("World::try_spawn_actor - need proper ActorBlueprint to carla-cxx integration")
+        let simple_transform: carla_cxx::SimpleTransform = transform.into();
+        let parent_actor = parent.map(|p| p.get_inner_actor());
+
+        match self
+            .inner
+            .try_spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
+        {
+            Some(actor_wrapper) => Ok(Some(Actor::new(actor_wrapper))),
+            None => Ok(None),
+        }
     }
 
     /// Tick the world (advance simulation by one step).
