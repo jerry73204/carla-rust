@@ -16,6 +16,13 @@ pub struct DepthImageData {
     pub image: ImageData,
 }
 
+impl DepthImageData {
+    /// Create DepthImageData from ImageData
+    pub fn new(image: ImageData) -> Self {
+        Self { image }
+    }
+}
+
 impl SensorData for DepthImageData {
     fn timestamp(&self) -> Timestamp {
         self.image.timestamp()
@@ -81,6 +88,13 @@ impl DepthImageData {
 pub struct SemanticSegmentationImageData {
     /// Base image data
     pub image: ImageData,
+}
+
+impl SemanticSegmentationImageData {
+    /// Create SemanticSegmentationImageData from ImageData
+    pub fn new(image: ImageData) -> Self {
+        Self { image }
+    }
 }
 
 impl SensorData for SemanticSegmentationImageData {
@@ -154,6 +168,13 @@ impl SemanticSegmentationImageData {
 pub struct InstanceSegmentationImageData {
     /// Base image data
     pub image: ImageData,
+}
+
+impl InstanceSegmentationImageData {
+    /// Create InstanceSegmentationImageData from ImageData
+    pub fn new(image: ImageData) -> Self {
+        Self { image }
+    }
 }
 
 impl SensorData for InstanceSegmentationImageData {

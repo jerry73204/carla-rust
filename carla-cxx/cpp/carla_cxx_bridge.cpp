@@ -1377,19 +1377,95 @@ void Sensor_Listen(const Sensor &sensor) {
 // Sensor data retrieval functions
 SimpleImageData Sensor_GetLastImageData(const Sensor &sensor) {
   if (!g_last_sensor_data) {
-    return SimpleImageData{0, 0, 0.0f, 0};
+    // Return empty image data
+    return SimpleImageData{
+        0,
+        0,
+        0.0f,
+        SimpleTimestamp{0, 0.0, 0.0, 0.0},
+        SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}},
+        0,
+        rust::Vec<uint8_t>()};
   }
 
   auto image_data =
       std::dynamic_pointer_cast<carla::sensor::data::Image>(g_last_sensor_data);
   if (image_data) {
-    return SimpleImageData{
-        image_data->GetWidth(), image_data->GetHeight(),
-        90.0f, // Default FOV - would need to get from sensor blueprint
-        image_data->size()};
+    // Get sensor transform
+    auto transform = image_data->GetSensorTransform();
+    SimpleTransform simple_transform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+
+    // Get timestamp
+    SimpleTimestamp simple_timestamp{
+        image_data->GetFrame(),
+        image_data
+            ->GetTimestamp(), // elapsed_seconds (GetTimestamp returns double)
+        0.0,                  // delta_seconds (not available from sensor data)
+        0.0 // platform_timestamp (not available from sensor data)
+    };
+
+    // Copy image data
+    rust::Vec<uint8_t> data;
+    data.reserve(image_data->size() * sizeof(carla::sensor::data::Color));
+
+    // Copy the raw pixel data
+    const auto *raw_data =
+        reinterpret_cast<const uint8_t *>(image_data->data());
+    for (size_t i = 0;
+         i < image_data->size() * sizeof(carla::sensor::data::Color); ++i) {
+      data.push_back(raw_data[i]);
+    }
+
+    return SimpleImageData{image_data->GetWidth(),
+                           image_data->GetHeight(),
+                           image_data->GetFOVAngle(),
+                           simple_timestamp,
+                           simple_transform,
+                           sensor.GetId(),
+                           std::move(data)};
   }
 
-  return SimpleImageData{0, 0, 0.0f, 0};
+  // Return empty image data if cast failed
+  return SimpleImageData{
+      0,
+      0,
+      0.0f,
+      SimpleTimestamp{0, 0.0, 0.0, 0.0},
+      SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}},
+      0,
+      rust::Vec<uint8_t>()};
+}
+
+// Camera specific functions
+bool Sensor_IsCamera(const Sensor &sensor) {
+  // Check if the sensor type ID contains "camera"
+  std::string type_id = sensor.GetTypeId();
+  return type_id.find("camera") != std::string::npos;
+}
+
+uint8_t Sensor_GetCameraType(const Sensor &sensor) {
+  std::string type_id = sensor.GetTypeId();
+
+  // Check for specific camera types
+  if (type_id.find("rgb") != std::string::npos) {
+    return 0; // RGB camera
+  } else if (type_id.find("depth") != std::string::npos) {
+    return 1; // Depth camera
+  } else if (type_id.find("semantic_segmentation") != std::string::npos) {
+    return 2; // Semantic segmentation
+  } else if (type_id.find("instance_segmentation") != std::string::npos) {
+    return 3; // Instance segmentation
+  } else if (type_id.find("optical_flow") != std::string::npos) {
+    return 4; // Optical flow
+  } else if (type_id.find("dvs") != std::string::npos) {
+    return 5; // DVS camera
+  }
+
+  return 0; // Default to RGB
 }
 
 bool Sensor_GetImageDataBuffer(const Sensor &sensor,

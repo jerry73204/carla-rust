@@ -6,6 +6,7 @@
 mod actor;
 mod blueprint;
 mod blueprint_library;
+mod camera;
 mod client;
 mod sensor;
 mod traffic_light;
@@ -17,6 +18,7 @@ mod world;
 pub use actor::{Actor, ActorSnapshot};
 pub use blueprint::{ActorAttribute, ActorAttributeType, ActorBlueprint};
 pub use blueprint_library::BlueprintLibrary;
+pub use camera::{CameraSensor, CameraType};
 pub use client::Client;
 pub use sensor::{Camera, CollisionSensor, LaneInvasionSensor, LiDAR, Radar, Sensor, GNSS, IMU};
 pub use traffic_light::TrafficLight;

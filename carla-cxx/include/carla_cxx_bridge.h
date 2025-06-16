@@ -452,6 +452,10 @@ void Sensor_Listen(const Sensor &sensor);
 SimpleImageData Sensor_GetLastImageData(const Sensor &sensor);
 bool Sensor_GetImageDataBuffer(const Sensor &sensor,
                                rust::Slice<uint8_t> buffer);
+
+// Camera specific functions
+bool Sensor_IsCamera(const Sensor &sensor);
+uint8_t Sensor_GetCameraType(const Sensor &sensor);
 rust::Vec<SimpleLiDARPoint> Sensor_GetLastLiDARData(const Sensor &sensor);
 rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor);
 SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor);

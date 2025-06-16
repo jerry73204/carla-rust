@@ -47,6 +47,16 @@ impl SensorWrapper {
         ffi::Sensor_HasNewData(&self.inner)
     }
 
+    /// Check if this sensor is a camera
+    pub fn is_camera(&self) -> bool {
+        ffi::Sensor_IsCamera(&self.inner)
+    }
+
+    /// Get the camera type (RGB, Depth, etc.)
+    pub fn get_camera_type(&self) -> CameraType {
+        CameraType::from(ffi::Sensor_GetCameraType(&self.inner))
+    }
+
     /// Get the last image data
     pub fn get_last_image_data(&self) -> ImageData {
         let simple_data = ffi::Sensor_GetLastImageData(&self.inner);
@@ -126,13 +136,41 @@ impl SensorWrapper {
     }
 }
 
+/// Camera sensor type
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CameraType {
+    RGB = 0,
+    Depth = 1,
+    SemanticSegmentation = 2,
+    InstanceSegmentation = 3,
+    OpticalFlow = 4,
+    DVS = 5,
+}
+
+impl From<u8> for CameraType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => CameraType::RGB,
+            1 => CameraType::Depth,
+            2 => CameraType::SemanticSegmentation,
+            3 => CameraType::InstanceSegmentation,
+            4 => CameraType::OpticalFlow,
+            5 => CameraType::DVS,
+            _ => CameraType::RGB, // Default
+        }
+    }
+}
+
 /// Image sensor data
 #[derive(Debug, Clone)]
 pub struct ImageData {
     pub width: u32,
     pub height: u32,
     pub fov: f32,
-    pub data_size: usize,
+    pub timestamp: crate::time::Timestamp,
+    pub transform: crate::ffi::SimpleTransform,
+    pub sensor_id: u32,
+    pub data: Vec<u8>,
 }
 
 impl From<ffi::SimpleImageData> for ImageData {
@@ -141,7 +179,41 @@ impl From<ffi::SimpleImageData> for ImageData {
             width: simple.width,
             height: simple.height,
             fov: simple.fov,
-            data_size: simple.data_size,
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
+            data: simple.data,
+        }
+    }
+}
+
+impl ImageData {
+    /// Get the size of the image data in bytes
+    pub fn data_size(&self) -> usize {
+        self.data.len()
+    }
+
+    /// Check if the image data is empty
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty() || self.width == 0 || self.height == 0
+    }
+
+    /// Get pixel data at specific coordinates (BGRA format)
+    pub fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]> {
+        if x >= self.width || y >= self.height {
+            return None;
+        }
+
+        let idx = ((y * self.width + x) * 4) as usize;
+        if idx + 3 < self.data.len() {
+            Some([
+                self.data[idx],     // B
+                self.data[idx + 1], // G
+                self.data[idx + 2], // R
+                self.data[idx + 3], // A
+            ])
+        } else {
+            None
         }
     }
 }

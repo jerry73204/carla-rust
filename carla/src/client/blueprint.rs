@@ -164,7 +164,6 @@ impl ActorAttribute {
             }
             ActorAttributeType::RGBColor => {
                 // TODO: Validate RGB color format (e.g., "255,128,64")
-                todo!();
                 let parts: Vec<&str> = value.split(',').collect();
                 if parts.len() != 3 {
                     return Err(SpawnError::AttributeError {

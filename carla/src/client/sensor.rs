@@ -14,7 +14,7 @@ pub struct Sensor {
     /// Actor ID
     id: ActorId,
     /// Internal sensor wrapper for FFI calls
-    inner: SensorWrapper,
+    pub(crate) inner: SensorWrapper,
 }
 
 impl Sensor {
@@ -45,6 +45,11 @@ impl Sensor {
         self.id
     }
 
+    /// Get the sensor's actor ID.
+    pub fn id(&self) -> ActorId {
+        self.id
+    }
+
     /// Start listening for sensor data with a callback.
     ///
     /// # Arguments
@@ -72,12 +77,8 @@ impl Sensor {
     }
 
     /// Stop listening for sensor data.
-    ///
-    /// # Errors
-    /// Returns [`SensorError::NotListening`] if not currently listening.
-    pub fn stop(&self) -> Result<(), SensorError> {
+    pub fn stop(&self) {
         self.inner.stop();
-        Ok(())
     }
 
     /// Check if the sensor is currently listening.
@@ -227,12 +228,7 @@ impl Camera {
     /// Try to create a Camera from a generic Sensor.
     /// Returns None if the sensor is not a camera.
     pub fn from_sensor(sensor: Sensor) -> Option<Self> {
-        let type_id = sensor.get_type_id();
-        if type_id.contains("camera")
-            || type_id.contains("rgb")
-            || type_id.contains("depth")
-            || type_id.contains("semantic")
-        {
+        if sensor.inner.is_camera() {
             Some(Camera(sensor))
         } else {
             None
@@ -249,15 +245,45 @@ impl Camera {
         &self.0
     }
 
+    /// Get the camera type (RGB, Depth, Semantic, etc.)
+    pub fn get_camera_type(&self) -> crate::client::CameraType {
+        crate::client::CameraType::from(self.0.inner.get_camera_type())
+    }
+
     /// Get the last image data from the camera.
-    pub fn get_last_image_data(&self) -> carla_cxx::sensor::ImageData {
-        self.0.inner.get_last_image_data()
+    pub fn get_last_image_data(&self) -> Option<crate::sensor::ImageData> {
+        let cxx_data = self.0.inner.get_last_image_data();
+        if cxx_data.is_empty() {
+            None
+        } else {
+            Some(crate::sensor::ImageData::from_cxx(cxx_data))
+        }
     }
 
     /// Get image data into a provided buffer.
     /// Returns true if data was copied successfully.
     pub fn get_image_data_buffer(&self, buffer: &mut [u8]) -> bool {
         self.0.inner.get_image_data_buffer(buffer)
+    }
+
+    /// Start listening for camera data.
+    pub fn listen(&self) {
+        self.0.inner.listen();
+    }
+
+    /// Stop listening for camera data.
+    pub fn stop(&self) {
+        self.0.inner.stop();
+    }
+
+    /// Check if the camera is listening.
+    pub fn is_listening(&self) -> bool {
+        self.0.inner.is_listening()
+    }
+
+    /// Check if new image data is available.
+    pub fn has_new_data(&self) -> bool {
+        self.0.inner.has_new_data()
     }
 }
 

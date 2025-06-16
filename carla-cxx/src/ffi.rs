@@ -200,12 +200,15 @@ pub mod bridge {
         pub altitude: f64,
     }
 
-    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[derive(Debug, Clone, PartialEq)]
     pub struct SimpleImageData {
         pub width: u32,
         pub height: u32,
         pub fov: f32,
-        pub data_size: usize,
+        pub timestamp: SimpleTimestamp,
+        pub transform: SimpleTransform,
+        pub sensor_id: u32,
+        pub data: Vec<u8>, // Raw BGRA image data
     }
 
     #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1044,6 +1047,10 @@ pub mod bridge {
         // Sensor data retrieval - polling approach
         fn Sensor_GetLastImageData(sensor: &Sensor) -> SimpleImageData;
         fn Sensor_GetImageDataBuffer(sensor: &Sensor, buffer: &mut [u8]) -> bool;
+
+        // Camera specific functions
+        fn Sensor_IsCamera(sensor: &Sensor) -> bool;
+        fn Sensor_GetCameraType(sensor: &Sensor) -> u8; // 0=RGB, 1=Depth, 2=SemanticSeg, 3=InstanceSeg
         fn Sensor_GetLastLiDARData(sensor: &Sensor) -> Vec<SimpleLiDARPoint>;
         fn Sensor_GetLastRadarData(sensor: &Sensor) -> Vec<SimpleRadarDetection>;
         fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
@@ -1445,6 +1452,7 @@ pub use bridge::{
     Sensor,
     // Sensor methods
     Sensor_CastToActor,
+    Sensor_GetCameraType,
     // Sensor data retrieval
     Sensor_GetImageDataBuffer,
     Sensor_GetLastCollisionData,
@@ -1455,6 +1463,7 @@ pub use bridge::{
     Sensor_GetLastLiDARData,
     Sensor_GetLastRadarData,
     Sensor_HasNewData,
+    Sensor_IsCamera,
     Sensor_IsListening,
     Sensor_Listen,
     Sensor_Stop,

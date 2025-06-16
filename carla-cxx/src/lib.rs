@@ -87,6 +87,7 @@ pub use map::{
 };
 pub use ros2::{ros2_utils, SensorROS2Ext, VehicleControlCommand};
 pub use sensor::{
+    CameraType,
     CollisionData,
     CrossedLaneMarking,
     // Advanced sensor types

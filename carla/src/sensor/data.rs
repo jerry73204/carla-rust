@@ -42,6 +42,37 @@ pub struct ImageData {
     pub data: Vec<u8>,
 }
 
+impl ImageData {
+    /// Create ImageData from carla-cxx ImageData
+    pub fn from_cxx(cxx_data: carla_cxx::ImageData) -> Self {
+        Self {
+            timestamp: Timestamp::new(
+                cxx_data.timestamp.frame,
+                cxx_data.timestamp.elapsed_seconds,
+                cxx_data.timestamp.delta_seconds,
+                cxx_data.timestamp.platform_timestamp,
+            ),
+            transform: Transform::new(
+                crate::geom::Location::new(
+                    cxx_data.transform.location.x,
+                    cxx_data.transform.location.y,
+                    cxx_data.transform.location.z,
+                ),
+                crate::geom::Rotation::new(
+                    cxx_data.transform.rotation.pitch as f32,
+                    cxx_data.transform.rotation.yaw as f32,
+                    cxx_data.transform.rotation.roll as f32,
+                ),
+            ),
+            sensor_id: cxx_data.sensor_id,
+            width: cxx_data.width,
+            height: cxx_data.height,
+            fov: cxx_data.fov,
+            data: cxx_data.data,
+        }
+    }
+}
+
 impl SensorData for ImageData {
     fn timestamp(&self) -> Timestamp {
         self.timestamp
