@@ -395,6 +395,11 @@ impl VehicleWrapper {
     pub fn add_torque(&self, torque: &SimpleVector3D) {
         ffi::Vehicle_AddTorque(&self.inner, torque);
     }
+
+    /// Get access to the underlying Vehicle FFI type for direct FFI calls.
+    pub fn inner(&self) -> &SharedPtr<Vehicle> {
+        &self.inner
+    }
 }
 
 /// Vehicle control structure

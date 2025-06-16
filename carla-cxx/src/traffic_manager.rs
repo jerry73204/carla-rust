@@ -15,6 +15,15 @@ pub struct TrafficManagerWrapper {
     port: u16,
 }
 
+impl std::fmt::Debug for TrafficManagerWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TrafficManagerWrapper")
+            .field("port", &self.port)
+            .field("inner", &"<SharedPtr<TrafficManager>>")
+            .finish()
+    }
+}
+
 impl TrafficManagerWrapper {
     /// Create a new TrafficManagerWrapper from a SharedPtr<TrafficManager>
     pub fn new(tm: SharedPtr<TrafficManager>, port: u16) -> Self {

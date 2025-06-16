@@ -47,6 +47,11 @@ impl Vehicle {
         self.id
     }
 
+    /// Get access to the underlying VehicleWrapper for FFI calls.
+    pub(crate) fn inner(&self) -> &carla_cxx::VehicleWrapper {
+        &self.inner
+    }
+
     /// Get the vehicle's wheel physics parameters.
     pub fn get_wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
         use carla_cxx::vehicle::VehicleWheelLocation;
