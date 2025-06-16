@@ -454,16 +454,22 @@ impl From<ffi::bridge::SimpleDVSEvent> for DVSEvent {
 /// Dynamic Vision Sensor (DVS) event array
 #[derive(Debug, Clone)]
 pub struct DVSEventArray {
-    pub width: u32,            // Image width in pixels
-    pub height: u32,           // Image height in pixels
-    pub fov_angle: f32,        // Horizontal field of view
-    pub events: Vec<DVSEvent>, // Array of DVS events
+    pub timestamp: crate::time::Timestamp,      // Sensor timestamp
+    pub transform: crate::ffi::SimpleTransform, // Sensor transform
+    pub sensor_id: u32,                         // Sensor ID
+    pub width: u32,                             // Image width in pixels
+    pub height: u32,                            // Image height in pixels
+    pub fov_angle: f32,                         // Horizontal field of view
+    pub events: Vec<DVSEvent>,                  // Array of DVS events
 }
 
 impl From<ffi::bridge::SimpleDVSEventArray> for DVSEventArray {
     fn from(simple: ffi::bridge::SimpleDVSEventArray) -> Self {
         let events = simple.events.into_iter().map(DVSEvent::from).collect();
         Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             width: simple.width,
             height: simple.height,
             fov_angle: simple.fov_angle,

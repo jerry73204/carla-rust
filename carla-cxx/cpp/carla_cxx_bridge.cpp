@@ -46,6 +46,7 @@
 #include <carla/rpc/WeatherParameters.h>
 #include <carla/sensor/SensorData.h>
 #include <carla/sensor/data/CollisionEvent.h>
+#include <carla/sensor/data/DVSEventArray.h>
 #include <carla/sensor/data/GnssMeasurement.h>
 #include <carla/sensor/data/IMUMeasurement.h>
 #include <carla/sensor/data/Image.h>
@@ -1695,16 +1696,70 @@ bool Sensor_HasNewData(const Sensor &sensor) {
 
 // Advanced sensor data retrieval functions
 SimpleDVSEventArray Sensor_GetLastDVSData(const Sensor &sensor) {
-  SimpleDVSEventArray result;
-  result.width = 640; // Default values
-  result.height = 480;
-  result.fov_angle = 90.0f;
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to DVS event array
+    auto dvs_data =
+        std::dynamic_pointer_cast<carla::sensor::data::DVSEventArray>(
+            g_last_sensor_data);
+    if (dvs_data) {
+      // Extract timestamp
+      auto timestamp = dvs_data->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          dvs_data->GetFrame(), // Frame number
+          timestamp,            // elapsed_seconds (timestamp is double)
+          0.0,                  // delta_seconds (not directly available)
+          timestamp             // platform_timestamp (use same as elapsed)
+      };
 
-  // TODO: Implement actual DVS data retrieval
-  // This would involve getting the latest DVS sensor data from CARLA
-  // and converting it to our SimpleDVSEventArray format
+      // Extract transform (sensor's transform when DVS data was captured)
+      auto transform = dvs_data->GetSensorTransform();
+      SimpleTransform simple_transform{
+          SimpleLocation{transform.location.x, transform.location.y,
+                         transform.location.z},
+          SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                         transform.rotation.roll}};
 
-  return result;
+      // Extract DVS header information
+      uint32_t width = dvs_data->GetWidth();
+      uint32_t height = dvs_data->GetHeight();
+      float fov_angle = dvs_data->GetFOVAngle();
+
+      // Extract sensor ID (use frame as sensor ID - limitation of current
+      // system)
+      uint32_t sensor_id = dvs_data->GetFrame();
+
+      // Convert DVS events
+      rust::Vec<SimpleDVSEvent> events;
+      for (const auto &event : *dvs_data) {
+        SimpleDVSEvent simple_event{
+            event.x,  // X pixel coordinate
+            event.y,  // Y pixel coordinate
+            event.t,  // Timestamp in nanoseconds
+            event.pol // Polarity
+        };
+        events.push_back(simple_event);
+      }
+
+      return SimpleDVSEventArray{
+          simple_timestamp, simple_transform, sensor_id, width,
+          height,           fov_angle,        events};
+    }
+  }
+
+  // Return empty DVS data if no DVS data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{SimpleLocation{0.0, 0.0, 0.0},
+                                  SimpleRotation{0.0, 0.0, 0.0}};
+  rust::Vec<SimpleDVSEvent> empty_events;
+
+  return SimpleDVSEventArray{empty_timestamp,
+                             empty_transform,
+                             0,     // sensor_id
+                             640,   // width (default)
+                             480,   // height (default)
+                             90.0f, // fov_angle (default)
+                             empty_events};
 }
 
 SimpleObstacleDetectionEvent

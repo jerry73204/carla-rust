@@ -249,6 +249,9 @@ pub mod bridge {
 
     #[derive(Debug, Clone, PartialEq)]
     pub struct SimpleDVSEventArray {
+        pub timestamp: SimpleTimestamp,  // Sensor timestamp
+        pub transform: SimpleTransform,  // Sensor transform
+        pub sensor_id: u32,              // Sensor ID
         pub width: u32,                  // Image width in pixels
         pub height: u32,                 // Image height in pixels
         pub fov_angle: f32,              // Horizontal field of view

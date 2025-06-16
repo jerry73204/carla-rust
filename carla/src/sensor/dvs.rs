@@ -1,4 +1,14 @@
 //! Dynamic Vision Sensor (DVS) implementations.
+//!
+//! This module provides Rust bindings for CARLA's DVS camera sensor.
+//! The API closely mirrors CARLA's C++ DVSEventArray and DVSEvent classes which provide:
+//! - Base SensorData fields (timestamp, transform, sensor info)
+//! - DVS events with pixel coordinates (x, y), timestamp, and polarity
+//! - Image dimensions (width, height) and field of view
+//! - Built-in visualization methods (ToImage, ToArray) in C++
+//!
+//! Additional methods provide convenient access to event data filtering and analysis
+//! that builds upon the raw event data that CARLA provides.
 
 use crate::{geom::Transform, sensor::SensorData, time::Timestamp};
 
@@ -84,17 +94,25 @@ impl DVSData {
             .collect();
 
         Self {
-            // TODO: Extract proper metadata from carla-cxx DVS data structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx DVSEventArray
-            timestamp: todo!(
-                "DVSData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"
+            timestamp: Timestamp::new(
+                cxx_data.timestamp.frame,
+                cxx_data.timestamp.elapsed_seconds,
+                cxx_data.timestamp.delta_seconds,
+                cxx_data.timestamp.platform_timestamp,
             ),
-            transform: todo!(
-                "DVSData::from_cxx transform extraction not yet implemented - missing FFI metadata"
+            transform: Transform::new(
+                crate::geom::Location::new(
+                    cxx_data.transform.location.x,
+                    cxx_data.transform.location.y,
+                    cxx_data.transform.location.z,
+                ),
+                crate::geom::Rotation::new(
+                    cxx_data.transform.rotation.pitch as f32,
+                    cxx_data.transform.rotation.yaw as f32,
+                    cxx_data.transform.rotation.roll as f32,
+                ),
             ),
-            sensor_id: todo!(
-                "DVSData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"
-            ),
+            sensor_id: cxx_data.sensor_id,
             width: cxx_data.width,
             height: cxx_data.height,
             fov_angle: cxx_data.fov_angle,
@@ -155,6 +173,8 @@ impl DVSData {
     }
 
     /// Generate event frame by accumulating events over time.
+    ///
+    /// This mirrors CARLA C++ DVSEventArray::ToImage() functionality.
     /// Returns a grayscale image where positive events are white, negative are black.
     pub fn generate_event_frame(&self) -> Vec<u8> {
         let mut frame = vec![128u8; (self.width * self.height) as usize]; // Gray background
@@ -168,100 +188,4 @@ impl DVSData {
 
         frame
     }
-
-    /// Generate accumulation image showing event density.
-    pub fn generate_accumulation_image(&self) -> Vec<u32> {
-        let mut accumulation = vec![0u32; (self.width * self.height) as usize];
-
-        for event in &self.events {
-            let idx = (event.y as u32 * self.width + event.x as u32) as usize;
-            if idx < accumulation.len() {
-                accumulation[idx] += 1;
-            }
-        }
-
-        accumulation
-    }
-
-    /// Get event statistics.
-    pub fn get_statistics(&self) -> DVSStatistics {
-        if self.events.is_empty() {
-            return DVSStatistics::default();
-        }
-
-        let positive_count = self.events.iter().filter(|e| e.pol).count();
-        let negative_count = self.events.len() - positive_count;
-
-        let min_time = self.events.iter().map(|e| e.t).min().unwrap_or(0);
-        let max_time = self.events.iter().map(|e| e.t).max().unwrap_or(0);
-
-        DVSStatistics {
-            total_events: self.events.len(),
-            positive_events: positive_count,
-            negative_events: negative_count,
-            time_span_ns: max_time - min_time,
-            min_timestamp_ns: min_time,
-            max_timestamp_ns: max_time,
-            events_per_pixel: self.events.len() as f32 / (self.width * self.height) as f32,
-        }
-    }
-
-    /// Convert to sparse event representation (useful for event-based algorithms).
-    pub fn to_sparse_representation(&self) -> Vec<SparseEvent> {
-        self.events
-            .iter()
-            .map(|e| SparseEvent {
-                x: e.x,
-                y: e.y,
-                t: e.t,
-                pol: if e.pol { 1.0 } else { -1.0 },
-            })
-            .collect()
-    }
-}
-
-/// DVS sensor statistics.
-#[derive(Debug, Clone, PartialEq)]
-pub struct DVSStatistics {
-    /// Total number of events
-    pub total_events: usize,
-    /// Number of positive events
-    pub positive_events: usize,
-    /// Number of negative events
-    pub negative_events: usize,
-    /// Time span of events in nanoseconds
-    pub time_span_ns: i64,
-    /// Minimum timestamp in nanoseconds
-    pub min_timestamp_ns: i64,
-    /// Maximum timestamp in nanoseconds
-    pub max_timestamp_ns: i64,
-    /// Average events per pixel
-    pub events_per_pixel: f32,
-}
-
-impl Default for DVSStatistics {
-    fn default() -> Self {
-        Self {
-            total_events: 0,
-            positive_events: 0,
-            negative_events: 0,
-            time_span_ns: 0,
-            min_timestamp_ns: 0,
-            max_timestamp_ns: 0,
-            events_per_pixel: 0.0,
-        }
-    }
-}
-
-/// Sparse event representation for event-based algorithms.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SparseEvent {
-    /// X pixel coordinate
-    pub x: u16,
-    /// Y pixel coordinate
-    pub y: u16,
-    /// Timestamp in nanoseconds
-    pub t: i64,
-    /// Polarity as float (1.0 for positive, -1.0 for negative)
-    pub pol: f32,
 }
