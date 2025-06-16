@@ -25,7 +25,7 @@ pub use lane_invasion::LaneInvasionSensor;
 pub use lidar::LiDAR;
 pub use radar::Radar;
 pub use sensor::Sensor;
-pub use traffic_light::TrafficLight;
+pub use traffic_light::{TrafficLight, TrafficLightState};
 pub use traffic_sign::TrafficSign;
 pub use vehicle::{
     Vehicle, VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,

@@ -70,19 +70,47 @@ impl TrafficLight {
 
     /// Get traffic light group (affected lanes).
     /// Returns waypoint information for lanes affected by this traffic light.
-    pub fn affected_lane_waypoints(&self) -> Vec<carla_cxx::ffi::bridge::SimpleWaypointInfo> {
-        todo!("TrafficLight_GetAffectedLaneWaypoints FFI function added but CXX bridge integration needs debugging")
+    pub fn affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
+        // Call the wrapper method which has the FFI implementation
+        let waypoint_infos = self.inner.get_affected_lane_waypoints();
+
+        // Convert SimpleWaypointInfo to Waypoint
+        waypoint_infos
+            .into_iter()
+            .map(|info| crate::road::Waypoint {
+                transform: crate::geom::Transform::from(info.transform),
+                lane_id: info.lane_id,
+                section_id: info.section_id as i32,
+                road_id: info.road_id as i32,
+                junction_id: if info.is_junction { 0 } else { -1 }, // We don't have junction_id in SimpleWaypointInfo
+                lane_width: info.lane_width as f32,
+                lane_change: crate::road::LaneChange::from_u8(info.lane_change),
+                lane_type: crate::road::LaneType::from_u8(info.lane_type as u8),
+                lane_marking_type: crate::road::LaneMarkingType::Other, // Default, not provided
+                lane_marking_color: crate::road::LaneMarkingColor::Standard, // Default, not provided
+            })
+            .collect()
     }
 
     /// Get traffic light pole index.
     pub fn pole_index(&self) -> u32 {
-        todo!("TrafficLight_GetPoleIndex FFI function added but CXX bridge integration needs debugging")
+        // Call the wrapper method which has the FFI implementation
+        self.inner.get_pole_index()
     }
 
     /// Get all traffic lights in the same group.
-    /// Returns information about all traffic lights in the same group as this one.
-    pub fn group_traffic_lights(&self) -> Vec<carla_cxx::ffi::bridge::SimpleTrafficLightInfo> {
-        todo!("TrafficLight_GetGroupTrafficLights FFI function added but CXX bridge integration needs debugging")
+    /// Returns actor IDs of all traffic lights in the same group as this one.
+    ///
+    /// Note: To get the actual TrafficLight objects, use World::actor(id) and cast to TrafficLight.
+    pub fn group_traffic_lights(&self) -> Vec<ActorId> {
+        // Call the wrapper method which has the FFI implementation
+        let traffic_light_infos = self.inner.get_group_traffic_lights();
+
+        // Extract actor IDs from the traffic light info
+        traffic_light_infos
+            .into_iter()
+            .map(|info| info.actor_id)
+            .collect()
     }
 
     /// Freeze traffic light (stop automatic state changes).

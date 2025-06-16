@@ -13,6 +13,19 @@ pub enum LaneChange {
     Both,
 }
 
+impl LaneChange {
+    /// Convert from u8 value
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            0 => LaneChange::None,
+            1 => LaneChange::Right,
+            2 => LaneChange::Left,
+            3 => LaneChange::Both,
+            _ => LaneChange::None,
+        }
+    }
+}
+
 /// Lane types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaneType {
@@ -60,6 +73,37 @@ pub enum LaneType {
     OnRamp,
     /// Any
     Any,
+}
+
+impl LaneType {
+    /// Convert from u8 value
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            0 => LaneType::None,
+            1 => LaneType::Driving,
+            2 => LaneType::Stop,
+            3 => LaneType::Shoulder,
+            4 => LaneType::Biking,
+            5 => LaneType::Sidewalk,
+            6 => LaneType::Border,
+            7 => LaneType::Restricted,
+            8 => LaneType::Parking,
+            9 => LaneType::Bidirectional,
+            10 => LaneType::Median,
+            11 => LaneType::Special1,
+            12 => LaneType::Special2,
+            13 => LaneType::Special3,
+            14 => LaneType::RoadWorks,
+            15 => LaneType::Tram,
+            16 => LaneType::Rail,
+            17 => LaneType::Entry,
+            18 => LaneType::Exit,
+            19 => LaneType::OffRamp,
+            20 => LaneType::OnRamp,
+            21 => LaneType::Any,
+            _ => LaneType::None,
+        }
+    }
 }
 
 /// Lane marking types.
