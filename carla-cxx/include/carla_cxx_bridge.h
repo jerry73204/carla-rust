@@ -55,6 +55,7 @@ struct SimpleGNSSData;
 struct SimpleImageData;
 struct SimpleCollisionData;
 struct SimpleCrossedLaneMarking;
+struct SimpleLaneInvasionData;
 struct SimpleColor;
 struct SimpleDebugPoint;
 struct SimpleDebugLine;
@@ -463,8 +464,7 @@ rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor);
 SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor);
 SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor);
 SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor);
-rust::Vec<SimpleCrossedLaneMarking>
-Sensor_GetLastLaneInvasionData(const Sensor &sensor);
+SimpleLaneInvasionData Sensor_GetLastLaneInvasionData(const Sensor &sensor);
 bool Sensor_HasNewData(const Sensor &sensor);
 
 // Advanced sensor data retrieval functions

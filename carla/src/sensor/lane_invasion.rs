@@ -118,11 +118,25 @@ impl LaneInvasionData {
             .collect();
 
         Self {
-            // TODO: Extract proper metadata from carla-cxx LaneInvasionEvent structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx LaneInvasionEvent
-            timestamp: todo!("LaneInvasionData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
-            transform: todo!("LaneInvasionData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
-            sensor_id: todo!("LaneInvasionData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),
+            timestamp: Timestamp::new(
+                cxx_data.timestamp.frame,
+                cxx_data.timestamp.elapsed_seconds,
+                cxx_data.timestamp.delta_seconds,
+                cxx_data.timestamp.platform_timestamp,
+            ),
+            transform: Transform::new(
+                crate::geom::Location::new(
+                    cxx_data.transform.location.x,
+                    cxx_data.transform.location.y,
+                    cxx_data.transform.location.z,
+                ),
+                crate::geom::Rotation::new(
+                    cxx_data.transform.rotation.pitch as f32,
+                    cxx_data.transform.rotation.yaw as f32,
+                    cxx_data.transform.rotation.roll as f32,
+                ),
+            ),
+            sensor_id: cxx_data.sensor_id,
             crossed_lane_markings,
         }
     }

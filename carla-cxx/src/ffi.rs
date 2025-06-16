@@ -244,6 +244,14 @@ pub mod bridge {
         pub lane_change: u8, // LaneChange enum
     }
 
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleLaneInvasionData {
+        pub timestamp: SimpleTimestamp, // Sensor timestamp
+        pub transform: SimpleTransform, // Sensor transform
+        pub sensor_id: u32,             // Sensor ID
+        pub crossed_lane_markings: Vec<SimpleCrossedLaneMarking>, // Lane markings crossed
+    }
+
     // Advanced sensor data structures
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleDVSEvent {
@@ -1080,7 +1088,7 @@ pub mod bridge {
         fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
         fn Sensor_GetLastGNSSData(sensor: &Sensor) -> SimpleGNSSData;
         fn Sensor_GetLastCollisionData(sensor: &Sensor) -> SimpleCollisionData;
-        fn Sensor_GetLastLaneInvasionData(sensor: &Sensor) -> Vec<SimpleCrossedLaneMarking>;
+        fn Sensor_GetLastLaneInvasionData(sensor: &Sensor) -> SimpleLaneInvasionData;
         fn Sensor_HasNewData(sensor: &Sensor) -> bool;
 
         // Advanced sensor data retrieval functions
@@ -1514,6 +1522,7 @@ pub use bridge::{
     SimpleImageData,
     SimpleJunction,
     SimpleLabelledPoint,
+    SimpleLaneInvasionData,
     SimpleLaneMarking,
     SimpleLiDARPoint,
     SimpleLocation,

@@ -50,6 +50,7 @@
 #include <carla/sensor/data/GnssMeasurement.h>
 #include <carla/sensor/data/IMUMeasurement.h>
 #include <carla/sensor/data/Image.h>
+#include <carla/sensor/data/LaneInvasionEvent.h>
 #include <carla/sensor/data/LidarMeasurement.h>
 #include <carla/sensor/data/RadarMeasurement.h>
 #include <carla/trafficmanager/TrafficManager.h>
@@ -1594,38 +1595,100 @@ rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor) {
 }
 
 SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor) {
-  if (!g_last_sensor_data) {
-    return SimpleIMUData{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to IMU measurement
+    auto imu_data =
+        std::dynamic_pointer_cast<carla::sensor::data::IMUMeasurement>(
+            g_last_sensor_data);
+    if (imu_data) {
+      // Extract timestamp
+      auto timestamp = imu_data->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          imu_data->GetFrame(), // Frame number
+          timestamp,            // Elapsed seconds
+          0.0,                  // Delta seconds (not available in SensorData)
+          timestamp             // Platform timestamp (same as elapsed)
+      };
+
+      // Extract transform
+      auto transform = imu_data->GetSensorTransform();
+      SimpleTransform simple_transform{
+          {transform.location.x, transform.location.y, transform.location.z},
+          {transform.rotation.pitch, transform.rotation.yaw,
+           transform.rotation.roll}};
+
+      // Get sensor ID (use a placeholder for now - may need sensor parameter)
+      uint32_t sensor_id = 0; // TODO: Extract from sensor parameter if needed
+
+      // Get IMU measurements
+      const auto &accelerometer = imu_data->GetAccelerometer();
+      const auto &gyroscope = imu_data->GetGyroscope();
+
+      return SimpleIMUData{
+          simple_timestamp, simple_transform,      sensor_id,   accelerometer.x,
+          accelerometer.y,  accelerometer.z,       gyroscope.x, gyroscope.y,
+          gyroscope.z,      imu_data->GetCompass()};
+    }
   }
 
-  auto imu_data =
-      std::dynamic_pointer_cast<carla::sensor::data::IMUMeasurement>(
-          g_last_sensor_data);
-  if (imu_data) {
-    const auto &accelerometer = imu_data->GetAccelerometer();
-    const auto &gyroscope = imu_data->GetGyroscope();
-    return SimpleIMUData{
-        accelerometer.x, accelerometer.y, accelerometer.z,       gyroscope.x,
-        gyroscope.y,     gyroscope.z,     imu_data->GetCompass()};
-  }
-
-  return SimpleIMUData{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  // Return empty data structure if no data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
+  return SimpleIMUData{
+      empty_timestamp, empty_transform, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 }
 
 SimpleGNSSData Sensor_GetLastGNSSData(const Sensor &sensor) {
-  if (!g_last_sensor_data) {
-    return SimpleGNSSData{0.0, 0.0, 0.0};
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to GNSS measurement
+    auto gnss_data =
+        std::dynamic_pointer_cast<carla::sensor::data::GnssMeasurement>(
+            g_last_sensor_data);
+    if (gnss_data) {
+      // Extract timestamp
+      auto timestamp = gnss_data->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          gnss_data->GetFrame(), // Frame number
+          timestamp,             // elapsed_seconds (timestamp is double)
+          0.0,                   // delta_seconds (not directly available)
+          timestamp              // platform_timestamp (use same as elapsed)
+      };
+
+      // Extract transform (sensor's transform when GNSS data was captured)
+      auto transform = gnss_data->GetSensorTransform();
+      SimpleTransform simple_transform{
+          SimpleLocation{transform.location.x, transform.location.y,
+                         transform.location.z},
+          SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                         transform.rotation.roll}};
+
+      // Extract sensor ID (use frame as sensor ID - limitation of current
+      // system)
+      uint32_t sensor_id = gnss_data->GetFrame();
+
+      return SimpleGNSSData{simple_timestamp,
+                            simple_transform,
+                            sensor_id,
+                            gnss_data->GetLatitude(),
+                            gnss_data->GetLongitude(),
+                            gnss_data->GetAltitude()};
+    }
   }
 
-  auto gnss_data =
-      std::dynamic_pointer_cast<carla::sensor::data::GnssMeasurement>(
-          g_last_sensor_data);
-  if (gnss_data) {
-    return SimpleGNSSData{gnss_data->GetLatitude(), gnss_data->GetLongitude(),
-                          gnss_data->GetAltitude()};
-  }
-
-  return SimpleGNSSData{0.0, 0.0, 0.0};
+  // Return empty GNSS data if no GNSS data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{SimpleLocation{0.0, 0.0, 0.0},
+                                  SimpleRotation{0.0, 0.0, 0.0}};
+  return SimpleGNSSData{
+      empty_timestamp,
+      empty_transform,
+      0,   // sensor_id
+      0.0, // latitude
+      0.0, // longitude
+      0.0  // altitude
+  };
 }
 
 SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor) {
@@ -1680,12 +1743,56 @@ SimpleCollisionData Sensor_GetLastCollisionData(const Sensor &sensor) {
   };
 }
 
-rust::Vec<SimpleCrossedLaneMarking>
-Sensor_GetLastLaneInvasionData(const Sensor &sensor) {
-  rust::Vec<SimpleCrossedLaneMarking> markings;
-  // TODO: Implement actual lane invasion data retrieval
-  // For now, return empty vector
-  return markings;
+SimpleLaneInvasionData Sensor_GetLastLaneInvasionData(const Sensor &sensor) {
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to lane invasion event
+    auto lane_invasion_data =
+        std::dynamic_pointer_cast<carla::sensor::data::LaneInvasionEvent>(
+            g_last_sensor_data);
+    if (lane_invasion_data) {
+      // Extract timestamp
+      auto timestamp = lane_invasion_data->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          lane_invasion_data->GetFrame(), // Frame number
+          timestamp,                      // Elapsed seconds
+          0.0,      // Delta seconds (not available in SensorData)
+          timestamp // Platform timestamp (same as elapsed)
+      };
+
+      // Extract transform
+      auto transform = lane_invasion_data->GetSensorTransform();
+      SimpleTransform simple_transform{
+          {transform.location.x, transform.location.y, transform.location.z},
+          {transform.rotation.pitch, transform.rotation.yaw,
+           transform.rotation.roll}};
+
+      // Get sensor ID (use a placeholder for now - may need sensor parameter)
+      uint32_t sensor_id = 0; // TODO: Extract from sensor parameter if needed
+
+      // Extract crossed lane markings
+      rust::Vec<SimpleCrossedLaneMarking> markings;
+      const auto &crossed_markings =
+          lane_invasion_data->GetCrossedLaneMarkings();
+      for (const auto &marking : crossed_markings) {
+        markings.push_back(SimpleCrossedLaneMarking{
+            static_cast<uint32_t>(marking.type),      // Lane marking type
+            static_cast<uint32_t>(marking.color),     // Lane marking color
+            static_cast<uint8_t>(marking.lane_change) // Lane change permission
+        });
+      }
+
+      return SimpleLaneInvasionData{simple_timestamp, simple_transform,
+                                    sensor_id, markings};
+    }
+  }
+
+  // Return empty data structure if no data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
+  rust::Vec<SimpleCrossedLaneMarking> empty_markings;
+  return SimpleLaneInvasionData{empty_timestamp, empty_transform, 0,
+                                empty_markings};
 }
 
 bool Sensor_HasNewData(const Sensor &sensor) {

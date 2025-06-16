@@ -106,8 +106,8 @@ impl SensorWrapper {
 
     /// Get the last lane invasion data
     pub fn get_last_lane_invasion_data(&self) -> LaneInvasionData {
-        let markings = ffi::Sensor_GetLastLaneInvasionData(&self.inner);
-        LaneInvasionData::from(markings)
+        let simple_data = ffi::Sensor_GetLastLaneInvasionData(&self.inner);
+        LaneInvasionData::from(simple_data)
     }
 
     // Advanced sensor data methods
@@ -411,13 +411,23 @@ impl From<ffi::SimpleCollisionData> for CollisionData {
 /// Lane invasion sensor data
 #[derive(Debug, Clone)]
 pub struct LaneInvasionData {
+    pub timestamp: crate::time::Timestamp,      // Sensor timestamp
+    pub transform: crate::ffi::SimpleTransform, // Sensor transform
+    pub sensor_id: u32,                         // Sensor ID
     pub crossed_lane_markings: Vec<CrossedLaneMarking>,
 }
 
-impl From<Vec<ffi::SimpleCrossedLaneMarking>> for LaneInvasionData {
-    fn from(markings: Vec<ffi::SimpleCrossedLaneMarking>) -> Self {
-        let markings = markings.into_iter().map(CrossedLaneMarking::from).collect();
+impl From<ffi::bridge::SimpleLaneInvasionData> for LaneInvasionData {
+    fn from(simple: ffi::bridge::SimpleLaneInvasionData) -> Self {
+        let markings = simple
+            .crossed_lane_markings
+            .into_iter()
+            .map(CrossedLaneMarking::from)
+            .collect();
         Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             crossed_lane_markings: markings,
         }
     }
