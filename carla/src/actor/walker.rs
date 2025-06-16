@@ -4,7 +4,6 @@ use crate::{
     actor::{Actor, ActorId},
     error::CarlaResult,
     geom::{FromCxx, ToCxx, Transform, Vector3D},
-    rpc::WalkerControl,
     traits::{ActorT, WalkerT},
 };
 use carla_cxx::WalkerWrapper;
@@ -231,5 +230,26 @@ impl WalkerT for Walker {
         // Bone control is available through blend_pose but not individual bone transforms
         let _bone_transforms = bone_transforms;
         todo!("Walker::set_bones requires advanced bone FFI not implemented in CXX layer")
+    }
+}
+
+/// Walker (pedestrian) control commands.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WalkerControl {
+    /// Direction vector (normalized)
+    pub direction: Vector3D,
+    /// Speed in m/s
+    pub speed: f32,
+    /// Jump command
+    pub jump: bool,
+}
+
+impl Default for WalkerControl {
+    fn default() -> Self {
+        Self {
+            direction: Vector3D::zero(),
+            speed: 0.0,
+            jump: false,
+        }
     }
 }

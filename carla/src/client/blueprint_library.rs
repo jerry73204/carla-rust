@@ -26,7 +26,10 @@ impl BlueprintLibrary {
     /// Filter blueprints by wildcard pattern.
     pub fn filter(&self, wildcard_pattern: &str) -> CarlaResult<Vec<ActorBlueprint>> {
         let blueprints = self.inner.filter(wildcard_pattern);
-        Ok(blueprints.into_iter().map(ActorBlueprint::from_cxx).collect())
+        Ok(blueprints
+            .into_iter()
+            .map(ActorBlueprint::from_cxx)
+            .collect())
     }
 
     /// Get blueprints that have a specific attribute.
@@ -38,7 +41,10 @@ impl BlueprintLibrary {
         let blueprints = self
             .inner
             .filter_by_attribute(attribute_name, attribute_value);
-        Ok(blueprints.into_iter().map(ActorBlueprint::from_cxx).collect())
+        Ok(blueprints
+            .into_iter()
+            .map(ActorBlueprint::from_cxx)
+            .collect())
     }
 
     /// Get the number of blueprints in the library.
@@ -48,6 +54,9 @@ impl BlueprintLibrary {
 
     /// Get an iterator over all blueprints in the library.
     pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> {
-        self.inner.get_all().into_iter().map(ActorBlueprint::from_cxx)
+        self.inner
+            .get_all()
+            .into_iter()
+            .map(ActorBlueprint::from_cxx)
     }
 }

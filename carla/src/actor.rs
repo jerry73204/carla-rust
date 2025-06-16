@@ -3,6 +3,7 @@ mod camera;
 mod collision;
 mod dvs;
 mod gnss;
+mod id;
 mod imu;
 mod lane_invasion;
 mod lidar;
@@ -18,6 +19,7 @@ pub use camera::{Camera, CameraType};
 pub use collision::CollisionSensor;
 pub use dvs::DVSCamera;
 pub use gnss::GNSS;
+pub use id::ActorId;
 pub use imu::IMU;
 pub use lane_invasion::LaneInvasionSensor;
 pub use lidar::LiDAR;
@@ -25,8 +27,8 @@ pub use radar::Radar;
 pub use sensor::Sensor;
 pub use traffic_light::TrafficLight;
 pub use traffic_sign::TrafficSign;
-pub use vehicle::Vehicle;
-pub use walker::Walker;
-
-/// Unique identifier for actors in the simulation.
-pub type ActorId = u32;
+pub use vehicle::{
+    Vehicle, VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
+    VehicleTelemetryData,
+};
+pub use walker::{Walker, WalkerControl};

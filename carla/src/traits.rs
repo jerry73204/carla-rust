@@ -4,9 +4,12 @@
 //! across different CARLA object types, enabling generic programming patterns.
 
 use crate::{
-    error::{CarlaResult, SensorError},
-    geom::{Transform, Vector3D},
-    rpc::{VehicleControl, WalkerControl},
+    actor::{
+        VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
+        VehicleTelemetryData, WalkerControl,
+    },
+    error::CarlaResult,
+    geom::{BoundingBox, Transform, Vector3D},
     ActorId,
 };
 
@@ -56,7 +59,7 @@ pub trait ActorT {
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()>;
 
     /// Get the actor's bounding box in local space.
-    fn bounding_box(&self) -> crate::geom::BoundingBox;
+    fn bounding_box(&self) -> BoundingBox;
 }
 
 /// Trait for sensor-specific behavior.
@@ -109,13 +112,10 @@ pub trait VehicleT: ActorT {
     fn set_autopilot(&self, enabled: bool, traffic_manager_port: Option<u16>) -> CarlaResult<()>;
 
     /// Get vehicle physics control parameters.
-    fn get_physics_control(&self) -> crate::rpc::VehiclePhysicsControl;
+    fn get_physics_control(&self) -> VehiclePhysicsControl;
 
     /// Apply new physics control parameters.
-    fn apply_physics_control(
-        &self,
-        physics_control: &crate::rpc::VehiclePhysicsControl,
-    ) -> CarlaResult<()>;
+    fn apply_physics_control(&self, physics_control: &VehiclePhysicsControl) -> CarlaResult<()>;
 
     /// Get the current speed in km/h.
     fn get_speed(&self) -> f32 {
@@ -124,20 +124,16 @@ pub trait VehicleT: ActorT {
     }
 
     /// Enable/disable vehicle light state.
-    fn set_light_state(&self, light_state: crate::rpc::VehicleLightState) -> CarlaResult<()>;
+    fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()>;
 
     /// Get current vehicle light state.
-    fn get_light_state(&self) -> crate::rpc::VehicleLightState;
+    fn get_light_state(&self) -> VehicleLightState;
 
     /// Open/close vehicle door (CARLA 0.10.0 feature).
-    fn set_door_state(
-        &self,
-        door_type: crate::rpc::VehicleDoorType,
-        is_open: bool,
-    ) -> CarlaResult<()>;
+    fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()>;
 
     /// Get telemetry data from the vehicle.
-    fn get_telemetry_data(&self) -> crate::rpc::VehicleTelemetryData;
+    fn get_telemetry_data(&self) -> VehicleTelemetryData;
 }
 
 /// Trait for walker (pedestrian) specific behavior.
@@ -208,10 +204,10 @@ pub trait SpawnableT {
 /// Trait for objects that have a bounding box.
 pub trait BoundingBoxT {
     /// Get the object's bounding box in local coordinates.
-    fn get_bounding_box(&self) -> crate::geom::BoundingBox;
+    fn get_bounding_box(&self) -> BoundingBox;
 
     /// Get the object's bounding box in world coordinates.
-    fn get_world_bounding_box(&self) -> crate::geom::BoundingBox {
+    fn get_world_bounding_box(&self) -> BoundingBox {
         let _bbox = self.get_bounding_box();
         let _transform = if let Some(actor) = self.as_actor() {
             actor.transform()

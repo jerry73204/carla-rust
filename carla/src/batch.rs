@@ -1,7 +1,9 @@
-//! RPC command types.
+//! Batch command types for executing multiple actor operations atomically.
 
-use super::{ActorId, VehicleControl, WalkerControl};
-use crate::geom::Transform;
+use crate::{
+    actor::{ActorId, VehicleControl, WalkerControl},
+    geom::Transform,
+};
 
 /// Generic actor command.
 #[derive(Debug, Clone)]

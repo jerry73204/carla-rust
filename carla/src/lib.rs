@@ -69,10 +69,10 @@
 
 // Core modules mirroring CARLA C++ API structure
 pub mod actor;
+pub mod batch;
 pub mod client;
 pub mod geom;
 pub mod road;
-pub mod rpc;
 pub mod sensor_data;
 pub mod streaming;
 pub mod time;
@@ -88,7 +88,9 @@ mod utils;
 // Re-export commonly used types for convenience
 pub use actor::{
     Actor, ActorId, Camera, CameraType, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR,
-    Radar, Sensor, TrafficLight, TrafficSign, Vehicle, Walker, GNSS, IMU,
+    Radar, Sensor, TrafficLight, TrafficSign, Vehicle, VehicleControl, VehicleDoorType,
+    VehicleLightState, VehiclePhysicsControl, VehicleTelemetryData, Walker, WalkerControl, GNSS,
+    IMU,
 };
 pub use client::{
     ActorAttribute, ActorAttributeType, ActorBlueprint, AttributeValue, BlueprintLibrary, Client,
@@ -97,10 +99,7 @@ pub use client::{
 
 pub use geom::{BoundingBox, Location, Rotation, Transform, Vector2D, Vector3D};
 
-pub use rpc::{
-    ActorCommand, VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
-    VehicleTelemetryData, WalkerControl,
-};
+pub use batch::ActorCommand;
 
 pub use sensor_data::{
     CollisionData, DVSData, DepthImageData, GNSSData, IMUData, ImageData,

@@ -6,6 +6,8 @@
 use std::time::Duration;
 use thiserror::Error;
 
+use crate::actor::VehicleControl;
+
 /// Main error type for all CARLA operations.
 #[derive(Debug, Error)]
 pub enum CarlaError {
@@ -356,8 +358,8 @@ pub enum WalkerError {
     BoneControlFailed(String),
 }
 
-impl From<crate::rpc::VehicleControl> for String {
-    fn from(control: crate::rpc::VehicleControl) -> Self {
+impl From<VehicleControl> for String {
+    fn from(control: VehicleControl) -> Self {
         format!(
             "VehicleControl(throttle: {}, steer: {}, brake: {})",
             control.throttle, control.steer, control.brake

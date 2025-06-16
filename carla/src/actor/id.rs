@@ -1,10 +1,8 @@
-//! Actor ID type and utilities.
-
 /// Unique identifier for actors in the simulation.
 pub type ActorId = u32;
 
 /// Invalid actor ID constant.
-pub const INVALID_ACTOR_ID: ActorId = 0;
+const INVALID_ACTOR_ID: ActorId = 0;
 
 /// Utility functions for actor IDs.
 impl ActorIdExt for ActorId {
