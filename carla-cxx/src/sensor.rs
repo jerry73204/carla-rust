@@ -324,6 +324,9 @@ pub struct RadarDetection {
 /// IMU sensor data
 #[derive(Debug, Clone, Copy)]
 pub struct IMUData {
+    pub timestamp: crate::time::Timestamp,      // Sensor timestamp
+    pub transform: crate::ffi::SimpleTransform, // Sensor transform
+    pub sensor_id: u32,                         // Sensor ID
     pub accelerometer_x: f64,
     pub accelerometer_y: f64,
     pub accelerometer_z: f64,
@@ -336,6 +339,9 @@ pub struct IMUData {
 impl From<ffi::SimpleIMUData> for IMUData {
     fn from(simple: ffi::SimpleIMUData) -> Self {
         Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             accelerometer_x: simple.accelerometer_x,
             accelerometer_y: simple.accelerometer_y,
             accelerometer_z: simple.accelerometer_z,
@@ -350,14 +356,20 @@ impl From<ffi::SimpleIMUData> for IMUData {
 /// GNSS sensor data
 #[derive(Debug, Clone, Copy)]
 pub struct GNSSData {
-    pub latitude: f64,
-    pub longitude: f64,
-    pub altitude: f64,
+    pub timestamp: crate::time::Timestamp,      // Sensor timestamp
+    pub transform: crate::ffi::SimpleTransform, // Sensor transform
+    pub sensor_id: u32,                         // Sensor ID
+    pub latitude: f64,                          // Latitude in degrees
+    pub longitude: f64,                         // Longitude in degrees
+    pub altitude: f64,                          // Altitude in meters
 }
 
 impl From<ffi::SimpleGNSSData> for GNSSData {
     fn from(simple: ffi::SimpleGNSSData) -> Self {
         Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             latitude: simple.latitude,
             longitude: simple.longitude,
             altitude: simple.altitude,

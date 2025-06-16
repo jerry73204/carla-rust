@@ -41,17 +41,25 @@ impl IMUData {
     /// Create IMUData from carla-cxx IMUData
     pub fn from_cxx(cxx_data: carla_cxx::sensor::IMUData) -> Self {
         Self {
-            // TODO: Extract proper metadata from carla-cxx IMUData structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx IMUData
-            timestamp: todo!(
-                "IMUData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"
+            timestamp: Timestamp::new(
+                cxx_data.timestamp.frame,
+                cxx_data.timestamp.elapsed_seconds,
+                cxx_data.timestamp.delta_seconds,
+                cxx_data.timestamp.platform_timestamp,
             ),
-            transform: todo!(
-                "IMUData::from_cxx transform extraction not yet implemented - missing FFI metadata"
+            transform: Transform::new(
+                crate::geom::Location::new(
+                    cxx_data.transform.location.x,
+                    cxx_data.transform.location.y,
+                    cxx_data.transform.location.z,
+                ),
+                crate::geom::Rotation::new(
+                    cxx_data.transform.rotation.pitch as f32,
+                    cxx_data.transform.rotation.yaw as f32,
+                    cxx_data.transform.rotation.roll as f32,
+                ),
             ),
-            sensor_id: todo!(
-                "IMUData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"
-            ),
+            sensor_id: cxx_data.sensor_id,
             accelerometer: [
                 cxx_data.accelerometer_x as f32,
                 cxx_data.accelerometer_y as f32,
@@ -66,7 +74,8 @@ impl IMUData {
         }
     }
 
-    /// Get total acceleration magnitude.
+    /// Get total acceleration magnitude (mathematical utility - Euclidean norm of accelerometer vector).
+    /// This is a basic mathematical operation on CARLA-provided accelerometer data.
     pub fn acceleration_magnitude(&self) -> f32 {
         (self.accelerometer[0].powi(2)
             + self.accelerometer[1].powi(2)
@@ -74,7 +83,8 @@ impl IMUData {
         .sqrt()
     }
 
-    /// Get total angular velocity magnitude.
+    /// Get total angular velocity magnitude (mathematical utility - Euclidean norm of gyroscope vector).
+    /// This is a basic mathematical operation on CARLA-provided gyroscope data.
     pub fn angular_velocity_magnitude(&self) -> f32 {
         (self.gyroscope[0].powi(2) + self.gyroscope[1].powi(2) + self.gyroscope[2].powi(2)).sqrt()
     }

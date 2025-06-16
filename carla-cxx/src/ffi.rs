@@ -195,6 +195,9 @@ pub mod bridge {
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleIMUData {
+        pub timestamp: SimpleTimestamp, // Sensor timestamp
+        pub transform: SimpleTransform, // Sensor transform
+        pub sensor_id: u32,             // Sensor ID
         pub accelerometer_x: f64,
         pub accelerometer_y: f64,
         pub accelerometer_z: f64,
@@ -206,9 +209,12 @@ pub mod bridge {
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleGNSSData {
-        pub latitude: f64,
-        pub longitude: f64,
-        pub altitude: f64,
+        pub timestamp: SimpleTimestamp, // Sensor timestamp
+        pub transform: SimpleTransform, // Sensor transform
+        pub sensor_id: u32,             // Sensor ID
+        pub latitude: f64,              // Latitude in degrees
+        pub longitude: f64,             // Longitude in degrees
+        pub altitude: f64,              // Altitude in meters
     }
 
     #[derive(Debug, Clone, PartialEq)]
