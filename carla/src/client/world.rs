@@ -37,14 +37,14 @@ impl World {
     /// Get the blueprint library.
     pub fn get_blueprint_library(&self) -> CarlaResult<BlueprintLibrary> {
         let blueprint_library_wrapper = self.inner.get_blueprint_library();
-        Ok(BlueprintLibrary::new(blueprint_library_wrapper))
+        Ok(BlueprintLibrary::from_cxx(blueprint_library_wrapper))
     }
 
     /// Get the spectator actor (main camera).
     pub fn get_spectator(&self) -> CarlaResult<Actor> {
         self.inner
             .get_spectator()
-            .map(|actor_wrapper| Actor::new(actor_wrapper))
+            .map(|actor_wrapper| Actor::from_cxx(actor_wrapper))
             .ok_or_else(|| {
                 crate::error::CarlaError::Actor(
                     crate::error::ActorError::NotFound(0), // Spectator doesn't have a specific ID
@@ -82,7 +82,7 @@ impl World {
         Ok(self
             .inner
             .get_actor(actor_id)
-            .map(|actor_wrapper| Actor::new(actor_wrapper)))
+            .map(|actor_wrapper| Actor::from_cxx(actor_wrapper)))
     }
 
     /// Get all actors in the world.
@@ -115,7 +115,7 @@ impl World {
             .inner
             .spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
         {
-            Ok(actor_wrapper) => Ok(Actor::new(actor_wrapper)),
+            Ok(actor_wrapper) => Ok(Actor::from_cxx(actor_wrapper)),
             Err(_e) => Err(crate::error::SpawnError::LocationOccupied {
                 location: transform.location.clone(),
             }
@@ -137,7 +137,7 @@ impl World {
             .inner
             .try_spawn_actor(blueprint.get_inner(), &simple_transform, parent_actor)
         {
-            Some(actor_wrapper) => Ok(Some(Actor::new(actor_wrapper))),
+            Some(actor_wrapper) => Ok(Some(Actor::from_cxx(actor_wrapper))),
             None => Ok(None),
         }
     }

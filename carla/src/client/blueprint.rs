@@ -2,24 +2,19 @@
 
 use crate::error::{CarlaResult, SpawnError};
 use carla_cxx::ActorBlueprintWrapper;
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 /// Actor blueprint for spawning.
 #[derive(Debug, Clone)]
 pub struct ActorBlueprint {
     /// Internal wrapper from carla-cxx
     inner: ActorBlueprintWrapper,
-    /// Cached attributes (populated on demand)
-    attributes_cache: Option<HashMap<String, ActorAttribute>>,
 }
 
 impl ActorBlueprint {
     /// Create a blueprint from a carla-cxx ActorBlueprintWrapper.
     pub fn new(inner: ActorBlueprintWrapper) -> Self {
-        Self {
-            inner,
-            attributes_cache: None,
-        }
+        Self { inner }
     }
 
     /// Get the blueprint ID.
@@ -37,20 +32,23 @@ impl ActorBlueprint {
         &self.inner
     }
 
-    /// Set an attribute value.
-    pub fn set_attribute(&mut self, key: &str, value: &str) -> CarlaResult<()> {
-        if self.inner.contains_attribute(key) {
-            self.inner.set_attribute(key, value);
-            // Clear cache since attribute changed
-            self.attributes_cache = None;
-            Ok(())
-        } else {
-            Err(SpawnError::AttributeError {
-                attribute: key.to_string(),
-                reason: "Attribute not found".to_string(),
-            }
-            .into())
-        }
+    /// TODO: Implement this method. It returns an entry to an
+    /// attribute if the corresponding key exists. The entry can be used to get or set the value.
+    pub fn attribute_entry(&mut self, key: &str) -> Option<ActorAttribute<'_>> {
+        todo!()
+    }
+
+    /// TODO: Implement this method. It returns the value of the attribute. The method is designed for convenience.
+    pub fn get_attribute(&self, key: &str) -> Option<AttributeValue> {
+        todo!()
+    }
+
+    /// TODO: Implement this method. It returns the value of the attribute. The method is designed for convenience.
+    pub fn set_attribute<V>(&mut self, key: &str, value: V) -> CarlaResult<()>
+    where
+        V: Into<AttributeValue>,
+    {
+        todo!()
     }
 
     /// Check if blueprint has a specific attribute.
@@ -64,126 +62,93 @@ impl ActorBlueprint {
     }
 
     /// Check if blueprint matches a wildcard pattern (for tags).
-    pub fn matches_pattern(&self, pattern: &str) -> bool {
+    pub fn matches_tags(&self, pattern: &str) -> bool {
         self.inner.match_tags(pattern)
     }
+
+    pub fn attribute_iter() {
+        todo!("return an iterator of attribute entries")
+    }
+
+    pub fn len(&self) -> usize {
+        todo!("Return the number of attributes. Rename this method to an informative name")
+    }
 }
 
+// TODO: Re-design this struct API.
 /// Actor attribute for blueprint configuration.
 #[derive(Debug, Clone)]
-pub struct ActorAttribute {
-    /// Attribute ID
-    pub id: String,
-    /// Attribute type
-    pub attribute_type: ActorAttributeType,
-    /// Current value
-    pub value: String,
-    /// Recommended values
-    pub recommended_values: Vec<String>,
-    /// Whether attribute is modifiable
-    pub is_modifiable: bool,
+pub struct ActorAttribute<'a> {
+    _phanton: PhantomData<&'a ()>, // Placeholder value. Please keep a reference to the parent ActorBlueprint
 }
 
-impl ActorAttribute {
-    /// Create a new attribute.
-    pub fn new(
-        id: String,
-        attribute_type: ActorAttributeType,
-        value: String,
-        is_modifiable: bool,
-    ) -> Self {
-        Self {
-            id,
-            attribute_type,
-            value,
-            recommended_values: Vec::new(),
-            is_modifiable,
-        }
+// TODO: Re-design the API.
+impl<'a> ActorAttribute<'a> {
+    pub fn id(&self) -> &str {
+        todo!()
     }
 
-    /// Set the attribute value.
-    pub fn set_value(&mut self, value: &str) -> CarlaResult<()> {
-        if !self.is_modifiable {
-            return Err(SpawnError::AttributeError {
-                attribute: self.id.clone(),
-                reason: "Attribute is not modifiable".to_string(),
-            }
-            .into());
-        }
-
-        // TODO: Add type validation based on attribute_type
-        todo!();
-        self.value = value.to_string();
-        Ok(())
+    pub fn is_modifiable(&self) -> bool {
+        todo!()
+    }
+    pub fn recommended_values(&self) -> Vec<String> {
+        todo!()
     }
 
-    /// Add a recommended value.
-    pub fn add_recommended_value(&mut self, value: String) {
-        if !self.recommended_values.contains(&value) {
-            self.recommended_values.push(value);
-        }
+    pub fn ty(&self) -> ActorAttributeType {
+        todo!()
     }
 
-    /// Check if a value is in the recommended values list.
-    pub fn is_recommended_value(&self, value: &str) -> bool {
-        self.recommended_values.contains(&value.to_string())
+    pub fn get(&self) -> AttributeValue {
+        todo!()
     }
 
-    /// Validate value against type and constraints.
-    pub fn validate_value(&self, value: &str) -> CarlaResult<()> {
-        match self.attribute_type {
-            ActorAttributeType::Bool => {
-                if !["true", "false", "True", "False", "1", "0"].contains(&value) {
-                    return Err(SpawnError::AttributeError {
-                        attribute: self.id.clone(),
-                        reason: format!("Invalid boolean value: {}", value),
-                    }
-                    .into());
-                }
-            }
-            ActorAttributeType::Int => {
-                if value.parse::<i64>().is_err() {
-                    return Err(SpawnError::AttributeError {
-                        attribute: self.id.clone(),
-                        reason: format!("Invalid integer value: {}", value),
-                    }
-                    .into());
-                }
-            }
-            ActorAttributeType::Float => {
-                if value.parse::<f64>().is_err() {
-                    return Err(SpawnError::AttributeError {
-                        attribute: self.id.clone(),
-                        reason: format!("Invalid float value: {}", value),
-                    }
-                    .into());
-                }
-            }
-            ActorAttributeType::String => {
-                // String values are always valid
-            }
-            ActorAttributeType::RGBColor => {
-                // TODO: Validate RGB color format (e.g., "255,128,64")
-                let parts: Vec<&str> = value.split(',').collect();
-                if parts.len() != 3 {
-                    return Err(SpawnError::AttributeError {
-                        attribute: self.id.clone(),
-                        reason: format!("Invalid RGB color format: {}", value),
-                    }
-                    .into());
-                }
-                for part in parts {
-                    if part.trim().parse::<u8>().is_err() {
-                        return Err(SpawnError::AttributeError {
-                            attribute: self.id.clone(),
-                            reason: format!("Invalid RGB component: {}", part),
-                        }
-                        .into());
-                    }
-                }
-            }
-        }
-        Ok(())
+    // TODO: The input argument performs automatic type conversion
+    pub fn set<V>(&mut self, value: V) -> CarlaResult<()>
+    where
+        V: Into<AttributeValue>,
+    {
+        // Valid only when is_modifiable() is true.
+        todo!()
+    }
+}
+
+// TODO: implement the enum. Each variant corresponds to an attribute type and holds a value of that type.
+pub enum AttributeValue {
+    Bool(bool),
+    Int(i64),
+    Float(f64),
+    String(String),
+    RGBColor(()), // TODO: fill in a proper type and create a "impl From<XXX> for AttributeValue" for this variant.
+}
+
+impl From<String> for AttributeValue {
+    fn from(v: String) -> Self {
+        Self::String(v)
+    }
+}
+
+impl From<&str> for AttributeValue {
+    fn from(v: &str) -> Self {
+        Self::String(v.to_string())
+    }
+}
+
+impl From<f64> for AttributeValue {
+    fn from(v: f64) -> Self {
+        Self::Float(v)
+    }
+}
+
+impl From<i64> for AttributeValue {
+    fn from(v: i64) -> Self {
+        Self::Int(v)
+    }
+}
+
+impl From<bool> for AttributeValue {
+    fn from(v: bool) -> Self {
+        Self::Bool(v)
     }
 }
 

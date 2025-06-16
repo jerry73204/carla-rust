@@ -1,66 +1,42 @@
 //! LiDAR sensor implementation.
 
 use crate::{
-    client::Sensor,
-    error::{CarlaResult, SensorError},
-    sensor::LiDARData,
-    traits::ActorT,
+    client::{ActorId, Sensor},
+    error::CarlaResult,
+    geom::{Transform, Vector3D},
+    sensor::{LiDARData, LiDARPoint, SemanticLiDARData},
+    traits::{ActorT, SensorT},
 };
 
-/// LiDAR sensor that captures 3D point clouds.
-pub struct LiDARSensor {
-    sensor: Sensor,
-}
+/// LiDAR sensor for point cloud data.
+#[derive(Debug)]
+pub struct LiDAR(Sensor);
 
-impl LiDARSensor {
-    /// Create a LiDAR sensor from a sensor.
-    pub fn from_sensor(sensor: Sensor) -> CarlaResult<Self> {
-        let type_id = sensor.get_type_id();
-        if !type_id.contains("lidar") && !type_id.contains("velodyne") {
-            return Err(crate::error::CarlaError::Actor(
-                crate::error::ActorError::InvalidType {
-                    expected: "LiDAR".to_string(),
-                    actual: type_id,
-                },
-            ));
+impl LiDAR {
+    /// Try to create a LiDAR from a generic Sensor.
+    /// Returns None if the sensor is not a LiDAR.
+    pub fn from_sensor(sensor: Sensor) -> Option<Self> {
+        let type_id = sensor.type_id();
+        if type_id.contains("lidar") || type_id.contains("velodyne") {
+            Some(LiDAR(sensor))
+        } else {
+            None
         }
-
-        Ok(Self { sensor })
     }
 
-    /// Get the underlying sensor.
-    pub fn sensor(&self) -> &Sensor {
-        &self.sensor
+    /// Convert back to generic Sensor.
+    pub fn into_sensor(self) -> Sensor {
+        self.0
     }
 
-    /// Check if the LiDAR is currently listening for data.
-    pub fn is_listening(&self) -> bool {
-        self.sensor.is_listening()
+    /// Get reference to the underlying sensor.
+    pub fn as_sensor(&self) -> &Sensor {
+        &self.0
     }
 
-    /// Start listening for LiDAR data.
-    pub fn listen<F>(&mut self, callback: F) -> Result<(), SensorError>
-    where
-        F: Fn(Vec<u8>) + Send + 'static,
-    {
-        self.sensor.listen(callback)
-    }
-
-    /// Stop listening for LiDAR data.
-    pub fn stop(&mut self) {
-        self.sensor.stop();
-    }
-
-    /// Check if new LiDAR data is available.
-    pub fn has_new_data(&self) -> bool {
-        self.sensor.inner.has_new_data()
-    }
-
-    /// Get the last captured LiDAR data with full metadata.
-    ///
-    /// Returns None if no data is available or if the sensor is not listening.
-    pub fn get_lidar_data(&self) -> Option<LiDARData> {
-        let cxx_data = self.sensor.inner.get_last_lidar_data_full();
+    /// Get the last LiDAR data from the sensor with full metadata.
+    pub fn get_last_lidar_data(&self) -> Option<LiDARData> {
+        let cxx_data = self.0.inner().get_last_lidar_data_full();
         if cxx_data.points.is_empty() {
             None
         } else {
@@ -68,30 +44,34 @@ impl LiDARSensor {
         }
     }
 
-    /// Get the last captured LiDAR points only (without metadata).
-    ///
-    /// This is a faster method that only returns the point cloud data.
-    pub fn get_lidar_points(&self) -> Vec<crate::sensor::LiDARPoint> {
-        let cxx_data = self.sensor.inner.get_last_lidar_data();
+    /// Get the last LiDAR points only (without metadata) for performance.
+    pub fn get_last_lidar_points(&self) -> Vec<LiDARPoint> {
+        let cxx_data = self.0.inner().get_last_lidar_data();
         cxx_data
             .points
             .iter()
-            .map(|p| crate::sensor::LiDARPoint::new(p.x, p.y, p.z, p.intensity))
+            .map(|p| LiDARPoint::new(p.x, p.y, p.z, p.intensity))
             .collect()
+    }
+
+    /// Get the last Semantic LiDAR data from the sensor.
+    pub fn get_last_semantic_lidar_data(&self) -> Option<SemanticLiDARData> {
+        let cxx_data = self.0.inner().get_last_semantic_lidar_data();
+        if cxx_data.detections.is_empty() {
+            None
+        } else {
+            Some(SemanticLiDARData::from_cxx(cxx_data))
+        }
     }
 
     /// Get LiDAR statistics from the last measurement.
     pub fn get_statistics(&self) -> Option<crate::sensor::LiDARStatistics> {
-        self.get_lidar_data().map(|data| data.get_statistics())
+        self.get_last_lidar_data().map(|data| data.get_statistics())
     }
 
     /// Filter points by distance range from the last measurement.
-    pub fn filter_by_distance(
-        &self,
-        min_distance: f32,
-        max_distance: f32,
-    ) -> Vec<crate::sensor::LiDARPoint> {
-        if let Some(data) = self.get_lidar_data() {
+    pub fn filter_by_distance(&self, min_distance: f32, max_distance: f32) -> Vec<LiDARPoint> {
+        if let Some(data) = self.get_last_lidar_data() {
             data.filter_by_distance(min_distance, max_distance)
         } else {
             Vec::new()
@@ -99,12 +79,8 @@ impl LiDARSensor {
     }
 
     /// Filter points by intensity range from the last measurement.
-    pub fn filter_by_intensity(
-        &self,
-        min_intensity: f32,
-        max_intensity: f32,
-    ) -> Vec<crate::sensor::LiDARPoint> {
-        if let Some(data) = self.get_lidar_data() {
+    pub fn filter_by_intensity(&self, min_intensity: f32, max_intensity: f32) -> Vec<LiDARPoint> {
+        if let Some(data) = self.get_last_lidar_data() {
             data.filter_by_intensity(min_intensity, max_intensity)
         } else {
             Vec::new()
@@ -112,12 +88,8 @@ impl LiDARSensor {
     }
 
     /// Filter points by height (Z coordinate) range from the last measurement.
-    pub fn filter_by_height(
-        &self,
-        min_height: f32,
-        max_height: f32,
-    ) -> Vec<crate::sensor::LiDARPoint> {
-        if let Some(data) = self.get_lidar_data() {
+    pub fn filter_by_height(&self, min_height: f32, max_height: f32) -> Vec<LiDARPoint> {
+        if let Some(data) = self.get_last_lidar_data() {
             data.filter_by_height(min_height, max_height)
         } else {
             Vec::new()
@@ -125,65 +97,86 @@ impl LiDARSensor {
     }
 }
 
-impl std::fmt::Debug for LiDARSensor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("LiDARSensor")
-            .field("sensor_id", &self.sensor.id())
-            .field("is_listening", &self.is_listening())
-            .finish()
-    }
-}
-
-impl ActorT for LiDARSensor {
-    fn get_id(&self) -> crate::client::ActorId {
-        self.sensor.get_id()
+impl ActorT for LiDAR {
+    fn id(&self) -> ActorId {
+        self.0.id()
     }
 
-    fn get_type_id(&self) -> String {
-        self.sensor.get_type_id()
+    fn type_id(&self) -> String {
+        self.0.type_id()
     }
 
-    fn get_transform(&self) -> crate::geom::Transform {
-        self.sensor.get_transform()
+    fn transform(&self) -> Transform {
+        self.0.transform()
     }
 
-    fn set_transform(&self, transform: &crate::geom::Transform) -> CarlaResult<()> {
-        self.sensor.set_transform(transform)
+    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
+        self.0.set_transform(transform)
     }
 
-    fn get_velocity(&self) -> crate::geom::Vector3D {
-        self.sensor.get_velocity()
+    fn velocity(&self) -> Vector3D {
+        self.0.velocity()
     }
 
-    fn get_angular_velocity(&self) -> crate::geom::Vector3D {
-        self.sensor.get_angular_velocity()
+    fn angular_velocity(&self) -> Vector3D {
+        self.0.angular_velocity()
     }
 
-    fn get_acceleration(&self) -> crate::geom::Vector3D {
-        self.sensor.get_acceleration()
+    fn acceleration(&self) -> Vector3D {
+        self.0.acceleration()
     }
 
     fn is_alive(&self) -> bool {
-        self.sensor.is_alive()
-    }
-
-    fn destroy(&self) -> CarlaResult<()> {
-        self.sensor.destroy()
+        self.0.is_alive()
     }
 
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        self.sensor.set_simulate_physics(enabled)
+        self.0.set_simulate_physics(enabled)
     }
 
-    fn add_impulse(&self, impulse: &crate::geom::Vector3D) -> CarlaResult<()> {
-        self.sensor.add_impulse(impulse)
+    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        self.0.add_impulse(impulse)
     }
 
-    fn add_force(&self, force: &crate::geom::Vector3D) -> CarlaResult<()> {
-        self.sensor.add_force(force)
+    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        self.0.add_force(force)
     }
 
-    fn add_torque(&self, torque: &crate::geom::Vector3D) -> CarlaResult<()> {
-        self.sensor.add_torque(torque)
+    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        self.0.add_torque(torque)
+    }
+
+    fn bounding_box(&self) -> crate::geom::BoundingBox {
+        self.0.bounding_box()
+    }
+}
+
+impl SensorT for LiDAR {
+    fn start_listening(&self) {
+        self.0.start_listening()
+    }
+
+    fn stop_listening(&self) {
+        self.0.stop_listening()
+    }
+
+    fn is_listening(&self) -> bool {
+        self.0.is_listening()
+    }
+
+    fn has_new_data(&self) -> bool {
+        self.0.has_new_data()
+    }
+
+    fn get_attribute(&self, name: &str) -> Option<String> {
+        self.0.get_attribute(name)
+    }
+
+    fn enable_recording(&self, filename: &str) -> CarlaResult<()> {
+        self.0.enable_recording(filename)
+    }
+
+    fn disable_recording(&self) -> CarlaResult<()> {
+        self.0.disable_recording()
     }
 }

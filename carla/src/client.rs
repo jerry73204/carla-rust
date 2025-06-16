@@ -19,13 +19,10 @@ mod world;
 pub use actor::{Actor, ActorSnapshot};
 pub use blueprint::{ActorAttribute, ActorAttributeType, ActorBlueprint};
 pub use blueprint_library::BlueprintLibrary;
-pub use camera::{CameraSensor, CameraType};
+pub use camera::{Camera, CameraType};
 pub use client::Client;
-pub use lidar::LiDARSensor;
-pub use sensor::{
-    Camera, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR, ObstacleDetectionSensor,
-    OpticalFlowCamera, RSSensor, Radar, Sensor, GNSS, IMU,
-};
+pub use lidar::LiDAR;
+pub use sensor::Sensor;
 pub use traffic_light::TrafficLight;
 pub use traffic_sign::TrafficSign;
 pub use vehicle::Vehicle;

@@ -940,6 +940,23 @@ pub mod bridge {
         fn Actor_Destroy(actor: &Actor) -> bool;
         fn Actor_IsAlive(actor: &Actor) -> bool;
 
+        // Actor physics methods
+        fn Actor_GetVelocity(actor: &Actor) -> SimpleVector3D;
+        fn Actor_GetAngularVelocity(actor: &Actor) -> SimpleVector3D;
+        fn Actor_GetAcceleration(actor: &Actor) -> SimpleVector3D;
+        fn Actor_SetSimulatePhysics(actor: &Actor, enabled: bool);
+        fn Actor_AddImpulse(actor: &Actor, impulse: &SimpleVector3D);
+        fn Actor_AddForce(actor: &Actor, force: &SimpleVector3D);
+        fn Actor_AddTorque(actor: &Actor, torque: &SimpleVector3D);
+        fn Actor_GetBoundingBox(actor: &Actor) -> SimpleBoundingBox;
+
+        // Additional Actor state methods
+        fn Actor_IsDormant(actor: &Actor) -> bool;
+        fn Actor_GetAttributes(actor: &Actor) -> Vec<String>;
+        fn Actor_GetSemanticTags(actor: &Actor) -> Vec<u8>;
+        fn Actor_GetActorState(actor: &Actor) -> u8;
+        fn Actor_GetParentId(actor: &Actor) -> SimpleActorId;
+
         // Actor type checking and casting
         fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
         fn Vehicle_CastToActor(vehicle: &Vehicle) -> SharedPtr<Actor>;
@@ -950,6 +967,8 @@ pub mod bridge {
         fn Sensor_CastToActor(sensor: &Sensor) -> SharedPtr<Actor>;
         fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
         fn Actor_CastToTrafficSign(actor: &Actor) -> SharedPtr<TrafficSign>;
+        fn TrafficLight_CastToActor(traffic_light: &TrafficLight) -> SharedPtr<Actor>;
+        fn TrafficSign_CastToActor(traffic_sign: &TrafficSign) -> SharedPtr<Actor>;
 
         // Vehicle methods
         fn Vehicle_ApplyControl(vehicle: &Vehicle, control: &SimpleVehicleControl);
@@ -1418,6 +1437,9 @@ pub use bridge::{
     ActorBlueprint_GetTags,
     ActorBlueprint_MatchTags,
     ActorBlueprint_SetAttribute,
+    Actor_AddForce,
+    Actor_AddImpulse,
+    Actor_AddTorque,
     Actor_CastToSensor,
     Actor_CastToTrafficLight,
     Actor_CastToTrafficSign,
@@ -1426,13 +1448,23 @@ pub use bridge::{
     Actor_CastToWalker,
     Actor_CastToWalkerAIController,
     Actor_Destroy,
+    Actor_GetAcceleration,
+    Actor_GetActorState,
+    Actor_GetAngularVelocity,
+    Actor_GetAttributes,
+    Actor_GetBoundingBox,
     Actor_GetDisplayId,
     Actor_GetId,
     Actor_GetLocation,
+    Actor_GetParentId,
+    Actor_GetSemanticTags,
     Actor_GetTransform,
     Actor_GetTypeId,
+    Actor_GetVelocity,
     Actor_IsAlive,
+    Actor_IsDormant,
     Actor_SetLocation,
+    Actor_SetSimulatePhysics,
     Actor_SetTransform,
     BlueprintLibrary,
     BlueprintLibrary_FilterByAttribute,
@@ -1556,6 +1588,7 @@ pub use bridge::{
     TrafficLight_AddForce,
     TrafficLight_AddImpulse,
     TrafficLight_AddTorque,
+    TrafficLight_CastToActor,
     TrafficLight_Destroy,
     TrafficLight_Freeze,
     TrafficLight_GetAcceleration,
@@ -1624,6 +1657,7 @@ pub use bridge::{
     TrafficSign_AddForce,
     TrafficSign_AddImpulse,
     TrafficSign_AddTorque,
+    TrafficSign_CastToActor,
     TrafficSign_Destroy,
     TrafficSign_GetAcceleration,
     TrafficSign_GetAngularVelocity,

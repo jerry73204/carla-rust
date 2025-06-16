@@ -90,6 +90,11 @@ impl TrafficSignWrapper {
     pub fn add_torque(&self, torque: &crate::ffi::bridge::SimpleVector3D) {
         ffi::TrafficSign_AddTorque(&self.inner, torque)
     }
+
+    /// Get access to the inner TrafficSign for direct FFI calls
+    pub fn get_inner_traffic_sign(&self) -> &cxx::SharedPtr<TrafficSign> {
+        &self.inner
+    }
 }
 
 impl std::fmt::Debug for TrafficSignWrapper {

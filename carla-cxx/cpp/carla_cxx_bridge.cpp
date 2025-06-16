@@ -410,6 +410,83 @@ bool Actor_Destroy(const Actor &actor) {
 
 bool Actor_IsAlive(const Actor &actor) { return actor.IsAlive(); }
 
+// Actor physics methods
+SimpleVector3D Actor_GetVelocity(const Actor &actor) {
+  auto velocity = actor.GetVelocity();
+  return SimpleVector3D{velocity.x, velocity.y, velocity.z};
+}
+
+SimpleVector3D Actor_GetAngularVelocity(const Actor &actor) {
+  auto angular_velocity = actor.GetAngularVelocity();
+  return SimpleVector3D{angular_velocity.x, angular_velocity.y,
+                        angular_velocity.z};
+}
+
+SimpleVector3D Actor_GetAcceleration(const Actor &actor) {
+  auto acceleration = actor.GetAcceleration();
+  return SimpleVector3D{acceleration.x, acceleration.y, acceleration.z};
+}
+
+void Actor_SetSimulatePhysics(const Actor &actor, bool enabled) {
+  const_cast<Actor &>(actor).SetSimulatePhysics(enabled);
+}
+
+void Actor_AddImpulse(const Actor &actor, const SimpleVector3D &impulse) {
+  const_cast<Actor &>(actor).AddImpulse(
+      carla::geom::Vector3D(impulse.x, impulse.y, impulse.z));
+}
+
+void Actor_AddForce(const Actor &actor, const SimpleVector3D &force) {
+  const_cast<Actor &>(actor).AddForce(
+      carla::geom::Vector3D(force.x, force.y, force.z));
+}
+
+void Actor_AddTorque(const Actor &actor, const SimpleVector3D &torque) {
+  const_cast<Actor &>(actor).AddTorque(
+      carla::geom::Vector3D(torque.x, torque.y, torque.z));
+}
+
+SimpleBoundingBox Actor_GetBoundingBox(const Actor &actor) {
+  // This returns the bounding box in local space
+  const auto &bbox = actor.GetBoundingBox();
+  return SimpleBoundingBox{
+      SimpleLocation{bbox.location.x, bbox.location.y, bbox.location.z},
+      SimpleVector3D{bbox.extent.x, bbox.extent.y, bbox.extent.z}};
+}
+
+// Additional Actor state methods
+bool Actor_IsDormant(const Actor &actor) { return actor.IsDormant(); }
+
+rust::Vec<rust::String> Actor_GetAttributes(const Actor &actor) {
+  rust::Vec<rust::String> result;
+  const auto &attributes = actor.GetAttributes();
+  for (const auto &attr : attributes) {
+    result.push_back(rust::String(attr.GetId() + "=" + attr.GetValue()));
+  }
+  return result;
+}
+
+rust::Vec<uint8_t> Actor_GetSemanticTags(const Actor &actor) {
+  rust::Vec<uint8_t> result;
+  const auto &tags = actor.GetSemanticTags();
+  for (uint8_t tag : tags) {
+    result.push_back(tag);
+  }
+  return result;
+}
+
+uint8_t Actor_GetActorState(const Actor &actor) {
+  auto state = actor.GetActorState();
+  // Convert ActorState enum to uint8_t
+  // carla::rpc::ActorState enum values:
+  // Invalid = 0, Active = 1, Dormant = 2, PendingKill = 3
+  return static_cast<uint8_t>(state);
+}
+
+SimpleActorId Actor_GetParentId(const Actor &actor) {
+  return SimpleActorId{actor.GetParentId()};
+}
+
 } // namespace client
 } // namespace carla
 
@@ -820,6 +897,33 @@ std::shared_ptr<Actor> Sensor_CastToActor(const Sensor &sensor) {
   // differently in Rust. The Sensor actor still works because all methods are
   // implemented through SensorWrapper.
   return nullptr;
+}
+
+// Reverse casting functions for TrafficLight and TrafficSign
+std::shared_ptr<Actor>
+TrafficLight_CastToActor(const TrafficLight &traffic_light) {
+  try {
+    // TrafficLight inherits from Actor, so we can directly cast
+    // Use const_cast to remove const, then get shared_ptr and cast to base
+    auto non_const_ptr = const_cast<TrafficLight *>(&traffic_light);
+    auto traffic_light_ptr = non_const_ptr->shared_from_this();
+    return std::static_pointer_cast<Actor>(traffic_light_ptr);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+std::shared_ptr<Actor>
+TrafficSign_CastToActor(const TrafficSign &traffic_sign) {
+  try {
+    // TrafficSign inherits from Actor, so we can directly cast
+    // Use const_cast to remove const, then get shared_ptr and cast to base
+    auto non_const_ptr = const_cast<TrafficSign *>(&traffic_sign);
+    auto traffic_sign_ptr = non_const_ptr->shared_from_this();
+    return std::static_pointer_cast<Actor>(traffic_sign_ptr);
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 // Vehicle wrapper functions

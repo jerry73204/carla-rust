@@ -10,7 +10,6 @@ use crate::{
     },
     traits::{ActorT, VehicleT},
 };
-use carla_cxx::{vehicle::VehicleWheelLocation, VehicleWrapper};
 
 /// Vehicle actor.
 #[derive(Debug)]
@@ -18,12 +17,12 @@ pub struct Vehicle {
     /// Actor ID
     id: ActorId,
     /// Internal vehicle wrapper for FFI calls
-    inner: VehicleWrapper,
+    inner: carla_cxx::VehicleWrapper,
 }
 
 impl Vehicle {
     /// Create a vehicle from a carla-cxx VehicleWrapper.
-    pub fn new(vehicle_wrapper: VehicleWrapper) -> CarlaResult<Self> {
+    pub fn from_cxx(vehicle_wrapper: carla_cxx::VehicleWrapper) -> CarlaResult<Self> {
         // Get the vehicle's actor ID
         let id = vehicle_wrapper.get_id();
 
@@ -36,7 +35,7 @@ impl Vehicle {
     /// Create a vehicle from an actor by casting.
     pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
         let actor_ref = actor.get_inner_actor();
-        if let Some(vehicle_wrapper) = VehicleWrapper::from_actor(actor_ref) {
+        if let Some(vehicle_wrapper) = carla_cxx::VehicleWrapper::from_actor(actor_ref) {
             let id = vehicle_wrapper.get_id();
             Ok(Some(Self {
                 id,
@@ -54,6 +53,8 @@ impl Vehicle {
 
     /// Get the vehicle's wheel physics parameters.
     pub fn get_wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
+        use carla_cxx::vehicle::VehicleWheelLocation;
+
         let cxx_wheel_location = match wheel_location {
             WheelLocation::FrontLeft => VehicleWheelLocation::FrontLeft,
             WheelLocation::FrontRight => VehicleWheelLocation::FrontRight,
@@ -81,13 +82,13 @@ impl Vehicle {
 }
 
 impl ActorT for Vehicle {
-    fn get_id(&self) -> ActorId {
+    fn id(&self) -> ActorId {
         self.id
     }
-    fn get_type_id(&self) -> String {
+    fn type_id(&self) -> String {
         self.inner.get_type_id()
     }
-    fn get_transform(&self) -> Transform {
+    fn transform(&self) -> Transform {
         let cxx_transform = self.inner.get_transform();
         Transform::from(cxx_transform)
     }
@@ -96,29 +97,20 @@ impl ActorT for Vehicle {
         self.inner.set_transform(&cxx_transform);
         Ok(())
     }
-    fn get_velocity(&self) -> Vector3D {
+    fn velocity(&self) -> Vector3D {
         let vel = self.inner.get_velocity();
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
-    fn get_angular_velocity(&self) -> Vector3D {
+    fn angular_velocity(&self) -> Vector3D {
         let vel = self.inner.get_angular_velocity();
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
-    fn get_acceleration(&self) -> Vector3D {
+    fn acceleration(&self) -> Vector3D {
         let acc = self.inner.get_acceleration();
         Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
     }
     fn is_alive(&self) -> bool {
         self.inner.is_alive()
-    }
-    fn destroy(&self) -> CarlaResult<()> {
-        if self.inner.destroy() {
-            Ok(())
-        } else {
-            Err(crate::error::CarlaError::Actor(
-                crate::error::ActorError::DestroyFailed(self.id),
-            ))
-        }
     }
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
         self.inner.set_simulate_physics(enabled);
@@ -150,6 +142,16 @@ impl ActorT for Vehicle {
         };
         self.inner.add_torque(&cxx_torque);
         Ok(())
+    }
+
+    fn bounding_box(&self) -> crate::geom::BoundingBox {
+        // Vehicle doesn't have a direct GetBoundingBox method, need to cast to Actor
+        let actor_ptr = self.inner.to_actor();
+        if actor_ptr.is_null() {
+            panic!("Internal error: Failed to cast Vehicle to Actor");
+        }
+        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 }
 
@@ -309,6 +311,15 @@ impl VehicleT for Vehicle {
             gear: cxx_telemetry.gear,
             engine_temperature: cxx_telemetry.engine_temperature,
             fuel_level: cxx_telemetry.fuel_level,
+        }
+    }
+}
+
+impl Drop for Vehicle {
+    fn drop(&mut self) {
+        // Only destroy if the vehicle is still alive
+        if self.inner.is_alive() {
+            let _ = self.inner.destroy();
         }
     }
 }

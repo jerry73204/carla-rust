@@ -30,7 +30,7 @@ impl TrafficLight {
     /// Create a traffic light from an actor by casting.
     pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
         let actor_ref = actor.get_inner_actor();
-        let actor_id = actor.get_id();
+        let actor_id = actor.id();
         if let Some(traffic_light_wrapper) = TrafficLightWrapper::from_actor(actor_ref) {
             Ok(Some(Self {
                 id: actor_id,
@@ -134,13 +134,13 @@ impl TrafficLight {
 }
 
 impl ActorT for TrafficLight {
-    fn get_id(&self) -> ActorId {
+    fn id(&self) -> ActorId {
         self.id
     }
-    fn get_type_id(&self) -> String {
+    fn type_id(&self) -> String {
         self.inner.get_type_id()
     }
-    fn get_transform(&self) -> Transform {
+    fn transform(&self) -> Transform {
         let cxx_transform = self.inner.get_transform();
         Transform::from(cxx_transform)
     }
@@ -149,27 +149,20 @@ impl ActorT for TrafficLight {
         self.inner.set_transform(&cxx_transform);
         Ok(())
     }
-    fn get_velocity(&self) -> Vector3D {
+    fn velocity(&self) -> Vector3D {
         let vel = self.inner.get_velocity();
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
-    fn get_angular_velocity(&self) -> Vector3D {
+    fn angular_velocity(&self) -> Vector3D {
         let vel = self.inner.get_angular_velocity();
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
-    fn get_acceleration(&self) -> Vector3D {
+    fn acceleration(&self) -> Vector3D {
         let acc = self.inner.get_acceleration();
         Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
     }
     fn is_alive(&self) -> bool {
         self.inner.is_alive()
-    }
-    fn destroy(&self) -> CarlaResult<()> {
-        if self.inner.destroy() {
-            Ok(())
-        } else {
-            Err(CarlaError::Actor(ActorError::DestroyFailed(self.id)))
-        }
     }
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
         self.inner.set_simulate_physics(enabled);
@@ -201,6 +194,26 @@ impl ActorT for TrafficLight {
         };
         self.inner.add_torque(&cxx_torque);
         Ok(())
+    }
+
+    fn bounding_box(&self) -> crate::geom::BoundingBox {
+        // TrafficLight doesn't have a direct GetBoundingBox method, need to cast to Actor
+        let actor_ptr =
+            carla_cxx::ffi::TrafficLight_CastToActor(self.inner.get_inner_traffic_light());
+        if actor_ptr.is_null() {
+            panic!("Internal error: Failed to cast TrafficLight to Actor");
+        }
+        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        crate::geom::BoundingBox::from_cxx(simple_bbox)
+    }
+}
+
+impl Drop for TrafficLight {
+    fn drop(&mut self) {
+        // Only destroy if the traffic light is still alive
+        if self.inner.is_alive() {
+            let _ = self.inner.destroy();
+        }
     }
 }
 

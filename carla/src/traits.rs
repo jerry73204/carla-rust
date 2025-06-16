@@ -4,10 +4,9 @@
 //! across different CARLA object types, enabling generic programming patterns.
 
 use crate::{
-    error::{ActorError, CarlaResult, SensorError},
+    error::{CarlaResult, SensorError},
     geom::{Transform, Vector3D},
     rpc::{VehicleControl, WalkerControl},
-    sensor::SensorData,
     ActorId,
 };
 
@@ -18,13 +17,13 @@ use crate::{
 /// and [`Sensor`](crate::client::Sensor).
 pub trait ActorT {
     /// Get the unique actor ID.
-    fn get_id(&self) -> ActorId;
+    fn id(&self) -> ActorId;
 
     /// Get the actor's type ID string (e.g., "vehicle.tesla.model3").
-    fn get_type_id(&self) -> String;
+    fn type_id(&self) -> String;
 
     /// Get the current world transform of the actor.
-    fn get_transform(&self) -> Transform;
+    fn transform(&self) -> Transform;
 
     /// Set the actor's world transform.
     ///
@@ -33,22 +32,16 @@ pub trait ActorT {
     fn set_transform(&self, transform: &Transform) -> CarlaResult<()>;
 
     /// Get the actor's current velocity in m/s.
-    fn get_velocity(&self) -> Vector3D;
+    fn velocity(&self) -> Vector3D;
 
     /// Get the actor's current angular velocity in rad/s.
-    fn get_angular_velocity(&self) -> Vector3D;
+    fn angular_velocity(&self) -> Vector3D;
 
     /// Get the actor's current acceleration in m/s².
-    fn get_acceleration(&self) -> Vector3D;
+    fn acceleration(&self) -> Vector3D;
 
     /// Check if this actor is still alive in the simulation.
     fn is_alive(&self) -> bool;
-
-    /// Destroy this actor, removing it from the simulation.
-    ///
-    /// # Errors
-    /// Returns [`ActorError::Destroyed`] if already destroyed.
-    fn destroy(&self) -> CarlaResult<()>;
 
     /// Enable or disable actor physics simulation.
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()>;
@@ -61,47 +54,35 @@ pub trait ActorT {
 
     /// Add a torque to the actor (if physics-enabled).
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()>;
+
+    /// Get the actor's bounding box in local space.
+    fn bounding_box(&self) -> crate::geom::BoundingBox;
 }
 
 /// Trait for sensor-specific behavior.
 ///
 /// Implemented by all sensor types to provide unified sensor management.
 pub trait SensorT: ActorT {
-    /// The type of data this sensor produces.
-    type DataType: SensorData;
-
-    /// Start listening for sensor data with a callback.
-    ///
-    /// # Arguments
-    /// * `callback` - Function called when new data is available
-    ///
-    /// # Errors
-    /// Returns [`SensorError::AlreadyListening`] if already listening,
-    /// or [`SensorError::CallbackFailed`] if callback registration fails.
-    fn listen<F>(&self, callback: F) -> Result<(), SensorError>
-    where
-        F: Fn(Self::DataType) + Send + 'static;
-
-    /// Start listening with an async channel for sensor data.
-    ///
-    /// Returns a receiver that yields sensor data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<Self::DataType>, SensorError>;
+    /// Start listening for sensor data.
+    fn start_listening(&self);
 
     /// Stop listening for sensor data.
-    ///
-    /// # Errors
-    /// Returns [`SensorError::NotListening`] if not currently listening.
-    fn stop(&self) -> Result<(), SensorError>;
+    fn stop_listening(&self);
 
     /// Check if the sensor is currently listening.
     fn is_listening(&self) -> bool;
 
-    /// Get the sensor's data frame number (increments with each measurement).
-    fn get_frame(&self) -> u64;
+    /// Check if new sensor data is available.
+    fn has_new_data(&self) -> bool;
 
-    /// Get the timestamp of the last sensor measurement.
-    fn get_timestamp(&self) -> f64;
+    /// Get sensor-specific attribute.
+    fn get_attribute(&self, name: &str) -> Option<String>;
+
+    /// Enable sensor recording to file.
+    fn enable_recording(&self, filename: &str) -> CarlaResult<()>;
+
+    /// Disable sensor recording.
+    fn disable_recording(&self) -> CarlaResult<()>;
 }
 
 /// Trait for vehicle-specific behavior.
@@ -139,7 +120,7 @@ pub trait VehicleT: ActorT {
     /// Get the current speed in km/h.
     fn get_speed(&self) -> f32 {
         // Convert m/s to km/h
-        self.get_velocity().length() * 3.6
+        self.velocity().length() * 3.6
     }
 
     /// Enable/disable vehicle light state.
@@ -180,7 +161,7 @@ pub trait WalkerT: ActorT {
 
     /// Get the current speed in m/s.
     fn get_speed(&self) -> f32 {
-        self.get_velocity().length()
+        self.velocity().length()
     }
 }
 
@@ -233,7 +214,7 @@ pub trait BoundingBoxT {
     fn get_world_bounding_box(&self) -> crate::geom::BoundingBox {
         let _bbox = self.get_bounding_box();
         let _transform = if let Some(actor) = self.as_actor() {
-            actor.get_transform()
+            actor.transform()
         } else {
             Transform::default()
         };

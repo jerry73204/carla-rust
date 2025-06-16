@@ -33,15 +33,20 @@
 //! let spawn_transform = Transform::new(Location::new(0.0, 0.0, 0.5), Rotation::default());
 //!
 //! let actor = world.spawn_actor(&vehicle_bp, &spawn_transform, None)?;
-//! if let Some(vehicle) = actor.as_vehicle() {
-//!     // Control the vehicle
-//!     let control = VehicleControl {
-//!         throttle: 0.8,
-//!         steer: 0.0,
-//!         brake: 0.0,
-//!         ..Default::default()
-//!     };
-//!     vehicle.apply_control(&control)?;
+//! match actor.to_vehicle() {
+//!     Ok(vehicle) => {
+//!         // Control the vehicle
+//!         let control = VehicleControl {
+//!             throttle: 0.8,
+//!             steer: 0.0,
+//!             brake: 0.0,
+//!             ..Default::default()
+//!         };
+//!         vehicle.apply_control(&control)?;
+//!     }
+//!     Err(_actor) => {
+//!         // Not a vehicle
+//!     }
 //! }
 //! # Ok(())
 //! # }
@@ -81,10 +86,8 @@ mod utils;
 
 // Re-export commonly used types for convenience
 pub use client::{
-    Actor, ActorBlueprint, ActorId, BlueprintLibrary, Camera, CameraSensor, CameraType, Client,
-    CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR, LiDARSensor, ObstacleDetectionSensor,
-    OpticalFlowCamera, RSSensor, Radar, Sensor, TrafficLight, TrafficSign, Vehicle, Walker, World,
-    WorldSnapshot, GNSS, IMU,
+    Actor, ActorBlueprint, ActorId, BlueprintLibrary, Camera, CameraType, Client, LiDAR, Sensor,
+    TrafficLight, TrafficSign, Vehicle, Walker, World, WorldSnapshot,
 };
 
 pub use geom::{BoundingBox, Location, Rotation, Transform, Vector2D, Vector3D};

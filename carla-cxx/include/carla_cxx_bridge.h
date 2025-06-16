@@ -291,6 +291,23 @@ void Actor_SetTransform(const Actor &actor, const SimpleTransform &transform);
 bool Actor_Destroy(const Actor &actor);
 bool Actor_IsAlive(const Actor &actor);
 
+// Actor physics methods
+SimpleVector3D Actor_GetVelocity(const Actor &actor);
+SimpleVector3D Actor_GetAngularVelocity(const Actor &actor);
+SimpleVector3D Actor_GetAcceleration(const Actor &actor);
+void Actor_SetSimulatePhysics(const Actor &actor, bool enabled);
+void Actor_AddImpulse(const Actor &actor, const SimpleVector3D &impulse);
+void Actor_AddForce(const Actor &actor, const SimpleVector3D &force);
+void Actor_AddTorque(const Actor &actor, const SimpleVector3D &torque);
+SimpleBoundingBox Actor_GetBoundingBox(const Actor &actor);
+
+// Additional Actor state methods
+bool Actor_IsDormant(const Actor &actor);
+rust::Vec<rust::String> Actor_GetAttributes(const Actor &actor);
+rust::Vec<uint8_t> Actor_GetSemanticTags(const Actor &actor);
+uint8_t Actor_GetActorState(const Actor &actor);
+SimpleActorId Actor_GetParentId(const Actor &actor);
+
 // BlueprintLibrary wrapper functions
 std::shared_ptr<ActorBlueprint>
 BlueprintLibrary_Find(const BlueprintLibrary &library, rust::Str id);
@@ -330,6 +347,9 @@ std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
 std::shared_ptr<Actor> Sensor_CastToActor(const Sensor &sensor);
 std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
 std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor);
+std::shared_ptr<Actor>
+TrafficLight_CastToActor(const TrafficLight &traffic_light);
+std::shared_ptr<Actor> TrafficSign_CastToActor(const TrafficSign &traffic_sign);
 
 // Vehicle wrapper functions
 void Vehicle_ApplyControl(const Vehicle &vehicle,
