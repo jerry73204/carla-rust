@@ -73,16 +73,12 @@ impl Sensor {
 
     /// Get the sensor's data frame number (increments with each measurement).
     pub fn frame(&self) -> u64 {
-        // TODO: Implement frame number retrieval from sensor state
-        // This requires adding Sensor_GetFrame FFI function
-        todo!("Sensor::frame not yet implemented - missing FFI function Sensor_GetFrame")
+        carla_cxx::ffi::bridge::Sensor_GetFrame(self.inner.get_inner_sensor())
     }
 
     /// Get the timestamp of the last sensor measurement.
     pub fn timestamp(&self) -> f64 {
-        // TODO: Implement timestamp retrieval from sensor state
-        // This requires adding Sensor_GetTimestamp FFI function
-        todo!("Sensor::timestamp not yet implemented - missing FFI function Sensor_GetTimestamp")
+        carla_cxx::ffi::bridge::Sensor_GetTimestamp(self.inner.get_inner_sensor())
     }
 
     /// Get sensor-specific attribute.

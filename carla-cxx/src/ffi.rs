@@ -1085,6 +1085,8 @@ pub mod bridge {
         fn Sensor_Stop(sensor: &Sensor);
         fn Sensor_IsListening(sensor: &Sensor) -> bool;
         fn Sensor_Listen(sensor: &Sensor);
+        fn Sensor_GetFrame(sensor: &Sensor) -> u64;
+        fn Sensor_GetTimestamp(sensor: &Sensor) -> f64;
 
         // Sensor Actor interface methods
         fn Sensor_GetTypeId(sensor: &Sensor) -> String;

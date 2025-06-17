@@ -511,6 +511,10 @@ Sensor_GetLastObstacleDetectionData(const Sensor &sensor);
 SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor);
 SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor);
 
+// Sensor timestamp and frame retrieval
+uint64_t Sensor_GetFrame(const Sensor &sensor);
+double Sensor_GetTimestamp(const Sensor &sensor);
+
 // Sensor Actor interface functions
 rust::String Sensor_GetTypeId(const Sensor &sensor);
 SimpleTransform Sensor_GetTransform(const Sensor &sensor);

@@ -1556,6 +1556,24 @@ void Sensor_Listen(const Sensor &sensor) {
   const_cast<Sensor &>(sensor).Listen(std::move(callback));
 }
 
+uint64_t Sensor_GetFrame(const Sensor &sensor) {
+  // Get the latest frame number from stored sensor data
+  if (g_last_sensor_data) {
+    return g_last_sensor_data->GetFrame();
+  }
+  // Return 0 if no data has been received yet
+  return 0;
+}
+
+double Sensor_GetTimestamp(const Sensor &sensor) {
+  // Get the latest timestamp from stored sensor data
+  if (g_last_sensor_data) {
+    return g_last_sensor_data->GetTimestamp();
+  }
+  // Return 0.0 if no data has been received yet
+  return 0.0;
+}
+
 // Sensor data retrieval functions
 SimpleImageData Sensor_GetLastImageData(const Sensor &sensor) {
   if (!g_last_sensor_data) {
@@ -2191,7 +2209,8 @@ SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor) {
     } else {
       // RSS is not enabled in this build - provide mock data for compatibility
       result.response_valid = false;
-      result.proper_response = "{\"error\":\"RSS not enabled in this CARLA build\"}";
+      result.proper_response =
+          "{\"error\":\"RSS not enabled in this CARLA build\"}";
       result.rss_state_snapshot = "{\"error\":\"RSS not enabled\"}";
       result.situation_snapshot = "{\"error\":\"RSS not enabled\"}";
       result.world_model = "{\"error\":\"RSS not enabled\"}";
