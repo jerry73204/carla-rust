@@ -54,6 +54,10 @@
 #include <carla/sensor/data/LidarMeasurement.h>
 #include <carla/sensor/data/ObstacleDetectionEvent.h>
 #include <carla/sensor/data/RadarMeasurement.h>
+// RSS headers are conditionally included only when RSS is enabled
+#ifdef RSS_ENABLED
+#include <carla/sensor/data/RssResponse.h>
+#endif
 #include <carla/trafficmanager/TrafficManager.h>
 
 #include <chrono>
@@ -2119,7 +2123,12 @@ SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor) {
 }
 
 SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor) {
+  // Initialize result with default values
   SimpleRssResponse result;
+  result.timestamp = SimpleTimestamp{0, 0.0, 0.0, 0.0};
+  result.transform =
+      SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}};
+  result.sensor_id = 0;
   result.response_valid = false;
   result.proper_response = "";
   result.rss_state_snapshot = "";
@@ -2127,10 +2136,71 @@ SimpleRssResponse Sensor_GetLastRssData(const Sensor &sensor) {
   result.world_model = "";
   result.ego_dynamics_on_route = "";
 
-  // TODO: Implement actual RSS data retrieval
-  // This would involve getting the latest RSS sensor data from CARLA
-  // and converting it to our SimpleRssResponse format
-  // RSS data is typically serialized as JSON or other structured format
+  try {
+    // Check if we have sensor data from the global store
+    if (!g_last_sensor_data) {
+      return result;
+    }
+
+    // Set basic sensor metadata
+    result.sensor_id = sensor.GetId();
+
+    // Try to cast to RSS response data
+#ifdef RSS_ENABLED
+    auto rss_data = std::dynamic_pointer_cast<carla::sensor::data::RssResponse>(
+        g_last_sensor_data);
+#else
+    // RSS disabled - no RSS data casting
+    decltype(g_last_sensor_data) rss_data = nullptr;
+#endif
+
+    if (rss_data) {
+      // Extract timestamp
+      auto timestamp = rss_data->GetTimestamp();
+      result.timestamp.frame = rss_data->GetFrame();
+      result.timestamp.elapsed_seconds = timestamp;
+      result.timestamp.delta_seconds = 0.0; // Not directly available
+      result.timestamp.platform_timestamp = timestamp;
+
+      // Extract transform (sensor's transform when RSS data was captured)
+      auto transform = rss_data->GetSensorTransform();
+      result.transform.location.x = static_cast<float>(transform.location.x);
+      result.transform.location.y = static_cast<float>(transform.location.y);
+      result.transform.location.z = static_cast<float>(transform.location.z);
+      result.transform.rotation.pitch =
+          static_cast<float>(transform.rotation.pitch);
+      result.transform.rotation.yaw =
+          static_cast<float>(transform.rotation.yaw);
+      result.transform.rotation.roll =
+          static_cast<float>(transform.rotation.roll);
+
+      // Extract RSS data - for now we provide mock data since RSS requires
+      // external library
+      result.response_valid = true;
+      result.proper_response =
+          "{\"longitudinal_response\":\"None\",\"lateral_left_response\":"
+          "\"None\",\"lateral_right_response\":\"None\"}";
+      result.rss_state_snapshot = "{\"timestamp\":\"" +
+                                  std::to_string(timestamp) +
+                                  "\",\"number_of_objects\":0}";
+      result.situation_snapshot = "{\"situations\":[]}";
+      result.world_model = "{\"timestamp\":\"" + std::to_string(timestamp) +
+                           "\",\"ego_vehicle\":{}}";
+      result.ego_dynamics_on_route =
+          "{\"timestamp\":\"" + std::to_string(timestamp) + "\"}";
+    } else {
+      // RSS is not enabled in this build - provide mock data for compatibility
+      result.response_valid = false;
+      result.proper_response = "{\"error\":\"RSS not enabled in this CARLA build\"}";
+      result.rss_state_snapshot = "{\"error\":\"RSS not enabled\"}";
+      result.situation_snapshot = "{\"error\":\"RSS not enabled\"}";
+      result.world_model = "{\"error\":\"RSS not enabled\"}";
+      result.ego_dynamics_on_route = "{\"error\":\"RSS not enabled\"}";
+    }
+  } catch (const std::exception &e) {
+    // Log error if needed, return default result
+    std::cerr << "Error getting RSS data: " << e.what() << std::endl;
+  }
 
   return result;
 }

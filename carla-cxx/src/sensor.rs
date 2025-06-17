@@ -570,17 +570,23 @@ impl From<ffi::bridge::SimpleSemanticLidarData> for SemanticLidarData {
 /// RSS (Road Safety) response
 #[derive(Debug, Clone)]
 pub struct RssResponse {
-    pub response_valid: bool,          // RSS calculation validity
-    pub proper_response: String,       // RSS proper response (serialized)
-    pub rss_state_snapshot: String,    // Current RSS state (serialized)
-    pub situation_snapshot: String,    // Situation analysis (serialized)
-    pub world_model: String,           // World model used (serialized)
-    pub ego_dynamics_on_route: String, // Ego vehicle dynamics (serialized)
+    pub timestamp: crate::time::Timestamp, // Sensor timestamp
+    pub transform: crate::ffi::bridge::SimpleTransform, // Sensor transform when captured
+    pub sensor_id: u32,                    // Sensor ID
+    pub response_valid: bool,              // RSS calculation validity
+    pub proper_response: String,           // RSS proper response (serialized)
+    pub rss_state_snapshot: String,        // Current RSS state (serialized)
+    pub situation_snapshot: String,        // Situation analysis (serialized)
+    pub world_model: String,               // World model used (serialized)
+    pub ego_dynamics_on_route: String,     // Ego vehicle dynamics (serialized)
 }
 
 impl From<ffi::bridge::SimpleRssResponse> for RssResponse {
     fn from(simple: ffi::bridge::SimpleRssResponse) -> Self {
         Self {
+            timestamp: simple.timestamp.into(),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             response_valid: simple.response_valid,
             proper_response: simple.proper_response,
             rss_state_snapshot: simple.rss_state_snapshot,

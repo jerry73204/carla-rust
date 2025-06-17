@@ -299,6 +299,9 @@ pub mod bridge {
 
     #[derive(Debug, Clone, PartialEq)]
     pub struct SimpleRssResponse {
+        pub timestamp: SimpleTimestamp,    // Sensor timestamp
+        pub transform: SimpleTransform,    // Sensor transform when captured
+        pub sensor_id: u32,                // Sensor ID
         pub response_valid: bool,          // RSS calculation validity
         pub proper_response: String,       // RSS proper response (serialized)
         pub rss_state_snapshot: String,    // Current RSS state (serialized)
