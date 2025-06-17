@@ -52,6 +52,7 @@
 #include <carla/sensor/data/Image.h>
 #include <carla/sensor/data/LaneInvasionEvent.h>
 #include <carla/sensor/data/LidarMeasurement.h>
+#include <carla/sensor/data/ObstacleDetectionEvent.h>
 #include <carla/sensor/data/RadarMeasurement.h>
 #include <carla/trafficmanager/TrafficManager.h>
 
@@ -2045,14 +2046,62 @@ SimpleDVSEventArray Sensor_GetLastDVSData(const Sensor &sensor) {
 
 SimpleObstacleDetectionEvent
 Sensor_GetLastObstacleDetectionData(const Sensor &sensor) {
+  // Initialize result with default values
   SimpleObstacleDetectionEvent result;
+  result.timestamp = SimpleTimestamp{0, 0.0, 0.0, 0.0};
+  result.transform =
+      SimpleTransform{SimpleLocation{0, 0, 0}, SimpleRotation{0, 0, 0}};
+  result.sensor_id = 0;
   result.self_actor_id = 0;
   result.other_actor_id = 0;
   result.distance = 0.0f;
 
-  // TODO: Implement actual obstacle detection data retrieval
-  // This would involve getting the latest obstacle detection event from CARLA
-  // and converting it to our SimpleObstacleDetectionEvent format
+  try {
+    // Check if we have sensor data from the global store
+    if (!g_last_sensor_data) {
+      return result;
+    }
+
+    // Try to cast to obstacle detection event
+    auto obstacle_event =
+        std::dynamic_pointer_cast<carla::sensor::data::ObstacleDetectionEvent>(
+            g_last_sensor_data);
+
+    if (obstacle_event) {
+      // Extract timestamp
+      auto timestamp = obstacle_event->GetTimestamp();
+      result.timestamp.frame = obstacle_event->GetFrame();
+      result.timestamp.elapsed_seconds = timestamp;
+      result.timestamp.delta_seconds = 0.0; // Not directly available
+      result.timestamp.platform_timestamp = timestamp;
+
+      // Extract transform (sensor's transform when detection occurred)
+      auto transform = obstacle_event->GetSensorTransform();
+      result.transform.location.x = static_cast<float>(transform.location.x);
+      result.transform.location.y = static_cast<float>(transform.location.y);
+      result.transform.location.z = static_cast<float>(transform.location.z);
+      result.transform.rotation.pitch =
+          static_cast<float>(transform.rotation.pitch);
+      result.transform.rotation.yaw =
+          static_cast<float>(transform.rotation.yaw);
+      result.transform.rotation.roll =
+          static_cast<float>(transform.rotation.roll);
+
+      // Extract sensor ID and detection data
+      result.sensor_id = sensor.GetId();
+
+      auto self_actor = obstacle_event->GetActor();
+      auto other_actor = obstacle_event->GetOtherActor();
+
+      result.self_actor_id = self_actor ? self_actor->GetId() : 0;
+      result.other_actor_id = other_actor ? other_actor->GetId() : 0;
+      result.distance = obstacle_event->GetDistance();
+    }
+  } catch (const std::exception &e) {
+    // Log error if needed, return default result
+    std::cerr << "Error getting obstacle detection data: " << e.what()
+              << std::endl;
+  }
 
   return result;
 }

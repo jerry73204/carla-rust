@@ -503,14 +503,20 @@ impl From<ffi::bridge::SimpleDVSEventArray> for DVSEventArray {
 /// Obstacle Detection event
 #[derive(Debug, Clone, Copy)]
 pub struct ObstacleDetectionEvent {
-    pub self_actor_id: u32,  // Sensor's parent actor ID
-    pub other_actor_id: u32, // Detected obstacle actor ID
-    pub distance: f32,       // Distance to obstacle in meters
+    pub timestamp: crate::time::Timestamp, // Sensor timestamp
+    pub transform: crate::ffi::bridge::SimpleTransform, // Sensor transform when captured
+    pub sensor_id: u32,                    // Sensor ID
+    pub self_actor_id: u32,                // Sensor's parent actor ID
+    pub other_actor_id: u32,               // Detected obstacle actor ID
+    pub distance: f32,                     // Distance to obstacle in meters
 }
 
 impl From<ffi::bridge::SimpleObstacleDetectionEvent> for ObstacleDetectionEvent {
     fn from(simple: ffi::bridge::SimpleObstacleDetectionEvent) -> Self {
         Self {
+            timestamp: simple.timestamp.into(),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             self_actor_id: simple.self_actor_id,
             other_actor_id: simple.other_actor_id,
             distance: simple.distance,

@@ -274,9 +274,12 @@ pub mod bridge {
 
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleObstacleDetectionEvent {
-        pub self_actor_id: u32,  // Sensor's parent actor ID
-        pub other_actor_id: u32, // Detected obstacle actor ID
-        pub distance: f32,       // Distance to obstacle in meters
+        pub timestamp: SimpleTimestamp, // Sensor timestamp
+        pub transform: SimpleTransform, // Sensor transform when captured
+        pub sensor_id: u32,             // Sensor ID
+        pub self_actor_id: u32,         // Sensor's parent actor ID
+        pub other_actor_id: u32,        // Detected obstacle actor ID
+        pub distance: f32,              // Distance to obstacle in meters
     }
 
     #[derive(Debug, Clone, Copy, PartialEq)]

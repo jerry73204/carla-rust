@@ -101,11 +101,9 @@ impl ObstacleDetectionData {
         };
 
         Self {
-            // TODO: Extract proper metadata from carla-cxx ObstacleDetectionEvent structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx ObstacleDetectionEvent
-            timestamp: todo!("ObstacleDetectionData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
-            transform: todo!("ObstacleDetectionData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
-            sensor_id: todo!("ObstacleDetectionData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),
+            timestamp: Timestamp::from(cxx_event.timestamp),
+            transform: Transform::from(cxx_event.transform),
+            sensor_id: cxx_event.sensor_id,
             detections: vec![detection],
         }
     }
