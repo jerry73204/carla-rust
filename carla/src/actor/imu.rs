@@ -65,9 +65,8 @@ impl IMU {
     /// Get the latest IMU measurement.
     pub fn data(&self) -> Option<IMUData> {
         if self.inner.has_new_data() {
-            // TODO: Implement IMU data retrieval from sensor
-            // This requires adding IMU_GetData FFI function
-            todo!("IMU::data not yet implemented - missing FFI function IMU_GetData")
+            let cxx_data = self.inner.get_last_imu_data();
+            Some(IMUData::from_cxx(cxx_data))
         } else {
             None
         }

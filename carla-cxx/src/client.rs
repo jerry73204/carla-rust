@@ -636,7 +636,10 @@ impl BlueprintLibraryWrapper {
     }
 
     /// Filter blueprints by wildcard pattern
-    pub fn filter(&self, wildcard_pattern: &str) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
+    pub fn filter(
+        &self,
+        wildcard_pattern: &str,
+    ) -> Vec<crate::actor_blueprint::ActorBlueprintWrapper> {
         let blueprint_list = ffi::BlueprintLibrary_Filter(&self.inner, wildcard_pattern);
         blueprint_list
             .blueprint_ids

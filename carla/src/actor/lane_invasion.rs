@@ -67,11 +67,8 @@ impl LaneInvasionSensor {
     /// Get the latest lane invasion event.
     pub fn data(&self) -> Option<LaneInvasionData> {
         if self.inner.has_new_data() {
-            // TODO: Implement lane invasion data retrieval from sensor
-            // This requires adding LaneInvasionSensor_GetData FFI function
-            todo!(
-                "LaneInvasionSensor::data not yet implemented - missing FFI function LaneInvasionSensor_GetData"
-            )
+            let cxx_data = self.inner.get_last_lane_invasion_data();
+            Some(LaneInvasionData::from_cxx(cxx_data))
         } else {
             None
         }

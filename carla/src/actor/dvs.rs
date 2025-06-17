@@ -65,9 +65,8 @@ impl DVSCamera {
     /// Get the latest DVS event array.
     pub fn data(&self) -> Option<DVSData> {
         if self.inner.has_new_data() {
-            // TODO: Implement DVS data retrieval from sensor
-            // This requires adding DVSCamera_GetData FFI function
-            todo!("DVSCamera::data not yet implemented - missing FFI function DVSCamera_GetData")
+            let cxx_data = self.inner.get_last_dvs_data();
+            Some(DVSData::from_cxx(cxx_data))
         } else {
             None
         }

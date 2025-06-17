@@ -1770,25 +1770,57 @@ SimpleLiDARData Sensor_GetLastLiDARDataFull(const Sensor &sensor) {
       rust::Vec<SimpleLiDARPoint>()};
 }
 
-rust::Vec<SimpleRadarDetection> Sensor_GetLastRadarData(const Sensor &sensor) {
-  rust::Vec<SimpleRadarDetection> detections;
+SimpleRadarData Sensor_GetLastRadarData(const Sensor &sensor) {
+  // Check if we have sensor data
+  if (g_last_sensor_data) {
+    // Try to cast to radar measurement
+    auto radar_data =
+        std::dynamic_pointer_cast<carla::sensor::data::RadarMeasurement>(
+            g_last_sensor_data);
+    if (radar_data) {
+      // Extract timestamp
+      auto timestamp = radar_data->GetTimestamp();
+      SimpleTimestamp simple_timestamp{
+          radar_data->GetFrame(), // Frame number
+          timestamp,              // elapsed_seconds (timestamp is double)
+          0.0,                    // delta_seconds (not directly available)
+          timestamp               // platform_timestamp (use same as elapsed)
+      };
 
-  if (!g_last_sensor_data) {
-    return detections;
-  }
+      // Extract transform (sensor's transform when radar data was captured)
+      auto transform = radar_data->GetSensorTransform();
+      SimpleTransform simple_transform{
+          SimpleLocation{transform.location.x, transform.location.y,
+                         transform.location.z},
+          SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                         transform.rotation.roll}};
 
-  auto radar_data =
-      std::dynamic_pointer_cast<carla::sensor::data::RadarMeasurement>(
-          g_last_sensor_data);
-  if (radar_data) {
-    for (const auto &detection : *radar_data) {
-      detections.push_back(
-          SimpleRadarDetection{detection.velocity, detection.azimuth,
-                               detection.altitude, detection.depth});
+      // Extract sensor ID (use frame as sensor ID - limitation of current
+      // system)
+      uint32_t sensor_id = radar_data->GetFrame();
+
+      // Convert detections
+      rust::Vec<SimpleRadarDetection> detections;
+      for (const auto &detection : *radar_data) {
+        detections.push_back(
+            SimpleRadarDetection{detection.velocity, detection.azimuth,
+                                 detection.altitude, detection.depth});
+      }
+
+      return SimpleRadarData{simple_timestamp, simple_transform, sensor_id,
+                             detections};
     }
   }
 
-  return detections;
+  // Return empty radar data if no radar data available
+  SimpleTimestamp empty_timestamp{0, 0.0, 0.0, 0.0};
+  SimpleTransform empty_transform{SimpleLocation{0.0, 0.0, 0.0},
+                                  SimpleRotation{0.0, 0.0, 0.0}};
+  return SimpleRadarData{
+      empty_timestamp, empty_transform,
+      0,                                // sensor_id
+      rust::Vec<SimpleRadarDetection>() // empty detections
+  };
 }
 
 SimpleIMUData Sensor_GetLastIMUData(const Sensor &sensor) {

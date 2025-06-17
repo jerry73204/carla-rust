@@ -82,8 +82,8 @@ impl SensorWrapper {
 
     /// Get the last radar data
     pub fn get_last_radar_data(&self) -> RadarData {
-        let detections = ffi::Sensor_GetLastRadarData(&self.inner);
-        RadarData::from(detections)
+        let simple_data = ffi::Sensor_GetLastRadarData(&self.inner);
+        RadarData::from(simple_data)
     }
 
     /// Get the last IMU data
@@ -294,12 +294,16 @@ pub struct LiDARPoint {
 /// Radar sensor data
 #[derive(Debug, Clone)]
 pub struct RadarData {
+    pub timestamp: crate::time::Timestamp,
+    pub transform: crate::ffi::SimpleTransform,
+    pub sensor_id: u32,
     pub detections: Vec<RadarDetection>,
 }
 
-impl From<Vec<ffi::SimpleRadarDetection>> for RadarData {
-    fn from(detections: Vec<ffi::SimpleRadarDetection>) -> Self {
-        let detections = detections
+impl From<ffi::bridge::SimpleRadarData> for RadarData {
+    fn from(simple: ffi::bridge::SimpleRadarData) -> Self {
+        let detections = simple
+            .detections
             .into_iter()
             .map(|d| RadarDetection {
                 velocity: d.velocity,
@@ -308,7 +312,12 @@ impl From<Vec<ffi::SimpleRadarDetection>> for RadarData {
                 depth: d.depth,
             })
             .collect();
-        Self { detections }
+        Self {
+            timestamp: crate::time::Timestamp::from(simple.timestamp),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
+            detections,
+        }
     }
 }
 

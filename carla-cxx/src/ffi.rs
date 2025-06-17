@@ -193,6 +193,14 @@ pub mod bridge {
         pub depth: f32,
     }
 
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct SimpleRadarData {
+        pub timestamp: SimpleTimestamp, // Sensor timestamp
+        pub transform: SimpleTransform, // Sensor transform
+        pub sensor_id: u32,             // Sensor ID
+        pub detections: Vec<SimpleRadarDetection>,
+    }
+
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct SimpleIMUData {
         pub timestamp: SimpleTimestamp, // Sensor timestamp
@@ -1111,7 +1119,7 @@ pub mod bridge {
         fn Sensor_GetCameraType(sensor: &Sensor) -> u8; // 0=RGB, 1=Depth, 2=SemanticSeg, 3=InstanceSeg
         fn Sensor_GetLastLiDARData(sensor: &Sensor) -> Vec<SimpleLiDARPoint>;
         fn Sensor_GetLastLiDARDataFull(sensor: &Sensor) -> SimpleLiDARData;
-        fn Sensor_GetLastRadarData(sensor: &Sensor) -> Vec<SimpleRadarDetection>;
+        fn Sensor_GetLastRadarData(sensor: &Sensor) -> SimpleRadarData;
         fn Sensor_GetLastIMUData(sensor: &Sensor) -> SimpleIMUData;
         fn Sensor_GetLastGNSSData(sensor: &Sensor) -> SimpleGNSSData;
         fn Sensor_GetLastCollisionData(sensor: &Sensor) -> SimpleCollisionData;

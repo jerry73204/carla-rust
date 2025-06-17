@@ -65,9 +65,8 @@ impl GNSS {
     /// Get the latest GNSS measurement.
     pub fn data(&self) -> Option<GNSSData> {
         if self.inner.has_new_data() {
-            // TODO: Implement GNSS data retrieval from sensor
-            // This requires adding GNSS_GetData FFI function
-            todo!("GNSS::data not yet implemented - missing FFI function GNSS_GetData")
+            let cxx_data = self.inner.get_last_gnss_data();
+            Some(GNSSData::from_cxx(cxx_data))
         } else {
             None
         }

@@ -65,11 +65,8 @@ impl CollisionSensor {
     /// Get the latest collision event.
     pub fn data(&self) -> Option<CollisionData> {
         if self.inner.has_new_data() {
-            // TODO: Implement collision data retrieval from sensor
-            // This requires adding CollisionSensor_GetData FFI function
-            todo!(
-                "CollisionSensor::data not yet implemented - missing FFI function CollisionSensor_GetData"
-            )
+            let cxx_data = self.inner.get_last_collision_data();
+            Some(CollisionData::from_cxx(cxx_data))
         } else {
             None
         }

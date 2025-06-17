@@ -65,9 +65,8 @@ impl Radar {
     /// Get the latest radar measurement.
     pub fn data(&self) -> Option<RadarData> {
         if self.inner.has_new_data() {
-            // TODO: Implement radar data retrieval from sensor
-            // This requires adding Radar_GetData FFI function
-            todo!("Radar::data not yet implemented - missing FFI function Radar_GetData")
+            let cxx_data = self.inner.get_last_radar_data();
+            Some(RadarData::from_cxx(cxx_data))
         } else {
             None
         }

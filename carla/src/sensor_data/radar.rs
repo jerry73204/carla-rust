@@ -1,6 +1,10 @@
 //! Radar sensor implementations.
 
-use crate::{geom::Transform, sensor_data::SensorData, time::Timestamp};
+use crate::{
+    geom::{FromCxx, Transform},
+    sensor_data::SensorData,
+    time::Timestamp,
+};
 
 /// Radar sensor data.
 #[derive(Debug, Clone)]
@@ -61,11 +65,9 @@ impl RadarData {
             .collect();
 
         Self {
-            // TODO: Extract proper metadata from carla-cxx RadarData structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx RadarData
-            timestamp: todo!("RadarData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
-            transform: todo!("RadarData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
-            sensor_id: todo!("RadarData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),
+            timestamp: cxx_data.timestamp.into(),
+            transform: Transform::from(cxx_data.transform),
+            sensor_id: cxx_data.sensor_id,
             detections,
         }
     }
