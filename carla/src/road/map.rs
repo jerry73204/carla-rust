@@ -61,13 +61,6 @@ impl Map {
         self.inner.get_open_drive()
     }
 
-    /// Save the map as OpenDRIVE file.
-    pub fn save_to_disk(&self, path: &str) -> CarlaResult<()> {
-        // TODO: Implement using carla-cxx FFI interface
-        let _path = path;
-        todo!("Map::save_to_disk not yet implemented with carla-cxx FFI")
-    }
-
     /// Get topology of the road network.
     pub fn topology(&self) -> Topology {
         let topology_vec = self.inner.get_topology_vector();
