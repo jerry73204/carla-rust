@@ -132,15 +132,7 @@ impl ImageData {
     }
 
     /// Save image to file (requires image crate feature).
-    #[cfg(feature = "image")]
     pub fn save_to_disk(&self, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-        use image::{ImageBuffer, Rgba};
-
-        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
-            ImageBuffer::from_raw(self.width, self.height, self.data.clone())
-                .ok_or("Failed to create image buffer")?;
-
-        img.save(path)?;
-        Ok(())
+        todo!()
     }
 }

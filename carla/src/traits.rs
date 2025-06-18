@@ -5,12 +5,11 @@
 
 use crate::{
     actor::{
-        VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
+        ActorId, VehicleControl, VehicleDoorType, VehicleLightState, VehiclePhysicsControl,
         VehicleTelemetryData, WalkerControl,
     },
     error::CarlaResult,
     geom::{BoundingBox, Transform, Vector3D},
-    ActorId,
 };
 
 /// Common behavior for all CARLA actors.

@@ -14,10 +14,24 @@
 //! - [`geom`] - Geometry types for transforms, locations, and vectors
 //! - [`rpc`] - Remote procedure call data structures
 //!
+//! ## Module Organization
+//!
+//! All submodules are publicly accessible, allowing direct imports like:
+//! - `use carla::client::blueprint::ActorBlueprint;`
+//! - `use carla::actor::vehicle::Vehicle;`
+//! - `use carla::road::waypoint::Waypoint;`
+//!
+//! Common types are also re-exported at the crate root for convenience.
+//!
 //! ## Quick Start
 //!
 //! ```rust,no_run
-//! use carla::{Client, Location, Rotation, Transform, VehicleControl, VehicleT};
+//! use carla::{
+//!     actor::vehicle::VehicleControl,
+//!     client::client::Client,
+//!     geom::{Location, Rotation, Transform},
+//!     traits::VehicleT,
+//! };
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Connect to CARLA server
@@ -86,45 +100,8 @@ pub mod traits;
 mod utils;
 
 // Re-export commonly used types for convenience
-pub use actor::{
-    Actor, ActorId, Camera, CameraType, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR,
-    Radar, Sensor, TrafficLight, TrafficSign, Vehicle, VehicleControl, VehicleDoorType,
-    VehicleLightState, VehiclePhysicsControl, VehicleTelemetryData, Walker, WalkerControl, GNSS,
-    IMU,
-};
-pub use client::{
-    ActorAttribute, ActorAttributeType, ActorBlueprint, AttributeValue, BlueprintLibrary, Client,
-    RGBColor, World, WorldSnapshot,
-};
-
-pub use geom::{BoundingBox, Location, Rotation, Transform, Vector2D, Vector3D};
-
-pub use batch::ActorCommand;
-
-pub use sensor_data::{
-    CollisionData, DVSData, DepthImageData, GNSSData, IMUData, ImageData,
-    InstanceSegmentationImageData, LaneInvasionData, LiDARData, ObstacleDetectionData,
-    OpticalFlowData, RGBImageData, RSSData, RadarData, SemanticLiDARData,
-    SemanticSegmentationImageData, SensorData,
-};
-
-pub use traffic_manager::{TrafficManager, TrafficManagerConfig};
-
-pub use road::{
-    GeoLocation, Junction, Lane, LaneChange, LaneMarkingColor, LaneMarkingType, LaneType, Map,
-    Waypoint,
-};
-
-pub use time::Timestamp;
-
-pub use streaming::{SensorStream, StreamConfig};
-
-pub use error::{
-    ActorError, CarlaError, ClientError, MapError, SensorError, SpawnError, TrafficManagerError,
-    WorldError,
-};
-
-// Re-export traits for common actor behaviors
+pub use client::Client;
+pub use error::CarlaError;
 pub use traits::{ActorT, SensorT, VehicleT, WalkerT};
 
 /// Type alias for results returned by this library

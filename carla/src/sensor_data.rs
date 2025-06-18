@@ -14,18 +14,18 @@
 //! - RSS (Road Safety) sensors
 
 // Sensor modules
-mod camera;
-mod collision;
-mod data;
-mod dvs;
-mod gnss;
-mod imu;
-mod lane_invasion;
-mod lidar;
-mod obstacle_detection;
-mod optical_flow;
-mod radar;
-mod rss;
+pub mod camera;
+pub mod collision;
+pub mod data;
+pub mod dvs;
+pub mod gnss;
+pub mod imu;
+pub mod lane_invasion;
+pub mod lidar;
+pub mod obstacle_detection;
+pub mod optical_flow;
+pub mod radar;
+pub mod rss;
 
 // Re-export sensor data and processing functionality
 pub use data::*;
