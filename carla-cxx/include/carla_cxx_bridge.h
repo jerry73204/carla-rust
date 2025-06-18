@@ -30,6 +30,17 @@
 #include <carla/ros2/ROS2.h>
 #include <carla/trafficmanager/TrafficManager.h>
 
+// Forward declarations for our container types
+namespace carla {
+namespace client {
+using WaypointVector = std::vector<std::shared_ptr<Waypoint>>;
+using TopologyVector = std::vector<
+    std::pair<std::shared_ptr<Waypoint>, std::shared_ptr<Waypoint>>>;
+using TransformVector = std::vector<carla::geom::Transform>;
+using LocationVector = std::vector<carla::geom::Location>;
+} // namespace client
+} // namespace carla
+
 // Forward declare our simple types from the generated header
 struct SimpleVector2D;
 struct SimpleVector3D;
@@ -566,6 +577,10 @@ void TrafficLight_AddForce(const TrafficLight &traffic_light,
 void TrafficLight_AddTorque(const TrafficLight &traffic_light,
                             const SimpleVector3D &torque);
 
+// Traffic Light advanced methods
+std::unique_ptr<WaypointVector>
+TrafficLight_GetAffectedLaneWaypoints(const TrafficLight &traffic_light);
+
 // Traffic Sign wrapper functions
 rust::String TrafficSign_GetSignId(const TrafficSign &traffic_sign);
 SimpleBoundingBox TrafficSign_GetTriggerVolume(const TrafficSign &traffic_sign);
@@ -626,6 +641,8 @@ BoundingBox_GetVertices(const SimpleBoundingBox &bbox);
 rust::String Map_GetName(const Map &map);
 rust::String Map_GetOpenDrive(const Map &map);
 rust::Vec<SimpleTransform> Map_GetRecommendedSpawnPoints(const Map &map);
+std::unique_ptr<TransformVector>
+Map_GetRecommendedSpawnPointsVector(const Map &map);
 std::shared_ptr<Waypoint> Map_GetWaypoint(const Map &map,
                                           const SimpleLocation &location,
                                           bool project_to_road,
@@ -636,9 +653,47 @@ rust::Vec<SimpleWaypointInfo> Map_GenerateWaypoints(const Map &map,
                                                     double distance);
 SimpleGeoLocation Map_GetGeoReference(const Map &map);
 rust::Vec<SimpleLocation> Map_GetAllCrosswalkZones(const Map &map);
+std::unique_ptr<LocationVector> Map_GetAllCrosswalkZonesVector(const Map &map);
 std::shared_ptr<Junction> Map_GetJunction(const Map &map,
                                           const Waypoint &waypoint);
 rust::Vec<SimpleWaypointInfo> Map_GetTopology(const Map &map);
+
+// New methods that return proper SharedPtr collections
+std::unique_ptr<WaypointVector> Map_GenerateWaypointsVector(const Map &map,
+                                                            double distance);
+std::unique_ptr<TopologyVector> Map_GetTopologyVector(const Map &map);
+
+// Container access methods
+size_t WaypointVector_Size(const WaypointVector &vec);
+std::shared_ptr<Waypoint> WaypointVector_Get(const WaypointVector &vec,
+                                             size_t index);
+size_t TopologyVector_Size(const TopologyVector &vec);
+std::shared_ptr<Waypoint> TopologyVector_GetStart(const TopologyVector &vec,
+                                                  size_t index);
+std::shared_ptr<Waypoint> TopologyVector_GetEnd(const TopologyVector &vec,
+                                                size_t index);
+size_t TransformVector_Size(const TransformVector &vec);
+SimpleTransform TransformVector_Get(const TransformVector &vec, size_t index);
+size_t LocationVector_Size(const LocationVector &vec);
+SimpleLocation LocationVector_Get(const LocationVector &vec, size_t index);
+
+// Waypoint navigation from OpenDRIVE coordinates
+std::shared_ptr<Waypoint> Map_GetNextWaypointXODR(const Map &map,
+                                                  uint32_t road_id,
+                                                  int32_t lane_id, double s,
+                                                  double distance);
+std::shared_ptr<Waypoint> Map_GetPreviousWaypointXODR(const Map &map,
+                                                      uint32_t road_id,
+                                                      int32_t lane_id, double s,
+                                                      double distance);
+std::shared_ptr<Waypoint> Map_GetRightLaneWaypointXODR(const Map &map,
+                                                       uint32_t road_id,
+                                                       int32_t lane_id,
+                                                       double s);
+std::shared_ptr<Waypoint> Map_GetLeftLaneWaypointXODR(const Map &map,
+                                                      uint32_t road_id,
+                                                      int32_t lane_id,
+                                                      double s);
 
 // Waypoint wrapper functions
 uint64_t Waypoint_GetId(const Waypoint &waypoint);
@@ -652,10 +707,10 @@ bool Waypoint_IsJunction(const Waypoint &waypoint);
 std::shared_ptr<Junction> Waypoint_GetJunction(const Waypoint &waypoint);
 double Waypoint_GetLaneWidth(const Waypoint &waypoint);
 uint32_t Waypoint_GetType(const Waypoint &waypoint);
-std::shared_ptr<Waypoint> Waypoint_GetNext(const Waypoint &waypoint,
-                                           double distance);
-std::shared_ptr<Waypoint> Waypoint_GetPrevious(const Waypoint &waypoint,
-                                               double distance);
+std::unique_ptr<WaypointVector> Waypoint_GetNextVector(const Waypoint &waypoint,
+                                                       double distance);
+std::unique_ptr<WaypointVector>
+Waypoint_GetPreviousVector(const Waypoint &waypoint, double distance);
 std::shared_ptr<Waypoint> Waypoint_GetRight(const Waypoint &waypoint);
 std::shared_ptr<Waypoint> Waypoint_GetLeft(const Waypoint &waypoint);
 SimpleLaneMarking Waypoint_GetRightLaneMarking(const Waypoint &waypoint);
@@ -665,6 +720,8 @@ uint8_t Waypoint_GetLaneChange(const Waypoint &waypoint);
 // Junction wrapper functions
 uint32_t Junction_GetId(const Junction &junction);
 SimpleBoundingBox Junction_GetBoundingBox(const Junction &junction);
+std::unique_ptr<WaypointVector> Junction_GetWaypoints(const Junction &junction,
+                                                      uint32_t lane_type);
 
 // Traffic Manager functions
 std::shared_ptr<carla::traffic_manager::TrafficManager>

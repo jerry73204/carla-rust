@@ -157,8 +157,9 @@ impl TrafficLightWrapper {
     }
 
     /// Get affected lane waypoints for this traffic light
-    pub fn get_affected_lane_waypoints(&self) -> Vec<crate::ffi::bridge::SimpleWaypointInfo> {
-        todo!("TrafficLight_GetAffectedLaneWaypoints FFI function added but CXX bridge integration needs debugging")
+    pub fn get_affected_lane_waypoints(&self) -> crate::map::WaypointVector {
+        let vec = ffi::TrafficLight_GetAffectedLaneWaypoints(&self.inner);
+        crate::map::WaypointVector::new(vec)
     }
 
     /// Get the pole index for this traffic light

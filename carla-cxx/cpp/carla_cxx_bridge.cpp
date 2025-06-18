@@ -2442,32 +2442,13 @@ void TrafficLight_AddTorque(const TrafficLight &traffic_light,
 }
 
 // Traffic Light advanced methods
-rust::Vec<SimpleWaypointInfo>
+std::unique_ptr<WaypointVector>
 TrafficLight_GetAffectedLaneWaypoints(const TrafficLight &traffic_light) {
-  rust::Vec<SimpleWaypointInfo> waypoints;
-  auto carla_waypoints =
-      traffic_light.GetAffectedLaneWaypoints(); // This method is const
+  auto waypoints = std::make_unique<WaypointVector>();
+  auto carla_waypoints = traffic_light.GetAffectedLaneWaypoints();
+  waypoints->reserve(carla_waypoints.size());
   for (const auto &waypoint : carla_waypoints) {
-    SimpleWaypointInfo waypoint_info;
-    waypoint_info.id = waypoint->GetId();
-    waypoint_info.road_id = waypoint->GetRoadId();
-    waypoint_info.section_id = waypoint->GetSectionId();
-    waypoint_info.lane_id = waypoint->GetLaneId();
-    waypoint_info.s = waypoint->GetDistance();
-
-    auto transform = waypoint->GetTransform();
-    waypoint_info.transform = SimpleTransform{
-        SimpleLocation{transform.location.x, transform.location.y,
-                       transform.location.z},
-        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
-                       transform.rotation.roll}};
-
-    waypoint_info.is_junction = waypoint->IsJunction();
-    waypoint_info.lane_width = waypoint->GetLaneWidth();
-    waypoint_info.lane_type = static_cast<uint32_t>(waypoint->GetType());
-    waypoint_info.lane_change = static_cast<uint8_t>(waypoint->GetLaneChange());
-
-    waypoints.push_back(waypoint_info);
+    waypoints->push_back(waypoint);
   }
   return waypoints;
 }
@@ -2610,6 +2591,17 @@ rust::Vec<SimpleTransform> Map_GetRecommendedSpawnPoints(const Map &map) {
   return spawn_points;
 }
 
+std::unique_ptr<TransformVector>
+Map_GetRecommendedSpawnPointsVector(const Map &map) {
+  auto vec = std::make_unique<TransformVector>();
+  auto spawn_points = map.GetRecommendedSpawnPoints();
+  vec->reserve(spawn_points.size());
+  for (const auto &transform : spawn_points) {
+    vec->push_back(transform);
+  }
+  return vec;
+}
+
 std::shared_ptr<Waypoint> Map_GetWaypoint(const Map &map,
                                           const SimpleLocation &location,
                                           bool project_to_road,
@@ -2664,6 +2656,16 @@ rust::Vec<SimpleLocation> Map_GetAllCrosswalkZones(const Map &map) {
   return zones;
 }
 
+std::unique_ptr<LocationVector> Map_GetAllCrosswalkZonesVector(const Map &map) {
+  auto vec = std::make_unique<LocationVector>();
+  auto zones = map.GetAllCrosswalkZones();
+  vec->reserve(zones.size());
+  for (const auto &location : zones) {
+    vec->push_back(location);
+  }
+  return vec;
+}
+
 std::shared_ptr<Junction> Map_GetJunction(const Map &map,
                                           const Waypoint &waypoint) {
   return map.GetJunction(waypoint);
@@ -2698,6 +2700,133 @@ rust::Vec<SimpleWaypointInfo> Map_GetTopology(const Map &map) {
     }
   }
   return waypoints;
+}
+
+// Bring the container types into scope
+using carla::client::TopologyVector;
+using carla::client::WaypointVector;
+
+// New methods that return proper SharedPtr collections
+std::unique_ptr<WaypointVector> Map_GenerateWaypointsVector(const Map &map,
+                                                            double distance) {
+  auto waypoints = std::make_unique<WaypointVector>();
+  for (const auto &wp : map.GenerateWaypoints(distance)) {
+    waypoints->push_back(wp);
+  }
+  return waypoints;
+}
+
+std::unique_ptr<TopologyVector> Map_GetTopologyVector(const Map &map) {
+  auto topology_vec = std::make_unique<TopologyVector>();
+  auto topology = map.GetTopology();
+  for (const auto &pair : topology) {
+    topology_vec->push_back(pair);
+  }
+  return topology_vec;
+}
+
+// Container access methods
+size_t WaypointVector_Size(const WaypointVector &vec) { return vec.size(); }
+
+std::shared_ptr<Waypoint> WaypointVector_Get(const WaypointVector &vec,
+                                             size_t index) {
+  if (index < vec.size()) {
+    return vec[index];
+  }
+  return nullptr;
+}
+
+size_t TopologyVector_Size(const TopologyVector &vec) { return vec.size(); }
+
+std::shared_ptr<Waypoint> TopologyVector_GetStart(const TopologyVector &vec,
+                                                  size_t index) {
+  if (index < vec.size()) {
+    return vec[index].first;
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> TopologyVector_GetEnd(const TopologyVector &vec,
+                                                size_t index) {
+  if (index < vec.size()) {
+    return vec[index].second;
+  }
+  return nullptr;
+}
+
+size_t TransformVector_Size(const TransformVector &vec) { return vec.size(); }
+
+SimpleTransform TransformVector_Get(const TransformVector &vec, size_t index) {
+  if (index < vec.size()) {
+    const auto &transform = vec[index];
+    return SimpleTransform{
+        SimpleLocation{transform.location.x, transform.location.y,
+                       transform.location.z},
+        SimpleRotation{transform.rotation.pitch, transform.rotation.yaw,
+                       transform.rotation.roll}};
+  }
+  return SimpleTransform{};
+}
+
+size_t LocationVector_Size(const LocationVector &vec) { return vec.size(); }
+
+SimpleLocation LocationVector_Get(const LocationVector &vec, size_t index) {
+  if (index < vec.size()) {
+    const auto &location = vec[index];
+    return SimpleLocation{location.x, location.y, location.z};
+  }
+  return SimpleLocation{};
+}
+
+// Waypoint navigation from OpenDRIVE coordinates
+std::shared_ptr<Waypoint> Map_GetNextWaypointXODR(const Map &map,
+                                                  uint32_t road_id,
+                                                  int32_t lane_id, double s,
+                                                  double distance) {
+  auto waypoint = map.GetWaypointXODR(road_id, lane_id, s);
+  if (waypoint) {
+    auto next = waypoint->GetNext(distance);
+    if (!next.empty()) {
+      return next.front(); // Get first next waypoint
+    }
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> Map_GetPreviousWaypointXODR(const Map &map,
+                                                      uint32_t road_id,
+                                                      int32_t lane_id, double s,
+                                                      double distance) {
+  auto waypoint = map.GetWaypointXODR(road_id, lane_id, s);
+  if (waypoint) {
+    auto previous = waypoint->GetPrevious(distance);
+    if (!previous.empty()) {
+      return previous.front(); // Get first previous waypoint
+    }
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> Map_GetRightLaneWaypointXODR(const Map &map,
+                                                       uint32_t road_id,
+                                                       int32_t lane_id,
+                                                       double s) {
+  auto waypoint = map.GetWaypointXODR(road_id, lane_id, s);
+  if (waypoint) {
+    return waypoint->GetRight();
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Waypoint> Map_GetLeftLaneWaypointXODR(const Map &map,
+                                                      uint32_t road_id,
+                                                      int32_t lane_id,
+                                                      double s) {
+  auto waypoint = map.GetWaypointXODR(road_id, lane_id, s);
+  if (waypoint) {
+    return waypoint->GetLeft();
+  }
+  return nullptr;
 }
 
 // Waypoint wrapper functions
@@ -2748,22 +2877,26 @@ uint32_t Waypoint_GetType(const Waypoint &waypoint) {
   return static_cast<uint32_t>(waypoint.GetType());
 }
 
-std::shared_ptr<Waypoint> Waypoint_GetNext(const Waypoint &waypoint,
-                                           double distance) {
+std::unique_ptr<WaypointVector> Waypoint_GetNextVector(const Waypoint &waypoint,
+                                                       double distance) {
+  auto vec = std::make_unique<WaypointVector>();
   auto next_waypoints = waypoint.GetNext(distance);
-  if (!next_waypoints.empty()) {
-    return next_waypoints[0];
+  vec->reserve(next_waypoints.size());
+  for (const auto &wp : next_waypoints) {
+    vec->push_back(wp);
   }
-  return nullptr;
+  return vec;
 }
 
-std::shared_ptr<Waypoint> Waypoint_GetPrevious(const Waypoint &waypoint,
-                                               double distance) {
+std::unique_ptr<WaypointVector>
+Waypoint_GetPreviousVector(const Waypoint &waypoint, double distance) {
+  auto vec = std::make_unique<WaypointVector>();
   auto prev_waypoints = waypoint.GetPrevious(distance);
-  if (!prev_waypoints.empty()) {
-    return prev_waypoints[0];
+  vec->reserve(prev_waypoints.size());
+  for (const auto &wp : prev_waypoints) {
+    vec->push_back(wp);
   }
-  return nullptr;
+  return vec;
 }
 
 std::shared_ptr<Waypoint> Waypoint_GetRight(const Waypoint &waypoint) {
@@ -2804,6 +2937,10 @@ uint8_t Waypoint_GetLaneChange(const Waypoint &waypoint) {
   return static_cast<uint8_t>(waypoint.GetLaneChange());
 }
 
+// Note: Waypoint_Clone removed - Waypoint is NonCopyable and cannot be cloned
+// The Rust API handles this by storing waypoint data instead of relying on
+// cloning
+
 // Removed Waypoint_GetAllLandmarksInDistance and
 // Waypoint_GetLandmarksOfTypeInDistance due to CXX limitations with
 // Vec<SharedPtr<T>>
@@ -2818,6 +2955,20 @@ SimpleBoundingBox Junction_GetBoundingBox(const Junction &junction) {
   return SimpleBoundingBox{
       SimpleLocation{bbox.location.x, bbox.location.y, bbox.location.z},
       SimpleVector3D{bbox.extent.x, bbox.extent.y, bbox.extent.z}};
+}
+
+std::unique_ptr<WaypointVector> Junction_GetWaypoints(const Junction &junction,
+                                                      uint32_t lane_type) {
+  auto vec = std::make_unique<WaypointVector>();
+  auto waypoint_pairs = junction.GetWaypoints(
+      static_cast<carla::road::Lane::LaneType>(lane_type));
+  // Reserve space for twice the number of pairs (start and end of each pair)
+  vec->reserve(waypoint_pairs.size() * 2);
+  for (const auto &pair : waypoint_pairs) {
+    vec->push_back(pair.first);
+    vec->push_back(pair.second);
+  }
+  return vec;
 }
 
 // Landmark wrapper functions

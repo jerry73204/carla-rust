@@ -509,6 +509,12 @@ pub mod bridge {
         pub lane_change: u8, // LaneMarking::LaneChange enum
     }
 
+    // Topology pair for Map::GetTopology return value
+    pub struct TopologyPair {
+        pub start: SharedPtr<Waypoint>,
+        pub end: SharedPtr<Waypoint>,
+    }
+
     // Traffic Light info structures
     #[derive(Debug, Clone, PartialEq)]
     pub struct SimpleTrafficLightInfo {
@@ -734,6 +740,14 @@ pub mod bridge {
         type Waypoint;
         type Junction;
         type Landmark;
+
+        // Container types for waypoint collections
+        type WaypointVector;
+        type TopologyVector;
+
+        // Container types for other collections
+        type TransformVector;
+        type LocationVector;
 
         // Light management types
         type LightManager;
@@ -1160,8 +1174,12 @@ pub mod bridge {
         fn TrafficLight_AddTorque(traffic_light: &TrafficLight, torque: &SimpleVector3D);
 
         // Traffic Light advanced methods
-        // NOTE: These FFI functions exist in C++ implementation but CXX bridge integration needs debugging
-        // fn TrafficLight_GetAffectedLaneWaypoints(traffic_light: &TrafficLight) -> Vec<SimpleWaypointInfo>;
+        // Traffic light methods that return SharedPtr collections
+        fn TrafficLight_GetAffectedLaneWaypoints(
+            traffic_light: &TrafficLight,
+        ) -> UniquePtr<WaypointVector>;
+
+        // NOTE: These FFI functions still need implementation
         // fn TrafficLight_GetPoleIndex(traffic_light: &TrafficLight) -> u32;
         // fn TrafficLight_GetGroupTrafficLights(traffic_light: &TrafficLight) -> Vec<SimpleTrafficLightInfo>;
 
@@ -1384,6 +1402,7 @@ pub mod bridge {
         fn Map_GetName(map: &Map) -> String;
         fn Map_GetOpenDrive(map: &Map) -> String;
         fn Map_GetRecommendedSpawnPoints(map: &Map) -> Vec<SimpleTransform>;
+        fn Map_GetRecommendedSpawnPointsVector(map: &Map) -> UniquePtr<TransformVector>;
         fn Map_GetWaypoint(
             map: &Map,
             location: &SimpleLocation,
@@ -1399,9 +1418,53 @@ pub mod bridge {
         fn Map_GenerateWaypoints(map: &Map, distance: f64) -> Vec<SimpleWaypointInfo>;
         fn Map_GetGeoReference(map: &Map) -> SimpleGeoLocation;
         fn Map_GetAllCrosswalkZones(map: &Map) -> Vec<SimpleLocation>;
+        fn Map_GetAllCrosswalkZonesVector(map: &Map) -> UniquePtr<LocationVector>;
         fn Map_GetJunction(map: &Map, waypoint: &Waypoint) -> SharedPtr<Junction>;
         // Note: Due to CXX limitations, these return simplified structs instead of Vec<SharedPtr<T>>
         fn Map_GetTopology(map: &Map) -> Vec<SimpleWaypointInfo>;
+
+        // New methods that return proper SharedPtr collections
+        fn Map_GenerateWaypointsVector(map: &Map, distance: f64) -> UniquePtr<WaypointVector>;
+        fn Map_GetTopologyVector(map: &Map) -> UniquePtr<TopologyVector>;
+
+        // Container access methods
+        fn WaypointVector_Size(vec: &WaypointVector) -> usize;
+        fn WaypointVector_Get(vec: &WaypointVector, index: usize) -> SharedPtr<Waypoint>;
+        fn TopologyVector_Size(vec: &TopologyVector) -> usize;
+        fn TopologyVector_GetStart(vec: &TopologyVector, index: usize) -> SharedPtr<Waypoint>;
+        fn TopologyVector_GetEnd(vec: &TopologyVector, index: usize) -> SharedPtr<Waypoint>;
+        fn TransformVector_Size(vec: &TransformVector) -> usize;
+        fn TransformVector_Get(vec: &TransformVector, index: usize) -> SimpleTransform;
+        fn LocationVector_Size(vec: &LocationVector) -> usize;
+        fn LocationVector_Get(vec: &LocationVector, index: usize) -> SimpleLocation;
+
+        // Waypoint navigation from OpenDRIVE coordinates
+        fn Map_GetNextWaypointXODR(
+            map: &Map,
+            road_id: u32,
+            lane_id: i32,
+            s: f64,
+            distance: f64,
+        ) -> SharedPtr<Waypoint>;
+        fn Map_GetPreviousWaypointXODR(
+            map: &Map,
+            road_id: u32,
+            lane_id: i32,
+            s: f64,
+            distance: f64,
+        ) -> SharedPtr<Waypoint>;
+        fn Map_GetRightLaneWaypointXODR(
+            map: &Map,
+            road_id: u32,
+            lane_id: i32,
+            s: f64,
+        ) -> SharedPtr<Waypoint>;
+        fn Map_GetLeftLaneWaypointXODR(
+            map: &Map,
+            road_id: u32,
+            lane_id: i32,
+            s: f64,
+        ) -> SharedPtr<Waypoint>;
 
         // Waypoint methods
         fn Waypoint_GetId(waypoint: &Waypoint) -> u64;
@@ -1415,16 +1478,21 @@ pub mod bridge {
         fn Waypoint_GetJunction(waypoint: &Waypoint) -> SharedPtr<Junction>;
         fn Waypoint_GetLaneWidth(waypoint: &Waypoint) -> f64;
         fn Waypoint_GetType(waypoint: &Waypoint) -> u32;
-        fn Waypoint_GetNext(waypoint: &Waypoint, distance: f64) -> SharedPtr<Waypoint>;
-        fn Waypoint_GetPrevious(waypoint: &Waypoint, distance: f64) -> SharedPtr<Waypoint>;
+        fn Waypoint_GetNextVector(waypoint: &Waypoint, distance: f64) -> UniquePtr<WaypointVector>;
+        fn Waypoint_GetPreviousVector(
+            waypoint: &Waypoint,
+            distance: f64,
+        ) -> UniquePtr<WaypointVector>;
         fn Waypoint_GetRight(waypoint: &Waypoint) -> SharedPtr<Waypoint>;
         fn Waypoint_GetLeft(waypoint: &Waypoint) -> SharedPtr<Waypoint>;
         fn Waypoint_GetRightLaneMarking(waypoint: &Waypoint) -> SimpleLaneMarking;
         fn Waypoint_GetLeftLaneMarking(waypoint: &Waypoint) -> SimpleLaneMarking;
         fn Waypoint_GetLaneChange(waypoint: &Waypoint) -> u8;
+
         // Junction methods
         fn Junction_GetId(junction: &Junction) -> u32;
         fn Junction_GetBoundingBox(junction: &Junction) -> SimpleBoundingBox;
+        fn Junction_GetWaypoints(junction: &Junction, lane_type: u32) -> UniquePtr<WaypointVector>;
 
     }
 
@@ -1532,19 +1600,31 @@ pub use bridge::{
     Junction_GetBoundingBox,
     // Junction methods
     Junction_GetId,
+    Junction_GetWaypoints,
+    LocationVector,
+    LocationVector_Get,
+    LocationVector_Size,
     Location_Distance,
     Location_DistanceSquared,
     // Map and navigation types
     Map,
     Map_GenerateWaypoints,
+    Map_GenerateWaypointsVector,
     Map_GetAllCrosswalkZones,
+    Map_GetAllCrosswalkZonesVector,
     Map_GetGeoReference,
     Map_GetJunction,
+    Map_GetLeftLaneWaypointXODR,
     // Map methods
     Map_GetName,
+    Map_GetNextWaypointXODR,
     Map_GetOpenDrive,
+    Map_GetPreviousWaypointXODR,
     Map_GetRecommendedSpawnPoints,
+    Map_GetRecommendedSpawnPointsVector,
+    Map_GetRightLaneWaypointXODR,
     Map_GetTopology,
+    Map_GetTopologyVector,
     Map_GetWaypoint,
     Map_GetWaypointXODR,
     Sensor,
@@ -1618,6 +1698,10 @@ pub use bridge::{
     SimpleWaypointInfo,
     SimpleWeatherParameters,
     SimpleWheelPhysicsControl,
+    TopologyVector,
+    TopologyVector_GetEnd,
+    TopologyVector_GetStart,
+    TopologyVector_Size,
     TrafficLight,
     TrafficLight_AddForce,
     TrafficLight_AddImpulse,
@@ -1626,6 +1710,7 @@ pub use bridge::{
     TrafficLight_Destroy,
     TrafficLight_Freeze,
     TrafficLight_GetAcceleration,
+    TrafficLight_GetAffectedLaneWaypoints,
     TrafficLight_GetAngularVelocity,
     TrafficLight_GetElapsedTime,
     TrafficLight_GetGreenTime,
@@ -1703,6 +1788,9 @@ pub use bridge::{
     TrafficSign_IsAlive,
     TrafficSign_SetSimulatePhysics,
     TrafficSign_SetTransform,
+    TransformVector,
+    TransformVector_Get,
+    TransformVector_Size,
     Transform_GetForwardVector,
     Transform_GetRightVector,
     Transform_GetUpVector,
@@ -1792,6 +1880,10 @@ pub use bridge::{
     Walker_SetTransform,
     Walker_ShowPose,
     Waypoint,
+    WaypointVector,
+    WaypointVector_Get,
+    // Container access methods
+    WaypointVector_Size,
     Waypoint_GetDistance,
     // Waypoint methods
     Waypoint_GetId,
@@ -1802,8 +1894,8 @@ pub use bridge::{
     Waypoint_GetLaneWidth,
     Waypoint_GetLeft,
     Waypoint_GetLeftLaneMarking,
-    Waypoint_GetNext,
-    Waypoint_GetPrevious,
+    Waypoint_GetNextVector,
+    Waypoint_GetPreviousVector,
     Waypoint_GetRight,
     Waypoint_GetRightLaneMarking,
     Waypoint_GetRoadId,

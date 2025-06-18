@@ -83,7 +83,8 @@ pub use landmark::{landmark_utils, LandmarkInfo, LandmarkType};
 pub use light_manager::{LightGroup, LightInfo, LightManagerWrapper, LightState};
 pub use map::{
     JunctionWrapper, LaneChange, LaneMarking, LaneMarkingColor, LaneMarkingType, LaneType,
-    MapWrapper, SignalOrientation, WaypointWrapper,
+    LocationVector, LocationVectorIterator, MapWrapper, SignalOrientation, TopologyVector,
+    TransformVector, TransformVectorIterator, WaypointVector, WaypointWrapper,
 };
 pub use ros2::{ros2_utils, SensorROS2Ext, VehicleControlCommand};
 pub use sensor::{

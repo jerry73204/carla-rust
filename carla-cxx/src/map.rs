@@ -44,6 +44,12 @@ impl MapWrapper {
         ffi::Map_GetRecommendedSpawnPoints(&self.inner)
     }
 
+    /// Get recommended spawn points as a vector wrapper
+    pub fn get_recommended_spawn_points_vector(&self) -> TransformVector {
+        let vec = ffi::Map_GetRecommendedSpawnPointsVector(&self.inner);
+        TransformVector::new(vec)
+    }
+
     /// Get a waypoint at the specified location
     ///
     /// # Arguments
@@ -90,6 +96,12 @@ impl MapWrapper {
         ffi::Map_GetAllCrosswalkZones(&self.inner)
     }
 
+    /// Get all crosswalk zones as a vector wrapper
+    pub fn get_all_crosswalk_zones_vector(&self) -> LocationVector {
+        let vec = ffi::Map_GetAllCrosswalkZonesVector(&self.inner);
+        LocationVector::new(vec)
+    }
+
     /// Get the junction that a waypoint belongs to (if any)
     pub fn get_junction(&self, waypoint: &WaypointWrapper) -> Option<JunctionWrapper> {
         let junction = ffi::Map_GetJunction(&self.inner, &waypoint.inner);
@@ -103,6 +115,80 @@ impl MapWrapper {
     /// Get the map topology
     pub fn get_topology(&self) -> Vec<SimpleWaypointInfo> {
         ffi::Map_GetTopology(&self.inner)
+    }
+
+    /// Generate waypoints distributed along the map at a given distance (returns SharedPtr collection)
+    pub fn generate_waypoints_vector(&self, distance: f64) -> WaypointVector {
+        let vec = ffi::Map_GenerateWaypointsVector(&self.inner, distance);
+        WaypointVector::new(vec)
+    }
+
+    /// Get the map topology (returns SharedPtr collection)
+    pub fn get_topology_vector(&self) -> TopologyVector {
+        let vec = ffi::Map_GetTopologyVector(&self.inner);
+        TopologyVector::new(vec)
+    }
+
+    /// Get next waypoint from OpenDRIVE coordinates
+    pub fn get_next_waypoint_xodr(
+        &self,
+        road_id: u32,
+        lane_id: i32,
+        s: f64,
+        distance: f64,
+    ) -> Option<WaypointWrapper> {
+        let waypoint = ffi::Map_GetNextWaypointXODR(&self.inner, road_id, lane_id, s, distance);
+        if waypoint.is_null() {
+            None
+        } else {
+            Some(WaypointWrapper::new(waypoint))
+        }
+    }
+
+    /// Get previous waypoint from OpenDRIVE coordinates
+    pub fn get_previous_waypoint_xodr(
+        &self,
+        road_id: u32,
+        lane_id: i32,
+        s: f64,
+        distance: f64,
+    ) -> Option<WaypointWrapper> {
+        let waypoint = ffi::Map_GetPreviousWaypointXODR(&self.inner, road_id, lane_id, s, distance);
+        if waypoint.is_null() {
+            None
+        } else {
+            Some(WaypointWrapper::new(waypoint))
+        }
+    }
+
+    /// Get right lane waypoint from OpenDRIVE coordinates
+    pub fn get_right_lane_waypoint_xodr(
+        &self,
+        road_id: u32,
+        lane_id: i32,
+        s: f64,
+    ) -> Option<WaypointWrapper> {
+        let waypoint = ffi::Map_GetRightLaneWaypointXODR(&self.inner, road_id, lane_id, s);
+        if waypoint.is_null() {
+            None
+        } else {
+            Some(WaypointWrapper::new(waypoint))
+        }
+    }
+
+    /// Get left lane waypoint from OpenDRIVE coordinates
+    pub fn get_left_lane_waypoint_xodr(
+        &self,
+        road_id: u32,
+        lane_id: i32,
+        s: f64,
+    ) -> Option<WaypointWrapper> {
+        let waypoint = ffi::Map_GetLeftLaneWaypointXODR(&self.inner, road_id, lane_id, s);
+        if waypoint.is_null() {
+            None
+        } else {
+            Some(WaypointWrapper::new(waypoint))
+        }
     }
 
     /// Get all landmarks in the map.
@@ -255,24 +341,16 @@ impl WaypointWrapper {
         LaneType::from_u32(ffi::Waypoint_GetType(&self.inner))
     }
 
-    /// Get next waypoint at a certain distance
-    pub fn get_next(&self, distance: f64) -> Option<WaypointWrapper> {
-        let waypoint = ffi::Waypoint_GetNext(&self.inner, distance);
-        if waypoint.is_null() {
-            None
-        } else {
-            Some(WaypointWrapper::new(waypoint))
-        }
+    /// Get next waypoints at a certain distance
+    pub fn get_next_vector(&self, distance: f64) -> WaypointVector {
+        let vec = ffi::Waypoint_GetNextVector(&self.inner, distance);
+        WaypointVector::new(vec)
     }
 
-    /// Get previous waypoint at a certain distance
-    pub fn get_previous(&self, distance: f64) -> Option<WaypointWrapper> {
-        let waypoint = ffi::Waypoint_GetPrevious(&self.inner, distance);
-        if waypoint.is_null() {
-            None
-        } else {
-            Some(WaypointWrapper::new(waypoint))
-        }
+    /// Get previous waypoints at a certain distance
+    pub fn get_previous_vector(&self, distance: f64) -> WaypointVector {
+        let vec = ffi::Waypoint_GetPreviousVector(&self.inner, distance);
+        WaypointVector::new(vec)
     }
 
     /// Get the waypoint in the right lane (if exists)
@@ -418,6 +496,12 @@ impl JunctionWrapper {
     /// Get the bounding box of the junction
     pub fn get_bounding_box(&self) -> crate::ffi::SimpleBoundingBox {
         ffi::Junction_GetBoundingBox(&self.inner)
+    }
+
+    /// Get waypoints within this junction
+    pub fn get_waypoints(&self, lane_type: LaneType) -> WaypointVector {
+        let vec = ffi::Junction_GetWaypoints(&self.inner, lane_type as u32);
+        WaypointVector::new(vec)
     }
 }
 
@@ -599,5 +683,329 @@ impl SignalOrientation {
             2 => SignalOrientation::Both,
             _ => SignalOrientation::Both,
         }
+    }
+}
+
+/// Wrapper for a vector of waypoints returned from Map methods
+pub struct WaypointVector {
+    inner: cxx::UniquePtr<ffi::WaypointVector>,
+}
+
+impl WaypointVector {
+    /// Create a new WaypointVector from a UniquePtr
+    pub fn new(vec: cxx::UniquePtr<ffi::WaypointVector>) -> Self {
+        Self { inner: vec }
+    }
+
+    /// Get the number of waypoints in the vector
+    pub fn len(&self) -> usize {
+        ffi::WaypointVector_Size(&self.inner)
+    }
+
+    /// Check if the vector is empty
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Get a waypoint at the specified index
+    pub fn get(&self, index: usize) -> Option<WaypointWrapper> {
+        if index < self.len() {
+            let waypoint = ffi::WaypointVector_Get(&self.inner, index);
+            if waypoint.is_null() {
+                None
+            } else {
+                Some(WaypointWrapper::new(waypoint))
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Convert to a Vec of WaypointWrapper
+    pub fn to_vec(self) -> Vec<WaypointWrapper> {
+        let len = self.len();
+        let mut result = Vec::with_capacity(len);
+        for i in 0..len {
+            if let Some(waypoint) = self.get(i) {
+                result.push(waypoint);
+            }
+        }
+        result
+    }
+}
+
+impl IntoIterator for WaypointVector {
+    type Item = WaypointWrapper;
+    type IntoIter = WaypointVectorIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        WaypointVectorIterator {
+            vector: self,
+            index: 0,
+        }
+    }
+}
+
+/// Iterator for WaypointVector
+pub struct WaypointVectorIterator {
+    vector: WaypointVector,
+    index: usize,
+}
+
+impl Iterator for WaypointVectorIterator {
+    type Item = WaypointWrapper;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.vector.get(self.index);
+        if item.is_some() {
+            self.index += 1;
+        }
+        item
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.vector.len() - self.index;
+        (remaining, Some(remaining))
+    }
+}
+
+/// Wrapper for topology vector (pairs of waypoints)
+pub struct TopologyVector {
+    inner: cxx::UniquePtr<ffi::TopologyVector>,
+}
+
+impl TopologyVector {
+    /// Create a new TopologyVector from a UniquePtr
+    pub fn new(vec: cxx::UniquePtr<ffi::TopologyVector>) -> Self {
+        Self { inner: vec }
+    }
+
+    /// Get the number of pairs in the vector
+    pub fn len(&self) -> usize {
+        ffi::TopologyVector_Size(&self.inner)
+    }
+
+    /// Check if the vector is empty
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Get a pair at the specified index
+    pub fn get(&self, index: usize) -> Option<(WaypointWrapper, WaypointWrapper)> {
+        if index < self.len() {
+            let start = ffi::TopologyVector_GetStart(&self.inner, index);
+            let end = ffi::TopologyVector_GetEnd(&self.inner, index);
+
+            if !start.is_null() && !end.is_null() {
+                Some((WaypointWrapper::new(start), WaypointWrapper::new(end)))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Convert to a Vec of waypoint pairs
+    pub fn to_vec(self) -> Vec<(WaypointWrapper, WaypointWrapper)> {
+        let len = self.len();
+        let mut result = Vec::with_capacity(len);
+        for i in 0..len {
+            if let Some(pair) = self.get(i) {
+                result.push(pair);
+            }
+        }
+        result
+    }
+}
+
+impl IntoIterator for TopologyVector {
+    type Item = (WaypointWrapper, WaypointWrapper);
+    type IntoIter = TopologyVectorIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TopologyVectorIterator {
+            vector: self,
+            index: 0,
+        }
+    }
+}
+
+/// Iterator for TopologyVector
+pub struct TopologyVectorIterator {
+    vector: TopologyVector,
+    index: usize,
+}
+
+impl Iterator for TopologyVectorIterator {
+    type Item = (WaypointWrapper, WaypointWrapper);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.vector.get(self.index);
+        if item.is_some() {
+            self.index += 1;
+        }
+        item
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.vector.len() - self.index;
+        (remaining, Some(remaining))
+    }
+}
+
+/// Wrapper for a vector of transforms
+pub struct TransformVector {
+    inner: cxx::UniquePtr<ffi::TransformVector>,
+}
+
+impl TransformVector {
+    /// Create a new TransformVector from a UniquePtr
+    pub fn new(vec: cxx::UniquePtr<ffi::TransformVector>) -> Self {
+        Self { inner: vec }
+    }
+
+    /// Get the number of transforms in the vector
+    pub fn len(&self) -> usize {
+        ffi::TransformVector_Size(&self.inner)
+    }
+
+    /// Check if the vector is empty
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Get a transform at the specified index
+    pub fn get(&self, index: usize) -> Option<ffi::SimpleTransform> {
+        if index < self.len() {
+            Some(ffi::TransformVector_Get(&self.inner, index))
+        } else {
+            None
+        }
+    }
+
+    /// Convert to a Vec of SimpleTransform
+    pub fn to_vec(self) -> Vec<ffi::SimpleTransform> {
+        let len = self.len();
+        let mut result = Vec::with_capacity(len);
+        for i in 0..len {
+            if let Some(transform) = self.get(i) {
+                result.push(transform);
+            }
+        }
+        result
+    }
+}
+
+impl IntoIterator for TransformVector {
+    type Item = ffi::SimpleTransform;
+    type IntoIter = TransformVectorIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TransformVectorIterator {
+            vector: self,
+            index: 0,
+        }
+    }
+}
+
+/// Iterator for TransformVector
+pub struct TransformVectorIterator {
+    vector: TransformVector,
+    index: usize,
+}
+
+impl Iterator for TransformVectorIterator {
+    type Item = ffi::SimpleTransform;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.vector.get(self.index);
+        if item.is_some() {
+            self.index += 1;
+        }
+        item
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.vector.len() - self.index;
+        (remaining, Some(remaining))
+    }
+}
+
+/// Wrapper for a vector of locations
+pub struct LocationVector {
+    inner: cxx::UniquePtr<ffi::LocationVector>,
+}
+
+impl LocationVector {
+    /// Create a new LocationVector from a UniquePtr
+    pub fn new(vec: cxx::UniquePtr<ffi::LocationVector>) -> Self {
+        Self { inner: vec }
+    }
+
+    /// Get the number of locations in the vector
+    pub fn len(&self) -> usize {
+        ffi::LocationVector_Size(&self.inner)
+    }
+
+    /// Check if the vector is empty
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Get a location at the specified index
+    pub fn get(&self, index: usize) -> Option<ffi::SimpleLocation> {
+        if index < self.len() {
+            Some(ffi::LocationVector_Get(&self.inner, index))
+        } else {
+            None
+        }
+    }
+
+    /// Convert to a Vec of SimpleLocation
+    pub fn to_vec(self) -> Vec<ffi::SimpleLocation> {
+        let len = self.len();
+        let mut result = Vec::with_capacity(len);
+        for i in 0..len {
+            if let Some(location) = self.get(i) {
+                result.push(location);
+            }
+        }
+        result
+    }
+}
+
+impl IntoIterator for LocationVector {
+    type Item = ffi::SimpleLocation;
+    type IntoIter = LocationVectorIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        LocationVectorIterator {
+            vector: self,
+            index: 0,
+        }
+    }
+}
+
+/// Iterator for LocationVector
+pub struct LocationVectorIterator {
+    vector: LocationVector,
+    index: usize,
+}
+
+impl Iterator for LocationVectorIterator {
+    type Item = ffi::SimpleLocation;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.vector.get(self.index);
+        if item.is_some() {
+            self.index += 1;
+        }
+        item
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.vector.len() - self.index;
+        (remaining, Some(remaining))
     }
 }
