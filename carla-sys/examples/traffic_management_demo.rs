@@ -8,7 +8,7 @@
 //! - Synchronous mode operation
 
 use anyhow::Result;
-use carla_cxx::{ClientWrapper, SimpleTransform, TrafficManagerWrapper};
+use carla_sys::{ClientWrapper, SimpleTransform, TrafficManagerWrapper};
 use std::time::Duration;
 
 fn main() -> Result<()> {
@@ -130,11 +130,11 @@ fn configure_traffic_manager(tm: &TrafficManagerWrapper) -> Result<()> {
 }
 
 fn spawn_demo_vehicles(
-    world: &carla_cxx::WorldWrapper,
-    blueprint_library: &carla_cxx::BlueprintLibraryWrapper,
+    world: &carla_sys::WorldWrapper,
+    blueprint_library: &carla_sys::BlueprintLibraryWrapper,
     spawn_points: &[SimpleTransform],
     count: usize,
-) -> Result<Vec<carla_cxx::ActorWrapper>> {
+) -> Result<Vec<carla_sys::ActorWrapper>> {
     let mut vehicles = Vec::new();
 
     // Find vehicle blueprints
@@ -167,7 +167,7 @@ fn spawn_demo_vehicles(
 
 fn configure_demo_vehicles(
     tm: &TrafficManagerWrapper,
-    vehicles: &[carla_cxx::ActorWrapper],
+    vehicles: &[carla_sys::ActorWrapper],
 ) -> Result<()> {
     println!("Individual vehicle configuration would require:");
     println!("  - Proper Vehicle casting from Actor");
@@ -217,7 +217,7 @@ fn configure_demo_vehicles(
 
 fn demonstrate_synchronous_mode(
     tm: &TrafficManagerWrapper,
-    world: &carla_cxx::WorldWrapper,
+    world: &carla_sys::WorldWrapper,
 ) -> Result<()> {
     println!("Synchronous mode demonstration:");
     println!("  Would run 10 synchronous ticks");

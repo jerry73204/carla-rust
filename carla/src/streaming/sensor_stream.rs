@@ -192,7 +192,7 @@ impl AsyncSensorStream {
         let (tx, rx) = tokio::sync::mpsc::channel(self.config.buffer_size);
 
         // TODO: Connect tx to actual sensor data stream
-        // This would be implemented when integrating with carla-cxx
+        // This would be implemented when integrating with carla-sys
 
         channels.insert(sensor_id, rx);
 

@@ -1,9 +1,9 @@
-use carla_cxx::{
+use carla_sys::{
     ActorBlueprintExt, ClientWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
 };
 
 fn main() -> anyhow::Result<()> {
-    println!("Testing carla-cxx Core Client Infrastructure...");
+    println!("Testing carla-sys Core Client Infrastructure...");
 
     // Try to connect to CARLA server
     match ClientWrapper::new("localhost", 2000) {

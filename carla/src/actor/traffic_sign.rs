@@ -6,7 +6,7 @@ use crate::{
     geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::ActorT,
 };
-use carla_cxx::{TrafficSignType, TrafficSignWrapper};
+use carla_sys::{TrafficSignType, TrafficSignWrapper};
 
 /// Traffic sign actor.
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub struct TrafficSign {
 }
 
 impl TrafficSign {
-    /// Create a traffic sign from a carla-cxx TrafficSignWrapper and actor ID.
+    /// Create a traffic sign from a carla-sys TrafficSignWrapper and actor ID.
     pub(crate) fn from_cxx(
         traffic_sign_wrapper: TrafficSignWrapper,
         id: ActorId,
@@ -103,7 +103,7 @@ impl ActorT for TrafficSign {
         Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_cxx::SimpleVector3D {
+        let cxx_impulse = carla_sys::SimpleVector3D {
             x: impulse.x as f64,
             y: impulse.y as f64,
             z: impulse.z as f64,
@@ -112,7 +112,7 @@ impl ActorT for TrafficSign {
         Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_cxx::SimpleVector3D {
+        let cxx_force = carla_sys::SimpleVector3D {
             x: force.x as f64,
             y: force.y as f64,
             z: force.z as f64,
@@ -121,7 +121,7 @@ impl ActorT for TrafficSign {
         Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_cxx::SimpleVector3D {
+        let cxx_torque = carla_sys::SimpleVector3D {
             x: torque.x as f64,
             y: torque.y as f64,
             z: torque.z as f64,
@@ -133,11 +133,11 @@ impl ActorT for TrafficSign {
     fn bounding_box(&self) -> crate::geom::BoundingBox {
         // TrafficSign doesn't have a direct GetBoundingBox method, need to cast to Actor
         let actor_ptr =
-            carla_cxx::ffi::TrafficSign_CastToActor(self.inner.get_inner_traffic_sign());
+            carla_sys::ffi::TrafficSign_CastToActor(self.inner.get_inner_traffic_sign());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast TrafficSign to Actor");
         }
-        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 }

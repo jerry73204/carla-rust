@@ -1,4 +1,4 @@
-//! Batch operations demonstration for carla-cxx.
+//! Batch operations demonstration for carla-sys.
 //!
 //! This example demonstrates the batch operations system:
 //! - Applying multiple vehicle controls in one batch
@@ -8,7 +8,7 @@
 //! - Batch response handling and error checking
 
 use anyhow::Result;
-use carla_cxx::{
+use carla_sys::{
     batch_utils, ActorListExt, BatchCommandBuilder, BatchResponseExt, BatchVehicleLightState,
     ClientWrapper, SimpleLocation, SimpleVector3D, SimpleVehicleControl,
 };

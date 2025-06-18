@@ -78,8 +78,8 @@
 #![warn(clippy::all)]
 #![allow(dead_code)] // During development
 
-// Re-export essential types from carla-cxx for internal use
-// pub(crate) use carla_cxx;
+// Re-export essential types from carla-sys for internal use
+// pub(crate) use carla_sys;
 
 // Core modules mirroring CARLA C++ API structure
 pub mod actor;

@@ -6,7 +6,7 @@ use crate::{
     geom::{FromCxx, ToCxx, Transform, Vector3D},
     traits::{ActorT, SensorT},
 };
-use carla_cxx::SensorWrapper;
+use carla_sys::SensorWrapper;
 
 /// Sensor actor.
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct Sensor {
 }
 
 impl Sensor {
-    /// Create a sensor from a carla-cxx SensorWrapper and actor ID.
+    /// Create a sensor from a carla-sys SensorWrapper and actor ID.
     pub fn from_cxx(sensor_wrapper: SensorWrapper) -> CarlaResult<Self> {
         Ok(Self {
             inner: sensor_wrapper,
@@ -57,8 +57,8 @@ impl Sensor {
     /// Returns a receiver that yields sensor data. Requires the `async` feature.
     #[cfg(feature = "async")]
     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<Vec<u8>>, SensorError> {
-        // TODO: Implement using carla-cxx FFI interface
-        todo!("Sensor::listen_async not yet implemented with carla-cxx FFI")
+        // TODO: Implement using carla-sys FFI interface
+        todo!("Sensor::listen_async not yet implemented with carla-sys FFI")
     }
 
     /// Stop listening for sensor data.
@@ -73,12 +73,12 @@ impl Sensor {
 
     /// Get the sensor's data frame number (increments with each measurement).
     pub fn frame(&self) -> u64 {
-        carla_cxx::ffi::bridge::Sensor_GetFrame(self.inner.get_inner_sensor())
+        carla_sys::ffi::bridge::Sensor_GetFrame(self.inner.get_inner_sensor())
     }
 
     /// Get the timestamp of the last sensor measurement.
     pub fn timestamp(&self) -> f64 {
-        carla_cxx::ffi::bridge::Sensor_GetTimestamp(self.inner.get_inner_sensor())
+        carla_sys::ffi::bridge::Sensor_GetTimestamp(self.inner.get_inner_sensor())
     }
 
     /// Get sensor-specific attribute.
@@ -128,79 +128,79 @@ impl Sensor {
 impl ActorT for Sensor {
     fn id(&self) -> ActorId {
         // Sensor doesn't have a direct GetId method, need to cast to Actor
-        let actor_ptr = carla_cxx::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
-        carla_cxx::ffi::Actor_GetId(&actor_ptr)
+        carla_sys::ffi::Actor_GetId(&actor_ptr)
     }
     fn type_id(&self) -> String {
-        carla_cxx::ffi::bridge::Sensor_GetTypeId(self.inner.get_inner_sensor())
+        carla_sys::ffi::bridge::Sensor_GetTypeId(self.inner.get_inner_sensor())
     }
     fn transform(&self) -> Transform {
         let cxx_transform =
-            carla_cxx::ffi::bridge::Sensor_GetTransform(self.inner.get_inner_sensor());
+            carla_sys::ffi::bridge::Sensor_GetTransform(self.inner.get_inner_sensor());
         Transform::from(cxx_transform)
     }
     fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
         let cxx_transform = transform.to_cxx();
-        carla_cxx::ffi::bridge::Sensor_SetTransform(self.inner.get_inner_sensor(), &cxx_transform);
+        carla_sys::ffi::bridge::Sensor_SetTransform(self.inner.get_inner_sensor(), &cxx_transform);
         Ok(())
     }
     fn velocity(&self) -> Vector3D {
-        let vel = carla_cxx::ffi::bridge::Sensor_GetVelocity(self.inner.get_inner_sensor());
+        let vel = carla_sys::ffi::bridge::Sensor_GetVelocity(self.inner.get_inner_sensor());
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn angular_velocity(&self) -> Vector3D {
-        let vel = carla_cxx::ffi::bridge::Sensor_GetAngularVelocity(self.inner.get_inner_sensor());
+        let vel = carla_sys::ffi::bridge::Sensor_GetAngularVelocity(self.inner.get_inner_sensor());
         Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
     }
     fn acceleration(&self) -> Vector3D {
-        let acc = carla_cxx::ffi::bridge::Sensor_GetAcceleration(self.inner.get_inner_sensor());
+        let acc = carla_sys::ffi::bridge::Sensor_GetAcceleration(self.inner.get_inner_sensor());
         Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
     }
     fn is_alive(&self) -> bool {
-        carla_cxx::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor())
+        carla_sys::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor())
     }
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        carla_cxx::ffi::bridge::Sensor_SetSimulatePhysics(self.inner.get_inner_sensor(), enabled);
+        carla_sys::ffi::bridge::Sensor_SetSimulatePhysics(self.inner.get_inner_sensor(), enabled);
         Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_cxx::SimpleVector3D {
+        let cxx_impulse = carla_sys::SimpleVector3D {
             x: impulse.x as f64,
             y: impulse.y as f64,
             z: impulse.z as f64,
         };
-        carla_cxx::ffi::bridge::Sensor_AddImpulse(self.inner.get_inner_sensor(), &cxx_impulse);
+        carla_sys::ffi::bridge::Sensor_AddImpulse(self.inner.get_inner_sensor(), &cxx_impulse);
         Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_cxx::SimpleVector3D {
+        let cxx_force = carla_sys::SimpleVector3D {
             x: force.x as f64,
             y: force.y as f64,
             z: force.z as f64,
         };
-        carla_cxx::ffi::bridge::Sensor_AddForce(self.inner.get_inner_sensor(), &cxx_force);
+        carla_sys::ffi::bridge::Sensor_AddForce(self.inner.get_inner_sensor(), &cxx_force);
         Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_cxx::SimpleVector3D {
+        let cxx_torque = carla_sys::SimpleVector3D {
             x: torque.x as f64,
             y: torque.y as f64,
             z: torque.z as f64,
         };
-        carla_cxx::ffi::bridge::Sensor_AddTorque(self.inner.get_inner_sensor(), &cxx_torque);
+        carla_sys::ffi::bridge::Sensor_AddTorque(self.inner.get_inner_sensor(), &cxx_torque);
         Ok(())
     }
 
     fn bounding_box(&self) -> crate::geom::BoundingBox {
         // Sensor doesn't have a direct GetBoundingBox method, need to cast to Actor
-        let actor_ptr = carla_cxx::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
-        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 }
@@ -260,8 +260,8 @@ impl Drop for Sensor {
             self.inner.stop();
         }
         // Only destroy if the sensor is still alive
-        if carla_cxx::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor()) {
-            let _ = carla_cxx::ffi::bridge::Sensor_Destroy(self.inner.get_inner_sensor());
+        if carla_sys::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor()) {
+            let _ = carla_sys::ffi::bridge::Sensor_Destroy(self.inner.get_inner_sensor());
         }
     }
 }

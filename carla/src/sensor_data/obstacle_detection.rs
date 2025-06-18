@@ -92,8 +92,8 @@ impl SensorData for ObstacleDetectionData {
 }
 
 impl ObstacleDetectionData {
-    /// Create ObstacleDetectionData from carla-cxx ObstacleDetectionEvent
-    pub fn from_cxx(cxx_event: carla_cxx::sensor::ObstacleDetectionEvent) -> Self {
+    /// Create ObstacleDetectionData from carla-sys ObstacleDetectionEvent
+    pub fn from_cxx(cxx_event: carla_sys::sensor::ObstacleDetectionEvent) -> Self {
         let detection = ObstacleDetectionEvent {
             self_actor_id: cxx_event.self_actor_id,
             other_actor_id: cxx_event.other_actor_id,

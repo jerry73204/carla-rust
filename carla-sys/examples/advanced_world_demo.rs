@@ -1,4 +1,4 @@
-//! Advanced world features demonstration for carla-cxx.
+//! Advanced world features demonstration for carla-sys.
 //!
 //! This example shows how to use advanced world features including:
 //! - Map layer management for performance optimization
@@ -7,7 +7,7 @@
 //! - Advanced traffic light control
 
 use anyhow::Result;
-use carla_cxx::{
+use carla_sys::{
     texture_utils, AdvancedWorldExt, CityObjectLabel, ClientWrapper, MapLayers, MaterialParameter,
     TextureColorBuilder,
 };
@@ -57,7 +57,7 @@ fn main() -> Result<()> {
 }
 
 /// Demonstrate map layer management
-fn demo_map_layers(world: &carla_cxx::WorldWrapper) -> Result<()> {
+fn demo_map_layers(world: &carla_sys::WorldWrapper) -> Result<()> {
     println!("\n📊 Demo 1: Map Layer Management");
     println!("-------------------------------");
 
@@ -93,7 +93,7 @@ fn demo_map_layers(world: &carla_cxx::WorldWrapper) -> Result<()> {
 }
 
 /// Demonstrate environment object queries
-fn demo_environment_objects(world: &carla_cxx::WorldWrapper) -> Result<()> {
+fn demo_environment_objects(world: &carla_sys::WorldWrapper) -> Result<()> {
     println!("\n🏗️ Demo 2: Environment Object Queries");
     println!("-------------------------------------");
 
@@ -151,7 +151,7 @@ fn demo_environment_objects(world: &carla_cxx::WorldWrapper) -> Result<()> {
 }
 
 /// Demonstrate advanced traffic light management
-fn demo_traffic_lights(world: &carla_cxx::WorldWrapper) -> Result<()> {
+fn demo_traffic_lights(world: &carla_sys::WorldWrapper) -> Result<()> {
     println!("\n🚦 Demo 3: Traffic Light Management");
     println!("-----------------------------------");
 
@@ -193,7 +193,7 @@ fn demo_traffic_lights(world: &carla_cxx::WorldWrapper) -> Result<()> {
 }
 
 /// Demonstrate texture and material application
-fn demo_textures(world: &carla_cxx::WorldWrapper) -> Result<()> {
+fn demo_textures(world: &carla_sys::WorldWrapper) -> Result<()> {
     println!("\n🎨 Demo 4: Texture and Material Application");
     println!("------------------------------------------");
 
@@ -274,7 +274,7 @@ fn demo_textures(world: &carla_cxx::WorldWrapper) -> Result<()> {
 }
 
 /// Demonstrate performance optimization techniques
-fn demo_performance_optimization(world: &carla_cxx::WorldWrapper) -> Result<()> {
+fn demo_performance_optimization(world: &carla_sys::WorldWrapper) -> Result<()> {
     println!("\n⚡ Demo 5: Performance Optimization");
     println!("-----------------------------------");
 

@@ -2,42 +2,36 @@
 name = "carla-sys"
 version = "0.12.0"
 edition = "2021"
-description = "Bindgen-based FFI bindings for CARLA simulator"
+description = "CXX-based FFI bindings for CARLA simulator"
+license = "MIT"
 
 [dependencies]
+cxx = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+bitflags = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [build-dependencies]
-bindgen = "0.70"
-pkg-config = "0.3"
-
-[dev-dependencies]
-criterion = "0.5"
+cxx-build = "1.0"
+anyhow = "1.0"
+cc = "1.0"
 
 [features]
 default = []
 
-[[bench]]
-name = "ffi_performance"
-harness = false
+[[example]]
+name = "basic_client"
 
 [[example]]
-name = "vehicle_control"
-path = "examples/vehicle_control.rs"
+name = "core_infrastructure"
 
 [[example]]
-name = "sensor_callback"
-path = "examples/sensor_callback.rs"
-
-# Temporarily disabled due to missing sensor functions
-# [[example]]
-# name = "dvs_optical_flow"
-# path = "examples/dvs_optical_flow.rs"
+name = "weather_demo"
 
 [[example]]
-name = "ackermann_control"
-path = "examples/ackermann_control.rs"
+name = "recording_demo"
 
-[[example]]
-name = "vehicle_doors_lights"
-path = "examples/vehicle_doors_lights.rs"
+
 

@@ -5,13 +5,13 @@ use crate::{client::ActorBlueprint, error::CarlaResult};
 /// Blueprint library containing all available actor blueprints.
 #[derive(Debug)]
 pub struct BlueprintLibrary {
-    /// Internal handle to carla-cxx BlueprintLibrary
-    inner: carla_cxx::BlueprintLibraryWrapper,
+    /// Internal handle to carla-sys BlueprintLibrary
+    inner: carla_sys::BlueprintLibraryWrapper,
 }
 
 impl BlueprintLibrary {
-    /// Create a new BlueprintLibrary from a carla-cxx BlueprintLibraryWrapper.
-    pub fn from_cxx(inner: carla_cxx::BlueprintLibraryWrapper) -> Self {
+    /// Create a new BlueprintLibrary from a carla-sys BlueprintLibraryWrapper.
+    pub fn from_cxx(inner: carla_sys::BlueprintLibraryWrapper) -> Self {
         Self { inner }
     }
 

@@ -5,7 +5,7 @@ use crate::{
     error::CarlaResult,
     geom::{Location, Transform},
 };
-use carla_cxx::map::{
+use carla_sys::map::{
     LocationVector, LocationVectorIterator, TopologyVector, TransformVector,
     TransformVectorIterator, WaypointVector,
 };
@@ -13,13 +13,13 @@ use carla_cxx::map::{
 /// Represents the road map.
 #[derive(Debug)]
 pub struct Map {
-    /// Internal handle to carla-cxx Map
-    pub(crate) inner: carla_cxx::MapWrapper,
+    /// Internal handle to carla-sys Map
+    pub(crate) inner: carla_sys::MapWrapper,
 }
 
 impl Map {
-    /// Create a new Map from a carla-cxx MapWrapper.
-    pub(crate) fn new(inner: carla_cxx::MapWrapper) -> Self {
+    /// Create a new Map from a carla-sys MapWrapper.
+    pub(crate) fn new(inner: carla_sys::MapWrapper) -> Self {
         Self { inner }
     }
 
@@ -30,7 +30,7 @@ impl Map {
 
     /// Get a waypoint at the given location.
     pub fn waypoint(&self, location: Location) -> Option<Waypoint> {
-        use carla_cxx::ffi::SimpleLocation;
+        use carla_sys::ffi::SimpleLocation;
         let simple_location = SimpleLocation {
             x: location.x,
             y: location.y,
@@ -39,7 +39,7 @@ impl Map {
         let waypoint_wrapper = self.inner.get_waypoint(
             &simple_location,
             true,
-            Some(carla_cxx::map::LaneType::Driving),
+            Some(carla_sys::map::LaneType::Driving),
         );
         waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
     }
@@ -75,7 +75,7 @@ impl Map {
 
     /// Get all junctions in the map.
     pub fn junctions(&self) -> Vec<Junction> {
-        // Note: carla-cxx doesn't expose a direct get_all_junctions method
+        // Note: carla-sys doesn't expose a direct get_all_junctions method
         // This would require additional FFI implementation
         todo!("Map::junctions requires additional FFI support for listing all junctions")
     }
@@ -99,9 +99,9 @@ impl Map {
 
     /// Transform a geospatial location (lat/lon) to map coordinates.
     pub fn transform_from_geolocation(&self, geo_location: &GeoLocation) -> CarlaResult<Location> {
-        // TODO: Implement using carla-cxx FFI interface
+        // TODO: Implement using carla-sys FFI interface
         let _geo_location = geo_location;
-        todo!("Map::transform_from_geolocation not yet implemented with carla-cxx FFI")
+        todo!("Map::transform_from_geolocation not yet implemented with carla-sys FFI")
     }
 
     /// Get next waypoint from coordinates (for waypoints without wrapper)
@@ -186,7 +186,7 @@ pub struct Topology {
 }
 
 impl Topology {
-    /// Create a new Topology from a carla-cxx TopologyVector.
+    /// Create a new Topology from a carla-sys TopologyVector.
     pub(crate) fn new(inner: TopologyVector) -> Self {
         Self { inner }
     }
@@ -269,7 +269,7 @@ impl<'a> Iterator for TopologyIterator<'a> {
 
 /// Iterator over topology pairs (owned).
 pub struct TopologyIntoIterator {
-    inner: carla_cxx::map::TopologyVectorIterator,
+    inner: carla_sys::map::TopologyVectorIterator,
 }
 
 impl Iterator for TopologyIntoIterator {
@@ -367,7 +367,7 @@ impl<'a> Iterator for WaypointListIterator<'a> {
 
 /// Iterator over waypoints (owned).
 pub struct WaypointListIntoIterator {
-    inner: carla_cxx::map::WaypointVectorIterator,
+    inner: carla_sys::map::WaypointVectorIterator,
 }
 
 impl Iterator for WaypointListIntoIterator {

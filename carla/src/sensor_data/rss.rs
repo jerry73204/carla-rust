@@ -57,8 +57,8 @@ impl SensorData for RSSData {
 }
 
 impl RSSData {
-    /// Create RSSData from carla-cxx RssResponse
-    pub fn from_cxx(cxx_response: carla_cxx::sensor::RssResponse) -> Self {
+    /// Create RSSData from carla-sys RssResponse
+    pub fn from_cxx(cxx_response: carla_sys::sensor::RssResponse) -> Self {
         let response = RSSResponse {
             response_valid: cxx_response.response_valid,
             proper_response: cxx_response.proper_response,

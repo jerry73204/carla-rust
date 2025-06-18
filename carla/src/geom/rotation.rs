@@ -267,16 +267,16 @@ impl std::fmt::Display for Rotation {
     }
 }
 
-// Conversion to/from carla-cxx types
-impl FromCxx<carla_cxx::SimpleRotation> for Rotation {
-    fn from_cxx(value: carla_cxx::SimpleRotation) -> Self {
+// Conversion to/from carla-sys types
+impl FromCxx<carla_sys::SimpleRotation> for Rotation {
+    fn from_cxx(value: carla_sys::SimpleRotation) -> Self {
         Self::new(value.pitch as f32, value.yaw as f32, value.roll as f32)
     }
 }
 
-impl ToCxx<carla_cxx::SimpleRotation> for Rotation {
-    fn to_cxx(&self) -> carla_cxx::SimpleRotation {
-        carla_cxx::SimpleRotation {
+impl ToCxx<carla_sys::SimpleRotation> for Rotation {
+    fn to_cxx(&self) -> carla_sys::SimpleRotation {
+        carla_sys::SimpleRotation {
             pitch: self.pitch as f64,
             yaw: self.yaw as f64,
             roll: self.roll as f64,

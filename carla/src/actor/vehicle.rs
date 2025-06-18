@@ -13,12 +13,12 @@ pub struct Vehicle {
     /// Actor ID
     id: ActorId,
     /// Internal vehicle wrapper for FFI calls
-    inner: carla_cxx::VehicleWrapper,
+    inner: carla_sys::VehicleWrapper,
 }
 
 impl Vehicle {
-    /// Create a vehicle from a carla-cxx VehicleWrapper.
-    pub fn from_cxx(vehicle_wrapper: carla_cxx::VehicleWrapper) -> CarlaResult<Self> {
+    /// Create a vehicle from a carla-sys VehicleWrapper.
+    pub fn from_cxx(vehicle_wrapper: carla_sys::VehicleWrapper) -> CarlaResult<Self> {
         // Get the vehicle's actor ID
         let id = vehicle_wrapper.get_id();
 
@@ -31,7 +31,7 @@ impl Vehicle {
     /// Create a vehicle from an actor by casting.
     pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
         let actor_ref = actor.get_inner_actor();
-        if let Some(vehicle_wrapper) = carla_cxx::VehicleWrapper::from_actor(actor_ref) {
+        if let Some(vehicle_wrapper) = carla_sys::VehicleWrapper::from_actor(actor_ref) {
             let id = vehicle_wrapper.get_id();
             Ok(Some(Self {
                 id,
@@ -48,18 +48,18 @@ impl Vehicle {
     }
 
     /// Get access to the underlying VehicleWrapper for FFI calls.
-    pub(crate) fn inner(&self) -> &carla_cxx::VehicleWrapper {
+    pub(crate) fn inner(&self) -> &carla_sys::VehicleWrapper {
         &self.inner
     }
 
     /// Get access to the underlying FFI Vehicle type for direct FFI calls.
-    pub(crate) fn as_ffi(&self) -> &carla_cxx::ffi::Vehicle {
+    pub(crate) fn as_ffi(&self) -> &carla_sys::ffi::Vehicle {
         self.inner.inner().as_ref().unwrap()
     }
 
     /// Get the vehicle's wheel physics parameters.
     pub fn wheel_steer_angle(&self, wheel_location: WheelLocation) -> f32 {
-        use carla_cxx::vehicle::VehicleWheelLocation;
+        use carla_sys::vehicle::VehicleWheelLocation;
 
         let cxx_wheel_location = match wheel_location {
             WheelLocation::FrontLeft => VehicleWheelLocation::FrontLeft,
@@ -123,7 +123,7 @@ impl ActorT for Vehicle {
         Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_cxx::SimpleVector3D {
+        let cxx_impulse = carla_sys::SimpleVector3D {
             x: impulse.x as f64,
             y: impulse.y as f64,
             z: impulse.z as f64,
@@ -132,7 +132,7 @@ impl ActorT for Vehicle {
         Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_cxx::SimpleVector3D {
+        let cxx_force = carla_sys::SimpleVector3D {
             x: force.x as f64,
             y: force.y as f64,
             z: force.z as f64,
@@ -141,7 +141,7 @@ impl ActorT for Vehicle {
         Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_cxx::SimpleVector3D {
+        let cxx_torque = carla_sys::SimpleVector3D {
             x: torque.x as f64,
             y: torque.y as f64,
             z: torque.z as f64,
@@ -156,15 +156,15 @@ impl ActorT for Vehicle {
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Vehicle to Actor");
         }
-        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 }
 
 impl VehicleT for Vehicle {
     fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()> {
-        // Convert high-level VehicleControl to carla-cxx VehicleControl
-        let cxx_control = carla_cxx::VehicleControl {
+        // Convert high-level VehicleControl to carla-sys VehicleControl
+        let cxx_control = carla_sys::VehicleControl {
             throttle: control.throttle,
             steer: control.steer,
             brake: control.brake,
@@ -202,7 +202,7 @@ impl VehicleT for Vehicle {
     fn physics_control(&self) -> VehiclePhysicsControl {
         let cxx_physics = self.inner.get_physics_control();
 
-        // Convert carla-cxx VehiclePhysicsControl to high-level VehiclePhysicsControl
+        // Convert carla-sys VehiclePhysicsControl to high-level VehiclePhysicsControl
         VehiclePhysicsControl {
             torque_curve: vec![
                 (0.0, cxx_physics.engine.torque_curve_max_torque_nm),
@@ -236,8 +236,8 @@ impl VehicleT for Vehicle {
     }
 
     fn apply_physics_control(&self, physics_control: &VehiclePhysicsControl) -> CarlaResult<()> {
-        let cxx_physics = carla_cxx::VehiclePhysicsControl {
-            engine: carla_cxx::EnginePhysics {
+        let cxx_physics = carla_sys::VehiclePhysicsControl {
+            engine: carla_sys::EnginePhysics {
                 torque_curve_max_rpm: physics_control.max_rpm,
                 torque_curve_max_torque_nm: physics_control
                     .torque_curve
@@ -252,7 +252,7 @@ impl VehicleT for Vehicle {
                 damping_rate_zero_throttle_clutch_disengaged: physics_control
                     .damping_rate_zero_throttle_clutch_disengaged,
             },
-            transmission: carla_cxx::TransmissionPhysics {
+            transmission: carla_sys::TransmissionPhysics {
                 use_gear_autobox: physics_control.use_gear_autobox,
                 gear_switch_time: physics_control.gear_switch_time,
                 clutch_strength: physics_control.clutch_strength,
@@ -260,12 +260,12 @@ impl VehicleT for Vehicle {
             },
             mass: physics_control.mass,
             drag_coefficient: physics_control.drag_coefficient,
-            center_of_mass: carla_cxx::SimpleVector3D {
+            center_of_mass: carla_sys::SimpleVector3D {
                 x: physics_control.center_of_mass.x as f64,
                 y: physics_control.center_of_mass.y as f64,
                 z: physics_control.center_of_mass.z as f64,
             },
-            steering: carla_cxx::SteeringPhysics {
+            steering: carla_sys::SteeringPhysics {
                 curve_at_zero: 1.0,
                 curve_at_one: 1.0,
             },
@@ -280,7 +280,7 @@ impl VehicleT for Vehicle {
     }
 
     fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()> {
-        let cxx_light_state = carla_cxx::VehicleLightState::from_bits_truncate(light_state.lights);
+        let cxx_light_state = carla_sys::VehicleLightState::from_bits_truncate(light_state.lights);
         self.inner.set_light_state(cxx_light_state);
         Ok(())
     }
@@ -294,11 +294,11 @@ impl VehicleT for Vehicle {
 
     fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()> {
         let cxx_door_type = match door_type {
-            VehicleDoorType::FrontLeft => carla_cxx::VehicleDoorType::FrontLeft,
-            VehicleDoorType::FrontRight => carla_cxx::VehicleDoorType::FrontRight,
-            VehicleDoorType::RearLeft => carla_cxx::VehicleDoorType::RearLeft,
-            VehicleDoorType::RearRight => carla_cxx::VehicleDoorType::RearRight,
-            VehicleDoorType::All => carla_cxx::VehicleDoorType::All,
+            VehicleDoorType::FrontLeft => carla_sys::VehicleDoorType::FrontLeft,
+            VehicleDoorType::FrontRight => carla_sys::VehicleDoorType::FrontRight,
+            VehicleDoorType::RearLeft => carla_sys::VehicleDoorType::RearLeft,
+            VehicleDoorType::RearRight => carla_sys::VehicleDoorType::RearRight,
+            VehicleDoorType::All => carla_sys::VehicleDoorType::All,
         };
 
         if is_open {

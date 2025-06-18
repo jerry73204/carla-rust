@@ -93,7 +93,7 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
 #[test]
 fn test_traffic_light_state_conversions() {
     use carla::actor::TrafficLightState;
-    use carla_cxx::TrafficLightState as CxxState;
+    use carla_sys::TrafficLightState as CxxState;
 
     // Test from_cxx
     assert_eq!(

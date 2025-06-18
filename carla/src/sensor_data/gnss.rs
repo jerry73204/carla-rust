@@ -47,8 +47,8 @@ impl SensorData for GNSSData {
 }
 
 impl GNSSData {
-    /// Create GNSSData from carla-cxx GNSSData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::GNSSData) -> Self {
+    /// Create GNSSData from carla-sys GNSSData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::GNSSData) -> Self {
         Self {
             timestamp: Timestamp::new(
                 cxx_data.timestamp.frame,

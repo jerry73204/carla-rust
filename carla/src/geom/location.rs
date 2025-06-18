@@ -214,16 +214,16 @@ impl std::fmt::Display for Location {
     }
 }
 
-// Conversion to/from carla-cxx types
-impl FromCxx<carla_cxx::SimpleLocation> for Location {
-    fn from_cxx(value: carla_cxx::SimpleLocation) -> Self {
+// Conversion to/from carla-sys types
+impl FromCxx<carla_sys::SimpleLocation> for Location {
+    fn from_cxx(value: carla_sys::SimpleLocation) -> Self {
         Self::new(value.x, value.y, value.z)
     }
 }
 
-impl ToCxx<carla_cxx::SimpleLocation> for Location {
-    fn to_cxx(&self) -> carla_cxx::SimpleLocation {
-        carla_cxx::SimpleLocation {
+impl ToCxx<carla_sys::SimpleLocation> for Location {
+    fn to_cxx(&self) -> carla_sys::SimpleLocation {
+        carla_sys::SimpleLocation {
             x: self.x,
             y: self.y,
             z: self.z,

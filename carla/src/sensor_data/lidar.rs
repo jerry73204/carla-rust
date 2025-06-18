@@ -89,8 +89,8 @@ impl SensorData for LiDARData {
 }
 
 impl LiDARData {
-    /// Create LiDARData from carla-cxx LiDARDataFull
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::LiDARDataFull) -> Self {
+    /// Create LiDARData from carla-sys LiDARDataFull
+    pub fn from_cxx(cxx_data: carla_sys::sensor::LiDARDataFull) -> Self {
         let points = cxx_data
             .points
             .iter()
@@ -351,8 +351,8 @@ impl SensorData for SemanticLiDARData {
 }
 
 impl SemanticLiDARData {
-    /// Create SemanticLiDARData from carla-cxx SemanticLidarData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::SemanticLidarData) -> Self {
+    /// Create SemanticLiDARData from carla-sys SemanticLidarData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::SemanticLidarData) -> Self {
         let detections = cxx_data
             .detections
             .iter()
@@ -365,8 +365,8 @@ impl SemanticLiDARData {
             .collect();
 
         Self {
-            // TODO: Extract proper metadata from carla-cxx LiDARDataFull structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-cxx LiDARDataFull
+            // TODO: Extract proper metadata from carla-sys LiDARDataFull structure
+            // This requires adding timestamp, transform, and sensor_id fields to carla-sys LiDARDataFull
             timestamp: todo!("LiDARData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
             transform: todo!("LiDARData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
             sensor_id: todo!("LiDARData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),

@@ -4,7 +4,7 @@
 //! to detect and analyze traffic signs, speed limits, and other road infrastructure.
 
 use anyhow::Result;
-use carla_cxx::{landmark_utils, ClientWrapper, LandmarkInfo, LandmarkType, LaneType};
+use carla_sys::{landmark_utils, ClientWrapper, LandmarkInfo, LandmarkType, LaneType};
 
 fn main() -> Result<()> {
     println!("🛑 CARLA Landmark and Signal System Demo");

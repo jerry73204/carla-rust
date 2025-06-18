@@ -51,7 +51,7 @@ pub enum CarlaError {
     #[error("CARLA runtime error: {0}")]
     Runtime(String),
 
-    /// FFI layer error from carla-cxx
+    /// FFI layer error from carla-sys
     #[error("FFI error: {0}")]
     Ffi(#[from] anyhow::Error),
 }
@@ -367,9 +367,9 @@ impl From<VehicleControl> for String {
     }
 }
 
-/// Helper trait for converting carla-cxx errors to our error types
+/// Helper trait for converting carla-sys errors to our error types
 pub trait FromCxxError {
-    /// Convert from carla-cxx error with context
+    /// Convert from carla-sys error with context
     fn from_cxx_error(error: anyhow::Error, context: &str) -> Self;
 }
 

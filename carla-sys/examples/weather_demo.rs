@@ -1,14 +1,14 @@
-//! Weather control demo for carla-cxx
+//! Weather control demo for carla-sys
 //!
 //! This example demonstrates weather parameter control in CARLA simulator.
 //! It shows how to get current weather, set different weather presets,
 //! and create custom weather conditions.
 
-use carla_cxx::{ClientWrapper, SimpleWeatherParameters};
+use carla_sys::{ClientWrapper, SimpleWeatherParameters};
 use std::time::Duration;
 
 fn main() -> anyhow::Result<()> {
-    println!("🌤️  Weather Control Demo for carla-cxx");
+    println!("🌤️  Weather Control Demo for carla-sys");
     println!("=======================================");
 
     // Try to connect to CARLA server

@@ -1,4 +1,4 @@
-//! Unit tests for carla-cxx functionality.
+//! Unit tests for carla-sys functionality.
 
 #[cfg(test)]
 mod tests {

@@ -43,8 +43,8 @@ pub struct ImageData {
 }
 
 impl ImageData {
-    /// Create ImageData from carla-cxx ImageData
-    pub fn from_cxx(cxx_data: carla_cxx::ImageData) -> Self {
+    /// Create ImageData from carla-sys ImageData
+    pub fn from_cxx(cxx_data: carla_sys::ImageData) -> Self {
         Self {
             timestamp: Timestamp::new(
                 cxx_data.timestamp.frame,

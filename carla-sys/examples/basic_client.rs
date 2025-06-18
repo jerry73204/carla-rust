@@ -1,7 +1,7 @@
-use carla_cxx::ClientWrapper;
+use carla_sys::ClientWrapper;
 
 fn main() -> anyhow::Result<()> {
-    println!("Testing carla-cxx framework...");
+    println!("Testing carla-sys framework...");
 
     // Try to connect to CARLA server (this will fail if server is not running)
     match ClientWrapper::new("localhost", 2000) {

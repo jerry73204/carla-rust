@@ -28,15 +28,15 @@ pub enum CameraType {
     DVS,
 }
 
-impl From<carla_cxx::CameraType> for CameraType {
-    fn from(cxx_type: carla_cxx::CameraType) -> Self {
+impl From<carla_sys::CameraType> for CameraType {
+    fn from(cxx_type: carla_sys::CameraType) -> Self {
         match cxx_type {
-            carla_cxx::CameraType::RGB => CameraType::RGB,
-            carla_cxx::CameraType::Depth => CameraType::Depth,
-            carla_cxx::CameraType::SemanticSegmentation => CameraType::SemanticSegmentation,
-            carla_cxx::CameraType::InstanceSegmentation => CameraType::InstanceSegmentation,
-            carla_cxx::CameraType::OpticalFlow => CameraType::OpticalFlow,
-            carla_cxx::CameraType::DVS => CameraType::DVS,
+            carla_sys::CameraType::RGB => CameraType::RGB,
+            carla_sys::CameraType::Depth => CameraType::Depth,
+            carla_sys::CameraType::SemanticSegmentation => CameraType::SemanticSegmentation,
+            carla_sys::CameraType::InstanceSegmentation => CameraType::InstanceSegmentation,
+            carla_sys::CameraType::OpticalFlow => CameraType::OpticalFlow,
+            carla_sys::CameraType::DVS => CameraType::DVS,
         }
     }
 }

@@ -12,7 +12,7 @@
 //! cargo run --example ros2_integration_demo
 //! ```
 
-use carla_cxx::{
+use carla_sys::{
     ffi, ros2_utils, ClientWrapper, SensorROS2Ext, SimpleLocation, SimpleRotation, SimpleTransform,
 };
 use std::{thread, time::Duration};

@@ -50,8 +50,8 @@ impl SensorData for CollisionData {
 }
 
 impl CollisionData {
-    /// Create CollisionData from carla-cxx CollisionData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::CollisionData) -> Self {
+    /// Create CollisionData from carla-sys CollisionData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::CollisionData) -> Self {
         Self {
             timestamp: Timestamp::new(
                 cxx_data.timestamp.frame,

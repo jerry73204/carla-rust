@@ -1,4 +1,4 @@
-//! World interaction demonstration for carla-cxx.
+//! World interaction demonstration for carla-sys.
 //!
 //! This example demonstrates the world interaction features:
 //! - Ray casting between points
@@ -9,7 +9,7 @@
 //! - Actor queries and filtering
 
 use anyhow::Result;
-use carla_cxx::{
+use carla_sys::{
     ray_casting, world_defaults, ActorListExt, ClientWrapper, LabelledPoint, LaneType,
     OptionalLabelledPointExt, OptionalLocationExt, SimpleLocation,
 };

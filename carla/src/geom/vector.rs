@@ -505,31 +505,31 @@ impl std::fmt::Display for Vector3D {
     }
 }
 
-// Conversion to/from carla-cxx types
-impl FromCxx<carla_cxx::SimpleVector2D> for Vector2D {
-    fn from_cxx(value: carla_cxx::SimpleVector2D) -> Self {
+// Conversion to/from carla-sys types
+impl FromCxx<carla_sys::SimpleVector2D> for Vector2D {
+    fn from_cxx(value: carla_sys::SimpleVector2D) -> Self {
         Self::new(value.x as f32, value.y as f32)
     }
 }
 
-impl ToCxx<carla_cxx::SimpleVector2D> for Vector2D {
-    fn to_cxx(&self) -> carla_cxx::SimpleVector2D {
-        carla_cxx::SimpleVector2D {
+impl ToCxx<carla_sys::SimpleVector2D> for Vector2D {
+    fn to_cxx(&self) -> carla_sys::SimpleVector2D {
+        carla_sys::SimpleVector2D {
             x: self.x as f64,
             y: self.y as f64,
         }
     }
 }
 
-impl FromCxx<carla_cxx::SimpleVector3D> for Vector3D {
-    fn from_cxx(value: carla_cxx::SimpleVector3D) -> Self {
+impl FromCxx<carla_sys::SimpleVector3D> for Vector3D {
+    fn from_cxx(value: carla_sys::SimpleVector3D) -> Self {
         Self::new(value.x as f32, value.y as f32, value.z as f32)
     }
 }
 
-impl ToCxx<carla_cxx::SimpleVector3D> for Vector3D {
-    fn to_cxx(&self) -> carla_cxx::SimpleVector3D {
-        carla_cxx::SimpleVector3D {
+impl ToCxx<carla_sys::SimpleVector3D> for Vector3D {
+    fn to_cxx(&self) -> carla_sys::SimpleVector3D {
+        carla_sys::SimpleVector3D {
             x: self.x as f64,
             y: self.y as f64,
             z: self.z as f64,

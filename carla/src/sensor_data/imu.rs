@@ -38,8 +38,8 @@ impl SensorData for IMUData {
 }
 
 impl IMUData {
-    /// Create IMUData from carla-cxx IMUData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::IMUData) -> Self {
+    /// Create IMUData from carla-sys IMUData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::IMUData) -> Self {
         Self {
             timestamp: Timestamp::new(
                 cxx_data.timestamp.frame,

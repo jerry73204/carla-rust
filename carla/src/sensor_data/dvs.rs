@@ -85,8 +85,8 @@ impl SensorData for DVSData {
 }
 
 impl DVSData {
-    /// Create DVSData from carla-cxx DVSEventArray
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::DVSEventArray) -> Self {
+    /// Create DVSData from carla-sys DVSEventArray
+    pub fn from_cxx(cxx_data: carla_sys::sensor::DVSEventArray) -> Self {
         let events = cxx_data
             .events
             .iter()

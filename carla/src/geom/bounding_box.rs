@@ -320,9 +320,9 @@ impl std::fmt::Display for BoundingBox {
     }
 }
 
-// Conversion to/from carla-cxx types
-impl FromCxx<carla_cxx::SimpleBoundingBox> for BoundingBox {
-    fn from_cxx(value: carla_cxx::SimpleBoundingBox) -> Self {
+// Conversion to/from carla-sys types
+impl FromCxx<carla_sys::SimpleBoundingBox> for BoundingBox {
+    fn from_cxx(value: carla_sys::SimpleBoundingBox) -> Self {
         Self::new(
             Location::from_cxx(value.location),
             Vector3D::from_cxx(value.extent),
@@ -330,9 +330,9 @@ impl FromCxx<carla_cxx::SimpleBoundingBox> for BoundingBox {
     }
 }
 
-impl ToCxx<carla_cxx::SimpleBoundingBox> for BoundingBox {
-    fn to_cxx(&self) -> carla_cxx::SimpleBoundingBox {
-        carla_cxx::SimpleBoundingBox {
+impl ToCxx<carla_sys::SimpleBoundingBox> for BoundingBox {
+    fn to_cxx(&self) -> carla_sys::SimpleBoundingBox {
+        carla_sys::SimpleBoundingBox {
             location: self.location.to_cxx(),
             extent: self.extent.to_cxx(),
         }

@@ -1,4 +1,4 @@
-//! Debug visualization demonstration for carla-cxx.
+//! Debug visualization demonstration for carla-sys.
 //!
 //! This example shows how to use the debug drawing API to visualize:
 //! - Actor positions and bounding boxes
@@ -8,7 +8,7 @@
 //! - Text labels and annotations
 
 use anyhow::Result;
-use carla_cxx::{
+use carla_sys::{
     debug_colors, ActorListExt, ActorWrapper, ClientWrapper, DebugDrawExt, SimpleBoundingBox,
     SimpleLocation, SimpleRotation, SimpleTransform, SimpleVector3D, WorldWrapper,
 };

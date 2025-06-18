@@ -51,8 +51,8 @@ impl SensorData for RadarData {
 }
 
 impl RadarData {
-    /// Create RadarData from carla-cxx RadarData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::RadarData) -> Self {
+    /// Create RadarData from carla-sys RadarData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::RadarData) -> Self {
         let detections = cxx_data
             .detections
             .iter()

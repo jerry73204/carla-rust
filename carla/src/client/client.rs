@@ -1,13 +1,13 @@
 //! CARLA client for connecting to server.
 
 use crate::{client::World, error::CarlaResult};
-use carla_cxx::ClientWrapper;
+use carla_sys::ClientWrapper;
 use std::time::Duration;
 
 /// Main client for connecting to CARLA server.
 #[derive(Debug)]
 pub struct Client {
-    /// Internal handle to carla-cxx Client
+    /// Internal handle to carla-sys Client
     inner: ClientWrapper,
 }
 

@@ -710,7 +710,7 @@ pub mod bridge {
 
     #[namespace = "carla::client"]
     unsafe extern "C++" {
-        include!("carla_cxx_bridge.h");
+        include!("carla_sys_bridge.h");
 
         // Client type
         type Client;
@@ -1498,7 +1498,7 @@ pub mod bridge {
 
     // Global namespace functions (primarily bridge utilities)
     unsafe extern "C++" {
-        include!("carla_cxx_bridge.h");
+        include!("carla_sys_bridge.h");
 
         // Weather functions - use global namespace since they're bridge functions
         fn World_GetWeather(world: &World) -> SimpleWeatherParameters;
@@ -1513,7 +1513,7 @@ pub mod bridge {
 
     #[namespace = "carla::traffic_manager"]
     unsafe extern "C++" {
-        include!("carla_cxx_bridge.h");
+        include!("carla_sys_bridge.h");
 
         // Traffic Manager type
         type TrafficManager;

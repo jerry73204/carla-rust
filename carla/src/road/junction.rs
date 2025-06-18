@@ -9,7 +9,7 @@ use crate::{
 /// Road junction.
 pub struct Junction {
     /// Internal junction wrapper
-    wrapper: carla_cxx::map::JunctionWrapper,
+    wrapper: carla_sys::map::JunctionWrapper,
 }
 
 impl std::fmt::Debug for Junction {
@@ -22,8 +22,8 @@ impl std::fmt::Debug for Junction {
 }
 
 impl Junction {
-    /// Create a new Junction from a carla-cxx JunctionWrapper
-    pub(crate) fn from_cxx_wrapper(wrapper: carla_cxx::map::JunctionWrapper) -> Self {
+    /// Create a new Junction from a carla-sys JunctionWrapper
+    pub(crate) fn from_cxx_wrapper(wrapper: carla_sys::map::JunctionWrapper) -> Self {
         Self { wrapper }
     }
 
@@ -52,13 +52,13 @@ impl Junction {
     /// Get waypoints in this junction.
     pub fn waypoints(&self, lane_type: LaneType) -> CarlaResult<WaypointList> {
         let cxx_lane_type = match lane_type {
-            LaneType::Driving => carla_cxx::map::LaneType::Driving,
-            LaneType::Sidewalk => carla_cxx::map::LaneType::Sidewalk,
-            LaneType::Shoulder => carla_cxx::map::LaneType::Shoulder,
-            LaneType::Biking => carla_cxx::map::LaneType::Biking,
-            LaneType::Stop => carla_cxx::map::LaneType::Stop,
-            LaneType::Parking => carla_cxx::map::LaneType::Parking,
-            _ => carla_cxx::map::LaneType::Any,
+            LaneType::Driving => carla_sys::map::LaneType::Driving,
+            LaneType::Sidewalk => carla_sys::map::LaneType::Sidewalk,
+            LaneType::Shoulder => carla_sys::map::LaneType::Shoulder,
+            LaneType::Biking => carla_sys::map::LaneType::Biking,
+            LaneType::Stop => carla_sys::map::LaneType::Stop,
+            LaneType::Parking => carla_sys::map::LaneType::Parking,
+            _ => carla_sys::map::LaneType::Any,
         };
         let waypoint_vec = self.wrapper.get_waypoints(cxx_lane_type);
         Ok(WaypointList::new(waypoint_vec))

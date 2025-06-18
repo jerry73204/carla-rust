@@ -8,13 +8,13 @@ use crate::{
     road::Map,
     time::Timestamp,
 };
-use carla_cxx::WorldWrapper;
+use carla_sys::WorldWrapper;
 use std::time::Duration;
 
 /// Represents the simulation world.
 #[derive(Debug)]
 pub struct World {
-    /// Internal handle to carla-cxx World
+    /// Internal handle to carla-sys World
     inner: WorldWrapper,
 }
 
@@ -97,9 +97,9 @@ impl World {
 
     /// Get actors filtered by type.
     pub fn actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
-        // TODO: Implement using carla-cxx FFI interface - needs actor list iteration support
+        // TODO: Implement using carla-sys FFI interface - needs actor list iteration support
         let _actor_type = actor_type;
-        todo!("World::get_actors_by_type not yet implemented with carla-cxx FFI")
+        todo!("World::get_actors_by_type not yet implemented with carla-sys FFI")
     }
 
     /// Spawn an actor.
@@ -109,7 +109,7 @@ impl World {
         transform: &Transform,
         parent: Option<&Actor>,
     ) -> CarlaResult<Actor> {
-        let simple_transform: carla_cxx::SimpleTransform = transform.into();
+        let simple_transform: carla_sys::SimpleTransform = transform.into();
         let parent_actor = parent.map(|p| p.get_inner_actor());
 
         match self
@@ -131,7 +131,7 @@ impl World {
         transform: &Transform,
         parent: Option<&Actor>,
     ) -> CarlaResult<Option<Actor>> {
-        let simple_transform: carla_cxx::SimpleTransform = transform.into();
+        let simple_transform: carla_sys::SimpleTransform = transform.into();
         let parent_actor = parent.map(|p| p.get_inner_actor());
 
         match self
@@ -273,8 +273,8 @@ impl Default for WeatherParameters {
     }
 }
 
-impl From<carla_cxx::ffi::bridge::SimpleWeatherParameters> for WeatherParameters {
-    fn from(simple: carla_cxx::ffi::bridge::SimpleWeatherParameters) -> Self {
+impl From<carla_sys::ffi::bridge::SimpleWeatherParameters> for WeatherParameters {
+    fn from(simple: carla_sys::ffi::bridge::SimpleWeatherParameters) -> Self {
         Self {
             cloudiness: simple.cloudiness,
             precipitation: simple.precipitation,
@@ -293,7 +293,7 @@ impl From<carla_cxx::ffi::bridge::SimpleWeatherParameters> for WeatherParameters
     }
 }
 
-impl From<&WeatherParameters> for carla_cxx::ffi::bridge::SimpleWeatherParameters {
+impl From<&WeatherParameters> for carla_sys::ffi::bridge::SimpleWeatherParameters {
     fn from(weather: &WeatherParameters) -> Self {
         Self {
             cloudiness: weather.cloudiness,
@@ -353,8 +353,8 @@ impl Default for WorldSettings {
     }
 }
 
-impl From<carla_cxx::ffi::bridge::SimpleEpisodeSettings> for WorldSettings {
-    fn from(simple: carla_cxx::ffi::bridge::SimpleEpisodeSettings) -> Self {
+impl From<carla_sys::ffi::bridge::SimpleEpisodeSettings> for WorldSettings {
+    fn from(simple: carla_sys::ffi::bridge::SimpleEpisodeSettings) -> Self {
         Self {
             synchronous_mode: simple.synchronous_mode,
             fixed_delta_seconds: if simple.fixed_delta_seconds <= 0.0 {
@@ -373,7 +373,7 @@ impl From<carla_cxx::ffi::bridge::SimpleEpisodeSettings> for WorldSettings {
     }
 }
 
-impl From<&WorldSettings> for carla_cxx::ffi::bridge::SimpleEpisodeSettings {
+impl From<&WorldSettings> for carla_sys::ffi::bridge::SimpleEpisodeSettings {
     fn from(settings: &WorldSettings) -> Self {
         Self {
             synchronous_mode: settings.synchronous_mode,

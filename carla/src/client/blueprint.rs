@@ -1,17 +1,17 @@
 //! Actor blueprint for spawning.
 
 use crate::error::CarlaResult;
-use carla_cxx::ActorBlueprintWrapper;
+use carla_sys::ActorBlueprintWrapper;
 
 /// Actor blueprint for spawning.
 #[derive(Debug, Clone)]
 pub struct ActorBlueprint {
-    /// Internal wrapper from carla-cxx
+    /// Internal wrapper from carla-sys
     inner: ActorBlueprintWrapper,
 }
 
 impl ActorBlueprint {
-    /// Create a blueprint from a carla-cxx ActorBlueprintWrapper.
+    /// Create a blueprint from a carla-sys ActorBlueprintWrapper.
     pub fn from_cxx(inner: ActorBlueprintWrapper) -> Self {
         Self { inner }
     }
@@ -26,7 +26,7 @@ impl ActorBlueprint {
         self.inner.get_tags()
     }
 
-    /// Get reference to the inner carla-cxx ActorBlueprint wrapper
+    /// Get reference to the inner carla-sys ActorBlueprint wrapper
     pub(crate) fn inner(&self) -> &ActorBlueprintWrapper {
         &self.inner
     }
@@ -240,13 +240,13 @@ impl From<(u8, u8, u8)> for RGBColor {
     }
 }
 
-impl From<carla_cxx::SimpleColor> for RGBColor {
-    fn from(color: carla_cxx::SimpleColor) -> Self {
+impl From<carla_sys::SimpleColor> for RGBColor {
+    fn from(color: carla_sys::SimpleColor) -> Self {
         Self::new(color.r, color.g, color.b)
     }
 }
 
-impl From<RGBColor> for carla_cxx::SimpleColor {
+impl From<RGBColor> for carla_sys::SimpleColor {
     fn from(color: RGBColor) -> Self {
         Self {
             r: color.r,

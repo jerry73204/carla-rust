@@ -26,8 +26,8 @@ pub struct Waypoint {
     /// Lane marking color
     pub lane_marking_color: LaneMarkingColor,
 
-    /// Internal carla-cxx wrapper
-    wrapper: carla_cxx::map::WaypointWrapper,
+    /// Internal carla-sys wrapper
+    wrapper: carla_sys::map::WaypointWrapper,
 }
 
 impl PartialEq for Waypoint {
@@ -62,26 +62,26 @@ impl std::fmt::Debug for Waypoint {
 
 impl Waypoint {
     /// Get reference to the internal wrapper (for Map methods)
-    pub(crate) fn wrapper(&self) -> &carla_cxx::map::WaypointWrapper {
+    pub(crate) fn wrapper(&self) -> &carla_sys::map::WaypointWrapper {
         &self.wrapper
     }
 
-    /// Create a new Waypoint from a carla-cxx WaypointWrapper
-    pub(crate) fn from_cxx_wrapper(wrapper: carla_cxx::map::WaypointWrapper) -> Self {
+    /// Create a new Waypoint from a carla-sys WaypointWrapper
+    pub(crate) fn from_cxx_wrapper(wrapper: carla_sys::map::WaypointWrapper) -> Self {
         let transform = Transform::from(wrapper.get_transform());
         let lane_change = match wrapper.get_lane_change() {
-            carla_cxx::map::LaneChange::None => LaneChange::None,
-            carla_cxx::map::LaneChange::Right => LaneChange::Right,
-            carla_cxx::map::LaneChange::Left => LaneChange::Left,
-            carla_cxx::map::LaneChange::Both => LaneChange::Both,
+            carla_sys::map::LaneChange::None => LaneChange::None,
+            carla_sys::map::LaneChange::Right => LaneChange::Right,
+            carla_sys::map::LaneChange::Left => LaneChange::Left,
+            carla_sys::map::LaneChange::Both => LaneChange::Both,
         };
         let lane_type = match wrapper.get_type() {
-            carla_cxx::map::LaneType::Driving => LaneType::Driving,
-            carla_cxx::map::LaneType::Sidewalk => LaneType::Sidewalk,
-            carla_cxx::map::LaneType::Shoulder => LaneType::Shoulder,
-            carla_cxx::map::LaneType::Biking => LaneType::Biking,
-            carla_cxx::map::LaneType::Stop => LaneType::Stop,
-            carla_cxx::map::LaneType::Parking => LaneType::Parking,
+            carla_sys::map::LaneType::Driving => LaneType::Driving,
+            carla_sys::map::LaneType::Sidewalk => LaneType::Sidewalk,
+            carla_sys::map::LaneType::Shoulder => LaneType::Shoulder,
+            carla_sys::map::LaneType::Biking => LaneType::Biking,
+            carla_sys::map::LaneType::Stop => LaneType::Stop,
+            carla_sys::map::LaneType::Parking => LaneType::Parking,
             _ => LaneType::Any,
         };
         let right_marking = wrapper.get_right_lane_marking();
@@ -97,16 +97,16 @@ impl Waypoint {
             lane_change,
             lane_type,
             lane_marking_type: match right_marking.marking_type {
-                carla_cxx::map::LaneMarkingType::Solid => LaneMarkingType::Solid,
-                carla_cxx::map::LaneMarkingType::Broken => LaneMarkingType::Broken,
+                carla_sys::map::LaneMarkingType::Solid => LaneMarkingType::Solid,
+                carla_sys::map::LaneMarkingType::Broken => LaneMarkingType::Broken,
                 _ => LaneMarkingType::Other,
             },
             lane_marking_color: match right_marking.color {
-                carla_cxx::map::LaneMarkingColor::Standard => LaneMarkingColor::Standard,
-                carla_cxx::map::LaneMarkingColor::Blue => LaneMarkingColor::Blue,
-                carla_cxx::map::LaneMarkingColor::Green => LaneMarkingColor::Green,
-                carla_cxx::map::LaneMarkingColor::Red => LaneMarkingColor::Red,
-                carla_cxx::map::LaneMarkingColor::Yellow => LaneMarkingColor::Yellow,
+                carla_sys::map::LaneMarkingColor::Standard => LaneMarkingColor::Standard,
+                carla_sys::map::LaneMarkingColor::Blue => LaneMarkingColor::Blue,
+                carla_sys::map::LaneMarkingColor::Green => LaneMarkingColor::Green,
+                carla_sys::map::LaneMarkingColor::Red => LaneMarkingColor::Red,
+                carla_sys::map::LaneMarkingColor::Yellow => LaneMarkingColor::Yellow,
                 _ => LaneMarkingColor::Other,
             },
             wrapper,

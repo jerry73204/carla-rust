@@ -1,6 +1,6 @@
 //! Advanced Sensor Features Demo for CARLA CXX
 //!
-//! This example demonstrates how to use CARLA's advanced sensor features through carla-cxx,
+//! This example demonstrates how to use CARLA's advanced sensor features through carla-sys,
 //! including Dynamic Vision Sensor (DVS), Obstacle Detection, Semantic LiDAR, and RSS sensors.
 //!
 //! ## Features Demonstrated
@@ -21,7 +21,7 @@
 //! ```
 
 use anyhow::Result;
-use carla_cxx::{
+use carla_sys::{
     ActorBlueprintExt, ClientWrapper, DVSEventArray, ObstacleDetectionEvent, RssResponse,
     SemanticLidarData, SensorWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
 };
@@ -82,8 +82,8 @@ fn main() -> Result<()> {
 
 /// Demonstrate Dynamic Vision Sensor (DVS) functionality
 fn demonstrate_dvs_sensor(
-    world: &carla_cxx::WorldWrapper,
-    blueprint_library: &carla_cxx::BlueprintLibraryWrapper,
+    world: &carla_sys::WorldWrapper,
+    blueprint_library: &carla_sys::BlueprintLibraryWrapper,
     spawn_transform: &SimpleTransform,
 ) -> Result<()> {
     println!("\n🎥 Dynamic Vision Sensor (DVS) Demo");
@@ -147,8 +147,8 @@ fn demonstrate_dvs_sensor(
 
 /// Demonstrate Obstacle Detection Sensor functionality
 fn demonstrate_obstacle_detection_sensor(
-    world: &carla_cxx::WorldWrapper,
-    blueprint_library: &carla_cxx::BlueprintLibraryWrapper,
+    world: &carla_sys::WorldWrapper,
+    blueprint_library: &carla_sys::BlueprintLibraryWrapper,
     spawn_transform: &SimpleTransform,
 ) -> Result<()> {
     println!("\n🚧 Obstacle Detection Sensor Demo");
@@ -217,8 +217,8 @@ fn demonstrate_obstacle_detection_sensor(
 
 /// Demonstrate Semantic LiDAR functionality
 fn demonstrate_semantic_lidar_sensor(
-    world: &carla_cxx::WorldWrapper,
-    blueprint_library: &carla_cxx::BlueprintLibraryWrapper,
+    world: &carla_sys::WorldWrapper,
+    blueprint_library: &carla_sys::BlueprintLibraryWrapper,
     spawn_transform: &SimpleTransform,
 ) -> Result<()> {
     println!("\n🔍 Semantic LiDAR Sensor Demo");
@@ -295,8 +295,8 @@ fn demonstrate_semantic_lidar_sensor(
 
 /// Demonstrate RSS (Road Safety) Sensor functionality
 fn demonstrate_rss_sensor(
-    world: &carla_cxx::WorldWrapper,
-    blueprint_library: &carla_cxx::BlueprintLibraryWrapper,
+    world: &carla_sys::WorldWrapper,
+    blueprint_library: &carla_sys::BlueprintLibraryWrapper,
     spawn_transform: &SimpleTransform,
 ) -> Result<()> {
     println!("\n🛡️  RSS (Road Safety) Sensor Demo");

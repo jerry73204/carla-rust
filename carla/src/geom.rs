@@ -18,15 +18,15 @@ pub use vector::{Vector2D, Vector3D};
 // Re-export nalgebra types for convenience
 pub use nalgebra::{Matrix3, Matrix4, Point2, Point3, UnitQuaternion, Vector2, Vector3};
 
-/// Trait for types that can be converted to/from carla-cxx geometry types.
+/// Trait for types that can be converted to/from carla-sys geometry types.
 pub trait FromCxx<T> {
-    /// Convert from carla-cxx type.
+    /// Convert from carla-sys type.
     fn from_cxx(value: T) -> Self;
 }
 
-/// Trait for types that can be converted to carla-cxx geometry types.
+/// Trait for types that can be converted to carla-sys geometry types.
 pub trait ToCxx<T> {
-    /// Convert to carla-cxx type.
+    /// Convert to carla-sys type.
     fn to_cxx(&self) -> T;
 }
 

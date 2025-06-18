@@ -269,9 +269,9 @@ impl std::fmt::Display for Transform {
     }
 }
 
-// Conversion to/from carla-cxx types
-impl FromCxx<carla_cxx::SimpleTransform> for Transform {
-    fn from_cxx(value: carla_cxx::SimpleTransform) -> Self {
+// Conversion to/from carla-sys types
+impl FromCxx<carla_sys::SimpleTransform> for Transform {
+    fn from_cxx(value: carla_sys::SimpleTransform) -> Self {
         Self::new(
             Location::from_cxx(value.location),
             Rotation::from_cxx(value.rotation),
@@ -279,9 +279,9 @@ impl FromCxx<carla_cxx::SimpleTransform> for Transform {
     }
 }
 
-impl ToCxx<carla_cxx::SimpleTransform> for Transform {
-    fn to_cxx(&self) -> carla_cxx::SimpleTransform {
-        carla_cxx::SimpleTransform {
+impl ToCxx<carla_sys::SimpleTransform> for Transform {
+    fn to_cxx(&self) -> carla_sys::SimpleTransform {
+        carla_sys::SimpleTransform {
             location: self.location.to_cxx(),
             rotation: self.rotation.to_cxx(),
         }
@@ -289,20 +289,20 @@ impl ToCxx<carla_cxx::SimpleTransform> for Transform {
 }
 
 // Standard From/Into conversions for easier use
-impl From<&Transform> for carla_cxx::SimpleTransform {
+impl From<&Transform> for carla_sys::SimpleTransform {
     fn from(transform: &Transform) -> Self {
         transform.to_cxx()
     }
 }
 
-impl From<Transform> for carla_cxx::SimpleTransform {
+impl From<Transform> for carla_sys::SimpleTransform {
     fn from(transform: Transform) -> Self {
         transform.to_cxx()
     }
 }
 
-impl From<carla_cxx::SimpleTransform> for Transform {
-    fn from(simple: carla_cxx::SimpleTransform) -> Self {
+impl From<carla_sys::SimpleTransform> for Transform {
+    fn from(simple: carla_sys::SimpleTransform) -> Self {
         Self::from_cxx(simple)
     }
 }

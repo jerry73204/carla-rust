@@ -1,87 +1,72 @@
 use std::{env, path::PathBuf};
 
-fn main() {
-    println!("cargo:rerun-if-changed=../libcarla_c/include");
+fn main() -> anyhow::Result<()> {
+    // Find CARLA installation directory
+    let carla_root = env::var("CARLA_ROOT").unwrap_or_else(|_| {
+        // Default to the carla-simulator install directory
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let manifest_path = PathBuf::from(&manifest_dir);
+        let project_root = manifest_path.parent().unwrap();
+        project_root
+            .join("carla-simulator/install")
+            .to_string_lossy()
+            .to_string()
+    });
 
-    // Tell cargo to look for shared libraries in the libcarla_c install directory
-    let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let manifest_path = PathBuf::from(&cargo_manifest_dir);
-    let project_root = manifest_path.parent().unwrap();
-    // Try both install and build directories
-    let install_lib_path = project_root.join("libcarla_c/install/lib");
-    let build_lib_path = project_root.join("libcarla_c/build");
+    let carla_root = PathBuf::from(&carla_root);
+    if !carla_root.exists() {
+        panic!(
+            "CARLA installation not found at {:?}. Please set CARLA_ROOT or CARLA_DIR environment variable.",
+            carla_root
+        );
+    }
 
-    let libcarla_c_path =
-        if install_lib_path.exists() && install_lib_path.join("libcarla_c.so").exists() {
-            install_lib_path
-        } else if build_lib_path.exists() && build_lib_path.join("libcarla_c.so").exists() {
-            build_lib_path
-        } else {
-            eprintln!(
-                "Warning: libcarla_c not found at {:?} or {:?}",
-                install_lib_path, build_lib_path
-            );
-            eprintln!("Run: cd ../libcarla_c && ./build_libcarla_c.sh");
-            return;
-        };
+    let carla_include = carla_root.join("include");
+    let carla_lib = carla_root.join("lib");
 
-    println!(
-        "cargo:rustc-link-search=native={}",
-        libcarla_c_path.display()
-    );
-    println!("cargo:rustc-link-lib=carla_c");
+    println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/ffi.rs");
+    println!("cargo:rerun-if-changed=include/carla_sys_bridge.h");
+    println!("cargo:rerun-if-changed=cpp/carla_sys_bridge.cpp");
 
-    // Also tell cargo to rebuild if the library changes
-    println!(
-        "cargo:rerun-if-changed={}",
-        libcarla_c_path.join("libcarla_c.so").display()
-    );
+    // Build CXX bridge
+    let mut bridge = cxx_build::bridge("src/ffi.rs");
 
-    // Set runtime library path for tests
-    println!(
-        "cargo:rustc-env=LD_LIBRARY_PATH={}",
-        libcarla_c_path.display()
-    );
+    bridge
+        .file("cpp/carla_sys_bridge.cpp")
+        .include(&carla_include)
+        .include("include")
+        .std("c++20") // Use C++20 for std::identity
+        .flag_if_supported("-std=c++20")
+        .flag("-DCARLA_SYS_BRIDGE")
+        .flag("-w"); // Suppress warnings for now
 
-    // The bindgen::Builder is the main entry point
-    // to bindgen, and lets you build up options for
-    // the resulting bindings.
-    let bindings = bindgen::Builder::default()
-        // The input header we would like to generate
-        // bindings for.
-        .header("wrapper.h")
-        // Tell cargo to invalidate the built crate whenever any of the
-        // included header files changed.
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-        // Add the include directory for our C headers
-        .clang_arg(&format!(
-            "-I{}",
-            project_root.join("libcarla_c/include").display()
-        ))
-        // Generate bindings for all the C types and functions
-        .allowlist_type("carla_.*")
-        .allowlist_function("carla_.*")
-        .allowlist_var("CARLA_.*")
-        // Generate Debug traits for structs
-        .derive_debug(true)
-        // Generate Clone traits for structs (where possible)
-        .derive_copy(true)
-        // Generate PartialEq traits for structs
-        .derive_eq(true)
-        // Generate Hash traits for structs
-        .derive_hash(true)
-        // Generate Default traits for structs
-        .derive_default(true)
-        // Use core instead of std for no_std compatibility (optional)
-        .use_core()
-        // Finish the builder and generate the bindings.
-        .generate()
-        // Unwrap the Result and panic on failure.
-        .expect("Unable to generate bindings");
+    // Add compiler flags for Linux
+    if cfg!(target_os = "linux") {
+        bridge.flag("-pthread").flag("-fPIC");
+    }
 
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
+    bridge.compile("carla-sys");
+
+    // Link CARLA libraries
+    println!("cargo:rustc-link-search=native={}", carla_lib.display());
+
+    // Core CARLA libraries (based on actual files in lib directory)
+    println!("cargo:rustc-link-lib=static=carla-client");
+    println!("cargo:rustc-link-lib=static=rpc");
+
+    // Navigation libraries
+    println!("cargo:rustc-link-lib=static=Recast");
+    println!("cargo:rustc-link-lib=static=Detour");
+    println!("cargo:rustc-link-lib=static=DetourCrowd");
+
+    // Image libraries
+    println!("cargo:rustc-link-lib=static=png16");
+
+    // System libraries
+    println!("cargo:rustc-link-lib=static=z");
+    println!("cargo:rustc-link-lib=pthread");
+    println!("cargo:rustc-link-lib=stdc++");
+
+    Ok(())
 }

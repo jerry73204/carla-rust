@@ -12,7 +12,7 @@ documentation = "https://docs.rs/carla/"
 
 [dependencies]
 # Core FFI layer
-carla-cxx = { version = "0.12.0", path = "../carla-cxx" }
+carla-sys = { version = "0.12.0", path = "../carla-sys" }
 
 # Error handling
 anyhow = "1.0.80"

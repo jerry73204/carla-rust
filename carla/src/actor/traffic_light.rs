@@ -7,7 +7,7 @@ use crate::{
     road::WaypointList,
     traits::ActorT,
 };
-use carla_cxx::TrafficLightWrapper;
+use carla_sys::TrafficLightWrapper;
 use std::time::Duration;
 
 /// Traffic light actor.
@@ -20,7 +20,7 @@ pub struct TrafficLight {
 }
 
 impl TrafficLight {
-    /// Create a traffic light from a carla-cxx TrafficLightWrapper and actor ID.
+    /// Create a traffic light from a carla-sys TrafficLightWrapper and actor ID.
     pub(crate) fn from_cxx(
         traffic_light_wrapper: TrafficLightWrapper,
         id: ActorId,
@@ -184,7 +184,7 @@ impl ActorT for TrafficLight {
         Ok(())
     }
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_cxx::SimpleVector3D {
+        let cxx_impulse = carla_sys::SimpleVector3D {
             x: impulse.x as f64,
             y: impulse.y as f64,
             z: impulse.z as f64,
@@ -193,7 +193,7 @@ impl ActorT for TrafficLight {
         Ok(())
     }
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_cxx::SimpleVector3D {
+        let cxx_force = carla_sys::SimpleVector3D {
             x: force.x as f64,
             y: force.y as f64,
             z: force.z as f64,
@@ -202,7 +202,7 @@ impl ActorT for TrafficLight {
         Ok(())
     }
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_cxx::SimpleVector3D {
+        let cxx_torque = carla_sys::SimpleVector3D {
             x: torque.x as f64,
             y: torque.y as f64,
             z: torque.z as f64,
@@ -214,11 +214,11 @@ impl ActorT for TrafficLight {
     fn bounding_box(&self) -> crate::geom::BoundingBox {
         // TrafficLight doesn't have a direct GetBoundingBox method, need to cast to Actor
         let actor_ptr =
-            carla_cxx::ffi::TrafficLight_CastToActor(self.inner.get_inner_traffic_light());
+            carla_sys::ffi::TrafficLight_CastToActor(self.inner.get_inner_traffic_light());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast TrafficLight to Actor");
         }
-        let simple_bbox = carla_cxx::ffi::Actor_GetBoundingBox(&actor_ptr);
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 }
@@ -254,9 +254,9 @@ impl Default for TrafficLightState {
 }
 
 impl TrafficLightState {
-    /// Convert from carla-cxx TrafficLightState
-    pub fn from_cxx(cxx_state: carla_cxx::TrafficLightState) -> Self {
-        use carla_cxx::TrafficLightState as CxxState;
+    /// Convert from carla-sys TrafficLightState
+    pub fn from_cxx(cxx_state: carla_sys::TrafficLightState) -> Self {
+        use carla_sys::TrafficLightState as CxxState;
         match cxx_state {
             CxxState::Red => Self::Red,
             CxxState::Yellow => Self::Yellow,
@@ -266,9 +266,9 @@ impl TrafficLightState {
         }
     }
 
-    /// Convert to carla-cxx TrafficLightState
-    pub fn to_cxx(&self) -> carla_cxx::TrafficLightState {
-        use carla_cxx::TrafficLightState as CxxState;
+    /// Convert to carla-sys TrafficLightState
+    pub fn to_cxx(&self) -> carla_sys::TrafficLightState {
+        use carla_sys::TrafficLightState as CxxState;
         match self {
             Self::Red => CxxState::Red,
             Self::Yellow => CxxState::Yellow,

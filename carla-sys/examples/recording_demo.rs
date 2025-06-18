@@ -1,16 +1,16 @@
-//! Recording and playback demo for carla-cxx
+//! Recording and playback demo for carla-sys
 //!
 //! This example demonstrates recording simulation data, analyzing recordings,
 //! and playing back recorded sessions in CARLA simulator.
 
-use carla_cxx::{
+use carla_sys::{
     recording::{actor_types, defaults},
     ClientWrapper,
 };
 use std::time::Duration;
 
 fn main() -> anyhow::Result<()> {
-    println!("🎬 Recording and Playback Demo for carla-cxx");
+    println!("🎬 Recording and Playback Demo for carla-sys");
     println!("=============================================");
 
     // Try to connect to CARLA server

@@ -105,8 +105,8 @@ impl SensorData for LaneInvasionData {
 }
 
 impl LaneInvasionData {
-    /// Create LaneInvasionData from carla-cxx LaneInvasionData
-    pub fn from_cxx(cxx_data: carla_cxx::sensor::LaneInvasionData) -> Self {
+    /// Create LaneInvasionData from carla-sys LaneInvasionData
+    pub fn from_cxx(cxx_data: carla_sys::sensor::LaneInvasionData) -> Self {
         let crossed_lane_markings = cxx_data
             .crossed_lane_markings
             .iter()

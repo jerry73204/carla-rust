@@ -4,7 +4,7 @@ use super::{
     TrafficManagerAction, TrafficManagerConfig, TrafficManagerStats, TrafficManagerVehicleConfig,
 };
 use crate::{actor::Vehicle, client::Client, error::CarlaResult};
-use carla_cxx::TrafficManagerWrapper;
+use carla_sys::TrafficManagerWrapper;
 
 /// Traffic manager for controlling autonomous vehicle behavior.
 #[derive(Debug)]
@@ -34,7 +34,7 @@ impl TrafficManager {
     /// Register vehicles with this traffic manager.
     pub fn register_vehicles(&self, vehicles: &[&Vehicle]) -> CarlaResult<()> {
         // Convert Rust Vehicle types to FFI Vehicle types internally
-        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> =
+        let ffi_vehicles: Vec<&carla_sys::ffi::Vehicle> =
             vehicles.iter().map(|v| v.as_ffi()).collect();
         self.inner.register_vehicles(&ffi_vehicles);
         Ok(())
@@ -48,7 +48,7 @@ impl TrafficManager {
     /// Unregister vehicles from this traffic manager.
     pub fn unregister_vehicles(&self, vehicles: &[&Vehicle]) -> CarlaResult<()> {
         // Convert Rust Vehicle types to FFI Vehicle types internally
-        let ffi_vehicles: Vec<&carla_cxx::ffi::Vehicle> =
+        let ffi_vehicles: Vec<&carla_sys::ffi::Vehicle> =
             vehicles.iter().map(|v| v.as_ffi()).collect();
         self.inner.unregister_vehicles(&ffi_vehicles);
         Ok(())

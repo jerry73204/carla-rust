@@ -1,5 +1,5 @@
-#include "carla_cxx_bridge.h"
-#include "carla-cxx/src/ffi.rs.h"
+#include "carla_sys_bridge.h"
+#include "carla-sys/src/ffi.rs.h"
 
 // Must include the actual CARLA headers
 #include <carla/Time.h>
