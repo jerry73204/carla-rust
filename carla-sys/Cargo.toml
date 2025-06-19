@@ -17,6 +17,8 @@ serde_json = "1.0"
 cxx-build = "1.0"
 anyhow = "1.0"
 cc = "1.0"
+carla-src = { path = "../carla-src" }
+cmake = "0.1"
 
 [features]
 default = []
