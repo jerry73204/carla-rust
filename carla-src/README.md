@@ -50,6 +50,17 @@ The CARLA source directory must contain:
 
 - `CARLA_ROOT`: Path to local CARLA source directory (required)
 
+## Recommended CARLA Source
+
+For best compatibility, use jerry73204's CARLA fork:
+
+```bash
+git clone -b 0.10.0-libcarla-client-install https://github.com/jerry73204/carla.git
+export CARLA_ROOT=/path/to/carla
+```
+
+This fork includes the necessary CMake configuration for building the LibCarla client library independently from the full CARLA simulator.
+
 ## Platform Support
 
 Currently only Linux is supported.

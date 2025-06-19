@@ -1,7 +1,7 @@
 # Carla Simulator Client Library in Rust
 
 Rust client library for Carla simulator. It is compatible with
-simulator version 0.9.14.
+simulator version 0.10.0.
 
 It is recommended to fix the clang version to 12 on newer systems such
 as Ubuntu 22.04. See the [Troubleshooting](#troubleshooting) section
@@ -9,21 +9,49 @@ to find instructions.
 
 ## Documentation
 
-To get started, it's recommended to read the API documentation and
-learn from the simple example [here](carla/examples/spawn.rs).
+To get started, it's recommended to read the API documentation.
 
 - [API documentation](https://docs.rs/carla)
 - [crates.io](https://crates.io/crates/carla)
-- [Examples](carla/examples)
 
 
 ## Usage
 
-Add `carla` crate to `Cargo.toml` and get everything. You may wait for
-longer time to generate Rust bindings in the first build.
+### Prerequisites
 
-If you prefer to manually build Carla C++ client library. Please read
- [this guide](doc/use_prebuilt_client_lib.md) to learn instructions.
+You need a CARLA source directory with the necessary build configuration. We recommend using jerry73204's fork which includes the required CMake setup for building only the LibCarla client library:
+
+```bash
+# Clone the CARLA repository with LibCarla client installation support
+git clone -b 0.10.0-libcarla-client-install https://github.com/jerry73204/carla.git
+cd carla
+
+# Set CARLA_ROOT to this directory
+export CARLA_ROOT=$(pwd)
+```
+
+Alternatively, if you already have the repository cloned:
+
+```bash
+export CARLA_ROOT=/path/to/carla-source
+```
+
+### Building
+
+Add `carla` crate to `Cargo.toml`:
+
+```toml
+[dependencies]
+carla = "0.13"
+```
+
+Then build your project:
+
+```bash
+cargo build
+```
+
+The first build may take longer as it generates Rust bindings and compiles the C++ library.
 
 
 ## Troubleshooting
