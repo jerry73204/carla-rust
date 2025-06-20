@@ -564,3 +564,43 @@ impl Iterator for LocationListIntoIterator {
             .map(|loc| Location::new(loc.x, loc.y, loc.z))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Unit tests for Map-related types that don't require a server connection
+
+    #[test]
+    fn test_geo_location_creation() {
+        // Test GeoLocation creation and field access
+        let geo = GeoLocation::new(52.5200, 13.4050, 34.0); // Berlin coordinates
+        assert_eq!(geo.latitude, 52.5200);
+        assert_eq!(geo.longitude, 13.4050);
+        assert_eq!(geo.altitude, 34.0);
+    }
+
+    #[test]
+    fn test_waypoint_list_operations() {
+        // Test WaypointList would require actual waypoint data
+        // This is a placeholder for when we have mock data available
+    }
+
+    #[test]
+    fn test_transform_list_operations() {
+        // Test TransformList would require actual transform data
+        // This is a placeholder for when we have mock data available
+    }
+
+    #[test]
+    fn test_location_list_operations() {
+        // Test LocationList would require actual location data
+        // This is a placeholder for when we have mock data available
+    }
+
+    #[test]
+    fn test_topology_operations() {
+        // Test Topology would require actual topology data
+        // This is a placeholder for when we have mock data available
+    }
+}

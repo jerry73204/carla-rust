@@ -3,12 +3,14 @@
 //! This module provides access to CARLA's road network information,
 //! including maps, waypoints, lanes, and junctions.
 
+mod element;
 mod junction;
 mod lane;
 mod map;
 mod road_types;
 mod waypoint;
 
+pub use element::*;
 pub use junction::*;
 pub use lane::*;
 pub use map::*;

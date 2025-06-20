@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenDRIVE>
+    <header revMajor="1" revMinor="5" name="Complex Junction Test" version="1.00" date="2024-01-01T00:00:00" north="100.0" south="-100.0" east="100.0" west="-100.0"/>
+    
+    <!-- Four roads meeting at a junction -->
+    
+    <!-- North Road -->
+    <road name="North Road" length="50.0" id="1" junction="-1">
+        <link>
+            <successor elementType="junction" elementId="100"/>
+        </link>
+        <planView>
+            <geometry s="0.0" x="0.0" y="50.0" hdg="-1.5708" length="50.0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lanes>
+            <laneSection s="0.0">
+                <left>
+                    <lane id="2" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                        <roadMark sOffset="0.0" type="broken" material="standard" color="white" laneChange="both"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                        <roadMark sOffset="0.0" type="broken" material="standard" color="white" laneChange="both"/>
+                    </lane>
+                    <lane id="-2" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+    
+    <!-- East Road -->
+    <road name="East Road" length="50.0" id="2" junction="-1">
+        <link>
+            <successor elementType="junction" elementId="100"/>
+        </link>
+        <planView>
+            <geometry s="0.0" x="50.0" y="0.0" hdg="3.14159" length="50.0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lanes>
+            <laneSection s="0.0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+    
+    <!-- South Road -->
+    <road name="South Road" length="50.0" id="3" junction="-1">
+        <link>
+            <successor elementType="junction" elementId="100"/>
+        </link>
+        <planView>
+            <geometry s="0.0" x="0.0" y="-50.0" hdg="1.5708" length="50.0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lanes>
+            <laneSection s="0.0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+    
+    <!-- West Road -->
+    <road name="West Road" length="50.0" id="4" junction="-1">
+        <link>
+            <successor elementType="junction" elementId="100"/>
+        </link>
+        <planView>
+            <geometry s="0.0" x="-50.0" y="0.0" hdg="0.0" length="50.0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lanes>
+            <laneSection s="0.0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+    
+    <!-- Central Junction -->
+    <junction name="Central Junction" id="100">
+        <!-- North to East -->
+        <connection id="0" incomingRoad="1" connectingRoad="10" contactPoint="start">
+            <laneLink from="-1" to="-1"/>
+        </connection>
+        <!-- North to South (straight) -->
+        <connection id="1" incomingRoad="1" connectingRoad="11" contactPoint="start">
+            <laneLink from="-1" to="-1"/>
+            <laneLink from="-2" to="-1"/>
+        </connection>
+        <!-- North to West -->
+        <connection id="2" incomingRoad="1" connectingRoad="12" contactPoint="start">
+            <laneLink from="-2" to="-1"/>
+        </connection>
+        
+        <!-- East to South -->
+        <connection id="3" incomingRoad="2" connectingRoad="20" contactPoint="start">
+            <laneLink from="-1" to="-1"/>
+        </connection>
+        <!-- East to West (straight) -->
+        <connection id="4" incomingRoad="2" connectingRoad="21" contactPoint="start">
+            <laneLink from="-1" to="-1"/>
+        </connection>
+        <!-- East to North -->
+        <connection id="5" incomingRoad="2" connectingRoad="22" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+        
+        <!-- South to West -->
+        <connection id="6" incomingRoad="3" connectingRoad="30" contactPoint="start">
+            <laneLink from="-1" to="-1"/>
+        </connection>
+        <!-- South to North (straight) -->
+        <connection id="7" incomingRoad="3" connectingRoad="31" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+        <!-- South to East -->
+        <connection id="8" incomingRoad="3" connectingRoad="32" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+        
+        <!-- West to North -->
+        <connection id="9" incomingRoad="4" connectingRoad="40" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+        <!-- West to East (straight) -->
+        <connection id="10" incomingRoad="4" connectingRoad="41" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+        <!-- West to South -->
+        <connection id="11" incomingRoad="4" connectingRoad="42" contactPoint="start">
+            <laneLink from="-1" to="1"/>
+        </connection>
+    </junction>
+    
+    <!-- Connection roads inside junction (simplified) -->
+    <road name="Junction Road 10" length="15.0" id="10" junction="100">
+        <planView>
+            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="15.0">
+                <arc curvature="0.0667"/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneSection s="0.0">
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+</OpenDRIVE>
