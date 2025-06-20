@@ -283,3 +283,99 @@ impl ToCxx<carla_sys::SimpleRotation> for Rotation {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    // Tests corresponding to C++ test_geom.cpp
+
+    #[test]
+    fn test_forward_vector() {
+        // Corresponds to C++ TEST(geom, forward_vector)
+
+        // Test case 1: Identity rotation (0,0,0) -> forward is (1,0,0)
+        let rotation = Rotation::new(0.0, 0.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, 1.0, epsilon = 0.001);
+        assert_relative_eq!(forward.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 0.001);
+
+        // Test case 2: 90 degree yaw -> forward is (0,1,0)
+        let rotation = Rotation::new(0.0, 90.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.y, 1.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 0.001);
+
+        // Test case 3: -90 degree yaw -> forward is (0,-1,0)
+        let rotation = Rotation::new(0.0, -90.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.y, -1.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 0.001);
+
+        // Test case 4: 90 degree pitch -> forward is (0,0,1)
+        let rotation = Rotation::new(90.0, 0.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 1.0, epsilon = 0.001);
+
+        // Test case 5: 180 degree yaw -> forward is (-1,0,0)
+        let rotation = Rotation::new(0.0, 180.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, -1.0, epsilon = 0.001);
+        assert_relative_eq!(forward.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 0.001);
+
+        // Test case 6: 45 degree pitch -> forward is (sqrt(2)/2, 0, sqrt(2)/2)
+        let rotation = Rotation::new(45.0, 0.0, 0.0);
+        let forward = rotation.forward_vector();
+        let sqrt2_2 = std::f32::consts::SQRT_2 / 2.0;
+        assert_relative_eq!(forward.x, sqrt2_2, epsilon = 0.001);
+        assert_relative_eq!(forward.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(forward.z, sqrt2_2, epsilon = 0.001);
+
+        // Test case 7: 45 degree yaw -> forward is (sqrt(2)/2, sqrt(2)/2, 0)
+        let rotation = Rotation::new(0.0, 45.0, 0.0);
+        let forward = rotation.forward_vector();
+        assert_relative_eq!(forward.x, sqrt2_2, epsilon = 0.001);
+        assert_relative_eq!(forward.y, sqrt2_2, epsilon = 0.001);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 0.001);
+
+        // Test case 8: Combined rotation (pitch=30, yaw=60)
+        let rotation = Rotation::new(30.0, 60.0, 0.0);
+        let forward = rotation.forward_vector();
+        // Expected values based on the formula:
+        // x = cos(pitch) * cos(yaw) = cos(30°) * cos(60°) = 0.866 * 0.5 = 0.433
+        // y = cos(pitch) * sin(yaw) = cos(30°) * sin(60°) = 0.866 * 0.866 = 0.75
+        // z = sin(pitch) = sin(30°) = 0.5
+        assert_relative_eq!(forward.x, 0.433, epsilon = 0.01);
+        assert_relative_eq!(forward.y, 0.75, epsilon = 0.01);
+        assert_relative_eq!(forward.z, 0.5, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_rotation_normalization() {
+        // Test that angles are properly normalized to [-180, 180] range
+        let mut rotation = Rotation::new(270.0, 370.0, -200.0);
+        rotation.normalize();
+
+        assert_relative_eq!(rotation.pitch, -90.0, epsilon = 0.001);
+        assert_relative_eq!(rotation.yaw, 10.0, epsilon = 0.001);
+        assert_relative_eq!(rotation.roll, 160.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_rotation_inverse() {
+        // Test rotation inverse
+        let rotation = Rotation::new(30.0, 45.0, 60.0);
+        let inverse = rotation.inverse();
+
+        assert_relative_eq!(inverse.pitch, -30.0, epsilon = 0.001);
+        assert_relative_eq!(inverse.yaw, -45.0, epsilon = 0.001);
+        assert_relative_eq!(inverse.roll, -60.0, epsilon = 0.001);
+    }
+}

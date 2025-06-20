@@ -338,3 +338,152 @@ impl ToCxx<carla_sys::SimpleBoundingBox> for BoundingBox {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geom::Rotation;
+    use approx::assert_relative_eq;
+
+    // Tests corresponding to C++ test_geom.cpp
+
+    #[test]
+    fn test_bbox_get_local_vertices_get_world_vertices_coherence() {
+        // Corresponds to C++ TEST(geom, bbox_get_local_vertices_get_world_vertices_coherence)
+
+        // Create a bounding box centered at origin with extent (1,2,3)
+        let bbox = BoundingBox::new(Location::new(0.0, 0.0, 0.0), Vector3D::new(1.0, 2.0, 3.0));
+
+        // Create a transform with rotation and translation
+        let transform = Transform::new(
+            Location::new(10.0, 20.0, 30.0),
+            Rotation::new(10.0, 25.0, 17.0),
+        );
+
+        // Get local vertices
+        let local_vertices = bbox.vertices();
+
+        // Transform each vertex manually
+        let mut manually_transformed_vertices = Vec::new();
+        for vertex in &local_vertices {
+            manually_transformed_vertices.push(transform.transform_location(vertex));
+        }
+
+        // Get world vertices using the transform method
+        let transformed_bbox = bbox.transform(&transform);
+        let world_vertices = transformed_bbox.vertices();
+
+        // The axis-aligned bounding box after transformation should contain all transformed vertices
+        for transformed_vertex in &manually_transformed_vertices {
+            // Check that each manually transformed vertex is within the world bounding box
+            let min = transformed_bbox.min();
+            let max = transformed_bbox.max();
+
+            assert!(transformed_vertex.x >= min.x - 0.001);
+            assert!(transformed_vertex.x <= max.x + 0.001);
+            assert!(transformed_vertex.y >= min.y - 0.001);
+            assert!(transformed_vertex.y <= max.y + 0.001);
+            assert!(transformed_vertex.z >= min.z - 0.001);
+            assert!(transformed_vertex.z <= max.z + 0.001);
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_creation() {
+        // Test creating bounding box from center and extent
+        let bbox = BoundingBox::new(Location::new(5.0, 10.0, 15.0), Vector3D::new(1.0, 2.0, 3.0));
+
+        assert_relative_eq!(bbox.location.x, 5.0, epsilon = 0.001);
+        assert_relative_eq!(bbox.location.y, 10.0, epsilon = 0.001);
+        assert_relative_eq!(bbox.location.z, 15.0, epsilon = 0.001);
+        assert_relative_eq!(bbox.extent.x, 1.0, epsilon = 0.001);
+        assert_relative_eq!(bbox.extent.y, 2.0, epsilon = 0.001);
+        assert_relative_eq!(bbox.extent.z, 3.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_bounding_box_min_max() {
+        // Test min/max corners
+        let bbox = BoundingBox::new(
+            Location::new(10.0, 20.0, 30.0),
+            Vector3D::new(5.0, 10.0, 15.0),
+        );
+
+        let min = bbox.min();
+        assert_relative_eq!(min.x, 5.0, epsilon = 0.001);
+        assert_relative_eq!(min.y, 10.0, epsilon = 0.001);
+        assert_relative_eq!(min.z, 15.0, epsilon = 0.001);
+
+        let max = bbox.max();
+        assert_relative_eq!(max.x, 15.0, epsilon = 0.001);
+        assert_relative_eq!(max.y, 30.0, epsilon = 0.001);
+        assert_relative_eq!(max.z, 45.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_bounding_box_vertices() {
+        // Test all 8 vertices
+        let bbox = BoundingBox::new(Location::new(0.0, 0.0, 0.0), Vector3D::new(1.0, 1.0, 1.0));
+
+        let vertices = bbox.vertices();
+        assert_eq!(vertices.len(), 8);
+
+        // Check that we have all 8 unique corners of a cube
+        let expected_vertices = vec![
+            Location::new(-1.0, -1.0, -1.0),
+            Location::new(1.0, -1.0, -1.0),
+            Location::new(-1.0, 1.0, -1.0),
+            Location::new(1.0, 1.0, -1.0),
+            Location::new(-1.0, -1.0, 1.0),
+            Location::new(1.0, -1.0, 1.0),
+            Location::new(-1.0, 1.0, 1.0),
+            Location::new(1.0, 1.0, 1.0),
+        ];
+
+        for expected in &expected_vertices {
+            let found = vertices.iter().any(|v| v.approx_eq(expected, 0.001));
+            assert!(found);
+        }
+    }
+
+    #[test]
+    fn test_bounding_box_contains() {
+        // Test point containment
+        let bbox = BoundingBox::new(
+            Location::new(0.0, 0.0, 0.0),
+            Vector3D::new(10.0, 10.0, 10.0),
+        );
+
+        // Points inside
+        assert!(bbox.contains(&Location::new(0.0, 0.0, 0.0)));
+        assert!(bbox.contains(&Location::new(5.0, 5.0, 5.0)));
+        assert!(bbox.contains(&Location::new(-5.0, -5.0, -5.0)));
+
+        // Points on boundary
+        assert!(bbox.contains(&Location::new(10.0, 0.0, 0.0)));
+        assert!(bbox.contains(&Location::new(0.0, 10.0, 0.0)));
+        assert!(bbox.contains(&Location::new(0.0, 0.0, 10.0)));
+
+        // Points outside
+        assert!(!bbox.contains(&Location::new(11.0, 0.0, 0.0)));
+        assert!(!bbox.contains(&Location::new(0.0, 11.0, 0.0)));
+        assert!(!bbox.contains(&Location::new(0.0, 0.0, 11.0)));
+    }
+
+    #[test]
+    fn test_bounding_box_transform() {
+        // Test transforming a bounding box
+        let bbox = BoundingBox::new(Location::new(0.0, 0.0, 0.0), Vector3D::new(1.0, 1.0, 1.0));
+
+        // Pure translation
+        let transform = Transform::from_location(Location::new(10.0, 20.0, 30.0));
+        let transformed = bbox.transform(&transform);
+
+        assert_relative_eq!(transformed.location.x, 10.0, epsilon = 0.001);
+        assert_relative_eq!(transformed.location.y, 20.0, epsilon = 0.001);
+        assert_relative_eq!(transformed.location.z, 30.0, epsilon = 0.001);
+        assert_relative_eq!(transformed.extent.x, 1.0, epsilon = 0.001);
+        assert_relative_eq!(transformed.extent.y, 1.0, epsilon = 0.001);
+        assert_relative_eq!(transformed.extent.z, 1.0, epsilon = 0.001);
+    }
+}

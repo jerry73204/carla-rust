@@ -536,3 +536,157 @@ impl ToCxx<carla_sys::SimpleVector3D> for Vector3D {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    // Tests corresponding to C++ test_geom.cpp and test_vector3D.cpp
+
+    #[test]
+    fn test_vector_operations() {
+        // Test vector operations from test_geom.cpp
+        let v1 = Vector3D::new(1.0, 2.0, 3.0);
+        let v2 = Vector3D::new(4.0, 5.0, 6.0);
+
+        // Test dot product
+        let dot = v1.dot(&v2);
+        assert_relative_eq!(dot, 32.0, epsilon = 0.001);
+
+        // Test cross product
+        let cross = v1.cross(&v2);
+        assert_relative_eq!(cross.x, -3.0, epsilon = 0.001);
+        assert_relative_eq!(cross.y, 6.0, epsilon = 0.001);
+        assert_relative_eq!(cross.z, -3.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_unit_vectors() {
+        // Test unit vector creation
+        let unit_x = Vector3D::unit_x();
+        assert_relative_eq!(unit_x.x, 1.0, epsilon = 0.001);
+        assert_relative_eq!(unit_x.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(unit_x.z, 0.0, epsilon = 0.001);
+
+        let unit_y = Vector3D::unit_y();
+        assert_relative_eq!(unit_y.x, 0.0, epsilon = 0.001);
+        assert_relative_eq!(unit_y.y, 1.0, epsilon = 0.001);
+        assert_relative_eq!(unit_y.z, 0.0, epsilon = 0.001);
+
+        let unit_z = Vector3D::unit_z();
+        assert_relative_eq!(unit_z.x, 0.0, epsilon = 0.001);
+        assert_relative_eq!(unit_z.y, 0.0, epsilon = 0.001);
+        assert_relative_eq!(unit_z.z, 1.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_normalization() {
+        // Test vector normalization
+        let mut v = Vector3D::new(3.0, 4.0, 0.0);
+        v.normalize();
+
+        assert_relative_eq!(v.length(), 1.0, epsilon = 0.001);
+        assert_relative_eq!(v.x, 0.6, epsilon = 0.001);
+        assert_relative_eq!(v.y, 0.8, epsilon = 0.001);
+        assert_relative_eq!(v.z, 0.0, epsilon = 0.001);
+
+        // Test normalized() method
+        let v2 = Vector3D::new(1.0, 1.0, 1.0);
+        let normalized = v2.normalized();
+        let expected_component = 1.0 / 3.0_f32.sqrt();
+
+        assert_relative_eq!(normalized.length(), 1.0, epsilon = 0.001);
+        assert_relative_eq!(normalized.x, expected_component, epsilon = 0.001);
+        assert_relative_eq!(normalized.y, expected_component, epsilon = 0.001);
+        assert_relative_eq!(normalized.z, expected_component, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_arithmetic() {
+        // Test vector arithmetic operations
+        let v1 = Vector3D::new(1.0, 2.0, 3.0);
+        let v2 = Vector3D::new(4.0, 5.0, 6.0);
+
+        // Addition
+        let sum = v1 + v2;
+        assert_relative_eq!(sum.x, 5.0, epsilon = 0.001);
+        assert_relative_eq!(sum.y, 7.0, epsilon = 0.001);
+        assert_relative_eq!(sum.z, 9.0, epsilon = 0.001);
+
+        // Subtraction
+        let diff = v2 - v1;
+        assert_relative_eq!(diff.x, 3.0, epsilon = 0.001);
+        assert_relative_eq!(diff.y, 3.0, epsilon = 0.001);
+        assert_relative_eq!(diff.z, 3.0, epsilon = 0.001);
+
+        // Scalar multiplication
+        let scaled = v1 * 2.0;
+        assert_relative_eq!(scaled.x, 2.0, epsilon = 0.001);
+        assert_relative_eq!(scaled.y, 4.0, epsilon = 0.001);
+        assert_relative_eq!(scaled.z, 6.0, epsilon = 0.001);
+
+        // Scalar division
+        let divided = v2 / 2.0;
+        assert_relative_eq!(divided.x, 2.0, epsilon = 0.001);
+        assert_relative_eq!(divided.y, 2.5, epsilon = 0.001);
+        assert_relative_eq!(divided.z, 3.0, epsilon = 0.001);
+
+        // Negation
+        let neg = -v1;
+        assert_relative_eq!(neg.x, -1.0, epsilon = 0.001);
+        assert_relative_eq!(neg.y, -2.0, epsilon = 0.001);
+        assert_relative_eq!(neg.z, -3.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_length() {
+        // Test vector length calculations
+        let v = Vector3D::new(3.0, 4.0, 0.0);
+        assert_relative_eq!(v.length(), 5.0, epsilon = 0.001);
+        assert_relative_eq!(v.length_squared(), 25.0, epsilon = 0.001);
+        assert_relative_eq!(v.length_2d(), 5.0, epsilon = 0.001);
+
+        let v2 = Vector3D::new(1.0, 0.0, 0.0);
+        assert_relative_eq!(v2.length(), 1.0, epsilon = 0.001);
+        assert_relative_eq!(v2.length_squared(), 1.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_distance() {
+        // Test distance calculations
+        let v1 = Vector3D::new(0.0, 0.0, 0.0);
+        let v2 = Vector3D::new(3.0, 4.0, 0.0);
+
+        assert_relative_eq!(v1.distance(&v2), 5.0, epsilon = 0.001);
+        assert_relative_eq!(v1.distance_squared(&v2), 25.0, epsilon = 0.001);
+        assert_relative_eq!(v1.distance_2d(&v2), 5.0, epsilon = 0.001);
+    }
+
+    #[test]
+    fn test_vector_2d_operations() {
+        // Test 2D vector operations
+        let v1 = Vector2D::new(3.0, 4.0);
+        let v2 = Vector2D::new(1.0, 0.0);
+
+        // Length
+        assert_relative_eq!(v1.length(), 5.0, epsilon = 0.001);
+        assert_relative_eq!(v2.length(), 1.0, epsilon = 0.001);
+
+        // Dot product
+        let dot = v1.dot(&v2);
+        assert_relative_eq!(dot, 3.0, epsilon = 0.001);
+
+        // Cross product (returns scalar in 2D)
+        let cross = v1.cross(&v2);
+        assert_relative_eq!(cross, -4.0, epsilon = 0.001);
+
+        // Angle
+        let angle = v2.angle();
+        assert_relative_eq!(angle, 0.0, epsilon = 0.001);
+
+        let v3 = Vector2D::new(0.0, 1.0);
+        let angle3 = v3.angle();
+        assert_relative_eq!(angle3, std::f32::consts::PI / 2.0, epsilon = 0.001);
+    }
+}

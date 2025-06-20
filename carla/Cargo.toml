@@ -32,10 +32,10 @@ bitflags = "2.4.2"
 # Async support (for sensor callbacks)
 tokio = { version = "1.35.1", features = ["sync", "rt"] }
 
+[dev-dependencies]
+approx = "0.5"
+
 [features]
 default = []
 # Enable async sensor processing
 async = ["tokio/rt-multi-thread"]
-
-[package.metadata.docs.rs]
-features = ["async"]
