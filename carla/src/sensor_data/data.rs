@@ -132,7 +132,137 @@ impl ImageData {
     }
 
     /// Save image to file (requires image crate feature).
-    pub fn save_to_disk(&self, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn save_to_disk(&self, _path: &str) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
+    }
+}
+
+/// Image format support detection
+pub mod image_io {
+    /// Check if PNG format is supported
+    pub fn has_png_support() -> bool {
+        // In Rust, we would use the 'image' crate which supports PNG by default
+        cfg!(feature = "png")
+    }
+
+    /// Check if JPEG format is supported
+    pub fn has_jpeg_support() -> bool {
+        // In Rust, we would use the 'image' crate which supports JPEG by default
+        cfg!(feature = "jpeg")
+    }
+
+    /// Check if TIFF format is supported
+    pub fn has_tiff_support() -> bool {
+        // In Rust, we would use the 'image' crate which supports TIFF optionally
+        cfg!(feature = "tiff")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        geom::{Location, Rotation, Transform},
+        time::Timestamp,
+    };
+
+    // Helper function to create test image data
+    fn create_test_image(width: u32, height: u32) -> ImageData {
+        let data_size = (width * height * 4) as usize; // BGRA = 4 bytes per pixel
+        ImageData {
+            timestamp: Timestamp::new(100, 10.0, 0.016, 1234567890.0),
+            transform: Transform::new(Location::new(0.0, 0.0, 0.0), Rotation::new(0.0, 0.0, 0.0)),
+            sensor_id: 1,
+            width,
+            height,
+            fov: 90.0,
+            data: vec![0u8; data_size],
+        }
+    }
+
+    #[test]
+    fn test_image_format_support() {
+        // Corresponds to C++ TEST(image, support)
+        println!("PNG support = {}", image_io::has_png_support());
+        println!("JPEG support = {}", image_io::has_jpeg_support());
+        println!("TIFF support = {}", image_io::has_tiff_support());
+
+        // These tests just verify the functions exist and return bool
+        let _ = image_io::has_png_support();
+        let _ = image_io::has_jpeg_support();
+        let _ = image_io::has_tiff_support();
+    }
+
+    #[test]
+    fn test_image_data_creation() {
+        let img = create_test_image(640, 480);
+
+        assert_eq!(img.width, 640);
+        assert_eq!(img.height, 480);
+        assert_eq!(img.fov, 90.0);
+        assert_eq!(img.sensor_id, 1);
+        assert_eq!(img.data.len(), 640 * 480 * 4);
+        assert_eq!(img.size(), 640 * 480 * 4);
+    }
+
+    #[test]
+    fn test_rgb_conversion() {
+        let mut img = create_test_image(2, 2);
+
+        // Set specific BGRA values
+        // Pixel (0,0): B=10, G=20, R=30, A=255
+        img.data[0] = 10; // B
+        img.data[1] = 20; // G
+        img.data[2] = 30; // R
+        img.data[3] = 255; // A
+
+        // Pixel (0,1): B=40, G=50, R=60, A=255
+        img.data[4] = 40; // B
+        img.data[5] = 50; // G
+        img.data[6] = 60; // R
+        img.data[7] = 255; // A
+
+        let rgb_array = img.to_rgb_array();
+
+        assert_eq!(rgb_array[[0, 0, 0]], 30); // R
+        assert_eq!(rgb_array[[0, 0, 1]], 20); // G
+        assert_eq!(rgb_array[[0, 0, 2]], 10); // B
+
+        assert_eq!(rgb_array[[0, 1, 0]], 60); // R
+        assert_eq!(rgb_array[[0, 1, 1]], 50); // G
+        assert_eq!(rgb_array[[0, 1, 2]], 40); // B
+    }
+
+    #[test]
+    fn test_grayscale_conversion() {
+        let mut img = create_test_image(2, 2);
+
+        // Set specific BGRA values
+        // Pixel (0,0): B=100, G=150, R=200, A=255
+        img.data[0] = 100; // B
+        img.data[1] = 150; // G
+        img.data[2] = 200; // R
+        img.data[3] = 255; // A
+
+        let gray_array = img.to_grayscale_array();
+
+        // Expected: 0.299 * 200 + 0.587 * 150 + 0.114 * 100 = 159.25 ≈ 159
+        assert!((gray_array[[0, 0]] as i32 - 159).abs() <= 1);
+    }
+
+    #[test]
+    fn test_sensor_data_trait() {
+        let img = create_test_image(100, 100);
+
+        // Test SensorData trait methods
+        assert_eq!(img.timestamp().frame(), 100);
+        assert_eq!(img.frame(), 100);
+        assert_eq!(img.sensor_id(), 1);
+        assert_eq!(img.size(), 100 * 100 * 4);
+
+        let transform = img.transform();
+        assert_eq!(transform.location.x, 0.0);
+        assert_eq!(transform.location.y, 0.0);
+        assert_eq!(transform.location.z, 0.0);
     }
 }

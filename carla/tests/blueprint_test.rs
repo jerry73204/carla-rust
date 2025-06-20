@@ -22,10 +22,10 @@ fn test_blueprint_library() -> CarlaResult<()> {
         println!("Tags: {:?}", vehicle_bp.tags());
     }
 
-    // TODO: Rewrite the code due to API change
     // Test finding sensor blueprints
-    // let sensor_bps = blueprint_library.get_sensors()?;
-    // println!("Found {} sensor blueprints", sensor_bps.len());
+    let sensor_bps = blueprint_library.filter("sensor.*")?;
+    println!("Found {} sensor blueprints", sensor_bps.len());
+    assert!(!sensor_bps.is_empty());
 
     Ok(())
 }

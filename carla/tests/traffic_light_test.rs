@@ -16,13 +16,8 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     let client = Client::new("localhost", 2000, None)?;
     let world = client.world()?;
 
-    // NOTE: world.actors() currently returns empty vector (TODO in implementation)
-    // For now, we'll skip this test until actor listing is implemented
-    println!("WARNING: world.actors() is not yet implemented, skipping traffic light test");
-    return Ok(());
-
-    /*
-    // This is what the test would look like when actor listing is implemented:
+    // Get all actors in the world
+    // This will fail with todo!() until actor list iteration is implemented
     let actors = world.actors()?;
 
     // Find traffic lights by checking actor type
@@ -67,24 +62,22 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     traffic_light.freeze(false)?;
     assert!(!traffic_light.is_frozen());
 
-    // Test new methods (these will return todo!() currently)
-    // When FFI functions are implemented, these tests can be uncommented
+    // Test new methods (these will fail with todo!() until FFI functions are implemented)
 
     // Test pole index
-    // let pole_index = traffic_light.pole_index();
-    // println!("Pole index: {}", pole_index);
+    let pole_index = traffic_light.pole_index();
+    println!("Pole index: {}", pole_index);
 
     // Test affected lane waypoints
-    // let waypoints = traffic_light.affected_lane_waypoints();
-    // println!("Affected lanes: {} waypoints", waypoints.len());
+    let waypoints = traffic_light.affected_lane_waypoints();
+    println!("Affected lanes: {} waypoints", waypoints.len());
 
     // Test group traffic lights
-    // let group_ids = traffic_light.group_traffic_lights();
-    // println!("Traffic light group contains {} lights", group_ids.len());
+    let group_ids = traffic_light.group_traffic_lights();
+    println!("Traffic light group contains {} lights", group_ids.len());
 
     // Restore initial state
     traffic_light.set_state(initial_state)?;
-    */
 
     Ok(())
 }
@@ -129,13 +122,10 @@ fn test_traffic_light_state_conversions() {
 #[test]
 #[cfg(feature = "test-carla-server")]
 fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
-    // NOTE: This test is currently disabled because world.actors() is not yet implemented
-    println!("WARNING: world.actors() is not yet implemented, skipping ActorT trait test");
-
-    /*
     let client = Client::new("localhost", 2000, None)?;
     let world = client.world()?;
 
+    // Get all actors - this will fail with todo!() until implemented
     let actors = world.actors()?;
     let traffic_lights: Vec<TrafficLight> = actors
         .into_iter()
@@ -160,7 +150,6 @@ fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
     let _bbox = traffic_light.bounding_box();
 
     println!("Traffic light ActorT trait methods work correctly");
-    */
 
     Ok(())
 }

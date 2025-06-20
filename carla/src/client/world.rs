@@ -88,11 +88,10 @@ impl World {
 
     /// Get all actors in the world.
     pub fn actors(&self) -> CarlaResult<Vec<Actor>> {
-        let actor_list = self.inner.get_actors();
-        // Convert SimpleActorList to Vec<Actor>
-        // This would require additional FFI functions to iterate through the list
-        // For now, return empty vector
-        Ok(Vec::new()) // TODO: Implement when actor list iteration is available
+        // TODO: Implement using carla-sys FFI interface
+        // This requires adding actor list iteration support in carla-sys
+        // Need to add FFI functions to iterate through SimpleActorList
+        todo!("World::actors not yet implemented - missing FFI support for actor list iteration")
     }
 
     /// Get actors filtered by type.
