@@ -28,7 +28,7 @@
 //! ```rust,no_run
 //! use carla::{
 //!     actor::vehicle::VehicleControl,
-//!     client::client::Client,
+//!     client::Client,
 //!     geom::{Location, Rotation, Transform},
 //!     traits::VehicleT,
 //! };
@@ -36,10 +36,10 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Connect to CARLA server
 //! let client = Client::new("localhost", 2000, None)?;
-//! let world = client.get_world()?;
+//! let world = client.world()?;
 //!
 //! // Spawn a vehicle
-//! let blueprint_lib = world.get_blueprint_library()?;
+//! let blueprint_lib = world.blueprint_library()?;
 //! let vehicle_bp = blueprint_lib
 //!     .find("vehicle.tesla.model3")?
 //!     .ok_or("Vehicle blueprint not found")?;

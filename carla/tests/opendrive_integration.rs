@@ -13,7 +13,7 @@ fn load_opendrive_file(filename: &str) -> String {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_opendrive_parsing() {
     // Corresponds to C++ TEST(road, parse_files)
 
@@ -32,7 +32,7 @@ fn test_opendrive_parsing() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_parse_road_links() {
     // Corresponds to C++ TEST(road, parse_road_links)
 
@@ -46,7 +46,7 @@ fn test_parse_road_links() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_parse_junctions() {
     // Corresponds to C++ TEST(road, parse_junctions)
 
@@ -62,7 +62,7 @@ fn test_parse_junctions() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_parse_road() {
     // Corresponds to C++ TEST(road, parse_road)
 
@@ -74,7 +74,7 @@ fn test_parse_road() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_parse_road_elevation() {
     // Corresponds to C++ TEST(road, parse_road_elevation)
 
@@ -84,7 +84,7 @@ fn test_parse_road_elevation() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_parse_geometry() {
     // Corresponds to C++ TEST(road, parse_geometry)
 
@@ -94,7 +94,7 @@ fn test_parse_geometry() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_iterate_waypoints() {
     // Corresponds to C++ TEST(road, iterate_waypoints)
 
@@ -106,7 +106,7 @@ fn test_iterate_waypoints() {
 }
 
 #[test]
-#[ignore] // Run with --ignored when CARLA server is available
+#[cfg(feature = "test-carla-server")]
 fn test_get_waypoint() {
     // Corresponds to C++ TEST(road, get_waypoint)
 

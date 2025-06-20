@@ -3,7 +3,7 @@
 use carla::{client::Client, error::CarlaResult, traits::ActorT};
 
 #[test]
-#[ignore] // Requires CARLA server running
+#[cfg(feature = "test-carla-server")]
 fn test_blueprint_library() -> CarlaResult<()> {
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
@@ -31,7 +31,7 @@ fn test_blueprint_library() -> CarlaResult<()> {
 }
 
 #[test]
-#[ignore] // Requires CARLA server running
+#[cfg(feature = "test-carla-server")]
 fn test_blueprint_attributes() -> CarlaResult<()> {
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
@@ -59,7 +59,7 @@ fn test_blueprint_attributes() -> CarlaResult<()> {
 }
 
 #[test]
-#[ignore] // Requires CARLA server running
+#[cfg(feature = "test-carla-server")]
 fn test_blueprint_spawning() -> CarlaResult<()> {
     use carla::geom::{Location, Rotation, Transform};
 

@@ -39,3 +39,5 @@ approx = "0.5"
 default = []
 # Enable async sensor processing
 async = ["tokio/rt-multi-thread"]
+# Enable tests that require CARLA server running
+test-carla-server = []

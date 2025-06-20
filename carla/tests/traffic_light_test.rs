@@ -8,9 +8,9 @@ use carla::{
 use std::time::Duration;
 
 /// Test that requires a running CARLA server
-/// Run with: cargo test --test traffic_light_test -- --ignored
+/// Run with: cargo test --features test-carla-server
 #[test]
-#[ignore = "requires CARLA server"]
+#[cfg(feature = "test-carla-server")]
 fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     // Connect to CARLA server
     let client = Client::new("localhost", 2000, None)?;
@@ -127,7 +127,7 @@ fn test_traffic_light_state_conversions() {
 
 /// Test that traffic light implements ActorT trait correctly
 #[test]
-#[ignore = "requires CARLA server"]
+#[cfg(feature = "test-carla-server")]
 fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
     // NOTE: This test is currently disabled because world.actors() is not yet implemented
     println!("WARNING: world.actors() is not yet implemented, skipping ActorT trait test");
