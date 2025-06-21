@@ -1,27 +1,30 @@
 //! World management and simulation control.
 
 use crate::{
-    actor::{Actor, ActorId},
+    actor::{Actor, ActorId, ActorList},
     client::{ActorBlueprint, BlueprintLibrary},
     error::CarlaResult,
     geom::Transform,
     road::Map,
     time::Timestamp,
+    traits::ActorT,
 };
 use carla_sys::WorldWrapper;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 /// Represents the simulation world.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct World {
     /// Internal handle to carla-sys World
-    inner: WorldWrapper,
+    inner: Arc<WorldWrapper>,
 }
 
 impl World {
     /// Create a new World from a WorldWrapper
     pub(crate) fn from_cxx(inner: WorldWrapper) -> Self {
-        Self { inner }
+        Self {
+            inner: Arc::new(inner),
+        }
     }
 
     /// Get the world ID.
@@ -70,11 +73,25 @@ impl World {
     pub fn snapshot(&self) -> CarlaResult<WorldSnapshot> {
         let cxx_timestamp = self.inner.get_snapshot();
         let timestamp = crate::time::Timestamp::from(cxx_timestamp);
-        // For now, return a basic snapshot with just the timestamp
-        // Full actor snapshots would require additional FFI calls
+
+        // Get actor snapshots
+        let actor_list = self.actors()?;
+        let mut actor_snapshots = Vec::new();
+
+        for actor in &actor_list {
+            let snapshot = ActorSnapshot {
+                id: actor.id(),
+                transform: actor.transform(),
+                velocity: actor.velocity(),
+                angular_velocity: actor.angular_velocity(),
+                acceleration: actor.acceleration(),
+            };
+            actor_snapshots.push(snapshot);
+        }
+
         Ok(WorldSnapshot {
             timestamp,
-            actors: Vec::new(), // TODO: Implement when actor listing is available
+            actors: actor_snapshots,
         })
     }
 
@@ -87,18 +104,15 @@ impl World {
     }
 
     /// Get all actors in the world.
-    pub fn actors(&self) -> CarlaResult<Vec<Actor>> {
-        // TODO: Implement using carla-sys FFI interface
-        // This requires adding actor list iteration support in carla-sys
-        // Need to add FFI functions to iterate through SimpleActorList
-        todo!("World::actors not yet implemented - missing FFI support for actor list iteration")
+    pub fn actors(&self) -> CarlaResult<ActorList> {
+        let simple_actor_list = self.inner.get_actors();
+        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
     }
 
     /// Get actors filtered by type.
     pub fn actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
-        // TODO: Implement using carla-sys FFI interface - needs actor list iteration support
-        let _actor_type = actor_type;
-        todo!("World::get_actors_by_type not yet implemented with carla-sys FFI")
+        let actor_list = self.actors()?;
+        Ok(actor_list.find_by_type(actor_type))
     }
 
     /// Spawn an actor.
@@ -145,27 +159,19 @@ impl World {
     /// Tick the world (advance simulation by one step).
     pub fn tick(&self) -> CarlaResult<WorldSnapshot> {
         let timeout = Duration::from_secs(10); // Default timeout
-        let frame_id = self.inner.tick(timeout);
-        let cxx_timestamp = self.inner.get_snapshot();
-        let timestamp = crate::time::Timestamp::from(cxx_timestamp);
+        let _frame_id = self.inner.tick(timeout);
 
-        Ok(WorldSnapshot {
-            timestamp,
-            actors: Vec::new(), // TODO: Implement when actor listing is available
-        })
+        // Return current snapshot after tick
+        self.snapshot()
     }
 
     /// Wait for a tick with timeout.
     pub fn wait_for_tick(&self, timeout: Option<Duration>) -> CarlaResult<WorldSnapshot> {
         let timeout = timeout.unwrap_or_else(|| Duration::from_secs(10));
-        let frame_id = self.inner.tick(timeout);
-        let cxx_timestamp = self.inner.get_snapshot();
-        let timestamp = crate::time::Timestamp::from(cxx_timestamp);
+        let _frame_id = self.inner.tick(timeout);
 
-        Ok(WorldSnapshot {
-            timestamp,
-            actors: Vec::new(), // TODO: Implement when actor listing is available
-        })
+        // Return current snapshot after tick
+        self.snapshot()
     }
 
     /// Enable/disable synchronous mode.
@@ -189,6 +195,40 @@ impl World {
         let timeout = Duration::from_secs(10);
         self.inner.apply_settings_raw(&simple_settings, timeout);
         Ok(())
+    }
+
+    /// Get all traffic lights in the world.
+    pub fn traffic_lights(&self) -> CarlaResult<Vec<crate::actor::TrafficLight>> {
+        let actors = self.actors()?;
+        Ok(actors
+            .find_by_type("traffic.traffic_light")
+            .into_iter()
+            .filter_map(|actor| match actor.to_traffic_light() {
+                Ok(traffic_light) => Some(traffic_light),
+                Err(_) => None,
+            })
+            .collect())
+    }
+
+    /// Get traffic lights that affect a specific waypoint.
+    ///
+    /// Returns all traffic lights within the specified distance that affect
+    /// the given waypoint.
+    pub fn traffic_lights_from_waypoint(
+        &self,
+        waypoint: &crate::road::Waypoint,
+        distance: f64,
+    ) -> CarlaResult<ActorList> {
+        let simple_actor_list = self
+            .inner
+            .get_traffic_lights_from_waypoint(waypoint.inner().get_waypoint(), distance);
+        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
+    }
+
+    /// Get all traffic lights in a junction.
+    pub fn traffic_lights_in_junction(&self, junction_id: i32) -> CarlaResult<ActorList> {
+        let simple_actor_list = self.inner.get_traffic_lights_in_junction(junction_id);
+        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
     }
 
     /// Get reference to the internal WorldWrapper for advanced operations
@@ -250,6 +290,8 @@ pub struct WeatherParameters {
     pub mie_scattering_scale: f32,
     /// Rayleigh scattering scale [0.0, 100.0]
     pub rayleigh_scattering_scale: f32,
+    /// Dust storm intensity [0.0, 100.0]
+    pub dust_storm: f32,
 }
 
 impl Default for WeatherParameters {
@@ -268,6 +310,7 @@ impl Default for WeatherParameters {
             scattering_intensity: 1.0,
             mie_scattering_scale: 0.03,
             rayleigh_scattering_scale: 0.0331,
+            dust_storm: 0.0,
         }
     }
 }
@@ -288,6 +331,7 @@ impl From<carla_sys::ffi::bridge::SimpleWeatherParameters> for WeatherParameters
             scattering_intensity: simple.scattering_intensity,
             mie_scattering_scale: simple.mie_scattering_scale,
             rayleigh_scattering_scale: simple.rayleigh_scattering_scale,
+            dust_storm: simple.dust_storm,
         }
     }
 }
@@ -308,7 +352,7 @@ impl From<&WeatherParameters> for carla_sys::ffi::bridge::SimpleWeatherParameter
             scattering_intensity: weather.scattering_intensity,
             mie_scattering_scale: weather.mie_scattering_scale,
             rayleigh_scattering_scale: weather.rayleigh_scattering_scale,
-            dust_storm: 0.0, // TODO: Add dust_storm field to WeatherParameters struct
+            dust_storm: weather.dust_storm,
         }
     }
 }
@@ -334,6 +378,10 @@ pub struct WorldSettings {
     pub tile_stream_distance: f32,
     /// Actor active distance
     pub actor_active_distance: f32,
+    /// No rendering mode enabled
+    pub no_rendering_mode: bool,
+    /// Spectator as ego vehicle
+    pub spectator_as_ego: bool,
 }
 
 impl Default for WorldSettings {
@@ -348,6 +396,8 @@ impl Default for WorldSettings {
             deterministic_ragdolls: true,
             tile_stream_distance: 3000.0,
             actor_active_distance: 2000.0,
+            no_rendering_mode: false,
+            spectator_as_ego: false,
         }
     }
 }
@@ -368,6 +418,8 @@ impl From<carla_sys::ffi::bridge::SimpleEpisodeSettings> for WorldSettings {
             deterministic_ragdolls: simple.deterministic_ragdolls,
             tile_stream_distance: simple.tile_stream_distance,
             actor_active_distance: simple.actor_active_distance,
+            no_rendering_mode: simple.no_rendering_mode,
+            spectator_as_ego: simple.spectator_as_ego,
         }
     }
 }
@@ -384,8 +436,126 @@ impl From<&WorldSettings> for carla_sys::ffi::bridge::SimpleEpisodeSettings {
             deterministic_ragdolls: settings.deterministic_ragdolls,
             tile_stream_distance: settings.tile_stream_distance,
             actor_active_distance: settings.actor_active_distance,
-            no_rendering_mode: false, // TODO: Add no_rendering_mode field to WorldSettings struct
-            spectator_as_ego: false,  // TODO: Add spectator_as_ego field to WorldSettings struct
+            no_rendering_mode: settings.no_rendering_mode,
+            spectator_as_ego: settings.spectator_as_ego,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        geom::{Location, Rotation},
+        time::Timestamp,
+    };
+
+    #[test]
+    fn test_weather_parameters_default() {
+        let weather = WeatherParameters::default();
+        assert_eq!(weather.cloudiness, 0.0);
+        assert_eq!(weather.precipitation, 0.0);
+        assert_eq!(weather.sun_altitude_angle, 45.0);
+        assert_eq!(weather.fog_falloff, 0.2);
+        assert_eq!(weather.scattering_intensity, 1.0);
+        assert_eq!(weather.dust_storm, 0.0);
+    }
+
+    #[test]
+    fn test_weather_parameters_conversion() {
+        let weather = WeatherParameters {
+            cloudiness: 50.0,
+            precipitation: 30.0,
+            dust_storm: 10.0,
+            ..Default::default()
+        };
+
+        let simple_weather: carla_sys::ffi::bridge::SimpleWeatherParameters = (&weather).into();
+        assert_eq!(simple_weather.cloudiness, 50.0);
+        assert_eq!(simple_weather.precipitation, 30.0);
+        assert_eq!(simple_weather.dust_storm, 10.0);
+
+        let weather_back = WeatherParameters::from(simple_weather);
+        assert_eq!(weather_back, weather);
+    }
+
+    #[test]
+    fn test_world_settings_default() {
+        let settings = WorldSettings::default();
+        assert!(!settings.synchronous_mode);
+        assert_eq!(settings.fixed_delta_seconds, None);
+        assert!(settings.substepping);
+        assert_eq!(settings.max_substep_delta_time, 0.01);
+        assert!(!settings.no_rendering_mode);
+        assert!(!settings.spectator_as_ego);
+    }
+
+    #[test]
+    fn test_world_settings_conversion() {
+        let settings = WorldSettings {
+            synchronous_mode: true,
+            fixed_delta_seconds: Some(0.05),
+            no_rendering_mode: true,
+            spectator_as_ego: true,
+            ..Default::default()
+        };
+
+        let simple_settings: carla_sys::ffi::bridge::SimpleEpisodeSettings = (&settings).into();
+        assert!(simple_settings.synchronous_mode);
+        assert_eq!(simple_settings.fixed_delta_seconds, 0.05);
+        assert!(simple_settings.no_rendering_mode);
+        assert!(simple_settings.spectator_as_ego);
+
+        let settings_back = WorldSettings::from(simple_settings);
+        assert_eq!(settings_back, settings);
+    }
+
+    #[test]
+    fn test_actor_snapshot_creation() {
+        let snapshot = ActorSnapshot {
+            id: 42,
+            transform: Transform::new(
+                Location::new(1.0, 2.0, 3.0),
+                Rotation::new(10.0, 20.0, 30.0),
+            ),
+            velocity: crate::geom::Vector3D::new(5.0, 0.0, 0.0),
+            angular_velocity: crate::geom::Vector3D::new(0.0, 0.0, 1.0),
+            acceleration: crate::geom::Vector3D::new(0.0, 0.0, -9.8),
+        };
+
+        assert_eq!(snapshot.id, 42);
+        assert_eq!(snapshot.transform.location.x, 1.0);
+        assert_eq!(snapshot.velocity.x, 5.0);
+        assert_eq!(snapshot.angular_velocity.z, 1.0);
+        assert_eq!(snapshot.acceleration.z, -9.8);
+    }
+
+    #[test]
+    fn test_world_snapshot_creation() {
+        let timestamp = Timestamp::new(100, 5.0, 0.016, 1234567890.0);
+        let snapshot = WorldSnapshot {
+            timestamp,
+            actors: vec![
+                ActorSnapshot {
+                    id: 1,
+                    transform: Transform::default(),
+                    velocity: crate::geom::Vector3D::default(),
+                    angular_velocity: crate::geom::Vector3D::default(),
+                    acceleration: crate::geom::Vector3D::default(),
+                },
+                ActorSnapshot {
+                    id: 2,
+                    transform: Transform::default(),
+                    velocity: crate::geom::Vector3D::default(),
+                    angular_velocity: crate::geom::Vector3D::default(),
+                    acceleration: crate::geom::Vector3D::default(),
+                },
+            ],
+        };
+
+        assert_eq!(snapshot.timestamp.frame(), 100);
+        assert_eq!(snapshot.actors.len(), 2);
+        assert_eq!(snapshot.actors[0].id, 1);
+        assert_eq!(snapshot.actors[1].id, 2);
     }
 }

@@ -158,4 +158,9 @@ impl Waypoint {
             .get_junction()
             .map(|j| Junction::from_cxx_wrapper(j)))
     }
+
+    /// Get reference to internal wrapper for FFI operations
+    pub(crate) fn inner(&self) -> &carla_sys::map::WaypointWrapper {
+        &self.wrapper
+    }
 }

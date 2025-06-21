@@ -41,3 +41,7 @@ default = []
 async = ["tokio/rt-multi-thread"]
 # Enable tests that require CARLA server running
 test-carla-server = []
+
+[[example]]
+name = "actor_list_usage"
+required-features = []

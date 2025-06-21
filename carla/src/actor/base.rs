@@ -1,6 +1,6 @@
 //! Base actor functionality.
 
-use super::{ActorId, Sensor, Vehicle, Walker};
+use super::{ActorId, Sensor, TrafficLight, Vehicle, Walker};
 use crate::{
     error::CarlaResult,
     geom::{BoundingBox, FromCxx, ToCxx, Transform, Vector3D},
@@ -63,6 +63,22 @@ impl Actor {
         if let Some(sensor_wrapper) = carla_sys::SensorWrapper::from_actor(self.inner.get_actor()) {
             match Sensor::from_cxx(sensor_wrapper) {
                 Ok(sensor) => Ok(sensor),
+                Err(_) => Err(self),
+            }
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Try to convert this actor to a traffic light, consuming self.
+    /// Returns the TrafficLight if successful, or the original Actor if not.
+    pub fn to_traffic_light(self) -> Result<TrafficLight, Actor> {
+        let actor_id = self.id();
+        if let Some(traffic_light_wrapper) =
+            carla_sys::TrafficLightWrapper::from_actor(self.inner.get_actor())
+        {
+            match TrafficLight::from_cxx(traffic_light_wrapper, actor_id) {
+                Ok(traffic_light) => Ok(traffic_light),
                 Err(_) => Err(self),
             }
         } else {
