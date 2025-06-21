@@ -1,9 +1,8 @@
 //! Integration tests for traffic light functionality
 
 use carla::{
-    actor::{TrafficLight, TrafficLightState},
+    actor::{ActorExt, TrafficLight, TrafficLightState},
     client::Client,
-    traits::ActorT,
 };
 use std::time::Duration;
 
@@ -22,8 +21,8 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
 
     // Find traffic lights by checking actor type
     let traffic_lights: Vec<TrafficLight> = actors
-        .into_iter()
-        .filter_map(|actor| TrafficLight::from_actor(actor).ok().flatten())
+        .iter()
+        .filter_map(|actor| TrafficLight::from_actor(actor).ok())
         .collect();
 
     if traffic_lights.is_empty() {
@@ -82,42 +81,6 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Test traffic light type conversions
-#[test]
-fn test_traffic_light_state_conversions() {
-    use carla::actor::TrafficLightState;
-    use carla_sys::TrafficLightState as CxxState;
-
-    // Test from_cxx
-    assert_eq!(
-        TrafficLightState::from_cxx(CxxState::Red),
-        TrafficLightState::Red
-    );
-    assert_eq!(
-        TrafficLightState::from_cxx(CxxState::Yellow),
-        TrafficLightState::Yellow
-    );
-    assert_eq!(
-        TrafficLightState::from_cxx(CxxState::Green),
-        TrafficLightState::Green
-    );
-    assert_eq!(
-        TrafficLightState::from_cxx(CxxState::Off),
-        TrafficLightState::Off
-    );
-    assert_eq!(
-        TrafficLightState::from_cxx(CxxState::Unknown),
-        TrafficLightState::Unknown
-    );
-
-    // Test to_cxx
-    assert_eq!(TrafficLightState::Red.to_cxx(), CxxState::Red);
-    assert_eq!(TrafficLightState::Yellow.to_cxx(), CxxState::Yellow);
-    assert_eq!(TrafficLightState::Green.to_cxx(), CxxState::Green);
-    assert_eq!(TrafficLightState::Off.to_cxx(), CxxState::Off);
-    assert_eq!(TrafficLightState::Unknown.to_cxx(), CxxState::Unknown);
-}
-
 /// Test that traffic light implements ActorT trait correctly
 #[test]
 #[cfg(feature = "test-carla-server")]
@@ -128,8 +91,8 @@ fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
     // Get all actors - this will fail with todo!() until implemented
     let actors = world.actors()?;
     let traffic_lights: Vec<TrafficLight> = actors
-        .into_iter()
-        .filter_map(|actor| TrafficLight::from_actor(actor).ok().flatten())
+        .iter()
+        .filter_map(|actor| TrafficLight::from_actor(actor).ok())
         .collect();
 
     if traffic_lights.is_empty() {

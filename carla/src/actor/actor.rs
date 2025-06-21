@@ -2,9 +2,8 @@
 
 use super::{ActorId, Sensor, TrafficLight, Vehicle, Walker};
 use crate::{
-    error::CarlaResult,
-    geom::{BoundingBox, FromCxx, ToCxx, Transform, Vector3D},
-    traits::ActorT,
+    actor::ActorFfi,
+    geom::{Transform, Vector3D},
 };
 
 /// Generic actor in the simulation.
@@ -20,19 +19,14 @@ impl Actor {
         Self { inner }
     }
 
-    /// Get reference to the inner ActorWrapper for FFI operations
-    pub(crate) fn actor_wrapper(&self) -> &carla_sys::ActorWrapper {
-        &self.inner
-    }
-
     /// Get reference to the inner Actor for FFI operations
-    pub(crate) fn get_inner_actor(&self) -> &carla_sys::Actor {
+    pub(crate) fn inner_actor(&self) -> &carla_sys::Actor {
         self.inner.get_actor()
     }
 
     /// Try to convert this actor to a vehicle, consuming self.
     /// Returns the Vehicle if successful, or the original Actor if not.
-    pub fn to_vehicle(self) -> Result<Vehicle, Actor> {
+    pub fn into_vehicle(self) -> Result<Vehicle, Actor> {
         if let Some(vehicle_wrapper) = carla_sys::VehicleWrapper::from_actor(self.inner.get_actor())
         {
             match Vehicle::from_cxx(vehicle_wrapper) {
@@ -46,7 +40,7 @@ impl Actor {
 
     /// Try to convert this actor to a walker, consuming self.
     /// Returns the Walker if successful, or the original Actor if not.
-    pub fn to_walker(self) -> Result<Walker, Actor> {
+    pub fn into_walker(self) -> Result<Walker, Actor> {
         if let Some(walker_wrapper) = carla_sys::WalkerWrapper::from_actor(self.inner.get_actor()) {
             match Walker::from_cxx(walker_wrapper) {
                 Ok(walker) => Ok(walker),
@@ -59,7 +53,7 @@ impl Actor {
 
     /// Try to convert this actor to a sensor, consuming self.
     /// Returns the Sensor if successful, or the original Actor if not.
-    pub fn to_sensor(self) -> Result<Sensor, Actor> {
+    pub fn into_sensor(self) -> Result<Sensor, Actor> {
         if let Some(sensor_wrapper) = carla_sys::SensorWrapper::from_actor(self.inner.get_actor()) {
             match Sensor::from_cxx(sensor_wrapper) {
                 Ok(sensor) => Ok(sensor),
@@ -72,12 +66,11 @@ impl Actor {
 
     /// Try to convert this actor to a traffic light, consuming self.
     /// Returns the TrafficLight if successful, or the original Actor if not.
-    pub fn to_traffic_light(self) -> Result<TrafficLight, Actor> {
-        let actor_id = self.id();
+    pub fn into_traffic_light(self) -> Result<TrafficLight, Actor> {
         if let Some(traffic_light_wrapper) =
             carla_sys::TrafficLightWrapper::from_actor(self.inner.get_actor())
         {
-            match TrafficLight::from_cxx(traffic_light_wrapper, actor_id) {
+            match TrafficLight::from_cxx(traffic_light_wrapper) {
                 Ok(traffic_light) => Ok(traffic_light),
                 Err(_) => Err(self),
             }
@@ -86,6 +79,7 @@ impl Actor {
         }
     }
 
+    // TODO: Return a AttributeList type wrapping a C++ std::vector<ActorAttributeValue>.
     /// Get actor attributes.
     pub fn attributes(&self) -> Vec<String> {
         carla_sys::ffi::Actor_GetAttributes(self.inner.get_actor())
@@ -123,72 +117,9 @@ impl Actor {
     }
 }
 
-impl ActorT for Actor {
-    fn id(&self) -> ActorId {
-        self.inner.get_id()
-    }
-
-    fn type_id(&self) -> String {
-        self.inner.get_type_id()
-    }
-
-    fn is_alive(&self) -> bool {
-        self.inner.is_alive()
-    }
-
-    fn transform(&self) -> Transform {
-        let simple_transform = self.inner.get_transform();
-        Transform::from_cxx(simple_transform)
-    }
-
-    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        let simple_transform = transform.to_cxx();
-        self.inner.set_transform(&simple_transform);
-        Ok(())
-    }
-
-    fn velocity(&self) -> Vector3D {
-        let simple_velocity = carla_sys::ffi::Actor_GetVelocity(self.inner.get_actor());
-        Vector3D::from_cxx(simple_velocity)
-    }
-
-    fn angular_velocity(&self) -> Vector3D {
-        let simple_angular_velocity =
-            carla_sys::ffi::Actor_GetAngularVelocity(self.inner.get_actor());
-        Vector3D::from_cxx(simple_angular_velocity)
-    }
-
-    fn acceleration(&self) -> Vector3D {
-        let simple_acceleration = carla_sys::ffi::Actor_GetAcceleration(self.inner.get_actor());
-        Vector3D::from_cxx(simple_acceleration)
-    }
-
-    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        carla_sys::ffi::Actor_SetSimulatePhysics(self.inner.get_actor(), enabled);
-        Ok(())
-    }
-
-    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let simple_impulse = impulse.to_cxx();
-        carla_sys::ffi::Actor_AddImpulse(self.inner.get_actor(), &simple_impulse);
-        Ok(())
-    }
-
-    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let simple_force = force.to_cxx();
-        carla_sys::ffi::Actor_AddForce(self.inner.get_actor(), &simple_force);
-        Ok(())
-    }
-
-    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let simple_torque = torque.to_cxx();
-        carla_sys::ffi::Actor_AddTorque(self.inner.get_actor(), &simple_torque);
-        Ok(())
-    }
-
-    fn bounding_box(&self) -> BoundingBox {
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(self.inner.get_actor());
-        BoundingBox::from_cxx(simple_bbox)
+impl ActorFfi for Actor {
+    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
+        &self.inner
     }
 }
 

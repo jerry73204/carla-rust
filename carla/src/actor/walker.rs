@@ -1,10 +1,9 @@
 //! Walker (pedestrian) actor implementation.
 
 use crate::{
-    actor::{Actor, ActorId},
+    actor::{Actor, ActorFfi},
     error::CarlaResult,
-    geom::{FromCxx, ToCxx, Transform, Vector3D},
-    traits::{ActorT, WalkerT},
+    geom::{Transform, Vector3D},
 };
 use carla_sys::WalkerWrapper;
 
@@ -17,21 +16,21 @@ pub struct Walker {
 
 impl Walker {
     /// Create a walker from a carla-sys WalkerWrapper and actor ID.
-    pub fn from_cxx(walker_wrapper: WalkerWrapper) -> CarlaResult<Self> {
+    pub(crate) fn from_cxx(walker_wrapper: WalkerWrapper) -> CarlaResult<Self> {
         Ok(Self {
             inner: walker_wrapper,
         })
     }
 
     /// Create a walker from an actor by casting.
-    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
-        let actor_ref = actor.get_inner_actor();
+    pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
+        let actor_ref = actor.inner_actor();
         if let Some(walker_wrapper) = WalkerWrapper::from_actor(actor_ref) {
-            Ok(Some(Self {
+            Ok(Self {
                 inner: walker_wrapper,
-            }))
+            })
         } else {
-            Ok(None)
+            Err(actor)
         }
     }
 
@@ -100,82 +99,9 @@ impl Walker {
     }
 }
 
-impl ActorT for Walker {
-    fn id(&self) -> ActorId {
-        // Walker doesn't have a direct GetId method, need to cast to Actor
-        let actor_ptr = carla_sys::ffi::Walker_CastToActor(self.inner.get_inner_walker());
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast Walker to Actor");
-        }
-        carla_sys::ffi::Actor_GetId(&actor_ptr)
-    }
-    fn type_id(&self) -> String {
-        carla_sys::ffi::Walker_GetTypeId(self.inner.get_inner_walker())
-    }
-    fn transform(&self) -> Transform {
-        let cxx_transform = carla_sys::ffi::Walker_GetTransform(self.inner.get_inner_walker());
-        Transform::from(cxx_transform)
-    }
-    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        let cxx_transform = transform.to_cxx();
-        carla_sys::ffi::Walker_SetTransform(self.inner.get_inner_walker(), &cxx_transform);
-        Ok(())
-    }
-    fn velocity(&self) -> Vector3D {
-        let vel = carla_sys::ffi::Walker_GetVelocity(self.inner.get_inner_walker());
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn angular_velocity(&self) -> Vector3D {
-        let vel = carla_sys::ffi::Walker_GetAngularVelocity(self.inner.get_inner_walker());
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn acceleration(&self) -> Vector3D {
-        let acc = carla_sys::ffi::Walker_GetAcceleration(self.inner.get_inner_walker());
-        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
-    }
-    fn is_alive(&self) -> bool {
-        carla_sys::ffi::Walker_IsAlive(self.inner.get_inner_walker())
-    }
-    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        carla_sys::ffi::Walker_SetSimulatePhysics(self.inner.get_inner_walker(), enabled);
-        Ok(())
-    }
-    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_sys::SimpleVector3D {
-            x: impulse.x as f64,
-            y: impulse.y as f64,
-            z: impulse.z as f64,
-        };
-        carla_sys::ffi::Walker_AddImpulse(self.inner.get_inner_walker(), &cxx_impulse);
-        Ok(())
-    }
-    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_sys::SimpleVector3D {
-            x: force.x as f64,
-            y: force.y as f64,
-            z: force.z as f64,
-        };
-        carla_sys::ffi::Walker_AddForce(self.inner.get_inner_walker(), &cxx_force);
-        Ok(())
-    }
-    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_sys::SimpleVector3D {
-            x: torque.x as f64,
-            y: torque.y as f64,
-            z: torque.z as f64,
-        };
-        carla_sys::ffi::Walker_AddTorque(self.inner.get_inner_walker(), &cxx_torque);
-        Ok(())
-    }
-
-    fn bounding_box(&self) -> crate::geom::BoundingBox {
-        // Walker doesn't have a direct GetBoundingBox method, need to cast to Actor
-        let actor_ptr = carla_sys::ffi::Walker_CastToActor(self.inner.get_inner_walker());
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast Walker to Actor");
-        }
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
-        crate::geom::BoundingBox::from_cxx(simple_bbox)
+impl ActorFfi for Walker {
+    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
+        todo!()
     }
 }
 
@@ -188,7 +114,7 @@ impl Drop for Walker {
     }
 }
 
-impl WalkerT for Walker {
+impl Walker {
     fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()> {
         // Convert high-level WalkerControl to carla-sys WalkerControl
         let cxx_control = carla_sys::walker::WalkerControl {

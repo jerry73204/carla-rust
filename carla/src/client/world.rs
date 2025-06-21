@@ -1,13 +1,12 @@
 //! World management and simulation control.
 
 use crate::{
-    actor::{Actor, ActorId, ActorList},
+    actor::{Actor, ActorExt, ActorId, ActorList},
     client::{ActorBlueprint, BlueprintLibrary},
     error::CarlaResult,
     geom::Transform,
     road::Map,
     time::Timestamp,
-    traits::ActorT,
 };
 use carla_sys::WorldWrapper;
 use std::{sync::Arc, time::Duration};
@@ -123,7 +122,7 @@ impl World {
         parent: Option<&Actor>,
     ) -> CarlaResult<Actor> {
         let simple_transform: carla_sys::SimpleTransform = transform.into();
-        let parent_actor = parent.map(|p| p.get_inner_actor());
+        let parent_actor = parent.map(|p| p.inner_actor());
 
         match self
             .inner
@@ -145,7 +144,7 @@ impl World {
         parent: Option<&Actor>,
     ) -> CarlaResult<Option<Actor>> {
         let simple_transform: carla_sys::SimpleTransform = transform.into();
-        let parent_actor = parent.map(|p| p.get_inner_actor());
+        let parent_actor = parent.map(|p| p.inner_actor());
 
         match self
             .inner
@@ -203,7 +202,7 @@ impl World {
         Ok(actors
             .find_by_type("traffic.traffic_light")
             .into_iter()
-            .filter_map(|actor| match actor.to_traffic_light() {
+            .filter_map(|actor| match actor.into_traffic_light() {
                 Ok(traffic_light) => Some(traffic_light),
                 Err(_) => None,
             })

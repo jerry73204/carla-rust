@@ -7,7 +7,18 @@ use crate::{
 };
 
 /// RGB camera sensor data.
-pub type RGBImageData = ImageData;
+#[derive(Debug, Clone)]
+pub struct RGBImageData {
+    /// Base image data
+    pub image: ImageData,
+}
+
+impl RGBImageData {
+    /// Create DepthImageData from ImageData
+    pub fn new(image: ImageData) -> Self {
+        Self { image }
+    }
+}
 
 /// Depth camera sensor data.
 #[derive(Debug, Clone)]

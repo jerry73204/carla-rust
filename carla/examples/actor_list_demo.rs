@@ -1,6 +1,6 @@
 //! Example demonstrating the use of ActorList for efficient actor iteration.
 
-use carla::{client::Client, error::CarlaResult, traits::ActorT};
+use carla::{actor::ActorExt, client::Client, error::CarlaResult};
 
 fn main() -> CarlaResult<()> {
     // Connect to CARLA server

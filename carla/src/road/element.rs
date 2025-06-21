@@ -3,8 +3,6 @@
 //! This module contains types that represent various OpenDrive road elements
 //! like elevation profiles, geometry, road marks, etc.
 
-use crate::geom::Location;
-
 /// Road elevation information at a specific s-coordinate.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RoadElevation {

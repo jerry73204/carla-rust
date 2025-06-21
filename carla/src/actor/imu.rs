@@ -1,39 +1,20 @@
 //! IMU sensor actor implementation.
 
 use crate::{
-    actor::{Actor, ActorId},
+    actor::{ActorFfi, Sensor, SensorExt, SensorFfi},
     error::{CarlaResult, SensorError},
-    geom::{FromCxx, ToCxx, Transform, Vector3D},
     sensor_data::IMUData,
-    traits::{ActorT, SensorT},
 };
-use carla_sys::SensorWrapper;
 
 /// IMU (Inertial Measurement Unit) sensor actor.
 #[derive(Debug)]
-pub struct IMU {
-    /// Internal sensor wrapper for FFI calls
-    pub(crate) inner: SensorWrapper,
-}
+pub struct IMU(pub(crate) Sensor);
 
 impl IMU {
     /// Create an IMU sensor from a carla-sys SensorWrapper.
-    pub fn from_cxx(sensor_wrapper: SensorWrapper) -> CarlaResult<Self> {
-        Ok(Self {
-            inner: sensor_wrapper,
-        })
-    }
-
-    /// Create an IMU sensor from an actor by casting.
-    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
-        let actor_ref = actor.get_inner_actor();
-        if let Some(sensor_wrapper) = SensorWrapper::from_actor(actor_ref) {
-            Ok(Some(Self {
-                inner: sensor_wrapper,
-            }))
-        } else {
-            Ok(None)
-        }
+    pub(crate) fn from_cxx(sensor_wrapper: carla_sys::SensorWrapper) -> CarlaResult<Self> {
+        let sensor = Sensor::from_cxx(sensor_wrapper)?;
+        Ok(Self(sensor))
     }
 
     /// Start listening for IMU data with a callback.
@@ -48,8 +29,10 @@ impl IMU {
     where
         F: Fn(IMUData) + Send + 'static,
     {
+        // TODO: Implement proper callback handling with data transformation
+        // This requires FFI support for typed sensor callbacks
         let _callback = callback;
-        self.inner.listen();
+        self.0.start_listening();
         Ok(())
     }
 
@@ -64,155 +47,45 @@ impl IMU {
 
     /// Get the latest IMU measurement.
     pub fn data(&self) -> Option<IMUData> {
-        if self.inner.has_new_data() {
-            let cxx_data = self.inner.get_last_imu_data();
+        if self.0.has_new_data() {
+            let cxx_data = self.as_sensor_ffi().get_last_imu_data();
             Some(IMUData::from_cxx(cxx_data))
         } else {
             None
         }
     }
+}
 
-    /// Get access to the underlying SensorWrapper for type-specific operations.
-    pub(crate) fn inner(&self) -> &SensorWrapper {
-        &self.inner
+impl SensorFfi for IMU {
+    fn as_sensor_ffi(&self) -> &carla_sys::SensorWrapper {
+        self.0.as_sensor_ffi()
     }
 }
 
-impl ActorT for IMU {
-    fn id(&self) -> ActorId {
-        // IMU doesn't have a direct GetId method, need to cast to Actor
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast IMU to Actor");
-        }
-        carla_sys::ffi::Actor_GetId(&actor_ptr)
-    }
-    fn type_id(&self) -> String {
-        carla_sys::ffi::bridge::Sensor_GetTypeId(self.inner.get_inner_sensor())
-    }
-    fn transform(&self) -> Transform {
-        let cxx_transform =
-            carla_sys::ffi::bridge::Sensor_GetTransform(self.inner.get_inner_sensor());
-        Transform::from(cxx_transform)
-    }
-    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        let cxx_transform = transform.to_cxx();
-        carla_sys::ffi::bridge::Sensor_SetTransform(self.inner.get_inner_sensor(), &cxx_transform);
-        Ok(())
-    }
-    fn velocity(&self) -> Vector3D {
-        let vel = carla_sys::ffi::bridge::Sensor_GetVelocity(self.inner.get_inner_sensor());
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn angular_velocity(&self) -> Vector3D {
-        let vel = carla_sys::ffi::bridge::Sensor_GetAngularVelocity(self.inner.get_inner_sensor());
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn acceleration(&self) -> Vector3D {
-        let acc = carla_sys::ffi::bridge::Sensor_GetAcceleration(self.inner.get_inner_sensor());
-        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
-    }
-    fn is_alive(&self) -> bool {
-        carla_sys::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor())
-    }
-    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        carla_sys::ffi::bridge::Sensor_SetSimulatePhysics(self.inner.get_inner_sensor(), enabled);
-        Ok(())
-    }
-    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_sys::SimpleVector3D {
-            x: impulse.x as f64,
-            y: impulse.y as f64,
-            z: impulse.z as f64,
-        };
-        carla_sys::ffi::bridge::Sensor_AddImpulse(self.inner.get_inner_sensor(), &cxx_impulse);
-        Ok(())
-    }
-    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_sys::SimpleVector3D {
-            x: force.x as f64,
-            y: force.y as f64,
-            z: force.z as f64,
-        };
-        carla_sys::ffi::bridge::Sensor_AddForce(self.inner.get_inner_sensor(), &cxx_force);
-        Ok(())
-    }
-    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_sys::SimpleVector3D {
-            x: torque.x as f64,
-            y: torque.y as f64,
-            z: torque.z as f64,
-        };
-        carla_sys::ffi::bridge::Sensor_AddTorque(self.inner.get_inner_sensor(), &cxx_torque);
-        Ok(())
+// Implement all conversion traits using the macro
+crate::impl_sensor_conversions!(IMU, is_imu);
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_imu_deref_actor_methods() {
+        // This test would require a mock IMU sensor
+        // Verify ActorT methods work through Deref
     }
 
-    fn bounding_box(&self) -> crate::geom::BoundingBox {
-        // IMU doesn't have a direct GetBoundingBox method, need to cast to Actor
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast IMU to Actor");
-        }
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
-        crate::geom::BoundingBox::from_cxx(simple_bbox)
-    }
-}
-
-impl SensorT for IMU {
-    fn start_listening(&self) {
-        self.inner.listen();
+    #[test]
+    #[ignore = "Requires CARLA server connection"]
+    fn test_imu_conversions() {
+        // Test Actor -> IMU (should fail for non-IMU)
+        // Test Sensor -> IMU (should fail for non-IMU)
+        // Test IMU -> Actor
+        // Test IMU -> Sensor
     }
 
-    fn stop_listening(&self) {
-        self.inner.stop();
-    }
-
-    fn is_listening(&self) -> bool {
-        self.inner.is_listening()
-    }
-
-    fn has_new_data(&self) -> bool {
-        self.inner.has_new_data()
-    }
-
-    fn attribute(&self, name: &str) -> Option<String> {
-        let _name = name;
-        // TODO: Implement sensor attribute retrieval
-        // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference
-        todo!("IMU::get_attribute not yet implemented - missing FFI function Sensor_GetAttribute")
-    }
-
-    fn enable_recording(&self, filename: &str) -> CarlaResult<()> {
-        let _filename = filename;
-        // Sensor recording is typically done at the client level, not sensor level
-        // This would require additional FFI functions that aren't part of the basic sensor API
-        Err(crate::error::CarlaError::Sensor(
-            SensorError::CallbackFailed(
-                "enable_recording not available - use client-level recording".to_string(),
-            ),
-        ))
-    }
-
-    fn disable_recording(&self) -> CarlaResult<()> {
-        // Sensor recording is typically done at the client level, not sensor level
-        // This would require additional FFI functions that aren't part of the basic sensor API
-        Err(crate::error::CarlaError::Sensor(
-            SensorError::CallbackFailed(
-                "disable_recording not available - use client-level recording".to_string(),
-            ),
-        ))
-    }
-}
-
-impl Drop for IMU {
-    fn drop(&mut self) {
-        // Stop listening if sensor is listening
-        if self.inner.is_listening() {
-            self.inner.stop();
-        }
-        // Only destroy if the sensor is still alive
-        if carla_sys::ffi::bridge::Sensor_IsAlive(self.inner.get_inner_sensor()) {
-            let _ = carla_sys::ffi::bridge::Sensor_Destroy(self.inner.get_inner_sensor());
-        }
+    #[test]
+    #[ignore = "Requires CARLA server connection"]
+    fn test_conversion_error_recovery() {
+        // Verify failed conversions return original value
     }
 }

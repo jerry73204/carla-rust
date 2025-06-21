@@ -1,7 +1,7 @@
 //! Example demonstrating how to use ActorList efficiently.
 
 use anyhow::Result;
-use carla::{client::Client, traits::ActorT};
+use carla::{actor::ActorExt, client::Client};
 
 fn main() -> Result<()> {
     // Connect to CARLA server

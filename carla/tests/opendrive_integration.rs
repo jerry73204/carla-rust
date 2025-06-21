@@ -165,7 +165,6 @@ fn test_opendrive_xml_structure() {
 
 #[cfg(test)]
 mod test_helpers {
-    use super::*;
 
     /// Mock Map for testing when server is not available
     pub struct MockMap {

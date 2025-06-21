@@ -1,6 +1,6 @@
 //! Actor list implementation that wraps the C++ vector of actors.
 
-use crate::{actor::Actor, traits::ActorT};
+use crate::actor::Actor;
 use carla_sys::{ffi::bridge::SimpleActorList, WorldWrapper};
 use std::sync::Arc;
 
@@ -222,17 +222,10 @@ impl<'a> IntoIterator for &'a ActorList {
     }
 }
 
-// Implement common traits
-impl std::ops::Index<usize> for ActorList {
-    type Output = Actor;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        panic!("ActorList does not support indexing with references. Use .get() instead.");
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::ActorExt;
+
     use super::*;
 
     #[test]

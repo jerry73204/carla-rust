@@ -1,18 +1,15 @@
 //! Traffic sign actor implementation.
 
 use crate::{
-    actor::{Actor, ActorId},
+    actor::{Actor, ActorExt, ActorFfi, ActorId},
     error::CarlaResult,
-    geom::{FromCxx, ToCxx, Transform, Vector3D},
-    traits::ActorT,
+    geom::FromCxx,
 };
 use carla_sys::{TrafficSignType, TrafficSignWrapper};
 
 /// Traffic sign actor.
 #[derive(Debug)]
 pub struct TrafficSign {
-    /// Actor ID
-    id: ActorId,
     /// Internal traffic sign wrapper for FFI calls
     inner: TrafficSignWrapper,
 }
@@ -24,28 +21,21 @@ impl TrafficSign {
         id: ActorId,
     ) -> CarlaResult<Self> {
         Ok(Self {
-            id,
             inner: traffic_sign_wrapper,
         })
     }
 
     /// Create a traffic sign from an actor by casting.
-    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
-        let actor_ref = actor.get_inner_actor();
+    pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
+        let actor_ref = actor.inner_actor();
         let actor_id = actor.id();
         if let Some(traffic_sign_wrapper) = TrafficSignWrapper::from_actor(actor_ref) {
-            Ok(Some(Self {
-                id: actor_id,
+            Ok(Self {
                 inner: traffic_sign_wrapper,
-            }))
+            })
         } else {
-            Ok(None)
+            Err(actor)
         }
-    }
-
-    /// Get the traffic sign's actor ID.
-    pub fn id(&self) -> ActorId {
-        self.id
     }
 
     /// Get the traffic sign type by parsing the sign ID.
@@ -67,78 +57,9 @@ impl TrafficSign {
     }
 }
 
-impl ActorT for TrafficSign {
-    fn id(&self) -> ActorId {
-        self.id
-    }
-    fn type_id(&self) -> String {
-        self.inner.get_type_id()
-    }
-    fn transform(&self) -> Transform {
-        let cxx_transform = self.inner.get_transform();
-        Transform::from(cxx_transform)
-    }
-    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        let cxx_transform = transform.to_cxx();
-        self.inner.set_transform(&cxx_transform);
-        Ok(())
-    }
-    fn velocity(&self) -> Vector3D {
-        let vel = self.inner.get_velocity();
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn angular_velocity(&self) -> Vector3D {
-        let vel = self.inner.get_angular_velocity();
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn acceleration(&self) -> Vector3D {
-        let acc = self.inner.get_acceleration();
-        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
-    }
-    fn is_alive(&self) -> bool {
-        self.inner.is_alive()
-    }
-    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        self.inner.set_simulate_physics(enabled);
-        Ok(())
-    }
-    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_sys::SimpleVector3D {
-            x: impulse.x as f64,
-            y: impulse.y as f64,
-            z: impulse.z as f64,
-        };
-        self.inner.add_impulse(&cxx_impulse);
-        Ok(())
-    }
-    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_sys::SimpleVector3D {
-            x: force.x as f64,
-            y: force.y as f64,
-            z: force.z as f64,
-        };
-        self.inner.add_force(&cxx_force);
-        Ok(())
-    }
-    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_sys::SimpleVector3D {
-            x: torque.x as f64,
-            y: torque.y as f64,
-            z: torque.z as f64,
-        };
-        self.inner.add_torque(&cxx_torque);
-        Ok(())
-    }
-
-    fn bounding_box(&self) -> crate::geom::BoundingBox {
-        // TrafficSign doesn't have a direct GetBoundingBox method, need to cast to Actor
-        let actor_ptr =
-            carla_sys::ffi::TrafficSign_CastToActor(self.inner.get_inner_traffic_sign());
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast TrafficSign to Actor");
-        }
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
-        crate::geom::BoundingBox::from_cxx(simple_bbox)
+impl ActorFfi for TrafficSign {
+    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
+        todo!()
     }
 }
 
@@ -148,5 +69,44 @@ impl Drop for TrafficSign {
         if self.inner.is_alive() {
             let _ = self.inner.destroy();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    /// Test traffic light type conversions
+    #[test]
+    fn test_traffic_light_state_conversions() {
+        use crate::actor::TrafficLightState;
+        use carla_sys::TrafficLightState as CxxState;
+
+        // Test from_cxx
+        assert_eq!(
+            TrafficLightState::from_cxx(CxxState::Red),
+            TrafficLightState::Red
+        );
+        assert_eq!(
+            TrafficLightState::from_cxx(CxxState::Yellow),
+            TrafficLightState::Yellow
+        );
+        assert_eq!(
+            TrafficLightState::from_cxx(CxxState::Green),
+            TrafficLightState::Green
+        );
+        assert_eq!(
+            TrafficLightState::from_cxx(CxxState::Off),
+            TrafficLightState::Off
+        );
+        assert_eq!(
+            TrafficLightState::from_cxx(CxxState::Unknown),
+            TrafficLightState::Unknown
+        );
+
+        // Test to_cxx
+        assert_eq!(TrafficLightState::Red.to_cxx(), CxxState::Red);
+        assert_eq!(TrafficLightState::Yellow.to_cxx(), CxxState::Yellow);
+        assert_eq!(TrafficLightState::Green.to_cxx(), CxxState::Green);
+        assert_eq!(TrafficLightState::Off.to_cxx(), CxxState::Off);
+        assert_eq!(TrafficLightState::Unknown.to_cxx(), CxxState::Unknown);
     }
 }

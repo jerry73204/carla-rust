@@ -100,9 +100,9 @@ pub mod traits;
 mod utils;
 
 // Re-export commonly used types for convenience
+pub use actor::{ActorExt, SensorExt};
 pub use client::Client;
 pub use error::CarlaError;
-pub use traits::{ActorT, SensorT, VehicleT, WalkerT};
 
 /// Type alias for results returned by this library
 pub type Result<T, E = CarlaError> = std::result::Result<T, E>;

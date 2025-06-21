@@ -1,10 +1,9 @@
 //! Vehicle actor implementation.
 
 use crate::{
-    actor::{Actor, ActorId},
+    actor::{Actor, ActorFfi, ActorId},
     error::CarlaResult,
-    geom::{FromCxx, ToCxx, Transform, Vector3D},
-    traits::{ActorT, VehicleT},
+    geom::Vector3D,
 };
 
 /// Vehicle actor.
@@ -18,7 +17,7 @@ pub struct Vehicle {
 
 impl Vehicle {
     /// Create a vehicle from a carla-sys VehicleWrapper.
-    pub fn from_cxx(vehicle_wrapper: carla_sys::VehicleWrapper) -> CarlaResult<Self> {
+    pub(crate) fn from_cxx(vehicle_wrapper: carla_sys::VehicleWrapper) -> CarlaResult<Self> {
         // Get the vehicle's actor ID
         let id = vehicle_wrapper.get_id();
 
@@ -29,16 +28,16 @@ impl Vehicle {
     }
 
     /// Create a vehicle from an actor by casting.
-    pub fn from_actor(actor: Actor) -> CarlaResult<Option<Self>> {
-        let actor_ref = actor.get_inner_actor();
+    pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
+        let actor_ref = actor.inner_actor();
         if let Some(vehicle_wrapper) = carla_sys::VehicleWrapper::from_actor(actor_ref) {
             let id = vehicle_wrapper.get_id();
-            Ok(Some(Self {
+            Ok(Self {
                 id,
                 inner: vehicle_wrapper,
-            }))
+            })
         } else {
-            Ok(None)
+            Err(actor)
         }
     }
 
@@ -87,81 +86,13 @@ impl Vehicle {
     }
 }
 
-impl ActorT for Vehicle {
-    fn id(&self) -> ActorId {
-        self.id
-    }
-    fn type_id(&self) -> String {
-        self.inner.get_type_id()
-    }
-    fn transform(&self) -> Transform {
-        let cxx_transform = self.inner.get_transform();
-        Transform::from(cxx_transform)
-    }
-    fn set_transform(&self, transform: &Transform) -> CarlaResult<()> {
-        let cxx_transform = transform.to_cxx();
-        self.inner.set_transform(&cxx_transform);
-        Ok(())
-    }
-    fn velocity(&self) -> Vector3D {
-        let vel = self.inner.get_velocity();
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn angular_velocity(&self) -> Vector3D {
-        let vel = self.inner.get_angular_velocity();
-        Vector3D::new(vel.x as f32, vel.y as f32, vel.z as f32)
-    }
-    fn acceleration(&self) -> Vector3D {
-        let acc = self.inner.get_acceleration();
-        Vector3D::new(acc.x as f32, acc.y as f32, acc.z as f32)
-    }
-    fn is_alive(&self) -> bool {
-        self.inner.is_alive()
-    }
-    fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        self.inner.set_simulate_physics(enabled);
-        Ok(())
-    }
-    fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
-        let cxx_impulse = carla_sys::SimpleVector3D {
-            x: impulse.x as f64,
-            y: impulse.y as f64,
-            z: impulse.z as f64,
-        };
-        self.inner.add_impulse(&cxx_impulse);
-        Ok(())
-    }
-    fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
-        let cxx_force = carla_sys::SimpleVector3D {
-            x: force.x as f64,
-            y: force.y as f64,
-            z: force.z as f64,
-        };
-        self.inner.add_force(&cxx_force);
-        Ok(())
-    }
-    fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
-        let cxx_torque = carla_sys::SimpleVector3D {
-            x: torque.x as f64,
-            y: torque.y as f64,
-            z: torque.z as f64,
-        };
-        self.inner.add_torque(&cxx_torque);
-        Ok(())
-    }
-
-    fn bounding_box(&self) -> crate::geom::BoundingBox {
-        // Vehicle doesn't have a direct GetBoundingBox method, need to cast to Actor
-        let actor_ptr = self.inner.to_actor();
-        if actor_ptr.is_null() {
-            panic!("Internal error: Failed to cast Vehicle to Actor");
-        }
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
-        crate::geom::BoundingBox::from_cxx(simple_bbox)
+impl ActorFfi for Vehicle {
+    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
+        todo!()
     }
 }
 
-impl VehicleT for Vehicle {
+impl Vehicle {
     fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()> {
         // Convert high-level VehicleControl to carla-sys VehicleControl
         let cxx_control = carla_sys::VehicleControl {

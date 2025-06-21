@@ -1,6 +1,6 @@
 //! Integration tests for blueprint functionality.
 
-use carla::{client::Client, error::CarlaResult, traits::ActorT};
+use carla::{actor::ActorExt, client::Client, error::CarlaResult};
 
 #[test]
 #[cfg(feature = "test-carla-server")]
