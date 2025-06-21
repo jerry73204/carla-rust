@@ -46,14 +46,18 @@ impl ActorList {
         })
     }
 
-    /// Find actors matching a type pattern.
-    pub fn find_by_type(&self, pattern: &str) -> Vec<Actor> {
-        self.iter()
-            .filter(|actor| {
-                let type_id = actor.type_id();
-                pattern == "*" || type_id.contains(pattern) || type_id.starts_with(pattern)
-            })
-            .collect()
+    /// Find actors matching a type pattern using native CARLA filtering.
+    ///
+    /// This method uses CARLA's native `ActorList::Filter` method for efficient
+    /// server-side filtering with wildcard pattern matching.
+    pub fn find_by_type(&self, pattern: &str) -> Self {
+        // Use the efficient native CARLA filtering via FFI
+        let filtered_list = self.world.get_actors_filtered_by_type(pattern);
+
+        Self {
+            inner: filtered_list,
+            world: self.world.clone(),
+        }
     }
 
     /// Find an actor by ID.
@@ -85,11 +89,31 @@ impl ActorList {
     }
 
     /// Filter actors using a predicate.
-    pub fn filter<F>(&self, predicate: F) -> Vec<Actor>
+    pub fn filter<F>(&self, predicate: F) -> Self
     where
         F: Fn(&Actor) -> bool,
     {
-        self.iter().filter(|actor| predicate(actor)).collect()
+        let filtered_ids: Vec<u32> = self
+            .inner
+            .actor_ids
+            .iter()
+            .filter(|&&id| {
+                if let Some(actor_wrapper) = self.world.get_actor(id) {
+                    let actor = Actor::from_cxx(actor_wrapper);
+                    predicate(&actor)
+                } else {
+                    false
+                }
+            })
+            .copied()
+            .collect();
+
+        Self {
+            inner: SimpleActorList {
+                actor_ids: filtered_ids,
+            },
+            world: self.world.clone(),
+        }
     }
 
     /// Check if any actor matches the predicate.
@@ -224,6 +248,20 @@ mod tests {
             for actor in &list {
                 let _ = actor.id();
             }
+
+            // Test that filter and find_by_type return ActorList
+            let filtered: ActorList = list.filter(|actor| actor.id() > 0);
+            let vehicles: ActorList = list.find_by_type("vehicle");
+
+            // Test chaining
+            let chained: ActorList = list
+                .find_by_type("vehicle")
+                .filter(|actor| actor.id() > 100);
+
+            // Verify we can still get length and iterate
+            let _ = filtered.len();
+            let _ = vehicles.len();
+            let _ = chained.len();
         };
     }
 }

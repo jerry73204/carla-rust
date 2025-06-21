@@ -112,7 +112,7 @@ impl World {
     /// Get actors filtered by type.
     pub fn actors_by_type(&self, actor_type: &str) -> CarlaResult<Vec<Actor>> {
         let actor_list = self.actors()?;
-        Ok(actor_list.find_by_type(actor_type))
+        Ok(actor_list.find_by_type(actor_type).to_vec())
     }
 
     /// Spawn an actor.

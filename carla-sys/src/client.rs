@@ -363,6 +363,14 @@ impl WorldWrapper {
         ffi::World_GetActorsByIds(&self.inner, actor_ids)
     }
 
+    /// Get actors filtered by type using native CARLA filtering
+    pub fn get_actors_filtered_by_type(
+        &self,
+        wildcard_pattern: &str,
+    ) -> crate::ffi::bridge::SimpleActorList {
+        ffi::World_GetActorsFilteredByType(&self.inner, wildcard_pattern)
+    }
+
     /// Get a specific actor by its ID
     pub fn get_actor(&self, actor_id: u32) -> Option<ActorWrapper> {
         let actor_ptr = ffi::World_GetActor(&self.inner, actor_id);

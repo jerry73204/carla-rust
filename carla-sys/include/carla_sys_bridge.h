@@ -224,6 +224,8 @@ void World_SetPedestriansCrossFactor(const World &world, float percentage);
 SimpleActorList World_GetActors(const World &world);
 SimpleActorList World_GetActorsByIds(const World &world,
                                      rust::Slice<const uint32_t> actor_ids);
+SimpleActorList World_GetActorsFilteredByType(const World &world,
+                                              rust::Str wildcard_pattern);
 std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id);
 
 // Advanced world features - Map layer management

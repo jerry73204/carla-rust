@@ -3588,6 +3588,18 @@ SimpleActorList World_GetActorsByIds(const World &world,
   return ConvertToSimpleActorList(*actors);
 }
 
+SimpleActorList World_GetActorsFilteredByType(const World &world,
+                                              rust::Str wildcard_pattern) {
+  // Get all actors first
+  auto actors = const_cast<World &>(world).GetActors();
+
+  // Use the native CARLA ActorList::Filter method
+  std::string pattern(wildcard_pattern);
+  auto filtered_actors = actors->Filter(pattern);
+
+  return ConvertToSimpleActorList(*filtered_actors);
+}
+
 std::shared_ptr<Actor> World_GetActor(const World &world, uint32_t actor_id) {
   carla::ActorId carla_id = static_cast<carla::ActorId>(actor_id);
   auto actor = const_cast<World &>(world).GetActor(carla_id);

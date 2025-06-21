@@ -45,3 +45,7 @@ test-carla-server = []
 [[example]]
 name = "actor_list_usage"
 required-features = []
+
+[[example]]
+name = "actor_list_chaining"
+required-features = []

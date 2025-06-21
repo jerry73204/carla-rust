@@ -21,6 +21,10 @@ fn main() -> CarlaResult<()> {
     let vehicles = actors.find_by_type("vehicle");
     println!("\nFound {} vehicles", vehicles.len());
 
+    // Chain operations - find vehicles and then filter by speed
+    let fast_vehicles = vehicles.filter(|actor| actor.velocity().length() > 10.0);
+    println!("Found {} fast vehicles (>10 m/s)", fast_vehicles.len());
+
     // Check if any vehicle is moving fast
     let fast_threshold = 13.89; // 50 km/h = 13.89 m/s
     let has_fast_vehicle = actors.any(|actor| {
@@ -77,6 +81,12 @@ fn main() -> CarlaResult<()> {
         actor.velocity().length() < 0.1 // Nearly stationary
     });
     println!("Static actors: {}", static_actors.len());
+
+    // Complex query: find static vehicles
+    let static_vehicles = actors
+        .find_by_type("vehicle")
+        .filter(|actor| actor.velocity().length() < 0.1);
+    println!("Static vehicles: {}", static_vehicles.len());
 
     Ok(())
 }

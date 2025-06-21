@@ -875,6 +875,7 @@ pub mod bridge {
         // Actor query methods
         fn World_GetActors(world: &World) -> SimpleActorList;
         fn World_GetActorsByIds(world: &World, actor_ids: &[u32]) -> SimpleActorList;
+        fn World_GetActorsFilteredByType(world: &World, wildcard_pattern: &str) -> SimpleActorList;
         fn World_GetActor(world: &World, actor_id: u32) -> SharedPtr<Actor>;
 
         // Advanced world features - Map layer management
@@ -1920,6 +1921,7 @@ pub use bridge::{
     World_GetActor,
     World_GetActors,
     World_GetActorsByIds,
+    World_GetActorsFilteredByType,
     World_GetBlueprintLibrary,
     World_GetEnvironmentObjects,
     World_GetId,
