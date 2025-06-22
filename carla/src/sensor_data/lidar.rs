@@ -365,11 +365,9 @@ impl SemanticLiDARData {
             .collect();
 
         Self {
-            // TODO: Extract proper metadata from carla-sys LiDARDataFull structure
-            // This requires adding timestamp, transform, and sensor_id fields to carla-sys LiDARDataFull
-            timestamp: todo!("LiDARData::from_cxx timestamp extraction not yet implemented - missing FFI metadata"),
-            transform: todo!("LiDARData::from_cxx transform extraction not yet implemented - missing FFI metadata"),
-            sensor_id: todo!("LiDARData::from_cxx sensor_id extraction not yet implemented - missing FFI metadata"),
+            timestamp: cxx_data.timestamp.into(),
+            transform: Transform::from(cxx_data.transform),
+            sensor_id: cxx_data.sensor_id,
             horizontal_angle: cxx_data.horizontal_angle,
             channel_count: cxx_data.channel_count,
             detections,

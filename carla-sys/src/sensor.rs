@@ -556,8 +556,11 @@ impl From<ffi::bridge::SimpleSemanticLidarDetection> for SemanticLidarDetection 
 /// Semantic LiDAR sensor data
 #[derive(Debug, Clone)]
 pub struct SemanticLidarData {
-    pub horizontal_angle: f32, // Current horizontal rotation angle
-    pub channel_count: u32,    // Number of laser channels
+    pub timestamp: crate::time::Timestamp,       // Sensor timestamp
+    pub transform: crate::ffi::SimpleTransform,  // Sensor transform
+    pub sensor_id: u32,                          // Sensor ID
+    pub horizontal_angle: f32,                   // Current horizontal rotation angle
+    pub channel_count: u32,                      // Number of laser channels
     pub detections: Vec<SemanticLidarDetection>, // Array of detections
 }
 
@@ -569,6 +572,9 @@ impl From<ffi::bridge::SimpleSemanticLidarData> for SemanticLidarData {
             .map(SemanticLidarDetection::from)
             .collect();
         Self {
+            timestamp: simple.timestamp.into(),
+            transform: simple.transform,
+            sensor_id: simple.sensor_id,
             horizontal_angle: simple.horizontal_angle,
             channel_count: simple.channel_count,
             detections,

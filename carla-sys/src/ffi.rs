@@ -300,8 +300,11 @@ pub mod bridge {
 
     #[derive(Debug, Clone, PartialEq)]
     pub struct SimpleSemanticLidarData {
-        pub horizontal_angle: f32, // Current horizontal rotation angle
-        pub channel_count: u32,    // Number of laser channels
+        pub timestamp: SimpleTimestamp,                    // Sensor timestamp
+        pub transform: SimpleTransform,                    // Sensor transform
+        pub sensor_id: u32,                                // Sensor ID
+        pub horizontal_angle: f32,                         // Current horizontal rotation angle
+        pub channel_count: u32,                            // Number of laser channels
         pub detections: Vec<SimpleSemanticLidarDetection>, // Array of detections
     }
 
