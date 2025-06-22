@@ -1,8 +1,10 @@
 //! Integration tests for blueprint functionality.
 
 use carla::{actor::ActorExt, client::Client, error::CarlaResult};
+use serial_test::serial;
 
 #[test]
+#[serial]
 #[cfg(feature = "test-carla-server")]
 fn test_blueprint_library() -> CarlaResult<()> {
     // Connect to CARLA server

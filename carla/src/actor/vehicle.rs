@@ -93,7 +93,7 @@ impl ActorFfi for Vehicle {
 }
 
 impl Vehicle {
-    fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()> {
+    pub fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()> {
         // Convert high-level VehicleControl to carla-sys VehicleControl
         let cxx_control = carla_sys::VehicleControl {
             throttle: control.throttle,
@@ -111,7 +111,7 @@ impl Vehicle {
         })
     }
 
-    fn control(&self) -> VehicleControl {
+    pub fn control(&self) -> VehicleControl {
         let cxx_control = self.inner.get_control();
         VehicleControl {
             throttle: cxx_control.throttle,
@@ -124,13 +124,17 @@ impl Vehicle {
         }
     }
 
-    fn set_autopilot(&self, enabled: bool, traffic_manager_port: Option<u16>) -> CarlaResult<()> {
+    pub fn set_autopilot(
+        &self,
+        enabled: bool,
+        traffic_manager_port: Option<u16>,
+    ) -> CarlaResult<()> {
         let tm_port = traffic_manager_port.unwrap_or(8000);
         self.inner.set_autopilot(enabled, tm_port);
         Ok(())
     }
 
-    fn physics_control(&self) -> VehiclePhysicsControl {
+    pub fn physics_control(&self) -> VehiclePhysicsControl {
         let cxx_physics = self.inner.get_physics_control();
 
         // Convert carla-sys VehiclePhysicsControl to high-level VehiclePhysicsControl
@@ -166,7 +170,10 @@ impl Vehicle {
         }
     }
 
-    fn apply_physics_control(&self, physics_control: &VehiclePhysicsControl) -> CarlaResult<()> {
+    pub fn apply_physics_control(
+        &self,
+        physics_control: &VehiclePhysicsControl,
+    ) -> CarlaResult<()> {
         let cxx_physics = carla_sys::VehiclePhysicsControl {
             engine: carla_sys::EnginePhysics {
                 torque_curve_max_rpm: physics_control.max_rpm,
@@ -210,20 +217,20 @@ impl Vehicle {
         })
     }
 
-    fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()> {
+    pub fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()> {
         let cxx_light_state = carla_sys::VehicleLightState::from_bits_truncate(light_state.lights);
         self.inner.set_light_state(cxx_light_state);
         Ok(())
     }
 
-    fn light_state(&self) -> VehicleLightState {
+    pub fn light_state(&self) -> VehicleLightState {
         let cxx_light_state = self.inner.get_light_state();
         VehicleLightState {
             lights: cxx_light_state.bits(),
         }
     }
 
-    fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()> {
+    pub fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()> {
         let cxx_door_type = match door_type {
             VehicleDoorType::FrontLeft => carla_sys::VehicleDoorType::FrontLeft,
             VehicleDoorType::FrontRight => carla_sys::VehicleDoorType::FrontRight,
@@ -240,7 +247,7 @@ impl Vehicle {
         Ok(())
     }
 
-    fn telemetry_data(&self) -> VehicleTelemetryData {
+    pub fn telemetry_data(&self) -> VehicleTelemetryData {
         let cxx_telemetry = self.inner.get_telemetry_data();
         VehicleTelemetryData {
             speed: cxx_telemetry.speed,

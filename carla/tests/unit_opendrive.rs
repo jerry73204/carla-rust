@@ -1,8 +1,7 @@
-//! OpenDrive integration tests
+//! OpenDrive unit tests that don't require CARLA server
 //!
-//! These tests correspond to the C++ tests in test_opendrive.cpp
+//! These tests validate OpenDrive file parsing and structure without server connection
 
-use carla::{geom::Location, road::GeoLocation};
 use std::{fs, path::Path};
 
 /// Helper function to load OpenDrive content from file
@@ -10,121 +9,6 @@ fn load_opendrive_file(filename: &str) -> String {
     let path = Path::new("tests/fixtures/opendrive").join(filename);
     fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("Failed to read OpenDrive file {}: {}", path.display(), e))
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_opendrive_parsing() {
-    // Corresponds to C++ TEST(road, parse_files)
-
-    // Note: This test requires a CARLA server connection to parse OpenDrive files
-    // In the actual implementation, we would:
-    // 1. Connect to CARLA server
-    // 2. Load a map with OpenDrive data
-    // 3. Verify the parsing succeeded
-
-    // For now, we'll test that we can at least read the file
-    let opendrive_content = load_opendrive_file("simple_road.xodr");
-    assert!(!opendrive_content.is_empty());
-    assert!(opendrive_content.contains("<OpenDRIVE>"));
-    assert!(opendrive_content.contains("<road"));
-    assert!(opendrive_content.contains("<junction"));
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_parse_road_links() {
-    // Corresponds to C++ TEST(road, parse_road_links)
-
-    // This test requires:
-    // 1. A CARLA server connection
-    // 2. A loaded map
-    // 3. Ability to traverse road links
-
-    // Placeholder for when we have server connection
-    // The test would verify that all road links (next/previous lanes) are valid
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_parse_junctions() {
-    // Corresponds to C++ TEST(road, parse_junctions)
-
-    // This test requires:
-    // 1. A CARLA server connection
-    // 2. A loaded map with junctions
-    // 3. Ability to query junction information
-
-    // The test would verify:
-    // - Total number of junctions matches OpenDrive file
-    // - Junction connections are correctly parsed
-    // - Lane links within junctions are valid
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_parse_road() {
-    // Corresponds to C++ TEST(road, parse_road)
-
-    // This test verifies road structure parsing:
-    // - Total number of roads
-    // - Lane sections per road
-    // - Lanes per section
-    // - Road marks
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_parse_road_elevation() {
-    // Corresponds to C++ TEST(road, parse_road_elevation)
-
-    // This test verifies elevation profile parsing:
-    // - Elevation data at specific s-coordinates
-    // - Total number of elevation records per road
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_parse_geometry() {
-    // Corresponds to C++ TEST(road, parse_geometry)
-
-    // This test verifies road geometry parsing:
-    // - Geometry records per road
-    // - Geometry types (line, arc, spiral, etc.)
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_iterate_waypoints() {
-    // Corresponds to C++ TEST(road, iterate_waypoints)
-
-    // This comprehensive test:
-    // 1. Generates waypoints along the road
-    // 2. Tests waypoint navigation (next, previous, left, right)
-    // 3. Verifies waypoint properties
-    // 4. Tests successor/predecessor relationships
-}
-
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_get_waypoint() {
-    // Corresponds to C++ TEST(road, get_waypoint)
-
-    // This test verifies waypoint queries:
-    // - Getting closest waypoint from arbitrary locations
-    // - Waypoint properties at specific locations
-    // - Navigation from waypoints
-}
-
-// Unit tests that don't require a server connection
-
-#[test]
-fn test_geo_location() {
-    // Test GeoLocation struct
-    let geo = GeoLocation::new(48.8566, 2.3522, 35.0); // Paris coordinates
-    assert_eq!(geo.latitude, 48.8566);
-    assert_eq!(geo.longitude, 2.3522);
-    assert_eq!(geo.altitude, 35.0);
 }
 
 #[test]
@@ -161,46 +45,6 @@ fn test_opendrive_xml_structure() {
     assert!(content.contains(r#"name="Junction 1""#));
     assert!(content.contains("<connection"));
     assert!(content.contains("<laneLink"));
-}
-
-#[cfg(test)]
-mod test_helpers {
-
-    /// Mock Map for testing when server is not available
-    pub struct MockMap {
-        pub name: String,
-        pub opendrive_content: String,
-    }
-
-    impl MockMap {
-        pub fn from_opendrive(content: &str) -> Self {
-            Self {
-                name: "TestMap".to_string(),
-                opendrive_content: content.to_string(),
-            }
-        }
-
-        pub fn get_road_count(&self) -> usize {
-            // Count of <road> tags (but not <roadMark>)
-            self.opendrive_content.matches("<road ").count()
-        }
-
-        pub fn get_junction_count(&self) -> usize {
-            // Simple count of <junction> tags
-            self.opendrive_content.matches("<junction").count()
-        }
-    }
-}
-
-#[test]
-fn test_mock_opendrive_parsing() {
-    use test_helpers::MockMap;
-
-    let content = load_opendrive_file("simple_road.xodr");
-    let mock_map = MockMap::from_opendrive(&content);
-
-    assert_eq!(mock_map.get_road_count(), 2); // Road 1 and Road 3
-    assert_eq!(mock_map.get_junction_count(), 1); // Junction 1
 }
 
 #[test]
@@ -295,4 +139,54 @@ fn test_opendrive_road_links() {
     assert!(content.contains("<link"));
     assert!(content.contains(r#"elementType="junction""#));
     assert!(content.contains("<predecessor"));
+}
+
+#[cfg(test)]
+mod test_helpers {
+    /// Mock Map for testing when server is not available
+    pub struct MockMap {
+        pub name: String,
+        pub opendrive_content: String,
+    }
+
+    impl MockMap {
+        pub fn from_opendrive(content: &str) -> Self {
+            Self {
+                name: "TestMap".to_string(),
+                opendrive_content: content.to_string(),
+            }
+        }
+
+        pub fn get_road_count(&self) -> usize {
+            // Count of <road> tags (but not <roadMark>)
+            self.opendrive_content.matches("<road ").count()
+        }
+
+        pub fn get_junction_count(&self) -> usize {
+            // Simple count of <junction> tags
+            self.opendrive_content.matches("<junction").count()
+        }
+    }
+}
+
+#[test]
+fn test_mock_opendrive_parsing() {
+    use test_helpers::MockMap;
+
+    let content = load_opendrive_file("simple_road.xodr");
+    let mock_map = MockMap::from_opendrive(&content);
+
+    assert_eq!(mock_map.get_road_count(), 2); // Road 1 and Road 3
+    assert_eq!(mock_map.get_junction_count(), 1); // Junction 1
+}
+
+#[test]
+fn test_geo_location() {
+    use carla::road::GeoLocation;
+
+    // Test GeoLocation struct
+    let geo = GeoLocation::new(48.8566, 2.3522, 35.0); // Paris coordinates
+    assert_eq!(geo.latitude, 48.8566);
+    assert_eq!(geo.longitude, 2.3522);
+    assert_eq!(geo.altitude, 35.0);
 }

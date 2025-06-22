@@ -4,11 +4,13 @@ use carla::{
     actor::{ActorExt, TrafficLight, TrafficLightState},
     client::Client,
 };
+use serial_test::serial;
 use std::time::Duration;
 
 /// Test that requires a running CARLA server
 /// Run with: cargo test --features test-carla-server
 #[test]
+#[serial]
 #[cfg(feature = "test-carla-server")]
 fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     // Connect to CARLA server

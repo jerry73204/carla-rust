@@ -50,18 +50,6 @@ impl Walker {
     ///
     /// The WalkerAIController will then control this Walker's movement automatically.
 
-    /// Set walker's maximum speed.
-    ///
-    /// **Note**: In CARLA, speed control is done through WalkerControl.speed in apply_control().
-    /// There is no separate max_speed API on the Walker class itself.
-    /// Use apply_control() with the desired speed instead.
-    #[deprecated(note = "Use apply_control() with WalkerControl::speed instead")]
-    pub fn set_max_speed(&self, _speed: f32) -> CarlaResult<()> {
-        Err(crate::error::CarlaError::Walker(crate::error::WalkerError::ControlFailed(
-            "set_max_speed not available on Walker - use apply_control() with WalkerControl::speed".to_string()
-        )))
-    }
-
     /// Blend between animation pose and custom pose.
     pub fn blend_pose(&self, blend: f32) -> CarlaResult<()> {
         self.inner.blend_pose(blend).map_err(|e| {
@@ -115,7 +103,7 @@ impl Drop for Walker {
 }
 
 impl Walker {
-    fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()> {
+    pub fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()> {
         // Convert high-level WalkerControl to carla-sys WalkerControl
         let cxx_control = carla_sys::walker::WalkerControl {
             direction: carla_sys::walker::Vector3D {
@@ -133,7 +121,7 @@ impl Walker {
         })
     }
 
-    fn control(&self) -> WalkerControl {
+    pub fn control(&self) -> WalkerControl {
         let cxx_control = self.inner.get_control();
         WalkerControl {
             direction: crate::geom::Vector3D::new(
@@ -146,13 +134,13 @@ impl Walker {
         }
     }
 
-    fn bones(&self) -> Vec<String> {
+    pub fn bones(&self) -> Vec<String> {
         // Bone control is available through WalkerWrapper but limited
         // Return an empty list as the CXX implementation doesn't expose bone names
         todo!("Walker::bones requires advanced bone FFI not implemented in CXX layer")
     }
 
-    fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()> {
+    pub fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()> {
         // Bone control is available through blend_pose but not individual bone transforms
         let _bone_transforms = bone_transforms;
         todo!("Walker::set_bones requires advanced bone FFI not implemented in CXX layer")

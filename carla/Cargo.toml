@@ -34,6 +34,7 @@ tokio = { version = "1.35.1", features = ["sync", "rt"] }
 
 [dev-dependencies]
 approx = "0.5"
+serial_test = "3.0"
 
 [features]
 default = []
