@@ -88,6 +88,9 @@ impl SensorFfi for DVSCamera {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(DVSCamera, is_dvs);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(DVSCamera);
+
 #[cfg(test)]
 mod tests {
 

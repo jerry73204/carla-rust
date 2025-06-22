@@ -67,6 +67,9 @@ impl SensorFfi for ObstacleDetectionSensor {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(ObstacleDetectionSensor, is_obstacle_detection);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(ObstacleDetectionSensor);
+
 #[cfg(test)]
 mod tests {
 

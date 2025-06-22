@@ -91,6 +91,9 @@ impl SensorFfi for RSSSensor {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(RSSSensor, is_rss);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(RSSSensor);
+
 // Placeholder types for RSS configuration
 // TODO: Implement these properly when FFI support is added
 #[derive(Debug, Clone)]

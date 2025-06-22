@@ -65,6 +65,9 @@ impl SensorFfi for GNSS {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(GNSS, is_gnss);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(GNSS);
+
 #[cfg(test)]
 mod tests {
 

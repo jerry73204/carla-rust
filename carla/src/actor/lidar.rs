@@ -81,3 +81,6 @@ impl SensorFfi for LiDAR {
 
 // Implement conversion traits using the macro
 crate::impl_sensor_conversions!(LiDAR, is_lidar);
+
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(LiDAR);

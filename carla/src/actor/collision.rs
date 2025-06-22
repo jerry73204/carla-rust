@@ -66,6 +66,9 @@ impl SensorFfi for CollisionSensor {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(CollisionSensor, is_collision);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(CollisionSensor);
+
 #[cfg(test)]
 mod tests {
 

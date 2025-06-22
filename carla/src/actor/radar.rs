@@ -88,6 +88,9 @@ impl SensorFfi for Radar {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(Radar, is_radar);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(Radar);
+
 #[cfg(test)]
 mod tests {
 

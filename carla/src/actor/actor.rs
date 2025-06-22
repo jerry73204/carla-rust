@@ -3,7 +3,7 @@
 use super::{ActorId, Sensor, TrafficLight, Vehicle, Walker};
 use crate::{
     actor::ActorFfi,
-    geom::{Transform, Vector3D},
+    geom::{FromCxx, ToCxx, Transform, Vector3D},
 };
 
 /// Generic actor in the simulation.
@@ -11,12 +11,17 @@ use crate::{
 pub struct Actor {
     /// Internal handle to carla-sys Actor
     inner: carla_sys::ActorWrapper,
+    /// Flag to track if this actor has been explicitly destroyed
+    destroyed: std::cell::Cell<bool>,
 }
 
 impl Actor {
     /// Create a new Actor from a carla-sys ActorWrapper
     pub fn from_cxx(inner: carla_sys::ActorWrapper) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            destroyed: std::cell::Cell::new(false),
+        }
     }
 
     /// Get reference to the inner Actor for FFI operations
@@ -132,10 +137,105 @@ impl ActorFfi for Actor {
     }
 }
 
+impl super::ActorExt for Actor {
+    fn id(&self) -> super::ActorId {
+        self.inner.get_id()
+    }
+
+    fn type_id(&self) -> String {
+        self.inner.get_type_id()
+    }
+
+    fn transform(&self) -> crate::geom::Transform {
+        let simple_transform = self.inner.get_transform();
+        crate::geom::Transform::from_cxx(simple_transform)
+    }
+
+    fn set_transform(&self, transform: &crate::geom::Transform) -> crate::error::CarlaResult<()> {
+        let simple_transform = transform.to_cxx();
+        self.inner.set_transform(&simple_transform);
+        Ok(())
+    }
+
+    fn velocity(&self) -> Vector3D {
+        let simple_velocity = carla_sys::ffi::Actor_GetVelocity(self.inner.get_actor());
+        Vector3D::from_cxx(simple_velocity)
+    }
+
+    fn angular_velocity(&self) -> Vector3D {
+        let simple_angular_velocity =
+            carla_sys::ffi::Actor_GetAngularVelocity(self.inner.get_actor());
+        Vector3D::from_cxx(simple_angular_velocity)
+    }
+
+    fn acceleration(&self) -> Vector3D {
+        let simple_acceleration = carla_sys::ffi::Actor_GetAcceleration(self.inner.get_actor());
+        Vector3D::from_cxx(simple_acceleration)
+    }
+
+    fn is_alive(&self) -> bool {
+        !self.destroyed.get() && self.inner.is_alive()
+    }
+
+    fn set_simulate_physics(&self, enabled: bool) -> crate::error::CarlaResult<()> {
+        carla_sys::ffi::Actor_SetSimulatePhysics(self.inner.get_actor(), enabled);
+        Ok(())
+    }
+
+    fn add_impulse(&self, impulse: &Vector3D) -> crate::error::CarlaResult<()> {
+        let simple_impulse = impulse.to_cxx();
+        carla_sys::ffi::Actor_AddImpulse(self.inner.get_actor(), &simple_impulse);
+        Ok(())
+    }
+
+    fn add_force(&self, force: &Vector3D) -> crate::error::CarlaResult<()> {
+        let simple_force = force.to_cxx();
+        carla_sys::ffi::Actor_AddForce(self.inner.get_actor(), &simple_force);
+        Ok(())
+    }
+
+    fn add_torque(&self, torque: &Vector3D) -> crate::error::CarlaResult<()> {
+        let simple_torque = torque.to_cxx();
+        carla_sys::ffi::Actor_AddTorque(self.inner.get_actor(), &simple_torque);
+        Ok(())
+    }
+
+    fn bounding_box(&self) -> crate::geom::BoundingBox {
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(self.inner.get_actor());
+        crate::geom::BoundingBox::from_cxx(simple_bbox)
+    }
+
+    fn destroy(&mut self) -> crate::error::CarlaResult<()> {
+        if self.destroyed.get() {
+            // Already destroyed, return error
+            return Err(crate::error::DestroyError::InvalidActor {
+                actor_id: self.id(),
+            }
+            .into());
+        }
+
+        // Call C++ destruction
+        let success = self.inner.destroy();
+
+        if success {
+            // Mark as destroyed to prevent double destruction
+            self.destroyed.set(true);
+            Ok(())
+        } else {
+            // If C++ destroy returns false, it means the actor is invalid or
+            // already destroyed in the simulation
+            Err(crate::error::DestroyError::InvalidActor {
+                actor_id: self.id(),
+            }
+            .into())
+        }
+    }
+}
+
 impl Drop for Actor {
     fn drop(&mut self) {
-        // Check if the actor is still alive before attempting destruction
-        if self.inner.is_alive() {
+        // Only destroy if not already explicitly destroyed
+        if !self.destroyed.get() && self.inner.is_alive() {
             // Call C++ destruction without error handling in Drop
             let _ = self.inner.destroy();
         }

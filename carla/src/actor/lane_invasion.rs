@@ -67,6 +67,9 @@ impl SensorFfi for LaneInvasionSensor {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(LaneInvasionSensor, is_lane_invasion);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(LaneInvasionSensor);
+
 #[cfg(test)]
 mod tests {
 

@@ -65,6 +65,9 @@ impl SensorFfi for IMU {
 // Implement all conversion traits using the macro
 crate::impl_sensor_conversions!(IMU, is_imu);
 
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(IMU);
+
 #[cfg(test)]
 mod tests {
 

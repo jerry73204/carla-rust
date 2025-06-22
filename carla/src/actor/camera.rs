@@ -119,3 +119,6 @@ impl SensorFfi for Camera {
 
 // Implement conversion traits using the macro
 crate::impl_sensor_conversions!(Camera, is_camera);
+
+// Implement ActorExt trait using the macro
+crate::impl_sensor_actor_ext!(Camera);

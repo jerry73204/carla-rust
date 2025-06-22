@@ -113,11 +113,20 @@ pub trait ActorExt {
     fn destroy(&mut self) -> CarlaResult<()>;
 }
 
-// Blanket implementation for types that implement ActorFfi
-// Note: Sensor implements ActorExt directly without ActorFfi
+/// Sealed trait to control which types get the blanket ActorExt implementation
+mod sealed {
+    pub trait Sealed {}
+    impl Sealed for crate::actor::Vehicle {}
+    impl Sealed for crate::actor::Walker {}
+    impl Sealed for crate::actor::TrafficLight {}
+    impl Sealed for crate::actor::TrafficSign {}
+}
+
+// Blanket implementation for types that implement ActorFfi but are not Actor
+// Note: Sensor and Actor implement ActorExt directly
 impl<T> ActorExt for T
 where
-    T: ActorFfi,
+    T: ActorFfi + sealed::Sealed,
 {
     fn id(&self) -> ActorId {
         self.as_actor_ffi().get_id()
@@ -271,6 +280,115 @@ pub trait SensorExt: SensorFfi {
 }
 
 impl<T> SensorExt for T where T: SensorFfi {}
+
+// ActorExt implementations for sensor wrapper types
+// These delegate to their inner Sensor's ActorExt implementation
+
+// Make this macro available to other modules
+#[macro_export]
+macro_rules! impl_sensor_actor_ext {
+    ($sensor_type:ty) => {
+        impl crate::actor::ActorExt for $sensor_type {
+            fn id(&self) -> crate::actor::ActorId {
+                self.as_sensor().id()
+            }
+
+            fn type_id(&self) -> String {
+                self.as_sensor().type_id()
+            }
+
+            fn transform(&self) -> crate::geom::Transform {
+                self.as_sensor().transform()
+            }
+
+            fn set_transform(&self, transform: &crate::geom::Transform) -> crate::error::CarlaResult<()> {
+                self.as_sensor().set_transform(transform)
+            }
+
+            fn velocity(&self) -> crate::geom::Vector3D {
+                self.as_sensor().velocity()
+            }
+
+            fn angular_velocity(&self) -> crate::geom::Vector3D {
+                self.as_sensor().angular_velocity()
+            }
+
+            fn acceleration(&self) -> crate::geom::Vector3D {
+                self.as_sensor().acceleration()
+            }
+
+            fn is_alive(&self) -> bool {
+                self.as_sensor().is_alive()
+            }
+
+            fn set_simulate_physics(&self, enabled: bool) -> crate::error::CarlaResult<()> {
+                self.as_sensor().set_simulate_physics(enabled)
+            }
+
+            fn add_impulse(&self, impulse: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+                self.as_sensor().add_impulse(impulse)
+            }
+
+            fn add_force(&self, force: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+                self.as_sensor().add_force(force)
+            }
+
+            fn add_torque(&self, torque: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+                self.as_sensor().add_torque(torque)
+            }
+
+            fn bounding_box(&self) -> crate::geom::BoundingBox {
+                self.as_sensor().bounding_box()
+            }
+
+            fn destroy(&mut self) -> crate::error::CarlaResult<()> {
+                // Sensor wrapper types don't support direct destruction through this method
+                // as they don't have mutable access to the inner sensor.
+                // Destruction happens automatically through Drop trait.
+                // For explicit destruction, convert to Actor first using into_actor().
+                Err(crate::error::CarlaError::Sensor(
+                    crate::error::SensorError::CallbackFailed(
+                        "Sensor wrapper types don't support destroy() - use into_actor().destroy() or rely on Drop".to_string()
+                    )
+                ))
+            }
+        }
+    };
+}
+
+// Sensor wrapper types apply this macro in their respective files
+
+// Static assertions to verify that all actor types implement ActorExt
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::actor::{
+        Actor, Camera, CollisionSensor, DVSCamera, LaneInvasionSensor, LiDAR,
+        ObstacleDetectionSensor, RSSSensor, Radar, Sensor, TrafficLight, TrafficSign, Vehicle,
+        Walker, GNSS, IMU,
+    };
+    use static_assertions::assert_impl_all;
+
+    // Verify that all actor types implement ActorExt
+    assert_impl_all!(Actor: ActorExt);
+    assert_impl_all!(Vehicle: ActorExt);
+    assert_impl_all!(Walker: ActorExt);
+    assert_impl_all!(TrafficLight: ActorExt);
+    assert_impl_all!(TrafficSign: ActorExt);
+
+    // Verify that all sensor types implement ActorExt
+    assert_impl_all!(Sensor: ActorExt);
+    assert_impl_all!(Camera: ActorExt);
+    assert_impl_all!(LiDAR: ActorExt);
+    assert_impl_all!(GNSS: ActorExt);
+    assert_impl_all!(IMU: ActorExt);
+    assert_impl_all!(Radar: ActorExt);
+    assert_impl_all!(CollisionSensor: ActorExt);
+    assert_impl_all!(DVSCamera: ActorExt);
+    assert_impl_all!(LaneInvasionSensor: ActorExt);
+    assert_impl_all!(ObstacleDetectionSensor: ActorExt);
+    assert_impl_all!(RSSSensor: ActorExt);
+}
 
 // /// Trait for vehicle-specific behavior.
 // ///
