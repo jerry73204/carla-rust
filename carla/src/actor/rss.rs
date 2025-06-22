@@ -36,14 +36,14 @@ impl RSSSensor {
         Ok(())
     }
 
-    /// Start listening with an async channel for RSS data.
-    ///
-    /// Returns a receiver that yields RSS data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<RSSData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("RSSSensor::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for RSS data.
+    //     ///
+    //     /// Returns a receiver that yields RSS data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<RSSData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("RSSSensor::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest RSS response data.
     pub fn data(&self) -> Option<RSSData> {

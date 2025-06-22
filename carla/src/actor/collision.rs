@@ -36,14 +36,15 @@ impl CollisionSensor {
         Ok(())
     }
 
-    /// Start listening with an async channel for collision data.
-    ///
-    /// Returns a receiver that yields collision data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<CollisionData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("CollisionSensor::listen_async not yet implemented with carla-sys FFI")
-    }
+    // TODO: Re-enable async support in the future
+    // /// Start listening with an async channel for collision data.
+    // ///
+    // /// Returns a receiver that yields collision data. Requires the `async` feature.
+    // #[cfg(feature = "async")]
+    // pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<CollisionData>, SensorError> {
+    //     // TODO: Implement using carla-sys FFI interface
+    //     todo!("CollisionSensor::listen_async not yet implemented with carla-sys FFI")
+    // }
 
     /// Get the latest collision event.
     pub fn data(&self) -> Option<CollisionData> {

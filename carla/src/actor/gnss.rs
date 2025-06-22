@@ -36,14 +36,14 @@ impl GNSS {
         Ok(())
     }
 
-    /// Start listening with an async channel for GNSS data.
-    ///
-    /// Returns a receiver that yields GNSS data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<GNSSData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("GNSS::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for GNSS data.
+    //     ///
+    //     /// Returns a receiver that yields GNSS data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<GNSSData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("GNSS::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest GNSS measurement.
     pub fn data(&self) -> Option<GNSSData> {

@@ -156,57 +156,58 @@ impl SensorStream {
     }
 }
 
-/// Async sensor stream for tokio-based applications.
-#[cfg(feature = "async")]
-pub struct AsyncSensorStream {
-    /// Async channels for each sensor
-    channels: Arc<Mutex<HashMap<ActorId, tokio::sync::mpsc::Receiver<Box<dyn SensorData>>>>>,
-    /// Stream configuration
-    config: StreamConfig,
-}
+// TODO: Re-enable async support in the future
+// /// Async sensor stream for tokio-based applications.
+// #[cfg(feature = "async")]
+// pub struct AsyncSensorStream {
+//     /// Async channels for each sensor
+//     channels: Arc<Mutex<HashMap<ActorId, tokio::sync::mpsc::Receiver<Box<dyn SensorData>>>>>,
+//     /// Stream configuration
+//     config: StreamConfig,
+// }
+//
+// #[cfg(feature = "async")]
+// impl AsyncSensorStream {
+//     /// Create a new async sensor stream.
+//     pub fn new(config: StreamConfig) -> Self {
+//         Self {
+//             channels: Arc::new(Mutex::new(HashMap::new())),
+//             config,
+//         }
+//     }
+//
+//     /// Subscribe to a sensor's data stream.
+//     pub async fn subscribe(
+//         &self,
+//         sensor_id: ActorId,
+//     ) -> CarlaResult<tokio::sync::mpsc::Receiver<Box<dyn SensorData>>> {
+//         let mut channels = self.channels.lock().unwrap();
+//
+//         if channels.len() >= self.config.max_sensors {
+//             return Err(SensorError::InvalidConfiguration(
+//                 "Maximum number of sensor subscriptions reached".to_string(),
+//             )
+//             .into());
+//         }
+//
+//         let (tx, rx) = tokio::sync::mpsc::channel(self.config.buffer_size);
+//
+//         // TODO: Connect tx to actual sensor data stream
+//         // This would be implemented when integrating with carla-sys
+//
+//         channels.insert(sensor_id, rx);
+//
+//         Ok(channels.remove(&sensor_id).unwrap())
+//     }
+//
+//     /// Unsubscribe from a sensor's data stream.
+//     pub async fn unsubscribe(&self, sensor_id: ActorId) -> CarlaResult<()> {
+//         let mut channels = self.channels.lock().unwrap();
 
-#[cfg(feature = "async")]
-impl AsyncSensorStream {
-    /// Create a new async sensor stream.
-    pub fn new(config: StreamConfig) -> Self {
-        Self {
-            channels: Arc::new(Mutex::new(HashMap::new())),
-            config,
-        }
-    }
-
-    /// Subscribe to a sensor's data stream.
-    pub async fn subscribe(
-        &self,
-        sensor_id: ActorId,
-    ) -> CarlaResult<tokio::sync::mpsc::Receiver<Box<dyn SensorData>>> {
-        let mut channels = self.channels.lock().unwrap();
-
-        if channels.len() >= self.config.max_sensors {
-            return Err(SensorError::InvalidConfiguration(
-                "Maximum number of sensor subscriptions reached".to_string(),
-            )
-            .into());
-        }
-
-        let (tx, rx) = tokio::sync::mpsc::channel(self.config.buffer_size);
-
-        // TODO: Connect tx to actual sensor data stream
-        // This would be implemented when integrating with carla-sys
-
-        channels.insert(sensor_id, rx);
-
-        Ok(channels.remove(&sensor_id).unwrap())
-    }
-
-    /// Unsubscribe from a sensor's data stream.
-    pub async fn unsubscribe(&self, sensor_id: ActorId) -> CarlaResult<()> {
-        let mut channels = self.channels.lock().unwrap();
-
-        if channels.remove(&sensor_id).is_none() {
-            return Err(SensorError::NotListening(sensor_id).into());
-        }
-
-        Ok(())
-    }
-}
+//         if channels.remove(&sensor_id).is_none() {
+//             return Err(SensorError::NotListening(sensor_id).into());
+//         }
+//
+//         Ok(())
+//     }
+// }

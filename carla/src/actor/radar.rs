@@ -36,14 +36,14 @@ impl Radar {
         Ok(())
     }
 
-    /// Start listening with an async channel for radar data.
-    ///
-    /// Returns a receiver that yields radar data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<RadarData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("Radar::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for radar data.
+    //     ///
+    //     /// Returns a receiver that yields radar data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<RadarData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("Radar::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest radar measurement.
     pub fn data(&self) -> Option<RadarData> {

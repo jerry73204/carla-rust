@@ -50,14 +50,15 @@ impl Sensor {
         Ok(())
     }
 
-    /// Start listening with an async channel for sensor data.
-    ///
-    /// Returns a receiver that yields sensor data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<Vec<u8>>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("Sensor::listen_async not yet implemented with carla-sys FFI")
-    }
+    // TODO: Re-enable async support in the future
+    // /// Start listening with an async channel for sensor data.
+    // ///
+    // /// Returns a receiver that yields sensor data. Requires the `async` feature.
+    // #[cfg(feature = "async")]
+    // pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<Vec<u8>>, SensorError> {
+    //     // TODO: Implement using carla-sys FFI interface
+    //     todo!("Sensor::listen_async not yet implemented with carla-sys FFI")
+    // }
 
     /// Stop listening for sensor data.
     pub fn stop(&self) {

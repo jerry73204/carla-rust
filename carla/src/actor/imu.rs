@@ -36,14 +36,14 @@ impl IMU {
         Ok(())
     }
 
-    /// Start listening with an async channel for IMU data.
-    ///
-    /// Returns a receiver that yields IMU data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<IMUData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("IMU::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for IMU data.
+    //     ///
+    //     /// Returns a receiver that yields IMU data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<IMUData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("IMU::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest IMU measurement.
     pub fn data(&self) -> Option<IMUData> {

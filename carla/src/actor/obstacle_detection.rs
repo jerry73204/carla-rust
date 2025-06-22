@@ -36,16 +36,16 @@ impl ObstacleDetectionSensor {
         Ok(())
     }
 
-    /// Start listening with an async channel for obstacle detection data.
-    ///
-    /// Returns a receiver that yields obstacle detection data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(
-        &self,
-    ) -> Result<tokio::sync::mpsc::Receiver<ObstacleDetectionData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("ObstacleDetectionSensor::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for obstacle detection data.
+    //     ///
+    //     /// Returns a receiver that yields obstacle detection data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(
+    //         &self,
+    //     ) -> Result<tokio::sync::mpsc::Receiver<ObstacleDetectionData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("ObstacleDetectionSensor::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest obstacle detection event.
     pub fn data(&self) -> Option<ObstacleDetectionData> {

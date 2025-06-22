@@ -36,14 +36,14 @@ impl DVSCamera {
         Ok(())
     }
 
-    /// Start listening with an async channel for DVS event data.
-    ///
-    /// Returns a receiver that yields DVS event arrays. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<DVSData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("DVSCamera::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for DVS event data.
+    //     ///
+    //     /// Returns a receiver that yields DVS event arrays. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(&self) -> Result<tokio::sync::mpsc::Receiver<DVSData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("DVSCamera::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest DVS event array.
     pub fn data(&self) -> Option<DVSData> {

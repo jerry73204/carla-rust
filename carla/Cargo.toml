@@ -29,8 +29,9 @@ derivative = "2.2.0"
 static_assertions = "1.1.0"
 bitflags = "2.4.2"
 
+# TODO: Re-enable async support in the future
 # Async support (for sensor callbacks)
-tokio = { version = "1.35.1", features = ["sync", "rt"] }
+# tokio = { version = "1.35.1", features = ["sync", "rt"] }
 
 [dev-dependencies]
 approx = "0.5"
@@ -38,8 +39,9 @@ serial_test = "3.0"
 
 [features]
 default = []
+# TODO: Re-enable async feature in the future
 # Enable async sensor processing
-async = ["tokio/rt-multi-thread"]
+# async = ["tokio/rt-multi-thread"]
 # Enable tests that require CARLA server running
 test-carla-server = []
 

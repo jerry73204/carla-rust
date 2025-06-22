@@ -36,16 +36,16 @@ impl LaneInvasionSensor {
         Ok(())
     }
 
-    /// Start listening with an async channel for lane invasion data.
-    ///
-    /// Returns a receiver that yields lane invasion data. Requires the `async` feature.
-    #[cfg(feature = "async")]
-    pub fn listen_async(
-        &self,
-    ) -> Result<tokio::sync::mpsc::Receiver<LaneInvasionData>, SensorError> {
-        // TODO: Implement using carla-sys FFI interface
-        todo!("LaneInvasionSensor::listen_async not yet implemented with carla-sys FFI")
-    }
+    //     /// Start listening with an async channel for lane invasion data.
+    //     ///
+    //     /// Returns a receiver that yields lane invasion data. Requires the `async` feature.
+    //     #[cfg(feature = "async")]
+    //     pub fn listen_async(
+    //         &self,
+    //     ) -> Result<tokio::sync::mpsc::Receiver<LaneInvasionData>, SensorError> {
+    //         // TODO: Implement using carla-sys FFI interface
+    //         todo!("LaneInvasionSensor::listen_async not yet implemented with carla-sys FFI")
+    //     }
 
     /// Get the latest lane invasion event.
     pub fn data(&self) -> Option<LaneInvasionData> {
