@@ -97,7 +97,7 @@ pub mod error;
 
 // Utility modules
 pub mod traits;
-mod utils;
+pub mod utils;
 
 // Re-export commonly used types for convenience
 pub use actor::{ActorExt, SensorExt};
