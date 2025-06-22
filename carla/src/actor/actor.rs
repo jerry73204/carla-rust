@@ -125,8 +125,10 @@ impl Actor {
 }
 
 impl ActorFfi for Actor {
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
-        &self.inner
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper {
+        // Actor already contains ActorWrapper, so clone it
+        // This is efficient since ActorWrapper contains SharedPtr which is cheap to clone
+        self.inner.clone()
     }
 }
 

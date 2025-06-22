@@ -35,6 +35,15 @@ impl TrafficLight {
         }
     }
 
+    /// Convert this traffic light to a generic Actor.
+    ///
+    /// This creates a new Actor instance that represents the same traffic light.
+    /// This is useful when you need to work with generic actor functionality.
+    pub fn into_actor(self) -> Actor {
+        let actor_wrapper = self.inner.as_actor_wrapper();
+        Actor::from_cxx(actor_wrapper)
+    }
+
     /// Get current traffic light state.
     pub fn state(&self) -> TrafficLightState {
         let cxx_state = self.inner.get_state();
@@ -134,8 +143,8 @@ impl TrafficLight {
 }
 
 impl ActorFfi for TrafficLight {
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
-        todo!()
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper {
+        self.inner.as_actor_wrapper()
     }
 }
 

@@ -506,6 +506,14 @@ impl std::fmt::Debug for ActorWrapper {
     }
 }
 
+impl Clone for ActorWrapper {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
 impl ActorWrapper {
     /// Create a new ActorWrapper from a SharedPtr<Actor>
     pub fn new(inner: SharedPtr<Actor>) -> Self {

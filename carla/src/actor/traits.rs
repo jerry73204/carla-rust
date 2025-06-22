@@ -6,8 +6,8 @@ use crate::{
 };
 
 pub(crate) trait ActorFfi {
-    /// Get reference to the inner Actor for FFI operations
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper;
+    /// Create an ActorWrapper for FFI operations
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper;
 }
 
 /// Common behavior for all CARLA actors.
@@ -139,19 +139,21 @@ where
     }
 
     fn velocity(&self) -> Vector3D {
-        let simple_velocity = carla_sys::ffi::Actor_GetVelocity(self.as_actor_ffi().get_actor());
+        let actor_wrapper = self.as_actor_ffi();
+        let simple_velocity = carla_sys::ffi::Actor_GetVelocity(actor_wrapper.get_actor());
         Vector3D::from_cxx(simple_velocity)
     }
 
     fn angular_velocity(&self) -> Vector3D {
+        let actor_wrapper = self.as_actor_ffi();
         let simple_angular_velocity =
-            carla_sys::ffi::Actor_GetAngularVelocity(self.as_actor_ffi().get_actor());
+            carla_sys::ffi::Actor_GetAngularVelocity(actor_wrapper.get_actor());
         Vector3D::from_cxx(simple_angular_velocity)
     }
 
     fn acceleration(&self) -> Vector3D {
-        let simple_acceleration =
-            carla_sys::ffi::Actor_GetAcceleration(self.as_actor_ffi().get_actor());
+        let actor_wrapper = self.as_actor_ffi();
+        let simple_acceleration = carla_sys::ffi::Actor_GetAcceleration(actor_wrapper.get_actor());
         Vector3D::from_cxx(simple_acceleration)
     }
 
@@ -160,30 +162,35 @@ where
     }
 
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        carla_sys::ffi::Actor_SetSimulatePhysics(self.as_actor_ffi().get_actor(), enabled);
+        let actor_wrapper = self.as_actor_ffi();
+        carla_sys::ffi::Actor_SetSimulatePhysics(actor_wrapper.get_actor(), enabled);
         Ok(())
     }
 
     fn add_impulse(&self, impulse: &Vector3D) -> CarlaResult<()> {
+        let actor_wrapper = self.as_actor_ffi();
         let simple_impulse = impulse.to_cxx();
-        carla_sys::ffi::Actor_AddImpulse(self.as_actor_ffi().get_actor(), &simple_impulse);
+        carla_sys::ffi::Actor_AddImpulse(actor_wrapper.get_actor(), &simple_impulse);
         Ok(())
     }
 
     fn add_force(&self, force: &Vector3D) -> CarlaResult<()> {
+        let actor_wrapper = self.as_actor_ffi();
         let simple_force = force.to_cxx();
-        carla_sys::ffi::Actor_AddForce(self.as_actor_ffi().get_actor(), &simple_force);
+        carla_sys::ffi::Actor_AddForce(actor_wrapper.get_actor(), &simple_force);
         Ok(())
     }
 
     fn add_torque(&self, torque: &Vector3D) -> CarlaResult<()> {
+        let actor_wrapper = self.as_actor_ffi();
         let simple_torque = torque.to_cxx();
-        carla_sys::ffi::Actor_AddTorque(self.as_actor_ffi().get_actor(), &simple_torque);
+        carla_sys::ffi::Actor_AddTorque(actor_wrapper.get_actor(), &simple_torque);
         Ok(())
     }
 
     fn bounding_box(&self) -> BoundingBox {
-        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(self.as_actor_ffi().get_actor());
+        let actor_wrapper = self.as_actor_ffi();
+        let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(actor_wrapper.get_actor());
         BoundingBox::from_cxx(simple_bbox)
     }
 

@@ -32,6 +32,7 @@ impl Vehicle {
         let actor_ref = actor.inner_actor();
         if let Some(vehicle_wrapper) = carla_sys::VehicleWrapper::from_actor(actor_ref) {
             let id = vehicle_wrapper.get_id();
+
             Ok(Self {
                 id,
                 inner: vehicle_wrapper,
@@ -75,6 +76,15 @@ impl Vehicle {
         self.inner.get_speed() * 3.6
     }
 
+    /// Convert this vehicle to a generic Actor.
+    ///
+    /// This creates a new Actor instance that represents the same vehicle.
+    /// This is useful when you need to work with generic actor functionality.
+    pub fn into_actor(self) -> Actor {
+        let actor_wrapper = self.inner.as_actor_wrapper();
+        Actor::from_cxx(actor_wrapper)
+    }
+
     /// Open or close a specific door.
     pub fn open_door(&self, door_type: VehicleDoorType) -> CarlaResult<()> {
         self.set_door_state(door_type, true)
@@ -87,8 +97,9 @@ impl Vehicle {
 }
 
 impl ActorFfi for Vehicle {
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
-        todo!()
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper {
+        // Create ActorWrapper from VehicleWrapper on-demand
+        self.inner.as_actor_wrapper()
     }
 }
 

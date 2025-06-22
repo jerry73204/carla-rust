@@ -21,6 +21,22 @@ impl TrafficSignWrapper {
         }
     }
 
+    /// Convert back to an Actor (FFI internal use)
+    pub(crate) fn to_actor(&self) -> SharedPtr<Actor> {
+        ffi::TrafficSign_CastToActor(&self.inner)
+    }
+
+    /// Create an ActorWrapper from this TrafficSignWrapper (Internal FFI use only)
+    ///
+    /// # Note
+    /// This method is for internal use by the carla crate and should not be used
+    /// by external consumers of the API.
+    pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
+        // Cast TrafficSign to Actor and create ActorWrapper
+        let actor_shared_ptr = ffi::TrafficSign_CastToActor(&self.inner);
+        crate::ActorWrapper::new(actor_shared_ptr)
+    }
+
     /// Get the sign ID (unique identifier for this traffic sign type)
     pub fn get_sign_id(&self) -> String {
         ffi::TrafficSign_GetSignId(&self.inner)

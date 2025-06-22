@@ -30,7 +30,7 @@ impl TrafficLightWrapper {
     }
 
     /// Create a TrafficLightWrapper from a SharedPtr<TrafficLight>
-    pub fn from_shared_ptr(traffic_light_ptr: SharedPtr<TrafficLight>) -> Option<Self> {
+    pub fn from_cxx(traffic_light_ptr: SharedPtr<TrafficLight>) -> Option<Self> {
         if traffic_light_ptr.is_null() {
             None
         } else {
@@ -38,6 +38,22 @@ impl TrafficLightWrapper {
                 inner: traffic_light_ptr,
             })
         }
+    }
+
+    /// Convert back to an Actor
+    pub fn to_actor(&self) -> SharedPtr<Actor> {
+        ffi::TrafficLight_CastToActor(&self.inner)
+    }
+
+    /// Create an ActorWrapper from this TrafficLightWrapper (Internal FFI use only)
+    ///
+    /// # Note
+    /// This method is for internal use by the carla crate and should not be used
+    /// by external consumers of the API.
+    pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
+        // Cast TrafficLight to Actor and create ActorWrapper
+        let actor_shared_ptr = ffi::TrafficLight_CastToActor(&self.inner);
+        crate::ActorWrapper::new(actor_shared_ptr)
     }
 
     /// Get current traffic light state

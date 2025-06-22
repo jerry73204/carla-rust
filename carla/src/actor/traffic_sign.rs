@@ -16,10 +16,7 @@ pub struct TrafficSign {
 
 impl TrafficSign {
     /// Create a traffic sign from a carla-sys TrafficSignWrapper and actor ID.
-    pub(crate) fn from_cxx(
-        traffic_sign_wrapper: TrafficSignWrapper,
-        id: ActorId,
-    ) -> CarlaResult<Self> {
+    pub(crate) fn from_cxx(traffic_sign_wrapper: TrafficSignWrapper) -> CarlaResult<Self> {
         Ok(Self {
             inner: traffic_sign_wrapper,
         })
@@ -28,7 +25,6 @@ impl TrafficSign {
     /// Create a traffic sign from an actor by casting.
     pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
         let actor_ref = actor.inner_actor();
-        let actor_id = actor.id();
         if let Some(traffic_sign_wrapper) = TrafficSignWrapper::from_actor(actor_ref) {
             Ok(Self {
                 inner: traffic_sign_wrapper,
@@ -50,6 +46,15 @@ impl TrafficSign {
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
 
+    /// Convert this traffic sign to a generic Actor.
+    ///
+    /// This creates a new Actor instance that represents the same traffic sign.
+    /// This is useful when you need to work with generic actor functionality.
+    pub fn into_actor(self) -> Actor {
+        let actor_wrapper = self.inner.as_actor_wrapper();
+        Actor::from_cxx(actor_wrapper)
+    }
+
     /// Check if a location is within the sign's influence area.
     pub fn is_in_trigger_volume(&self, location: &crate::geom::Location) -> bool {
         let trigger_volume = self.trigger_volume();
@@ -58,8 +63,8 @@ impl TrafficSign {
 }
 
 impl ActorFfi for TrafficSign {
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
-        todo!()
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper {
+        self.inner.as_actor_wrapper()
     }
 }
 

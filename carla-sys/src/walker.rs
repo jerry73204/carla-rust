@@ -28,9 +28,20 @@ impl WalkerWrapper {
         }
     }
 
-    /// Convert back to an Actor
-    pub fn to_actor(&self) -> SharedPtr<Actor> {
+    /// Convert back to an Actor (FFI internal use)
+    pub(crate) fn to_actor(&self) -> SharedPtr<Actor> {
         ffi::Walker_CastToActor(&self.inner)
+    }
+
+    /// Create an ActorWrapper from this WalkerWrapper (Internal FFI use only)
+    ///
+    /// # Note
+    /// This method is for internal use by the carla crate and should not be used
+    /// by external consumers of the API.
+    pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
+        // Cast Walker to Actor and create ActorWrapper
+        let actor_shared_ptr = ffi::Walker_CastToActor(&self.inner);
+        crate::ActorWrapper::new(actor_shared_ptr)
     }
 
     /// Get access to the inner Walker for direct FFI calls

@@ -41,6 +41,15 @@ impl Walker {
         self.inner.get_speed()
     }
 
+    /// Convert this walker to a generic Actor.
+    ///
+    /// This creates a new Actor instance that represents the same walker.
+    /// This is useful when you need to work with generic actor functionality.
+    pub fn into_actor(self) -> Actor {
+        let actor_wrapper = self.inner.as_actor_wrapper();
+        Actor::from_cxx(actor_wrapper)
+    }
+
     /// Note about navigation functionality.
     ///
     /// Navigation functions like go_to_location, start/stop navigation, and set_max_speed
@@ -88,8 +97,9 @@ impl Walker {
 }
 
 impl ActorFfi for Walker {
-    fn as_actor_ffi(&self) -> &carla_sys::ActorWrapper {
-        todo!()
+    fn as_actor_ffi(&self) -> carla_sys::ActorWrapper {
+        // Create ActorWrapper from WalkerWrapper on-demand
+        self.inner.as_actor_wrapper()
     }
 }
 
