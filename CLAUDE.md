@@ -176,6 +176,41 @@ pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
 3. Use todo!() macro for any missing pieces to make them explicit
 4. Document in comments what specific FFI functions are needed
 
+## Testing Framework
+
+The Rust API includes a comprehensive testing framework that mirrors the C++ LibCarla tests:
+
+### Test Structure
+- **Unit Tests** (`carla/tests/unit/`) - Test individual components without server
+- **Integration Tests** (`carla/tests/integration/`) - Test with real or mock CARLA server  
+- **Benchmarks** (`carla/benches/`) - Performance benchmarks
+
+### Running Tests
+```bash
+# Set up test fixtures (one time)
+./setup_test_fixtures.sh
+
+# Run unit tests
+cargo test --lib
+
+# Run all tests with mock server
+cargo test
+
+# Run integration tests with real CARLA server
+CARLA_SERVER_HOST=localhost cargo test -- --ignored
+
+# Run benchmarks
+cargo bench
+```
+
+### Test Guidelines
+- Mirror each C++ test with equivalent Rust test
+- Use `todo!()` for unimplemented test cases
+- Property-based tests for complex invariants
+- Mock server for CI/CD testing
+
+For detailed test design, see [TEST.md](./TEST.md).
+
 ## Memories
 
 - Run the script `libcarla_c/build_libcarla_c.sh` to build the C library for testing.
@@ -190,3 +225,4 @@ pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
 - If a method, function or a fraction of code is not finished yet in Rust, leave a `todo!()` with TODO comments. Don't return a placeholder or dummy value. It would cause silent errors.
 - The methods and functions in carla/ Rust API follow the Rust convention. For example, `id()` is preferred over `get_id()`.
 - FFI types and functions are private to users in Rust API.
+- Tests in upstream C++ source code should have Rust counterparts in our Rust API. Our Rust tests records the corresponding test in C++ in comments.
