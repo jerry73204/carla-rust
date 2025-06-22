@@ -2,6 +2,7 @@
 //!
 //! Tests for basic client functionality that require a CARLA server
 
+#[path = "common/mod.rs"]
 mod common;
 
 use carla::{actor::ActorExt, client::Client, error::CarlaResult};

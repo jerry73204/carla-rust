@@ -49,9 +49,12 @@ impl ClientWrapper {
     }
 
     /// Get the simulation world
-    pub fn get_world(&self) -> WorldWrapper {
+    pub fn get_world(&self) -> Result<WorldWrapper> {
         let world_ptr = ffi::Client_GetWorld(&self.inner);
-        WorldWrapper { inner: world_ptr }
+        if world_ptr.is_null() {
+            anyhow::bail!("Failed to get world from client");
+        }
+        Ok(WorldWrapper { inner: world_ptr })
     }
 
     // World/Map management methods
@@ -62,21 +65,30 @@ impl ClientWrapper {
     }
 
     /// Load a new world/map
-    pub fn load_world(&self, map_name: &str) -> WorldWrapper {
+    pub fn load_world(&self, map_name: &str) -> Result<WorldWrapper> {
         let world_ptr = ffi::Client_LoadWorld(&self.inner, map_name);
-        WorldWrapper { inner: world_ptr }
+        if world_ptr.is_null() {
+            anyhow::bail!("Failed to load world: {}", map_name);
+        }
+        Ok(WorldWrapper { inner: world_ptr })
     }
 
     /// Reload the current world
-    pub fn reload_world(&self, reset_settings: bool) -> WorldWrapper {
+    pub fn reload_world(&self, reset_settings: bool) -> Result<WorldWrapper> {
         let world_ptr = ffi::Client_ReloadWorld(&self.inner, reset_settings);
-        WorldWrapper { inner: world_ptr }
+        if world_ptr.is_null() {
+            anyhow::bail!("Failed to reload world");
+        }
+        Ok(WorldWrapper { inner: world_ptr })
     }
 
     /// Generate OpenDRIVE world from string
-    pub fn generate_opendrive_world(&self, opendrive: &str) -> WorldWrapper {
+    pub fn generate_opendrive_world(&self, opendrive: &str) -> Result<WorldWrapper> {
         let world_ptr = ffi::Client_GenerateOpenDriveWorld(&self.inner, opendrive);
-        WorldWrapper { inner: world_ptr }
+        if world_ptr.is_null() {
+            anyhow::bail!("Failed to generate OpenDRIVE world");
+        }
+        Ok(WorldWrapper { inner: world_ptr })
     }
 
     // Recording methods
@@ -194,9 +206,12 @@ impl WorldWrapper {
     }
 
     /// Get the blueprint library for spawning actors
-    pub fn get_blueprint_library(&self) -> BlueprintLibraryWrapper {
+    pub fn get_blueprint_library(&self) -> Result<BlueprintLibraryWrapper> {
         let library_ptr = ffi::World_GetBlueprintLibrary(&self.inner);
-        BlueprintLibraryWrapper { inner: library_ptr }
+        if library_ptr.is_null() {
+            anyhow::bail!("Failed to get blueprint library");
+        }
+        Ok(BlueprintLibraryWrapper { inner: library_ptr })
     }
 
     /// Get the spectator actor (camera)
@@ -260,9 +275,12 @@ impl WorldWrapper {
     }
 
     /// Get the map associated with this world
-    pub fn get_map(&self) -> crate::map::MapWrapper {
+    pub fn get_map(&self) -> Result<crate::map::MapWrapper> {
         let map_ptr = ffi::World_GetMap(&self.inner);
-        crate::map::MapWrapper::new(map_ptr)
+        if map_ptr.is_null() {
+            anyhow::bail!("Failed to get map from world");
+        }
+        Ok(crate::map::MapWrapper::new(map_ptr))
     }
 
     /// Get the current episode settings (raw FFI version)

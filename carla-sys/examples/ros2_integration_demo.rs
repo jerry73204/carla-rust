@@ -26,15 +26,15 @@ fn main() -> anyhow::Result<()> {
     let mut client = ClientWrapper::new("localhost", 2000)?;
     client.set_timeout(Duration::from_secs(10));
 
-    let world = client.get_world();
-    println!("✅ Connected to world: {}", world.get_map().get_name());
+    let world = client.get_world()?;
+    println!("✅ Connected to world: {}", world.get_map()?.get_name());
 
     println!("\n📋 Note: This demo shows simplified ROS2 sensor control.");
     println!("        For full ROS2 features, use the CARLA ROS2 bridge or Python API.");
 
     // Get blueprint library and find vehicle blueprint
     println!("\n🚗 Setting up test vehicle...");
-    let blueprint_library = world.get_blueprint_library();
+    let blueprint_library = world.get_blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or_else(|| anyhow::anyhow!("Tesla Model 3 blueprint not found"))?;
@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     vehicle_bp.set_attribute("role_name", "ego_vehicle");
 
     // Spawn the vehicle
-    let spawn_points = world.get_map().get_recommended_spawn_points();
+    let spawn_points = world.get_map()?.get_recommended_spawn_points();
     let default_spawn =
         SimpleTransform::new(SimpleLocation::new(0.0, 0.0, 0.5), SimpleRotation::ZERO);
     let spawn_point = spawn_points.first().unwrap_or(&default_spawn);

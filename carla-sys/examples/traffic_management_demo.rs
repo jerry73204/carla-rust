@@ -20,11 +20,11 @@ fn main() -> Result<()> {
     client.set_timeout(Duration::from_secs(10));
 
     // Get the world
-    let world = client.get_world();
-    let blueprint_library = world.get_blueprint_library();
+    let world = client.get_world()?;
+    let blueprint_library = world.get_blueprint_library()?;
 
     // Get map spawn points
-    let map = world.get_map();
+    let map = world.get_map()?;
     let spawn_points = map.get_recommended_spawn_points();
     println!("Found {} spawn points", spawn_points.len());
 

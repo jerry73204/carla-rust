@@ -14,10 +14,10 @@ fn main() -> Result<()> {
     let client = ClientWrapper::new("localhost", 2000)?;
     println!("✅ Connected to CARLA server");
 
-    let world = client.get_world();
+    let world = client.get_world()?;
     println!("🌍 Retrieved world instance");
 
-    let map = world.get_map();
+    let map = world.get_map()?;
     println!("🗺️  Retrieved map instance");
 
     // Get all landmarks in the map

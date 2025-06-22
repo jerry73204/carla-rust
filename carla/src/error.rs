@@ -107,6 +107,13 @@ pub enum ClientError {
     /// Server disconnect
     #[error("Server disconnected unexpectedly")]
     Disconnected,
+
+    /// Server communication failed after connection
+    #[error("Server communication failed: {reason}")]
+    ServerCommunicationFailed {
+        /// Failure reason
+        reason: String,
+    },
 }
 
 /// Errors related to world operations.

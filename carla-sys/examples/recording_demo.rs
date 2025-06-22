@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
         Ok(client) => {
             println!("✅ Connected to CARLA server");
 
-            let world = client.get_world();
+            let world = client.get_world()?;
 
             // Demo recording filename
             let recording_filename = "demo_recording.log";

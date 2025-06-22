@@ -15,11 +15,11 @@ fn main() -> anyhow::Result<()> {
             println!("✓ Server version: {}", version);
 
             // Get world
-            let world = client.get_world();
+            let world = client.get_world()?;
             println!("✓ Got world with ID: {}", world.get_id());
 
             // Get blueprint library
-            let library = world.get_blueprint_library();
+            let library = world.get_blueprint_library()?;
             println!("✓ Blueprint library size: {}", library.size());
 
             // Find a vehicle blueprint

@@ -35,7 +35,7 @@ fn main() -> Result<()> {
     println!("\n📡 Connecting to CARLA server...");
     let mut client = ClientWrapper::new("localhost", 2000)?;
     client.set_timeout(Duration::from_secs(10));
-    let world = client.get_world();
+    let world = client.get_world()?;
 
     println!(
         "✅ Connected to CARLA server version: {}",
@@ -44,7 +44,7 @@ fn main() -> Result<()> {
     println!("🌍 World ID: {}", world.get_id());
 
     // Get blueprint library
-    let blueprint_library = world.get_blueprint_library();
+    let blueprint_library = world.get_blueprint_library()?;
     println!(
         "📚 Blueprint library loaded with {} blueprints",
         blueprint_library.size()

@@ -18,7 +18,7 @@ fn test_blueprint_library() -> CarlaResult<()> {
     assert!(size > 0);
 
     // Test finding a specific blueprint
-    if let Some(vehicle_bp) = blueprint_library.find("vehicle.tesla.model3")? {
+    if let Some(vehicle_bp) = blueprint_library.find("vehicle.dodge.charger")? {
         println!("Found Tesla Model 3 blueprint");
         println!("ID: {}", vehicle_bp.id());
         println!("Tags: {:?}", vehicle_bp.tags());
@@ -71,7 +71,7 @@ fn test_blueprint_spawning() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Get a vehicle blueprint
-    if let Some(vehicle_bp) = blueprint_library.find("vehicle.tesla.model3")? {
+    if let Some(vehicle_bp) = blueprint_library.find("vehicle.dodge.charger")? {
         // Define spawn transform
         let spawn_point =
             Transform::new(Location::new(0.0, 0.0, 0.5), Rotation::new(0.0, 0.0, 0.0));

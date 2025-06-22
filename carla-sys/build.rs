@@ -160,7 +160,7 @@ fn build_libcarla(source: &CarlaSource) -> anyhow::Result<(PathBuf, PathBuf)> {
     println!("Install from: {}", actual_build_dir.display());
 
     let install_status = std::process::Command::new("cmake")
-        .args(&[
+        .args([
             "--install",
             actual_build_dir.to_str().unwrap(),
             "--component",

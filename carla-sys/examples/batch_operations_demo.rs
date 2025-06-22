@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     client.set_timeout(Duration::from_secs(10));
 
     // Get the simulation world
-    let world = client.get_world();
+    let world = client.get_world()?;
     println!("🌍 World ID: {}", world.get_id());
 
     // === BATCH OPERATIONS DEMONSTRATIONS ===

@@ -90,71 +90,145 @@ std::unique_ptr<Client> create_client(rust::Str host, uint16_t port,
 
 // Client wrapper functions
 void Client_SetTimeout(Client &client, double timeout_seconds) {
-  auto duration = carla::time_duration::seconds(timeout_seconds);
-  client.SetTimeout(duration);
+  try {
+    auto duration = carla::time_duration::seconds(timeout_seconds);
+    client.SetTimeout(duration);
+  } catch (const std::exception &e) {
+    // Log error but don't propagate - this is a void function
+    std::cerr << "Error in Client_SetTimeout: " << e.what() << std::endl;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_SetTimeout" << std::endl;
+  }
 }
 
 double Client_GetTimeout(Client &client) {
-  auto duration = client.GetTimeout();
-  // Convert carla::time_duration to seconds
-  // time_duration stores milliseconds internally
-  return duration.to_chrono().count() / 1000.0; // milliseconds to seconds
+  try {
+    auto duration = client.GetTimeout();
+    // Convert carla::time_duration to seconds
+    // time_duration stores milliseconds internally
+    return duration.to_chrono().count() / 1000.0; // milliseconds to seconds
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_GetTimeout: " << e.what() << std::endl;
+    return 0.0; // Return default timeout on error
+  } catch (...) {
+    std::cerr << "Unknown error in Client_GetTimeout" << std::endl;
+    return 0.0;
+  }
 }
 
 rust::String Client_GetServerVersion(const Client &client) {
-  return rust::String(client.GetServerVersion());
+  try {
+    return rust::String(client.GetServerVersion());
+  } catch (const std::exception &e) {
+    // Return error message as version string
+    return rust::String(std::string("ERROR: ") + e.what());
+  } catch (...) {
+    return rust::String("ERROR: Unknown exception in GetServerVersion");
+  }
 }
 
 std::shared_ptr<World> Client_GetWorld(const Client &client) {
-  // GetWorld returns by value, we need to wrap it in a shared_ptr
-  return std::make_shared<World>(client.GetWorld());
+  try {
+    // GetWorld returns by value, we need to wrap it in a shared_ptr
+    return std::make_shared<World>(client.GetWorld());
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_GetWorld: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_GetWorld" << std::endl;
+    return nullptr;
+  }
 }
 
 // World/Map management wrapper functions
 rust::Vec<rust::String> Client_GetAvailableMaps(const Client &client) {
-  auto maps = const_cast<Client &>(client).GetAvailableMaps();
-  rust::Vec<rust::String> result;
-  for (const auto &map : maps) {
-    result.push_back(rust::String(map));
+  try {
+    auto maps = const_cast<Client &>(client).GetAvailableMaps();
+    rust::Vec<rust::String> result;
+    for (const auto &map : maps) {
+      result.push_back(rust::String(map));
+    }
+    return result;
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_GetAvailableMaps: " << e.what() << std::endl;
+    return rust::Vec<rust::String>(); // Return empty vector on error
+  } catch (...) {
+    std::cerr << "Unknown error in Client_GetAvailableMaps" << std::endl;
+    return rust::Vec<rust::String>();
   }
-  return result;
 }
 
 std::shared_ptr<World> Client_LoadWorld(const Client &client,
                                         rust::Str map_name) {
-  std::string map_str(map_name);
-  auto world = const_cast<Client &>(client).LoadWorld(
-      map_str, true, carla::rpc::MapLayer::All);
-  return std::make_shared<World>(std::move(world));
+  try {
+    std::string map_str(map_name);
+    auto world = const_cast<Client &>(client).LoadWorld(
+        map_str, true, carla::rpc::MapLayer::All);
+    return std::make_shared<World>(std::move(world));
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_LoadWorld: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_LoadWorld" << std::endl;
+    return nullptr;
+  }
 }
 
 std::shared_ptr<World> Client_ReloadWorld(const Client &client,
                                           bool reset_settings) {
-  auto world = const_cast<Client &>(client).ReloadWorld(reset_settings);
-  return std::make_shared<World>(std::move(world));
+  try {
+    auto world = const_cast<Client &>(client).ReloadWorld(reset_settings);
+    return std::make_shared<World>(std::move(world));
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_ReloadWorld: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_ReloadWorld" << std::endl;
+    return nullptr;
+  }
 }
 
 std::shared_ptr<World> Client_GenerateOpenDriveWorld(const Client &client,
                                                      rust::Str opendrive) {
-  std::string opendrive_str(opendrive);
-  // Use default OpendriveGenerationParameters
-  carla::rpc::OpendriveGenerationParameters params;
-  auto world = const_cast<Client &>(client).GenerateOpenDriveWorld(
-      opendrive_str, params, true);
-  return std::make_shared<World>(std::move(world));
+  try {
+    std::string opendrive_str(opendrive);
+    // Use default OpendriveGenerationParameters
+    carla::rpc::OpendriveGenerationParameters params;
+    auto world = const_cast<Client &>(client).GenerateOpenDriveWorld(
+        opendrive_str, params, true);
+    return std::make_shared<World>(std::move(world));
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_GenerateOpenDriveWorld: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_GenerateOpenDriveWorld" << std::endl;
+    return nullptr;
+  }
 }
 
 // Recording wrapper functions
 rust::String Client_StartRecorder(const Client &client, rust::Str filename,
                                   bool additional_data) {
-  std::string file_str(filename);
-  auto result =
-      const_cast<Client &>(client).StartRecorder(file_str, additional_data);
-  return rust::String(result);
+  try {
+    std::string file_str(filename);
+    auto result =
+        const_cast<Client &>(client).StartRecorder(file_str, additional_data);
+    return rust::String(result);
+  } catch (const std::exception &e) {
+    return rust::String(std::string("ERROR: ") + e.what());
+  } catch (...) {
+    return rust::String("ERROR: Unknown exception in StartRecorder");
+  }
 }
 
 void Client_StopRecorder(const Client &client) {
-  const_cast<Client &>(client).StopRecorder();
+  try {
+    const_cast<Client &>(client).StopRecorder();
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Client_StopRecorder: " << e.what() << std::endl;
+  } catch (...) {
+    std::cerr << "Unknown error in Client_StopRecorder" << std::endl;
+  }
 }
 
 rust::String Client_ShowRecorderFileInfo(const Client &client,
@@ -212,66 +286,132 @@ void Client_SetReplayerIgnoreSpectator(const Client &client,
 }
 
 // World wrapper functions
-uint64_t World_GetId(const World &world) { return world.GetId(); }
+uint64_t World_GetId(const World &world) {
+  try {
+    return world.GetId();
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_GetId: " << e.what() << std::endl;
+    return 0;
+  } catch (...) {
+    std::cerr << "Unknown error in World_GetId" << std::endl;
+    return 0;
+  }
+}
 
 std::shared_ptr<BlueprintLibrary>
 World_GetBlueprintLibrary(const World &world) {
-  return world.GetBlueprintLibrary();
+  try {
+    return world.GetBlueprintLibrary();
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_GetBlueprintLibrary: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in World_GetBlueprintLibrary" << std::endl;
+    return nullptr;
+  }
 }
 
 std::shared_ptr<Actor> World_GetSpectator(const World &world) {
-  return world.GetSpectator();
+  try {
+    return world.GetSpectator();
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_GetSpectator: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in World_GetSpectator" << std::endl;
+    return nullptr;
+  }
 }
 
 uint64_t World_Tick(const World &world, double timeout_seconds) {
-  auto duration = carla::time_duration::seconds(timeout_seconds);
-  // const_cast is needed because CARLA's API is not const-correct
-  return const_cast<World &>(world).Tick(duration);
+  try {
+    auto duration = carla::time_duration::seconds(timeout_seconds);
+    // const_cast is needed because CARLA's API is not const-correct
+    return const_cast<World &>(world).Tick(duration);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_Tick: " << e.what() << std::endl;
+    return 0;
+  } catch (...) {
+    std::cerr << "Unknown error in World_Tick" << std::endl;
+    return 0;
+  }
 }
 
 SimpleTimestamp World_GetSnapshot(const World &world) {
-  auto snapshot = const_cast<World &>(world).GetSnapshot();
-  return SimpleTimestamp{snapshot.GetFrame(),
-                         snapshot.GetTimestamp().elapsed_seconds,
-                         snapshot.GetTimestamp().delta_seconds,
-                         snapshot.GetTimestamp().platform_timestamp};
+  try {
+    auto snapshot = const_cast<World &>(world).GetSnapshot();
+    return SimpleTimestamp{snapshot.GetFrame(),
+                           snapshot.GetTimestamp().elapsed_seconds,
+                           snapshot.GetTimestamp().delta_seconds,
+                           snapshot.GetTimestamp().platform_timestamp};
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_GetSnapshot: " << e.what() << std::endl;
+    return SimpleTimestamp{0, 0.0, 0.0, 0.0};
+  } catch (...) {
+    std::cerr << "Unknown error in World_GetSnapshot" << std::endl;
+    return SimpleTimestamp{0, 0.0, 0.0, 0.0};
+  }
 }
 
 std::shared_ptr<Actor> World_SpawnActor(const World &world,
                                         const ActorBlueprint &blueprint,
                                         const SimpleTransform &transform,
                                         const Actor *parent) {
+  try {
+    // Convert SimpleTransform to carla::geom::Transform
+    carla::geom::Transform carla_transform(
+        carla::geom::Location(transform.location.x, transform.location.y,
+                              transform.location.z),
+        carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                              transform.rotation.roll));
 
-  // Convert SimpleTransform to carla::geom::Transform
-  carla::geom::Transform carla_transform(
-      carla::geom::Location(transform.location.x, transform.location.y,
-                            transform.location.z),
-      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
-                            transform.rotation.roll));
-
-  // const_cast is needed because CARLA's API is not const-correct
-  return const_cast<World &>(world).SpawnActor(blueprint, carla_transform,
-                                               const_cast<Actor *>(parent));
+    // const_cast is needed because CARLA's API is not const-correct
+    return const_cast<World &>(world).SpawnActor(blueprint, carla_transform,
+                                                 const_cast<Actor *>(parent));
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_SpawnActor: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in World_SpawnActor" << std::endl;
+    return nullptr;
+  }
 }
 
 std::shared_ptr<Actor> World_TrySpawnActor(const World &world,
                                            const ActorBlueprint &blueprint,
                                            const SimpleTransform &transform,
                                            const Actor *parent) {
+  try {
+    // Convert SimpleTransform to carla::geom::Transform
+    carla::geom::Transform carla_transform(
+        carla::geom::Location(transform.location.x, transform.location.y,
+                              transform.location.z),
+        carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
+                              transform.rotation.roll));
 
-  // Convert SimpleTransform to carla::geom::Transform
-  carla::geom::Transform carla_transform(
-      carla::geom::Location(transform.location.x, transform.location.y,
-                            transform.location.z),
-      carla::geom::Rotation(transform.rotation.pitch, transform.rotation.yaw,
-                            transform.rotation.roll));
-
-  // const_cast is needed because CARLA's API is not const-correct
-  return const_cast<World &>(world).TrySpawnActor(blueprint, carla_transform,
-                                                  const_cast<Actor *>(parent));
+    // const_cast is needed because CARLA's API is not const-correct
+    return const_cast<World &>(world).TrySpawnActor(blueprint, carla_transform,
+                                                    const_cast<Actor *>(parent));
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_TrySpawnActor: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in World_TrySpawnActor" << std::endl;
+    return nullptr;
+  }
 }
 
-std::shared_ptr<Map> World_GetMap(const World &world) { return world.GetMap(); }
+std::shared_ptr<Map> World_GetMap(const World &world) {
+  try {
+    return world.GetMap();
+  } catch (const std::exception &e) {
+    std::cerr << "Error in World_GetMap: " << e.what() << std::endl;
+    return nullptr;
+  } catch (...) {
+    std::cerr << "Unknown error in World_GetMap" << std::endl;
+    return nullptr;
+  }
+}
 
 // Episode settings conversion functions
 SimpleEpisodeSettings

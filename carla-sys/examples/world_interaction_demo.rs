@@ -31,7 +31,7 @@ fn main() -> Result<()> {
     client.set_timeout(Duration::from_secs(10));
 
     // Get the simulation world
-    let world = client.get_world();
+    let world = client.get_world()?;
     println!("🌍 World ID: {}", world.get_id());
 
     // === RAY CASTING DEMONSTRATIONS ===
@@ -182,7 +182,7 @@ fn main() -> Result<()> {
     println!("✅ Pedestrian crossing behavior updated");
 
     // Demo 9: Traffic light queries (requires waypoints and traffic lights)
-    let map = world.get_map();
+    let map = world.get_map()?;
     let spawn_points = map.get_recommended_spawn_points();
 
     if !spawn_points.is_empty() {

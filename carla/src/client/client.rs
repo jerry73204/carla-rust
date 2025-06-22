@@ -42,7 +42,20 @@ impl Client {
 
     /// Get the server version.
     pub fn server_version(&self) -> CarlaResult<String> {
-        Ok(self.inner.get_server_version())
+        let version = self.inner.get_server_version();
+        // Check if it's an error response from C++ exception handling
+        if version.starts_with("ERROR: ") {
+            Err(crate::error::CarlaError::Client(
+                crate::error::ClientError::ServerCommunicationFailed {
+                    reason: version
+                        .strip_prefix("ERROR: ")
+                        .unwrap_or(&version)
+                        .to_string(),
+                },
+            ))
+        } else {
+            Ok(version)
+        }
     }
 
     /// Set connection timeout.
@@ -58,7 +71,11 @@ impl Client {
 
     /// Get the current world.
     pub fn world(&self) -> CarlaResult<World> {
-        let world_wrapper = self.inner.get_world();
+        let world_wrapper = self.inner.get_world().map_err(|e| {
+            crate::error::CarlaError::Client(crate::error::ClientError::ServerCommunicationFailed {
+                reason: e.to_string(),
+            })
+        })?;
         Ok(World::from_cxx(world_wrapper))
     }
 
@@ -69,19 +86,35 @@ impl Client {
 
     /// Load a new world/map.
     pub fn load_world(&self, map_name: &str) -> CarlaResult<World> {
-        let world_wrapper = self.inner.load_world(map_name);
+        let world_wrapper = self.inner.load_world(map_name).map_err(|e| {
+            crate::error::CarlaError::World(crate::error::WorldError::MapLoadFailed {
+                map_name: map_name.to_string(),
+                reason: e.to_string(),
+            })
+        })?;
         Ok(World::from_cxx(world_wrapper))
     }
 
     /// Reload the current world.
     pub fn reload_world(&self) -> CarlaResult<World> {
-        let world_wrapper = self.inner.reload_world(true); // reset_settings = true by default
+        let world_wrapper = self.inner.reload_world(true).map_err(|e| {
+            crate::error::CarlaError::Client(crate::error::ClientError::ServerCommunicationFailed {
+                reason: format!("Failed to reload world: {}", e),
+            })
+        })?; // reset_settings = true by default
         Ok(World::from_cxx(world_wrapper))
     }
 
     /// Generate OpenDRIVE map from file.
     pub fn generate_opendrive_world(&self, opendrive: &str) -> CarlaResult<World> {
-        let world_wrapper = self.inner.generate_opendrive_world(opendrive);
+        let world_wrapper =
+            self.inner
+                .generate_opendrive_world(opendrive)
+                .map_err(|e| {
+                    crate::error::CarlaError::Map(crate::error::MapError::OpenDriveParsing(
+                        format!("Failed to generate OpenDRIVE world: {}", e),
+                    ))
+                })?;
         Ok(World::from_cxx(world_wrapper))
     }
 

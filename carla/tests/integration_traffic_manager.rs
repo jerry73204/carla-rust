@@ -243,7 +243,7 @@ fn test_traffic_manager_multiple_vehicles() -> CarlaResult<()> {
     // Spawn multiple vehicles
     let mut vehicles = Vec::new();
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")?
+        .find("vehicle.dodge.charger")?
         .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
         .expect("No vehicle blueprints found");
 

@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
         Ok(client) => {
             println!("✅ Connected to CARLA server");
 
-            let world = client.get_world();
+            let world = client.get_world()?;
 
             // Check if weather is enabled
             if world.is_weather_enabled() {

@@ -23,19 +23,52 @@ static CARLA_INIT: Once = Once::new();
 /// Ensure CARLA server is running
 pub fn ensure_carla_server() {
     CARLA_INIT.call_once(|| {
-        // Check if server is already running
-        match Client::new(DEFAULT_HOST, DEFAULT_PORT, Some(1usize)) {
-            Ok(_) => {
-                println!(
-                    "CARLA server is already running on {}:{}",
-                    DEFAULT_HOST, DEFAULT_PORT
-                );
+        // Check if server is already running by creating a client and testing it
+        match Client::new(DEFAULT_HOST, DEFAULT_PORT, Some(2usize)) {
+            Ok(client) => {
+                // Try to actually use the client to verify connection
+                match client.server_version() {
+                    Ok(version) => {
+                        println!(
+                            "✓ CARLA server {} is running on {}:{}",
+                            version, DEFAULT_HOST, DEFAULT_PORT
+                        );
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "\n❌ ERROR: Connected to CARLA server but cannot communicate!\n\
+                             \n\
+                             Server at: {}:{}\n\
+                             Error: {:?}\n\
+                             \n\
+                             This usually means:\n\
+                             - The server is still starting up (wait ~30 seconds)\n\
+                             - The server crashed or is in a bad state\n\
+                             - Network issues are preventing communication\n\
+                             \n\
+                             Try restarting CARLA server:\n\
+                             ./carla.sh stop\n\
+                             ./carla.sh start\n",
+                            DEFAULT_HOST, DEFAULT_PORT, e
+                        );
+                    }
+                }
             }
-            Err(_) => {
-                panic!(
-                    "CARLA server is not running. Please start it with: ./carla.sh start\n\
-                     Server should be running on {}:{}",
-                    DEFAULT_HOST, DEFAULT_PORT
+            Err(e) => {
+                eprintln!(
+                    "\n❌ ERROR: Cannot connect to CARLA server!\n\
+                     \n\
+                     Expected server at: {}:{}\n\
+                     Error: {:?}\n\
+                     \n\
+                     To run integration tests, you must start CARLA server first:\n\
+                     ./carla.sh start\n\
+                     \n\
+                     If CARLA is already running, check that:\n\
+                     - The server is listening on the correct port ({})\n\
+                     - No firewall is blocking the connection\n\
+                     - The server is fully started (wait ~30 seconds after launch)\n",
+                    DEFAULT_HOST, DEFAULT_PORT, e, DEFAULT_PORT
                 );
             }
         }
@@ -45,7 +78,15 @@ pub fn ensure_carla_server() {
 /// Get a test client with automatic server check
 pub fn get_test_client() -> CarlaResult<Client> {
     ensure_carla_server();
-    Client::new(DEFAULT_HOST, DEFAULT_PORT, None::<usize>)
+    Client::new(DEFAULT_HOST, DEFAULT_PORT, None::<usize>).map_err(|e| {
+        eprintln!(
+            "\n❌ Test failed: Cannot connect to CARLA server at {}:{}\n\
+                 Error: {:?}\n\
+                 Ensure CARLA server is running with: ./carla.sh start\n",
+            DEFAULT_HOST, DEFAULT_PORT, e
+        );
+        e
+    })
 }
 
 /// Reset world to clean state for testing
@@ -118,7 +159,7 @@ pub fn spawn_test_vehicle(client: &Client) -> CarlaResult<carla::actor::Vehicle>
 
     // Find a vehicle blueprint
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")?
+        .find("vehicle.dodge.charger")?
         .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
         .expect("No vehicle blueprints found");
 
