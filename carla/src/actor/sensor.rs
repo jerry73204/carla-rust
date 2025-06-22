@@ -318,6 +318,26 @@ impl ActorExt for Sensor {
         let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(&actor_ptr);
         crate::geom::BoundingBox::from_cxx(simple_bbox)
     }
+
+    fn destroy(&mut self) -> CarlaResult<()> {
+        // Stop listening if sensor is listening
+        if self.inner.is_listening() {
+            self.inner.stop();
+        }
+
+        // Call sensor destruction
+        let success = carla_sys::ffi::bridge::Sensor_Destroy(self.inner.get_inner_sensor());
+
+        if success {
+            Ok(())
+        } else {
+            // If destruction fails, it means the sensor is invalid or already destroyed
+            Err(crate::error::DestroyError::InvalidActor {
+                actor_id: self.id(),
+            }
+            .into())
+        }
+    }
 }
 
 impl SensorFfi for Sensor {

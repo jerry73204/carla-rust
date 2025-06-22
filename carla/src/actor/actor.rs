@@ -115,6 +115,13 @@ impl Actor {
             _ => ActorState::Invalid, // Default for unknown values
         }
     }
+
+    /// Get the actor ID for this actor.
+    ///
+    /// This queries the underlying C++ actor for its unique ID.
+    pub fn id(&self) -> ActorId {
+        self.inner.get_id()
+    }
 }
 
 impl ActorFfi for Actor {
@@ -125,8 +132,9 @@ impl ActorFfi for Actor {
 
 impl Drop for Actor {
     fn drop(&mut self) {
-        // Only destroy if the actor is still alive
+        // Check if the actor is still alive before attempting destruction
         if self.inner.is_alive() {
+            // Call C++ destruction without error handling in Drop
             let _ = self.inner.destroy();
         }
     }

@@ -1,6 +1,6 @@
 use crate::{
     actor::ActorId,
-    error::{CarlaResult, SensorError},
+    error::{CarlaResult, DestroyError, SensorError},
     geom::{BoundingBox, FromCxx, ToCxx, Transform, Vector3D},
     CarlaError,
 };
@@ -60,6 +60,57 @@ pub trait ActorExt {
 
     /// Get the actor's bounding box in local space.
     fn bounding_box(&self) -> BoundingBox;
+
+    /// Explicitly destroy this actor.
+    ///
+    /// This method sends a destruction command to the CARLA server to remove
+    /// the actor from the simulation. Once destroyed, the actor cannot be used
+    /// for further operations.
+    ///
+    /// # Thread Safety
+    ///
+    /// The underlying CARLA C++ client handles thread safety. Multiple calls
+    /// to destroy() on the same actor from different threads are handled by
+    /// the C++ implementation.
+    ///
+    /// # Behavior
+    ///
+    /// - If destruction succeeds, returns `Ok(())`
+    /// - If destruction fails at the server level, returns `DestroyError::InvalidActor`
+    ///
+    /// # Note
+    ///
+    /// Actors are automatically destroyed when dropped via the `Drop` trait.
+    /// This method provides explicit control over destruction timing.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use carla::{actor::ActorExt, client::Client};
+    /// # use carla::error::CarlaResult;
+    ///
+    /// # fn example() -> CarlaResult<()> {
+    /// let client = Client::new("localhost", 2000, None::<usize>)?;
+    /// let world = client.world()?;
+    /// let blueprint_library = world.blueprint_library()?;
+    ///
+    /// if let Some(vehicle_bp) = blueprint_library.find("vehicle.tesla.model3")? {
+    ///     let spawn_points = world.map()?.spawn_points();
+    ///     if let Some(spawn_point) = spawn_points.get(0) {
+    ///         if let Some(mut vehicle) = world.try_spawn_actor(&vehicle_bp, &spawn_point, None)? {
+    ///             // Cast to vehicle
+    ///             if let Ok(mut vehicle) = vehicle.into_vehicle() {
+    ///                 // Explicitly destroy the vehicle
+    ///                 vehicle.destroy()?;
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use = "destroy() returns a Result that should be handled"]
+    fn destroy(&mut self) -> CarlaResult<()>;
 }
 
 // Blanket implementation for types that implement ActorFfi
@@ -134,6 +185,22 @@ where
     fn bounding_box(&self) -> BoundingBox {
         let simple_bbox = carla_sys::ffi::Actor_GetBoundingBox(self.as_actor_ffi().get_actor());
         BoundingBox::from_cxx(simple_bbox)
+    }
+
+    fn destroy(&mut self) -> CarlaResult<()> {
+        // Call C++ destruction
+        let success = self.as_actor_ffi().destroy();
+
+        if success {
+            Ok(())
+        } else {
+            // If C++ destroy returns false, it means the actor is invalid or
+            // already destroyed in the simulation
+            Err(DestroyError::InvalidActor {
+                actor_id: self.id(),
+            }
+            .into())
+        }
     }
 }
 

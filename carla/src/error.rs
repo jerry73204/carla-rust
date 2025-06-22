@@ -47,6 +47,10 @@ pub enum CarlaError {
     #[error("Walker error: {0}")]
     Walker(#[from] WalkerError),
 
+    /// Actor destruction errors
+    #[error("Destroy error: {0}")]
+    Destroy(#[from] DestroyError),
+
     /// Generic CARLA runtime error
     #[error("CARLA runtime error: {0}")]
     Runtime(String),
@@ -336,6 +340,42 @@ pub enum VehicleError {
     /// Autopilot operation failed
     #[error("Vehicle autopilot operation failed: {0}")]
     AutopilotFailed(String),
+}
+
+/// Errors related to actor destruction operations.
+#[derive(Debug, Error)]
+pub enum DestroyError {
+    /// Actor was already destroyed
+    #[error("Actor {actor_id} was already destroyed")]
+    AlreadyDestroyed {
+        /// The ID of the actor that was already destroyed
+        actor_id: crate::actor::ActorId,
+    },
+
+    /// Server communication failed during destruction
+    #[error("Failed to destroy actor {actor_id}: {message}")]
+    ServerError {
+        /// The ID of the actor being destroyed
+        actor_id: crate::actor::ActorId,
+        /// Error message from the server or network layer
+        message: String,
+    },
+
+    /// Actor is in invalid state for destruction
+    #[error("Actor {actor_id} is in invalid state for destruction")]
+    InvalidActor {
+        /// The ID of the invalid actor
+        actor_id: crate::actor::ActorId,
+    },
+
+    /// RPC timeout during destruction
+    #[error("Destruction of actor {actor_id} timed out after {timeout:?}")]
+    Timeout {
+        /// The ID of the actor being destroyed
+        actor_id: crate::actor::ActorId,
+        /// The timeout duration that was exceeded
+        timeout: Duration,
+    },
 }
 
 /// Errors related to walker (pedestrian) operations.
