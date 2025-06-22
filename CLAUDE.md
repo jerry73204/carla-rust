@@ -19,7 +19,7 @@ The repository is compatible with CARLA simulator version 0.10.0. The project us
 # Recommended: Use jerry73204's fork with CMake support
 # git clone -b 0.10.0-libcarla-client-install https://github.com/jerry73204/carla.git
 export CARLA_ROOT=/path/to/carla-source
-cargo build --all-targets
+make build
 ```
 
 ### Ubuntu 22.04+ (Clang 12 Required)
@@ -29,19 +29,31 @@ export LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
 export LIBCLANG_PATH=/usr/lib/llvm-12/lib
 export LIBCLANG_STATIC_PATH=/usr/lib/llvm-12/lib
 export CLANG_PATH=/usr/bin/clang-12
-cargo build --all-targets
+make build
 ```
 
 ### Development Commands
 ```bash
+# Build the project
+make build
+
+# Run tests without CARLA server
+make test
+
+# Run tests with CARLA server (server must be running)
+make test-server
+
+# Run linting
+make lint
+
+# Clean build artifacts
+make clean
+
 # Check compilation without building
 cargo check --all-targets
 
 # Build and open documentation
 cargo doc --open
-
-# Run tests (CARLA_ROOT must be set)
-CARLA_ROOT=/path/to/carla-rust/carla-simulator cargo test --all-targets --all-features
 
 # Build with specific features
 cargo build --all-targets --features save-lib      # Save built library as tarball
@@ -178,26 +190,33 @@ pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
 
 ## Testing Framework
 
-The Rust API includes a comprehensive testing framework that mirrors the C++ LibCarla tests:
+The Rust API includes a comprehensive testing framework that mirrors the C++ LibCarla tests. We use **cargo nextest** as the test runner for improved performance and better output:
 
 ### Test Structure
 - **Unit Tests** (`carla/tests/unit/`) - Test individual components without server
 - **Integration Tests** (`carla/tests/integration/`) - Test with real or mock CARLA server  
 - **Benchmarks** (`carla/benches/`) - Performance benchmarks
 
+### Installing cargo nextest
+```bash
+# Install nextest (one time setup)
+cargo install cargo-nextest --locked
+```
+
 ### Running Tests
 ```bash
 # Set up test fixtures (one time)
 ./setup_test_fixtures.sh
 
-# Run unit tests
-cargo test --lib
+# Run tests without CARLA server
+make test
 
-# Run all tests with mock server
-cargo test
+# Run tests with CARLA server (server must be running)
+make test-server
 
-# Run integration tests with real CARLA server
-CARLA_SERVER_HOST=localhost cargo test -- --ignored
+# Run specific tests manually
+cargo nextest run --lib --no-fail-fast              # Unit tests only
+cargo nextest run --ignored --no-fail-fast          # Server-dependent tests
 
 # Run benchmarks
 cargo bench
@@ -215,8 +234,9 @@ For detailed test design, see [TEST.md](./TEST.md).
 
 - Run the script `libcarla_c/build_libcarla_c.sh` to build the C library for testing.
 - Please prefix commands with `source /opt/ros/humble/setup.bash` to enable ROS2 libraries.
-- Run `cargo build --all-targets --all-features` at the top-level directory to build the whole Rust workspace.
-- Run `cargo test --all-targets --all-features` to build and test the whole Rust project.
+- Run `make build` at the top-level directory to build the whole Rust workspace.
+- Run `make test` to test without CARLA server or `make test-server` to test with CARLA server.
+- Run `make lint` to check code quality with clippy.
 - Please use `client.rs` + `client/submod.rs` pattern instead of `client/mod.rs`, similar for other Rust modules.
 - The carla-sys crate only provides C++ interface and essential items for Rust type conversion.
 - If any FFI item is needed by the Rust library but is missing in the FFI crate, leave `todo!()` and comments in the Rust library instead of silent errors.
@@ -226,3 +246,4 @@ For detailed test design, see [TEST.md](./TEST.md).
 - The methods and functions in carla/ Rust API follow the Rust convention. For example, `id()` is preferred over `get_id()`.
 - FFI types and functions are private to users in Rust API.
 - Tests in upstream C++ source code should have Rust counterparts in our Rust API. Our Rust tests records the corresponding test in C++ in comments.
+- When counting passing and failing tests, always add --no-fail-fast option to cargo nextest. It will run all tests so you can count them correctly.
