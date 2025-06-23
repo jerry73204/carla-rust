@@ -23,8 +23,9 @@ impl Sensor {
 
     /// Create a sensor from an actor by casting.
     pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
-        let actor_ref = actor.inner_actor();
-        if let Some(sensor_wrapper) = carla_sys::SensorWrapper::from_actor(actor_ref) {
+        if let Some(sensor_wrapper) =
+            carla_sys::SensorWrapper::from_actor(actor.inner_wrapper().get_shared_ptr())
+        {
             Ok(Self {
                 inner: sensor_wrapper,
             })
@@ -179,7 +180,7 @@ impl Sensor {
     /// Convert this sensor back to an Actor.
     pub fn into_actor(self) -> Actor {
         // Get the actor pointer from the sensor
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -199,7 +200,7 @@ impl Sensor {
     /// Note: This creates a new Actor wrapper each time. The underlying C++ object is shared.
     pub fn as_actor(&self) -> Actor {
         // Get the actor pointer from the sensor
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -218,7 +219,7 @@ impl Sensor {
 impl ActorExt for Sensor {
     fn id(&self) -> crate::actor::ActorId {
         // Sensor doesn't have a direct GetId method, need to cast to Actor
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -242,7 +243,7 @@ impl ActorExt for Sensor {
     }
 
     fn velocity(&self) -> crate::geom::Vector3D {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -251,7 +252,7 @@ impl ActorExt for Sensor {
     }
 
     fn angular_velocity(&self) -> crate::geom::Vector3D {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -260,7 +261,7 @@ impl ActorExt for Sensor {
     }
 
     fn acceleration(&self) -> crate::geom::Vector3D {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -273,7 +274,7 @@ impl ActorExt for Sensor {
     }
 
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()> {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -282,7 +283,7 @@ impl ActorExt for Sensor {
     }
 
     fn add_impulse(&self, impulse: &crate::geom::Vector3D) -> CarlaResult<()> {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -292,7 +293,7 @@ impl ActorExt for Sensor {
     }
 
     fn add_force(&self, force: &crate::geom::Vector3D) -> CarlaResult<()> {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -302,7 +303,7 @@ impl ActorExt for Sensor {
     }
 
     fn add_torque(&self, torque: &crate::geom::Vector3D) -> CarlaResult<()> {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }
@@ -312,7 +313,7 @@ impl ActorExt for Sensor {
     }
 
     fn bounding_box(&self) -> crate::geom::BoundingBox {
-        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor());
+        let actor_ptr = carla_sys::ffi::Sensor_CastToActor(self.inner.get_inner_sensor().clone());
         if actor_ptr.is_null() {
             panic!("Internal error: Failed to cast Sensor to Actor");
         }

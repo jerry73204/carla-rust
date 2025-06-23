@@ -18,8 +18,8 @@ impl std::fmt::Debug for TrafficLightWrapper {
 
 impl TrafficLightWrapper {
     /// Create a TrafficLightWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let traffic_light_ptr = ffi::Actor_CastToTrafficLight(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let traffic_light_ptr = ffi::Actor_CastToTrafficLight(actor_ptr);
         if traffic_light_ptr.is_null() {
             None
         } else {
@@ -42,7 +42,7 @@ impl TrafficLightWrapper {
 
     /// Convert back to an Actor
     pub fn to_actor(&self) -> SharedPtr<Actor> {
-        ffi::TrafficLight_CastToActor(&self.inner)
+        ffi::TrafficLight_CastToActor(self.inner.clone())
     }
 
     /// Create an ActorWrapper from this TrafficLightWrapper (Internal FFI use only)
@@ -52,7 +52,7 @@ impl TrafficLightWrapper {
     /// by external consumers of the API.
     pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
         // Cast TrafficLight to Actor and create ActorWrapper
-        let actor_shared_ptr = ffi::TrafficLight_CastToActor(&self.inner);
+        let actor_shared_ptr = ffi::TrafficLight_CastToActor(self.inner.clone());
         crate::ActorWrapper::new(actor_shared_ptr)
     }
 

@@ -29,10 +29,16 @@ impl Actor {
         self.inner.get_actor()
     }
 
+    /// Get the inner ActorWrapper (for internal use only)
+    pub(crate) fn inner_wrapper(&self) -> &carla_sys::ActorWrapper {
+        &self.inner
+    }
+
     /// Try to convert this actor to a vehicle, consuming self.
     /// Returns the Vehicle if successful, or the original Actor if not.
     pub fn into_vehicle(self) -> Result<Vehicle, Actor> {
-        if let Some(vehicle_wrapper) = carla_sys::VehicleWrapper::from_actor(self.inner.get_actor())
+        if let Some(vehicle_wrapper) =
+            carla_sys::VehicleWrapper::from_actor(self.inner.get_shared_ptr())
         {
             match Vehicle::from_cxx(vehicle_wrapper) {
                 Ok(vehicle) => Ok(vehicle),
@@ -46,7 +52,9 @@ impl Actor {
     /// Try to convert this actor to a walker, consuming self.
     /// Returns the Walker if successful, or the original Actor if not.
     pub fn into_walker(self) -> Result<Walker, Actor> {
-        if let Some(walker_wrapper) = carla_sys::WalkerWrapper::from_actor(self.inner.get_actor()) {
+        if let Some(walker_wrapper) =
+            carla_sys::WalkerWrapper::from_actor(self.inner.get_shared_ptr())
+        {
             match Walker::from_cxx(walker_wrapper) {
                 Ok(walker) => Ok(walker),
                 Err(_) => Err(self),
@@ -59,7 +67,9 @@ impl Actor {
     /// Try to convert this actor to a sensor, consuming self.
     /// Returns the Sensor if successful, or the original Actor if not.
     pub fn into_sensor(self) -> Result<Sensor, Actor> {
-        if let Some(sensor_wrapper) = carla_sys::SensorWrapper::from_actor(self.inner.get_actor()) {
+        if let Some(sensor_wrapper) =
+            carla_sys::SensorWrapper::from_actor(self.inner.get_shared_ptr())
+        {
             match Sensor::from_cxx(sensor_wrapper) {
                 Ok(sensor) => Ok(sensor),
                 Err(_) => Err(self),
@@ -73,7 +83,7 @@ impl Actor {
     /// Returns the TrafficLight if successful, or the original Actor if not.
     pub fn into_traffic_light(self) -> Result<TrafficLight, Actor> {
         if let Some(traffic_light_wrapper) =
-            carla_sys::TrafficLightWrapper::from_actor(self.inner.get_actor())
+            carla_sys::TrafficLightWrapper::from_actor(self.inner.get_shared_ptr())
         {
             match TrafficLight::from_cxx(traffic_light_wrapper) {
                 Ok(traffic_light) => Ok(traffic_light),

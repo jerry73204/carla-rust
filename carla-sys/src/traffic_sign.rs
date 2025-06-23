@@ -10,8 +10,8 @@ pub struct TrafficSignWrapper {
 
 impl TrafficSignWrapper {
     /// Create a TrafficSignWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let traffic_sign_ptr = ffi::Actor_CastToTrafficSign(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let traffic_sign_ptr = ffi::Actor_CastToTrafficSign(actor_ptr);
         if traffic_sign_ptr.is_null() {
             None
         } else {
@@ -23,7 +23,7 @@ impl TrafficSignWrapper {
 
     /// Convert back to an Actor (FFI internal use)
     pub(crate) fn to_actor(&self) -> SharedPtr<Actor> {
-        ffi::TrafficSign_CastToActor(&self.inner)
+        ffi::TrafficSign_CastToActor(self.inner.clone())
     }
 
     /// Create an ActorWrapper from this TrafficSignWrapper (Internal FFI use only)
@@ -33,7 +33,7 @@ impl TrafficSignWrapper {
     /// by external consumers of the API.
     pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
         // Cast TrafficSign to Actor and create ActorWrapper
-        let actor_shared_ptr = ffi::TrafficSign_CastToActor(&self.inner);
+        let actor_shared_ptr = ffi::TrafficSign_CastToActor(self.inner.clone());
         crate::ActorWrapper::new(actor_shared_ptr)
     }
 

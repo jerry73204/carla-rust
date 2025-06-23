@@ -368,19 +368,19 @@ ActorBlueprint_GetAttributeRecommendedValues(const ActorBlueprint &blueprint,
 size_t ActorBlueprint_GetAttributeCount(const ActorBlueprint &blueprint);
 
 // Actor casting functions
-std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor);
-std::shared_ptr<Actor> Vehicle_CastToActor(const Vehicle &vehicle);
-std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor);
-std::shared_ptr<Actor> Walker_CastToActor(const Walker &walker);
+std::shared_ptr<Vehicle> Actor_CastToVehicle(std::shared_ptr<Actor> actor);
+std::shared_ptr<Actor> Vehicle_CastToActor(std::shared_ptr<Vehicle> vehicle);
+std::shared_ptr<Walker> Actor_CastToWalker(std::shared_ptr<Actor> actor);
+std::shared_ptr<Actor> Walker_CastToActor(std::shared_ptr<Walker> walker);
 std::shared_ptr<WalkerAIController>
-Actor_CastToWalkerAIController(const Actor &actor);
-std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor);
-std::shared_ptr<Actor> Sensor_CastToActor(const Sensor &sensor);
-std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor);
-std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor);
+Actor_CastToWalkerAIController(std::shared_ptr<Actor> actor);
+std::shared_ptr<Sensor> Actor_CastToSensor(std::shared_ptr<Actor> actor);
+std::shared_ptr<Actor> Sensor_CastToActor(std::shared_ptr<Sensor> sensor);
+std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(std::shared_ptr<Actor> actor);
+std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(std::shared_ptr<Actor> actor);
 std::shared_ptr<Actor>
-TrafficLight_CastToActor(const TrafficLight &traffic_light);
-std::shared_ptr<Actor> TrafficSign_CastToActor(const TrafficSign &traffic_sign);
+TrafficLight_CastToActor(std::shared_ptr<TrafficLight> traffic_light);
+std::shared_ptr<Actor> TrafficSign_CastToActor(std::shared_ptr<TrafficSign> traffic_sign);
 
 // Vehicle wrapper functions
 void Vehicle_ApplyControl(const Vehicle &vehicle,

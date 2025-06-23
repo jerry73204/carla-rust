@@ -106,7 +106,7 @@ fn demonstrate_dvs_sensor(
 
         // Spawn DVS sensor
         if let Ok(dvs_actor) = world.spawn_actor(&dvs_bp, spawn_transform, None) {
-            if let Some(dvs_sensor) = SensorWrapper::from_actor(dvs_actor.get_actor()) {
+            if let Some(dvs_sensor) = SensorWrapper::from_actor(dvs_actor.get_shared_ptr()) {
                 println!("🎯 DVS sensor spawned with ID: {}", dvs_actor.get_id());
 
                 // Start listening
@@ -174,7 +174,9 @@ fn demonstrate_obstacle_detection_sensor(
 
         // Spawn obstacle detection sensor
         if let Ok(obstacle_actor) = world.spawn_actor(&obstacle_bp, spawn_transform, None) {
-            if let Some(obstacle_sensor) = SensorWrapper::from_actor(obstacle_actor.get_actor()) {
+            if let Some(obstacle_sensor) =
+                SensorWrapper::from_actor(obstacle_actor.get_shared_ptr())
+            {
                 println!(
                     "🎯 Obstacle detection sensor spawned with ID: {}",
                     obstacle_actor.get_id()
@@ -244,7 +246,7 @@ fn demonstrate_semantic_lidar_sensor(
 
         // Spawn semantic LiDAR sensor
         if let Ok(lidar_actor) = world.spawn_actor(&semantic_lidar_bp, spawn_transform, None) {
-            if let Some(lidar_sensor) = SensorWrapper::from_actor(lidar_actor.get_actor()) {
+            if let Some(lidar_sensor) = SensorWrapper::from_actor(lidar_actor.get_shared_ptr()) {
                 println!(
                     "🎯 Semantic LiDAR sensor spawned with ID: {}",
                     lidar_actor.get_id()
@@ -316,7 +318,7 @@ fn demonstrate_rss_sensor(
 
         // Spawn RSS sensor
         if let Ok(rss_actor) = world.spawn_actor(&rss_bp, spawn_transform, None) {
-            if let Some(rss_sensor) = SensorWrapper::from_actor(rss_actor.get_actor()) {
+            if let Some(rss_sensor) = SensorWrapper::from_actor(rss_actor.get_shared_ptr()) {
                 println!("🎯 RSS sensor spawned with ID: {}", rss_actor.get_id());
 
                 // Start listening

@@ -129,8 +129,10 @@ rust::String Client_GetServerVersion(const Client &client) {
 
 std::shared_ptr<World> Client_GetWorld(const Client &client) {
   try {
-    // GetWorld returns by value, we need to wrap it in a shared_ptr
-    return std::make_shared<World>(client.GetWorld());
+    // GetWorld returns by value, we need to create a shared_ptr that owns a
+    // copy Use new to create a heap-allocated copy of the World object
+    World world = client.GetWorld();
+    return std::shared_ptr<World>(new World(std::move(world)));
   } catch (const std::exception &e) {
     std::cerr << "Error in Client_GetWorld: " << e.what() << std::endl;
     return nullptr;
@@ -164,7 +166,7 @@ std::shared_ptr<World> Client_LoadWorld(const Client &client,
     std::string map_str(map_name);
     auto world = const_cast<Client &>(client).LoadWorld(
         map_str, true, carla::rpc::MapLayer::All);
-    return std::make_shared<World>(std::move(world));
+    return std::shared_ptr<World>(new World(std::move(world)));
   } catch (const std::exception &e) {
     std::cerr << "Error in Client_LoadWorld: " << e.what() << std::endl;
     return nullptr;
@@ -178,7 +180,7 @@ std::shared_ptr<World> Client_ReloadWorld(const Client &client,
                                           bool reset_settings) {
   try {
     auto world = const_cast<Client &>(client).ReloadWorld(reset_settings);
-    return std::make_shared<World>(std::move(world));
+    return std::shared_ptr<World>(new World(std::move(world)));
   } catch (const std::exception &e) {
     std::cerr << "Error in Client_ReloadWorld: " << e.what() << std::endl;
     return nullptr;
@@ -196,9 +198,10 @@ std::shared_ptr<World> Client_GenerateOpenDriveWorld(const Client &client,
     carla::rpc::OpendriveGenerationParameters params;
     auto world = const_cast<Client &>(client).GenerateOpenDriveWorld(
         opendrive_str, params, true);
-    return std::make_shared<World>(std::move(world));
+    return std::shared_ptr<World>(new World(std::move(world)));
   } catch (const std::exception &e) {
-    std::cerr << "Error in Client_GenerateOpenDriveWorld: " << e.what() << std::endl;
+    std::cerr << "Error in Client_GenerateOpenDriveWorld: " << e.what()
+              << std::endl;
     return nullptr;
   } catch (...) {
     std::cerr << "Unknown error in Client_GenerateOpenDriveWorld" << std::endl;
@@ -303,7 +306,8 @@ World_GetBlueprintLibrary(const World &world) {
   try {
     return world.GetBlueprintLibrary();
   } catch (const std::exception &e) {
-    std::cerr << "Error in World_GetBlueprintLibrary: " << e.what() << std::endl;
+    std::cerr << "Error in World_GetBlueprintLibrary: " << e.what()
+              << std::endl;
     return nullptr;
   } catch (...) {
     std::cerr << "Unknown error in World_GetBlueprintLibrary" << std::endl;
@@ -390,8 +394,8 @@ std::shared_ptr<Actor> World_TrySpawnActor(const World &world,
                               transform.rotation.roll));
 
     // const_cast is needed because CARLA's API is not const-correct
-    return const_cast<World &>(world).TrySpawnActor(blueprint, carla_transform,
-                                                    const_cast<Actor *>(parent));
+    return const_cast<World &>(world).TrySpawnActor(
+        blueprint, carla_transform, const_cast<Actor *>(parent));
   } catch (const std::exception &e) {
     std::cerr << "Error in World_TrySpawnActor: " << e.what() << std::endl;
     return nullptr;
@@ -1042,101 +1046,120 @@ BoundingBox_GetVertices(const SimpleBoundingBox &bbox) {
 }
 
 // Actor casting functions
-std::shared_ptr<Vehicle> Actor_CastToVehicle(const Actor &actor) {
+std::shared_ptr<Vehicle> Actor_CastToVehicle(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    // Get the actor as a shared_ptr, remove const, and cast to Vehicle
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<Vehicle>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<Vehicle>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToVehicle: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-std::shared_ptr<Actor> Vehicle_CastToActor(const Vehicle &vehicle) {
-  // NOTE: This function has compilation issues with const_cast in some C++
-  // environments. For now, we return nullptr and handle Vehicle creation
-  // differently in Rust. The Vehicle actor still works because all methods are
-  // implemented through VehicleWrapper.
-  return nullptr;
+std::shared_ptr<Actor> Vehicle_CastToActor(std::shared_ptr<Vehicle> vehicle) {
+  // Cast Vehicle to Actor base class using static_pointer_cast
+  if (!vehicle) return nullptr;
+  try {
+    // Since Vehicle inherits from Actor, we can use static_pointer_cast
+    return std::static_pointer_cast<Actor>(vehicle);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Vehicle_CastToActor: " << e.what() << std::endl;
+    return nullptr;
+  }
 }
 
-std::shared_ptr<Walker> Actor_CastToWalker(const Actor &actor) {
+std::shared_ptr<Walker> Actor_CastToWalker(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<Walker>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<Walker>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToWalker: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
 std::shared_ptr<WalkerAIController>
-Actor_CastToWalkerAIController(const Actor &actor) {
+Actor_CastToWalkerAIController(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<WalkerAIController>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<WalkerAIController>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToWalkerAIController: " << e.what()
+              << std::endl;
     return nullptr;
   }
 }
 
-std::shared_ptr<Sensor> Actor_CastToSensor(const Actor &actor) {
+std::shared_ptr<Sensor> Actor_CastToSensor(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<Sensor>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<Sensor>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToSensor: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(const Actor &actor) {
+std::shared_ptr<TrafficLight>
+Actor_CastToTrafficLight(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<TrafficLight>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<TrafficLight>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToTrafficLight: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(const Actor &actor) {
+std::shared_ptr<TrafficSign>
+Actor_CastToTrafficSign(std::shared_ptr<Actor> actor) {
+  if (!actor)
+    return nullptr;
   try {
-    auto actor_ptr = std::const_pointer_cast<Actor>(actor.shared_from_this());
-    return std::dynamic_pointer_cast<TrafficSign>(actor_ptr);
-  } catch (...) {
+    return std::dynamic_pointer_cast<TrafficSign>(actor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Actor_CastToTrafficSign: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
-std::shared_ptr<Actor> Sensor_CastToActor(const Sensor &sensor) {
-  // NOTE: This function has compilation issues with const_cast in some C++
-  // environments. For now, we return nullptr and handle Sensor creation
-  // differently in Rust. The Sensor actor still works because all methods are
-  // implemented through SensorWrapper.
-  return nullptr;
+std::shared_ptr<Actor> Sensor_CastToActor(std::shared_ptr<Sensor> sensor) {
+  // Cast Sensor to Actor base class using static_pointer_cast
+  if (!sensor) return nullptr;
+  try {
+    return std::static_pointer_cast<Actor>(sensor);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Sensor_CastToActor: " << e.what() << std::endl;
+    return nullptr;
+  }
 }
 
 // Reverse casting functions for TrafficLight and TrafficSign
 std::shared_ptr<Actor>
-TrafficLight_CastToActor(const TrafficLight &traffic_light) {
+TrafficLight_CastToActor(std::shared_ptr<TrafficLight> traffic_light) {
+  // Cast TrafficLight to Actor base class using static_pointer_cast
+  if (!traffic_light) return nullptr;
   try {
-    // TrafficLight inherits from Actor, so we can directly cast
-    // Use const_cast to remove const, then get shared_ptr and cast to base
-    auto non_const_ptr = const_cast<TrafficLight *>(&traffic_light);
-    auto traffic_light_ptr = non_const_ptr->shared_from_this();
-    return std::static_pointer_cast<Actor>(traffic_light_ptr);
-  } catch (...) {
+    return std::static_pointer_cast<Actor>(traffic_light);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in TrafficLight_CastToActor: " << e.what() << std::endl;
     return nullptr;
   }
 }
 
 std::shared_ptr<Actor>
-TrafficSign_CastToActor(const TrafficSign &traffic_sign) {
+TrafficSign_CastToActor(std::shared_ptr<TrafficSign> traffic_sign) {
+  // Cast TrafficSign to Actor base class using static_pointer_cast
+  if (!traffic_sign) return nullptr;
   try {
-    // TrafficSign inherits from Actor, so we can directly cast
-    // Use const_cast to remove const, then get shared_ptr and cast to base
-    auto non_const_ptr = const_cast<TrafficSign *>(&traffic_sign);
-    auto traffic_sign_ptr = non_const_ptr->shared_from_this();
-    return std::static_pointer_cast<Actor>(traffic_sign_ptr);
-  } catch (...) {
+    return std::static_pointer_cast<Actor>(traffic_sign);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in TrafficSign_CastToActor: " << e.what() << std::endl;
     return nullptr;
   }
 }
@@ -1568,12 +1591,15 @@ void Walker_GetPoseFromAnimation(const Walker &walker) {
   const_cast<Walker &>(walker).GetPoseFromAnimation();
 }
 
-std::shared_ptr<Actor> Walker_CastToActor(const Walker &walker) {
-  // NOTE: This function has compilation issues with const_cast in some C++
-  // environments. For now, we return nullptr and handle Walker creation
-  // differently in Rust. The Walker actor still works because all methods are
-  // implemented through WalkerWrapper.
-  return nullptr;
+std::shared_ptr<Actor> Walker_CastToActor(std::shared_ptr<Walker> walker) {
+  // Cast Walker to Actor base class using static_pointer_cast
+  if (!walker) return nullptr;
+  try {
+    return std::static_pointer_cast<Actor>(walker);
+  } catch (const std::exception &e) {
+    std::cerr << "Error in Walker_CastToActor: " << e.what() << std::endl;
+    return nullptr;
+  }
 }
 
 // Walker Actor interface functions
@@ -2306,17 +2332,18 @@ SimpleSemanticLidarData Sensor_GetLastSemanticLidarData(const Sensor &sensor) {
   // timestamp, transform, and sensor_id fields that were missing
   SimpleSemanticLidarData result;
 
-  // Set default timestamp (simulation time will be updated when real data is available)
+  // Set default timestamp (simulation time will be updated when real data is
+  // available)
   result.timestamp = SimpleTimestamp{0, 0.0, 0.0, 0.0};
 
-  // Set default transform (sensor transform will be updated when real data is available)
-  result.transform = SimpleTransform{
-      SimpleLocation{0.0, 0.0, 0.0},
-      SimpleRotation{0.0, 0.0, 0.0}
-  };
+  // Set default transform (sensor transform will be updated when real data is
+  // available)
+  result.transform = SimpleTransform{SimpleLocation{0.0, 0.0, 0.0},
+                                     SimpleRotation{0.0, 0.0, 0.0}};
 
   // Set default sensor metadata
-  result.sensor_id = 0; // Will be properly extracted when real implementation is added
+  result.sensor_id =
+      0; // Will be properly extracted when real implementation is added
   result.horizontal_angle = 0.0f;
   result.channel_count = 32; // Default LiDAR channel count
 
@@ -4536,60 +4563,15 @@ bool World_IsWeatherEnabled(const carla::client::World &world) {
 
 // ROS2 integration functions (simplified sensor control only)
 void Sensor_EnableForROS(const carla::client::Sensor &sensor) {
-  try {
-    // First cast to Actor, then to non-const Sensor, then to ServerSideSensor
-    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
-        sensor.shared_from_this());
-    auto sensor_ptr =
-        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
-    if (sensor_ptr) {
-      auto server_side_sensor =
-          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
-              sensor_ptr);
-      if (server_side_sensor) {
-        server_side_sensor->EnableForROS();
-      }
-    }
-  } catch (...) {
-    // Handle error silently - sensor might not be a ServerSideSensor
-  }
+  // TODO: Implement safe ROS enabling without shared_from_this()
+  // The current approach causes segfaults
 }
 
 void Sensor_DisableForROS(const carla::client::Sensor &sensor) {
-  try {
-    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
-        sensor.shared_from_this());
-    auto sensor_ptr =
-        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
-    if (sensor_ptr) {
-      auto server_side_sensor =
-          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
-              sensor_ptr);
-      if (server_side_sensor) {
-        server_side_sensor->DisableForROS();
-      }
-    }
-  } catch (...) {
-    // Handle error silently
-  }
+  // TODO: Implement safe ROS disabling without shared_from_this()
 }
 
 bool Sensor_IsEnabledForROS(const carla::client::Sensor &sensor) {
-  try {
-    auto actor_ptr = std::const_pointer_cast<carla::client::Actor>(
-        sensor.shared_from_this());
-    auto sensor_ptr =
-        std::dynamic_pointer_cast<carla::client::Sensor>(actor_ptr);
-    if (sensor_ptr) {
-      auto server_side_sensor =
-          std::dynamic_pointer_cast<carla::client::ServerSideSensor>(
-              sensor_ptr);
-      if (server_side_sensor) {
-        return server_side_sensor->IsEnabledForROS();
-      }
-    }
-  } catch (...) {
-    // Handle error silently
-  }
+  // TODO: Implement safe ROS check without shared_from_this()
   return false;
 }

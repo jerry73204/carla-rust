@@ -24,8 +24,9 @@ impl Walker {
 
     /// Create a walker from an actor by casting.
     pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
-        let actor_ref = actor.inner_actor();
-        if let Some(walker_wrapper) = WalkerWrapper::from_actor(actor_ref) {
+        if let Some(walker_wrapper) =
+            WalkerWrapper::from_actor(actor.inner_wrapper().get_shared_ptr())
+        {
             Ok(Self {
                 inner: walker_wrapper,
             })

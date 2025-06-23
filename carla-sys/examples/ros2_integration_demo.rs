@@ -76,7 +76,7 @@ fn main() -> anyhow::Result<()> {
     println!("✅ Spawned RGB camera with ID: {}", camera.get_id());
 
     // Enable ROS2 for the camera
-    let camera_sensor = ffi::Actor_CastToSensor(camera.get_actor());
+    let camera_sensor = ffi::Actor_CastToSensor(camera.get_shared_ptr());
     if let Some(sensor) = camera_sensor.as_ref() {
         sensor.enable_for_ros();
         println!("✅ Enabled ROS2 publishing for RGB camera");
@@ -102,7 +102,7 @@ fn main() -> anyhow::Result<()> {
     println!("✅ Spawned LiDAR with ID: {}", lidar.get_id());
 
     // Enable ROS2 for the LiDAR
-    let lidar_sensor = ffi::Actor_CastToSensor(lidar.get_actor());
+    let lidar_sensor = ffi::Actor_CastToSensor(lidar.get_shared_ptr());
     if let Some(sensor) = lidar_sensor.as_ref() {
         sensor.enable_for_ros();
         println!("✅ Enabled ROS2 publishing for LiDAR");
@@ -124,7 +124,7 @@ fn main() -> anyhow::Result<()> {
     println!("✅ Spawned IMU with ID: {}", imu.get_id());
 
     // Enable ROS2 for the IMU
-    let imu_sensor = ffi::Actor_CastToSensor(imu.get_actor());
+    let imu_sensor = ffi::Actor_CastToSensor(imu.get_shared_ptr());
     if let Some(sensor) = imu_sensor.as_ref() {
         sensor.enable_for_ros();
         println!("✅ Enabled ROS2 publishing for IMU");

@@ -24,8 +24,9 @@ impl TrafficSign {
 
     /// Create a traffic sign from an actor by casting.
     pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
-        let actor_ref = actor.inner_actor();
-        if let Some(traffic_sign_wrapper) = TrafficSignWrapper::from_actor(actor_ref) {
+        if let Some(traffic_sign_wrapper) =
+            TrafficSignWrapper::from_actor(actor.inner_wrapper().get_shared_ptr())
+        {
             Ok(Self {
                 inner: traffic_sign_wrapper,
             })

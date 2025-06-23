@@ -11,8 +11,8 @@ pub struct WalkerAIControllerWrapper {
 
 impl WalkerAIControllerWrapper {
     /// Create a WalkerAIControllerWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let controller_ptr = ffi::Actor_CastToWalkerAIController(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let controller_ptr = ffi::Actor_CastToWalkerAIController(actor_ptr);
         if controller_ptr.is_null() {
             None
         } else {

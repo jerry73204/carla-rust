@@ -25,8 +25,9 @@ impl TrafficLight {
 
     /// Create a traffic light from an actor by casting.
     pub fn from_actor(actor: Actor) -> Result<Self, Actor> {
-        let actor_ref = actor.inner_actor();
-        if let Some(traffic_light_wrapper) = TrafficLightWrapper::from_actor(actor_ref) {
+        if let Some(traffic_light_wrapper) =
+            TrafficLightWrapper::from_actor(actor.inner_wrapper().get_shared_ptr())
+        {
             Ok(Self {
                 inner: traffic_light_wrapper,
             })

@@ -22,8 +22,8 @@ impl std::fmt::Debug for VehicleWrapper {
 
 impl VehicleWrapper {
     /// Create a VehicleWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let vehicle_ptr = ffi::Actor_CastToVehicle(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let vehicle_ptr = ffi::Actor_CastToVehicle(actor_ptr);
         if vehicle_ptr.is_null() {
             None
         } else {
@@ -33,7 +33,7 @@ impl VehicleWrapper {
 
     /// Convert back to an Actor (FFI internal use)
     pub(crate) fn to_actor(&self) -> SharedPtr<Actor> {
-        ffi::Vehicle_CastToActor(&self.inner)
+        ffi::Vehicle_CastToActor(self.inner.clone())
     }
 
     /// Create an ActorWrapper from this VehicleWrapper (Internal FFI use only)
@@ -43,7 +43,7 @@ impl VehicleWrapper {
     /// by external consumers of the API.
     pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
         // Cast Vehicle to Actor and create ActorWrapper
-        let actor_shared_ptr = ffi::Vehicle_CastToActor(&self.inner);
+        let actor_shared_ptr = ffi::Vehicle_CastToActor(self.inner.clone());
         crate::ActorWrapper::new(actor_shared_ptr)
     }
 

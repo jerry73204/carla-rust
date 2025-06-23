@@ -19,8 +19,8 @@ impl std::fmt::Debug for WalkerWrapper {
 
 impl WalkerWrapper {
     /// Create a WalkerWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let walker_ptr = ffi::Actor_CastToWalker(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let walker_ptr = ffi::Actor_CastToWalker(actor_ptr);
         if walker_ptr.is_null() {
             None
         } else {
@@ -30,7 +30,7 @@ impl WalkerWrapper {
 
     /// Convert back to an Actor (FFI internal use)
     pub(crate) fn to_actor(&self) -> SharedPtr<Actor> {
-        ffi::Walker_CastToActor(&self.inner)
+        ffi::Walker_CastToActor(self.inner.clone())
     }
 
     /// Create an ActorWrapper from this WalkerWrapper (Internal FFI use only)
@@ -40,7 +40,7 @@ impl WalkerWrapper {
     /// by external consumers of the API.
     pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
         // Cast Walker to Actor and create ActorWrapper
-        let actor_shared_ptr = ffi::Walker_CastToActor(&self.inner);
+        let actor_shared_ptr = ffi::Walker_CastToActor(self.inner.clone());
         crate::ActorWrapper::new(actor_shared_ptr)
     }
 

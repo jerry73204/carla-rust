@@ -1005,17 +1005,18 @@ pub mod bridge {
         fn Actor_GetParentId(actor: &Actor) -> SimpleActorId;
 
         // Actor type checking and casting
-        fn Actor_CastToVehicle(actor: &Actor) -> SharedPtr<Vehicle>;
-        fn Vehicle_CastToActor(vehicle: &Vehicle) -> SharedPtr<Actor>;
-        fn Actor_CastToWalker(actor: &Actor) -> SharedPtr<Walker>;
-        fn Walker_CastToActor(walker: &Walker) -> SharedPtr<Actor>;
-        fn Actor_CastToWalkerAIController(actor: &Actor) -> SharedPtr<WalkerAIController>;
-        fn Actor_CastToSensor(actor: &Actor) -> SharedPtr<Sensor>;
-        fn Sensor_CastToActor(sensor: &Sensor) -> SharedPtr<Actor>;
-        fn Actor_CastToTrafficLight(actor: &Actor) -> SharedPtr<TrafficLight>;
-        fn Actor_CastToTrafficSign(actor: &Actor) -> SharedPtr<TrafficSign>;
-        fn TrafficLight_CastToActor(traffic_light: &TrafficLight) -> SharedPtr<Actor>;
-        fn TrafficSign_CastToActor(traffic_sign: &TrafficSign) -> SharedPtr<Actor>;
+        fn Actor_CastToVehicle(actor: SharedPtr<Actor>) -> SharedPtr<Vehicle>;
+        fn Vehicle_CastToActor(vehicle: SharedPtr<Vehicle>) -> SharedPtr<Actor>;
+        fn Actor_CastToWalker(actor: SharedPtr<Actor>) -> SharedPtr<Walker>;
+        fn Walker_CastToActor(walker: SharedPtr<Walker>) -> SharedPtr<Actor>;
+        fn Actor_CastToWalkerAIController(actor: SharedPtr<Actor>)
+            -> SharedPtr<WalkerAIController>;
+        fn Actor_CastToSensor(actor: SharedPtr<Actor>) -> SharedPtr<Sensor>;
+        fn Sensor_CastToActor(sensor: SharedPtr<Sensor>) -> SharedPtr<Actor>;
+        fn Actor_CastToTrafficLight(actor: SharedPtr<Actor>) -> SharedPtr<TrafficLight>;
+        fn Actor_CastToTrafficSign(actor: SharedPtr<Actor>) -> SharedPtr<TrafficSign>;
+        fn TrafficLight_CastToActor(traffic_light: SharedPtr<TrafficLight>) -> SharedPtr<Actor>;
+        fn TrafficSign_CastToActor(traffic_sign: SharedPtr<TrafficSign>) -> SharedPtr<Actor>;
 
         // Vehicle methods
         fn Vehicle_ApplyControl(vehicle: &Vehicle, control: &SimpleVehicleControl);

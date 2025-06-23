@@ -18,8 +18,8 @@ impl std::fmt::Debug for SensorWrapper {
 
 impl SensorWrapper {
     /// Create a SensorWrapper from an Actor (performs cast)
-    pub fn from_actor(actor: &Actor) -> Option<Self> {
-        let sensor_ptr = ffi::Actor_CastToSensor(actor);
+    pub fn from_actor(actor_ptr: SharedPtr<Actor>) -> Option<Self> {
+        let sensor_ptr = ffi::Actor_CastToSensor(actor_ptr);
         if sensor_ptr.is_null() {
             None
         } else {
@@ -139,6 +139,17 @@ impl SensorWrapper {
     /// Get the inner sensor for FFI calls
     pub fn get_inner_sensor(&self) -> &SharedPtr<Sensor> {
         &self.inner
+    }
+
+    /// Create an ActorWrapper from this SensorWrapper (Internal FFI use only)
+    ///
+    /// # Note
+    /// This method is for internal use by the carla crate and should not be used
+    /// by external consumers of the API.
+    pub fn as_actor_wrapper(&self) -> crate::ActorWrapper {
+        // Cast Sensor to Actor and create ActorWrapper
+        let actor_shared_ptr = ffi::Sensor_CastToActor(self.inner.clone());
+        crate::ActorWrapper::new(actor_shared_ptr)
     }
 }
 

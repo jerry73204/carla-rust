@@ -543,6 +543,11 @@ impl ActorWrapper {
         &self.inner
     }
 
+    /// Get the SharedPtr<Actor> for casting operations
+    pub fn get_shared_ptr(&self) -> SharedPtr<Actor> {
+        self.inner.clone()
+    }
+
     /// Get the actor's unique ID
     pub fn get_id(&self) -> u32 {
         ffi::Actor_GetId(&self.inner)
