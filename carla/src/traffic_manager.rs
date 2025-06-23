@@ -3,8 +3,8 @@
 //! This module provides traffic management functionality for controlling
 //! autonomous vehicle behavior in CARLA simulations.
 
-mod traffic_manager;
+mod manager;
 mod types;
 
-pub use traffic_manager::*;
+pub use manager::*;
 pub use types::*;

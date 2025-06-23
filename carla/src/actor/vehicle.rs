@@ -104,6 +104,13 @@ impl ActorFfi for Vehicle {
 }
 
 impl Vehicle {
+    /// Apply control commands to the vehicle.
+    ///
+    /// # Arguments
+    /// * `control` - The vehicle control configuration to apply
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the control was applied successfully, or an error if it failed.
     pub fn apply_control(&self, control: &VehicleControl) -> CarlaResult<()> {
         // Convert high-level VehicleControl to carla-sys VehicleControl
         let cxx_control = carla_sys::VehicleControl {
@@ -122,6 +129,10 @@ impl Vehicle {
         })
     }
 
+    /// Get the current control configuration of the vehicle.
+    ///
+    /// # Returns
+    /// Returns the current vehicle control state.
     pub fn control(&self) -> VehicleControl {
         let cxx_control = self.inner.get_control();
         VehicleControl {
@@ -135,6 +146,14 @@ impl Vehicle {
         }
     }
 
+    /// Enable or disable autopilot for this vehicle.
+    ///
+    /// # Arguments
+    /// * `enabled` - Whether to enable (true) or disable (false) autopilot
+    /// * `traffic_manager_port` - Optional port for the traffic manager (defaults to 8000)
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if autopilot was set successfully.
     pub fn set_autopilot(
         &self,
         enabled: bool,
@@ -145,6 +164,10 @@ impl Vehicle {
         Ok(())
     }
 
+    /// Get the current physics control configuration of the vehicle.
+    ///
+    /// # Returns
+    /// Returns the current vehicle physics control parameters.
     pub fn physics_control(&self) -> VehiclePhysicsControl {
         let cxx_physics = self.inner.get_physics_control();
 
@@ -181,6 +204,13 @@ impl Vehicle {
         }
     }
 
+    /// Apply physics control configuration to the vehicle.
+    ///
+    /// # Arguments
+    /// * `physics_control` - The physics control configuration to apply
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the physics control was applied successfully.
     pub fn apply_physics_control(
         &self,
         physics_control: &VehiclePhysicsControl,
@@ -228,12 +258,23 @@ impl Vehicle {
         })
     }
 
+    /// Set the light state of the vehicle.
+    ///
+    /// # Arguments
+    /// * `light_state` - The light state configuration to apply
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the light state was set successfully.
     pub fn set_light_state(&self, light_state: VehicleLightState) -> CarlaResult<()> {
         let cxx_light_state = carla_sys::VehicleLightState::from_bits_truncate(light_state.lights);
         self.inner.set_light_state(cxx_light_state);
         Ok(())
     }
 
+    /// Get the current light state of the vehicle.
+    ///
+    /// # Returns
+    /// Returns the current vehicle light state.
     pub fn light_state(&self) -> VehicleLightState {
         let cxx_light_state = self.inner.get_light_state();
         VehicleLightState {
@@ -241,6 +282,14 @@ impl Vehicle {
         }
     }
 
+    /// Set the door state of the vehicle.
+    ///
+    /// # Arguments
+    /// * `door_type` - The type of door to control
+    /// * `is_open` - Whether to open (true) or close (false) the door
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the door state was set successfully.
     pub fn set_door_state(&self, door_type: VehicleDoorType, is_open: bool) -> CarlaResult<()> {
         let cxx_door_type = match door_type {
             VehicleDoorType::FrontLeft => carla_sys::VehicleDoorType::FrontLeft,
@@ -258,6 +307,10 @@ impl Vehicle {
         Ok(())
     }
 
+    /// Get the current telemetry data from the vehicle.
+    ///
+    /// # Returns
+    /// Returns the current vehicle telemetry data including speed, RPM, and gear information.
     pub fn telemetry_data(&self) -> VehicleTelemetryData {
         let cxx_telemetry = self.inner.get_telemetry_data();
         VehicleTelemetryData {

@@ -1,7 +1,9 @@
 //! Common test utilities for CARLA integration tests
 
+#![allow(dead_code)] // Test utilities may not be used in all test configurations
+
 use carla::{
-    actor::{Actor, ActorExt},
+    actor::Actor,
     client::{Client, World},
     error::CarlaResult,
     geom::Transform,
@@ -167,7 +169,7 @@ pub fn spawn_test_vehicle(client: &Client) -> CarlaResult<carla::actor::Vehicle>
     let spawn_points = world.map()?.spawn_points();
     let spawn_point = spawn_points
         .get(0)
-        .unwrap_or_else(|| carla::geom::Transform::default());
+        .unwrap_or_else(carla::geom::Transform::default);
 
     // Spawn the vehicle
     let actor = world

@@ -1,7 +1,7 @@
 //! Traffic sign actor implementation.
 
 use crate::{
-    actor::{Actor, ActorExt, ActorFfi, ActorId},
+    actor::{Actor, ActorFfi},
     error::CarlaResult,
     geom::FromCxx,
 };
@@ -107,11 +107,11 @@ mod tests {
             TrafficLightState::Unknown
         );
 
-        // Test to_cxx
-        assert_eq!(TrafficLightState::Red.to_cxx(), CxxState::Red);
-        assert_eq!(TrafficLightState::Yellow.to_cxx(), CxxState::Yellow);
-        assert_eq!(TrafficLightState::Green.to_cxx(), CxxState::Green);
-        assert_eq!(TrafficLightState::Off.to_cxx(), CxxState::Off);
-        assert_eq!(TrafficLightState::Unknown.to_cxx(), CxxState::Unknown);
+        // Test into_cxx
+        assert_eq!(TrafficLightState::Red.into_cxx(), CxxState::Red);
+        assert_eq!(TrafficLightState::Yellow.into_cxx(), CxxState::Yellow);
+        assert_eq!(TrafficLightState::Green.into_cxx(), CxxState::Green);
+        assert_eq!(TrafficLightState::Off.into_cxx(), CxxState::Off);
+        assert_eq!(TrafficLightState::Unknown.into_cxx(), CxxState::Unknown);
     }
 }

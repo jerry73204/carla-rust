@@ -4,7 +4,7 @@ use carla::{actor::ActorExt, client::Client, error::CarlaResult};
 
 fn main() -> CarlaResult<()> {
     // Connect to CARLA server
-    let mut client = Client::new("localhost", 2000, None)?;
+    let client = Client::new("localhost", 2000, None)?;
     let world = client.world()?;
 
     // Get all actors in the world

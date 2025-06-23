@@ -2,23 +2,26 @@
 
 use crate::actor::Actor;
 use carla_sys::{ffi::bridge::SimpleActorList, WorldWrapper};
-use std::sync::Arc;
+use std::rc::Rc;
 
 /// A list of actors that efficiently wraps the C++ vector.
 ///
 /// This type provides Vec-like operations while avoiding unnecessary conversions
 /// from the underlying C++ representation.
+///
+/// Like `World`, this type uses `Rc` and is not `Send` or `Sync` because it holds
+/// a reference to the world which contains non-thread-safe C++ objects.
 #[derive(Debug, Clone)]
 pub struct ActorList {
     /// The underlying actor ID list from C++
     inner: SimpleActorList,
     /// Reference to the world for actor lookups
-    world: Arc<WorldWrapper>,
+    world: Rc<WorldWrapper>,
 }
 
 impl ActorList {
     /// Create a new ActorList from the FFI representation.
-    pub(crate) fn new(inner: SimpleActorList, world: Arc<WorldWrapper>) -> Self {
+    pub(crate) fn new(inner: SimpleActorList, world: Rc<WorldWrapper>) -> Self {
         Self { inner, world }
     }
 
@@ -39,11 +42,10 @@ impl ActorList {
 
     /// Get an actor by index.
     pub fn get(&self, index: usize) -> Option<Actor> {
-        self.inner.actor_ids.get(index).and_then(|&id| {
-            self.world
-                .get_actor(id)
-                .map(|actor_wrapper| Actor::from_cxx(actor_wrapper))
-        })
+        self.inner
+            .actor_ids
+            .get(index)
+            .and_then(|&id| self.world.get_actor(id).map(Actor::from_cxx))
     }
 
     /// Find actors matching a type pattern using native CARLA filtering.
@@ -63,9 +65,7 @@ impl ActorList {
     /// Find an actor by ID.
     pub fn find_by_id(&self, id: u32) -> Option<Actor> {
         if self.inner.actor_ids.contains(&id) {
-            self.world
-                .get_actor(id)
-                .map(|actor_wrapper| Actor::from_cxx(actor_wrapper))
+            self.world.get_actor(id).map(Actor::from_cxx)
         } else {
             None
         }
@@ -145,7 +145,7 @@ impl ActorList {
 /// Iterator over actors in an ActorList.
 pub struct ActorListIter<'a> {
     actor_ids: &'a [u32],
-    world: &'a Arc<WorldWrapper>,
+    world: &'a Rc<WorldWrapper>,
     index: usize,
 }
 
@@ -187,7 +187,7 @@ impl IntoIterator for ActorList {
 /// Consuming iterator over actors in an ActorList.
 pub struct ActorListIntoIter {
     actor_ids: Vec<u32>,
-    world: Arc<WorldWrapper>,
+    world: Rc<WorldWrapper>,
     index: usize,
 }
 
@@ -224,8 +224,6 @@ impl<'a> IntoIterator for &'a ActorList {
 
 #[cfg(test)]
 mod tests {
-    use crate::ActorExt;
-
     use super::*;
 
     #[test]

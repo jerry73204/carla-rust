@@ -1,7 +1,7 @@
 //! RSS (Road Safety System) sensor actor implementation.
 
 use crate::{
-    actor::{ActorFfi, Sensor, SensorExt, SensorFfi},
+    actor::{Sensor, SensorExt, SensorFfi},
     error::{CarlaResult, SensorError},
     sensor_data::RSSData,
 };
@@ -96,12 +96,25 @@ crate::impl_sensor_actor_ext!(RSSSensor);
 
 // Placeholder types for RSS configuration
 // TODO: Implement these properly when FFI support is added
+
+/// RSS (Road Safety Service) dynamics configuration for the ego vehicle.
+///
+/// This struct will contain configuration parameters for the ego vehicle's
+/// dynamics model used in RSS calculations.
 #[derive(Debug, Clone)]
 pub struct RSSEgoVehicleDynamics;
 
+/// RSS dynamics configuration for other vehicles in the simulation.
+///
+/// This struct will contain configuration parameters for other vehicles'
+/// dynamics models used in RSS calculations.
 #[derive(Debug, Clone)]
 pub struct RSSOtherVehicleDynamics;
 
+/// RSS dynamics configuration for pedestrians in the simulation.
+///
+/// This struct will contain configuration parameters for pedestrian
+/// dynamics models used in RSS calculations.
 #[derive(Debug, Clone)]
 pub struct RSSPedestrianDynamics;
 

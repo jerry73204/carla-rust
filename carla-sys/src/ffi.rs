@@ -1,5 +1,8 @@
 //! FFI bridge definitions for CARLA C++ integration using CXX.
 
+// CXX doesn't properly handle safety docs for unsafe functions in extern blocks
+#![allow(clippy::missing_safety_doc)]
+
 // Map layer enum values (outside of bridge for CXX compatibility)
 pub const MAP_LAYER_NONE: u8 = 0;
 pub const MAP_LAYER_BUILDINGS: u8 = 1;
@@ -824,12 +827,24 @@ pub mod bridge {
         fn World_GetSpectator(world: &World) -> SharedPtr<Actor>;
         fn World_Tick(world: &World, timeout_seconds: f64) -> u64;
         fn World_GetSnapshot(world: &World) -> SimpleTimestamp;
+        /// Spawn an actor in the world.
+        ///
+        /// # Safety
+        ///
+        /// The `parent` pointer must either be null or point to a valid Actor instance.
+        /// If not null, the Actor must remain valid for the duration of the spawn operation.
         unsafe fn World_SpawnActor(
             world: &World,
             blueprint: &ActorBlueprint,
             transform: &SimpleTransform,
             parent: *const Actor,
         ) -> SharedPtr<Actor>;
+        /// Try to spawn an actor in the world.
+        ///
+        /// # Safety
+        ///
+        /// The `parent` pointer must either be null or point to a valid Actor instance.
+        /// If not null, the Actor must remain valid for the duration of the spawn operation.
         unsafe fn World_TrySpawnActor(
             world: &World,
             blueprint: &ActorBlueprint,

@@ -1,7 +1,7 @@
 //! Camera sensor implementation.
 
 use crate::{
-    actor::{ActorFfi, Sensor, SensorFfi},
+    actor::{Sensor, SensorFfi},
     sensor_data::{
         DepthImageData, ImageData, InstanceSegmentationImageData, RGBImageData,
         SemanticSegmentationImageData,

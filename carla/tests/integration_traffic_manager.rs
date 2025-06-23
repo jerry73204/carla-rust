@@ -4,13 +4,13 @@
 
 mod common;
 
-use carla::{
-    actor::{ActorExt, Vehicle},
-    error::CarlaResult,
-    geom::Transform,
-    traffic_manager::{TrafficManager, TrafficManagerConfig},
-};
+#[cfg(feature = "test-carla-server")]
+use carla::{error::CarlaResult, traffic_manager::TrafficManager};
+
+#[cfg(feature = "test-carla-server")]
 use common::{get_test_client, reset_world, spawn_test_vehicle};
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
 
 #[test]
@@ -112,7 +112,8 @@ fn test_vehicle_autopilot_with_traffic_manager() -> CarlaResult<()> {
 
     // Spawn a vehicle
     let vehicle = spawn_test_vehicle(&client)?;
-    let vehicle_id = vehicle.id();
+    let _vehicle_id = vehicle.id();
+    // TODO: Use vehicle_id for traffic manager operations when FFI is implemented
 
     // Enable autopilot with specific traffic manager
     vehicle.set_autopilot(true, Some(tm_port))?;
@@ -146,7 +147,8 @@ fn test_traffic_manager_lane_change() -> CarlaResult<()> {
 
     let tm = TrafficManager::get_instance(&client, 8000)?;
     let vehicle = spawn_test_vehicle(&client)?;
-    let vehicle_id = vehicle.id();
+    let _vehicle_id = vehicle.id();
+    // TODO: Use vehicle_id for traffic manager lane change operations when FFI is implemented
 
     // Enable autopilot
     vehicle.set_autopilot(true, None)?;
@@ -170,7 +172,8 @@ fn test_traffic_manager_desired_speed() -> CarlaResult<()> {
 
     let tm = TrafficManager::get_instance(&client, 8000)?;
     let vehicle = spawn_test_vehicle(&client)?;
-    let vehicle_id = vehicle.id();
+    let _vehicle_id = vehicle.id();
+    // TODO: Use vehicle_id for traffic manager speed operations when FFI is implemented
 
     // Enable autopilot
     vehicle.set_autopilot(true, None)?;
@@ -197,8 +200,9 @@ fn test_traffic_manager_collision_detection() -> CarlaResult<()> {
     let vehicle1 = spawn_test_vehicle(&client)?;
     let vehicle2 = spawn_test_vehicle(&client)?;
 
-    let vehicle1_id = vehicle1.id();
-    let vehicle2_id = vehicle2.id();
+    let _vehicle1_id = vehicle1.id();
+    let _vehicle2_id = vehicle2.id();
+    // TODO: Use vehicle IDs for collision detection configuration when FFI is implemented
 
     // Enable autopilot for both
     vehicle1.set_autopilot(true, None)?;

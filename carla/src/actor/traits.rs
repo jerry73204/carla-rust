@@ -220,7 +220,11 @@ where
     }
 }
 
-pub(crate) trait SensorFfi {
+/// FFI trait for internal sensor operations.
+///
+/// This trait provides access to the underlying FFI sensor wrapper for internal operations.
+/// It's primarily used by the public SensorExt trait to provide sensor functionality.
+pub trait SensorFfi {
     /// Get reference to the inner Sensor for FFI operations
     fn as_sensor_ffi(&self) -> &carla_sys::SensorWrapper;
 }
@@ -285,11 +289,19 @@ impl<T> SensorExt for T where T: SensorFfi {}
 // These delegate to their inner Sensor's ActorExt implementation
 
 // Make this macro available to other modules
+
+/// Macro to implement ActorExt trait for sensor types.
+///
+/// This macro provides a default implementation of the ActorExt trait
+/// for sensor types by delegating to their inner Sensor's implementation.
+///
+/// # Parameters
+/// - `$sensor_type`: The sensor type to implement ActorExt for
 #[macro_export]
 macro_rules! impl_sensor_actor_ext {
     ($sensor_type:ty) => {
-        impl crate::actor::ActorExt for $sensor_type {
-            fn id(&self) -> crate::actor::ActorId {
+        impl $crate::actor::ActorExt for $sensor_type {
+            fn id(&self) -> $crate::actor::ActorId {
                 self.as_sensor().id()
             }
 
@@ -297,23 +309,23 @@ macro_rules! impl_sensor_actor_ext {
                 self.as_sensor().type_id()
             }
 
-            fn transform(&self) -> crate::geom::Transform {
+            fn transform(&self) -> $crate::geom::Transform {
                 self.as_sensor().transform()
             }
 
-            fn set_transform(&self, transform: &crate::geom::Transform) -> crate::error::CarlaResult<()> {
+            fn set_transform(&self, transform: &$crate::geom::Transform) -> $crate::error::CarlaResult<()> {
                 self.as_sensor().set_transform(transform)
             }
 
-            fn velocity(&self) -> crate::geom::Vector3D {
+            fn velocity(&self) -> $crate::geom::Vector3D {
                 self.as_sensor().velocity()
             }
 
-            fn angular_velocity(&self) -> crate::geom::Vector3D {
+            fn angular_velocity(&self) -> $crate::geom::Vector3D {
                 self.as_sensor().angular_velocity()
             }
 
-            fn acceleration(&self) -> crate::geom::Vector3D {
+            fn acceleration(&self) -> $crate::geom::Vector3D {
                 self.as_sensor().acceleration()
             }
 
@@ -321,33 +333,33 @@ macro_rules! impl_sensor_actor_ext {
                 self.as_sensor().is_alive()
             }
 
-            fn set_simulate_physics(&self, enabled: bool) -> crate::error::CarlaResult<()> {
+            fn set_simulate_physics(&self, enabled: bool) -> $crate::error::CarlaResult<()> {
                 self.as_sensor().set_simulate_physics(enabled)
             }
 
-            fn add_impulse(&self, impulse: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+            fn add_impulse(&self, impulse: &$crate::geom::Vector3D) -> $crate::error::CarlaResult<()> {
                 self.as_sensor().add_impulse(impulse)
             }
 
-            fn add_force(&self, force: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+            fn add_force(&self, force: &$crate::geom::Vector3D) -> $crate::error::CarlaResult<()> {
                 self.as_sensor().add_force(force)
             }
 
-            fn add_torque(&self, torque: &crate::geom::Vector3D) -> crate::error::CarlaResult<()> {
+            fn add_torque(&self, torque: &$crate::geom::Vector3D) -> $crate::error::CarlaResult<()> {
                 self.as_sensor().add_torque(torque)
             }
 
-            fn bounding_box(&self) -> crate::geom::BoundingBox {
+            fn bounding_box(&self) -> $crate::geom::BoundingBox {
                 self.as_sensor().bounding_box()
             }
 
-            fn destroy(&mut self) -> crate::error::CarlaResult<()> {
+            fn destroy(&mut self) -> $crate::error::CarlaResult<()> {
                 // Sensor wrapper types don't support direct destruction through this method
                 // as they don't have mutable access to the inner sensor.
                 // Destruction happens automatically through Drop trait.
                 // For explicit destruction, convert to Actor first using into_actor().
-                Err(crate::error::CarlaError::Sensor(
-                    crate::error::SensorError::CallbackFailed(
+                Err($crate::error::CarlaError::Sensor(
+                    $crate::error::SensorError::CallbackFailed(
                         "Sensor wrapper types don't support destroy() - use into_actor().destroy() or rely on Drop".to_string()
                     )
                 ))

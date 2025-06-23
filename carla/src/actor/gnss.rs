@@ -1,7 +1,7 @@
 //! GNSS sensor actor implementation.
 
 use crate::{
-    actor::{ActorFfi, Sensor, SensorExt, SensorFfi},
+    actor::{Sensor, SensorExt, SensorFfi},
     error::{CarlaResult, SensorError},
     sensor_data::GNSSData,
 };

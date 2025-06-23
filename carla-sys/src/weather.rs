@@ -2,10 +2,8 @@
 
 use crate::ffi::bridge::SimpleWeatherParameters;
 
-/// Weather parameter convenience constructors and presets.
-impl SimpleWeatherParameters {
-    /// Create weather parameters with all default values (clear conditions)
-    pub fn default() -> Self {
+impl Default for SimpleWeatherParameters {
+    fn default() -> Self {
         Self {
             cloudiness: 0.0,
             precipitation: 0.0,
@@ -23,7 +21,10 @@ impl SimpleWeatherParameters {
             dust_storm: 0.0,
         }
     }
+}
 
+/// Weather parameter convenience constructors and presets.
+impl SimpleWeatherParameters {
     /// Clear sunny noon conditions
     pub fn clear_noon() -> Self {
         Self {

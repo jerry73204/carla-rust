@@ -4,15 +4,19 @@
 
 mod common;
 
+#[cfg(feature = "test-carla-server")]
 use carla::{
-    actor::{ActorExt, Sensor},
+    actor::ActorExt,
     error::CarlaResult,
     geom::Transform,
     streaming::{SensorStream, StreamConfig},
 };
+
+#[cfg(feature = "test-carla-server")]
 use common::{get_test_client, reset_world};
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
-use std::time::Duration;
 
 #[test]
 #[serial]
@@ -200,9 +204,11 @@ fn test_stream_buffer_management() -> CarlaResult<()> {
     let sensor_id = sensor.id();
 
     // Create stream with custom config
-    let mut config = StreamConfig::default();
-    config.buffer_size = 5;
-    config.drop_old_data = true;
+    let config = StreamConfig {
+        buffer_size: 5,
+        drop_old_data: true,
+        ..Default::default()
+    };
 
     let stream = SensorStream::new(config);
     stream.subscribe(sensor_id)?;
@@ -236,8 +242,10 @@ fn test_stream_error_handling() -> CarlaResult<()> {
     assert!(result.is_err());
 
     // Test max sensors limit
-    let mut config = StreamConfig::default();
-    config.max_sensors = 2;
+    let config = StreamConfig {
+        max_sensors: 2,
+        ..Default::default()
+    };
     let limited_stream = SensorStream::new(config);
 
     // Subscribe up to limit should work

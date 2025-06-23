@@ -1,7 +1,7 @@
 //! Sensor actor implementation.
 
 use crate::{
-    actor::{Actor, ActorExt, ActorFfi, SensorFfi},
+    actor::{Actor, ActorExt, SensorFfi},
     error::{CarlaError, CarlaResult, SensorError},
     geom::{FromCxx, ToCxx},
 };

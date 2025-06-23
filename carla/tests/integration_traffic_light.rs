@@ -1,10 +1,14 @@
 //! Integration tests for traffic light functionality
 
+#[cfg(feature = "test-carla-server")]
 use carla::{
     actor::{ActorExt, TrafficLight, TrafficLightState},
     client::Client,
 };
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
+#[cfg(feature = "test-carla-server")]
 use std::time::Duration;
 
 /// Test that requires a running CARLA server

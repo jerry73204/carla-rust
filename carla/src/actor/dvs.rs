@@ -1,7 +1,7 @@
 //! DVS (Dynamic Vision Sensor) camera actor implementation.
 
 use crate::{
-    actor::{ActorFfi, Sensor, SensorExt, SensorFfi},
+    actor::{Sensor, SensorExt, SensorFfi},
     error::{CarlaResult, SensorError},
     sensor_data::DVSData,
 };

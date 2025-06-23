@@ -35,7 +35,6 @@ impl Walker {
     }
 
     /// Get the walker's actor ID.
-
     /// Get the current speed in m/s.
     pub fn speed(&self) -> f32 {
         self.inner.get_speed()
@@ -58,7 +57,6 @@ impl Walker {
     /// with a walker AI controller blueprint.
     ///
     /// The WalkerAIController will then control this Walker's movement automatically.
-
     /// Blend between animation pose and custom pose.
     pub fn blend_pose(&self, blend: f32) -> CarlaResult<()> {
         self.inner.blend_pose(blend).map_err(|e| {
@@ -113,6 +111,13 @@ impl Drop for Walker {
 }
 
 impl Walker {
+    /// Apply control commands to the walker.
+    ///
+    /// # Arguments
+    /// * `control` - The walker control configuration to apply
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the control was applied successfully.
     pub fn apply_control(&self, control: &WalkerControl) -> CarlaResult<()> {
         // Convert high-level WalkerControl to carla-sys WalkerControl
         let cxx_control = carla_sys::walker::WalkerControl {
@@ -131,6 +136,10 @@ impl Walker {
         })
     }
 
+    /// Get the current control configuration of the walker.
+    ///
+    /// # Returns
+    /// Returns the current walker control state.
     pub fn control(&self) -> WalkerControl {
         let cxx_control = self.inner.get_control();
         WalkerControl {
@@ -144,12 +153,23 @@ impl Walker {
         }
     }
 
+    /// Get the list of bone names for this walker.
+    ///
+    /// # Returns
+    /// Returns a vector of bone names. Currently returns empty as FFI implementation is not complete.
     pub fn bones(&self) -> Vec<String> {
         // Bone control is available through WalkerWrapper but limited
         // Return an empty list as the CXX implementation doesn't expose bone names
         todo!("Walker::bones requires advanced bone FFI not implemented in CXX layer")
     }
 
+    /// Set bone transforms for the walker.
+    ///
+    /// # Arguments
+    /// * `bone_transforms` - List of bone names and their transforms
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if bone transforms were set successfully. Currently not implemented.
     pub fn set_bones(&self, bone_transforms: &[(String, Transform)]) -> CarlaResult<()> {
         // Bone control is available through blend_pose but not individual bone transforms
         let _bone_transforms = bone_transforms;

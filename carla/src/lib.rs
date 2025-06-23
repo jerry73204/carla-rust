@@ -14,6 +14,17 @@
 //! - [`geom`] - Geometry types for transforms, locations, and vectors
 //! - [`rpc`] - Remote procedure call data structures
 //!
+//! ## Thread Safety
+//!
+//! CARLA's C++ client library is not thread-safe, so this Rust wrapper uses `Rc`
+//! instead of `Arc` for shared references. Types like `World` and `ActorList` are
+//! therefore not `Send` or `Sync`.
+//!
+//! If you need to use CARLA from multiple threads, consider:
+//! - Wrapping types in `Arc<Mutex<T>>`
+//! - Using channels to communicate between threads
+//! - Running separate client connections from different threads
+//!
 //! ## Module Organization
 //!
 //! All submodules are publicly accessible, allowing direct imports like:
@@ -82,6 +93,8 @@
 // pub(crate) use carla_sys;
 
 // Core modules mirroring CARLA C++ API structure
+
+/// Actor management and types including vehicles, walkers, sensors, and traffic elements.
 pub mod actor;
 pub mod batch;
 pub mod client;

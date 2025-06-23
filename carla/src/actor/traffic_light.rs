@@ -1,7 +1,7 @@
 //! Traffic light actor implementation.
 
 use crate::{
-    actor::{Actor, ActorExt, ActorFfi, ActorId},
+    actor::{Actor, ActorFfi, ActorId},
     error::CarlaResult,
     road::WaypointList,
 };
@@ -52,7 +52,7 @@ impl TrafficLight {
 
     /// Set traffic light state.
     pub fn set_state(&self, state: TrafficLightState) -> CarlaResult<()> {
-        let cxx_state = state.to_cxx();
+        let cxx_state = state.into_cxx();
         self.inner.set_state(cxx_state);
         Ok(())
     }
@@ -192,7 +192,7 @@ impl TrafficLightState {
     }
 
     /// Convert to carla-sys TrafficLightState
-    pub(crate) fn to_cxx(&self) -> carla_sys::TrafficLightState {
+    pub(crate) fn into_cxx(self) -> carla_sys::TrafficLightState {
         use carla_sys::TrafficLightState as CxxState;
         match self {
             Self::Red => CxxState::Red,

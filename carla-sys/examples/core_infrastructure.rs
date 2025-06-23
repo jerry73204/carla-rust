@@ -1,6 +1,4 @@
-use carla_sys::{
-    ActorBlueprintExt, ClientWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
-};
+use carla_sys::{ClientWrapper, SimpleLocation, SimpleRotation, SimpleTransform};
 
 fn main() -> anyhow::Result<()> {
     println!("Testing carla-sys Core Client Infrastructure...");

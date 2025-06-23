@@ -22,8 +22,8 @@
 
 use anyhow::Result;
 use carla_sys::{
-    ActorBlueprintExt, ClientWrapper, DVSEventArray, ObstacleDetectionEvent, RssResponse,
-    SemanticLidarData, SensorWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
+    ClientWrapper, DVSEventArray, ObstacleDetectionEvent, RssResponse, SemanticLidarData,
+    SensorWrapper, SimpleLocation, SimpleRotation, SimpleTransform,
 };
 use std::time::Duration;
 

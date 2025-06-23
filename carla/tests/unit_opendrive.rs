@@ -52,8 +52,9 @@ fn test_complex_junction_structure() {
     let content = load_opendrive_file("complex_junction.xodr");
 
     // Verify we have 4 approach roads plus junction roads
-    let total_road_count = content.matches("<road ").count();
-    let junction_road_count = content.matches("junction=\"100\"").count();
+    let _total_road_count = content.matches("<road ").count();
+    let _junction_road_count = content.matches("junction=\"100\"").count();
+    // TODO: Add validation for total road count and junction road count when needed
     let approach_road_count = content.matches("junction=\"-1\"").count();
     assert_eq!(approach_road_count, 4);
 
@@ -145,14 +146,14 @@ fn test_opendrive_road_links() {
 mod test_helpers {
     /// Mock Map for testing when server is not available
     pub struct MockMap {
-        pub name: String,
+        pub _name: String, // TODO: Use name field for map identification when needed
         pub opendrive_content: String,
     }
 
     impl MockMap {
         pub fn from_opendrive(content: &str) -> Self {
             Self {
-                name: "TestMap".to_string(),
+                _name: "TestMap".to_string(),
                 opendrive_content: content.to_string(),
             }
         }

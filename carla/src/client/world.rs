@@ -9,20 +9,25 @@ use crate::{
     time::Timestamp,
 };
 use carla_sys::WorldWrapper;
-use std::{sync::Arc, time::Duration};
+use std::{rc::Rc, time::Duration};
 
 /// Represents the simulation world.
+///
+/// This type uses `Rc` internally and is not `Send` or `Sync`. This is intentional
+/// because CARLA's C++ client library is not thread-safe. If you need to share
+/// a World across threads, you should wrap it in `Arc<Mutex<World>>` or use
+/// message passing between threads.
 #[derive(Debug, Clone)]
 pub struct World {
     /// Internal handle to carla-sys World
-    inner: Arc<WorldWrapper>,
+    inner: Rc<WorldWrapper>,
 }
 
 impl World {
     /// Create a new World from a WorldWrapper
     pub(crate) fn from_cxx(inner: WorldWrapper) -> Self {
         Self {
-            inner: Arc::new(inner),
+            inner: Rc::new(inner),
         }
     }
 
@@ -57,7 +62,7 @@ impl World {
     pub fn spectator(&self) -> CarlaResult<Actor> {
         self.inner
             .get_spectator()
-            .map(|actor_wrapper| Actor::from_cxx(actor_wrapper))
+            .map(Actor::from_cxx)
             .ok_or_else(|| {
                 crate::error::CarlaError::Actor(
                     crate::error::ActorError::NotFound(0), // Spectator doesn't have a specific ID
@@ -106,16 +111,13 @@ impl World {
 
     /// Get an actor by ID.
     pub fn actor(&self, actor_id: ActorId) -> CarlaResult<Option<Actor>> {
-        Ok(self
-            .inner
-            .get_actor(actor_id)
-            .map(|actor_wrapper| Actor::from_cxx(actor_wrapper)))
+        Ok(self.inner.get_actor(actor_id).map(Actor::from_cxx))
     }
 
     /// Get all actors in the world.
     pub fn actors(&self) -> CarlaResult<ActorList> {
         let simple_actor_list = self.inner.get_actors();
-        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
+        Ok(ActorList::new(simple_actor_list, Rc::clone(&self.inner)))
     }
 
     /// Get actors filtered by type.
@@ -140,7 +142,7 @@ impl World {
         {
             Ok(actor_wrapper) => Ok(Actor::from_cxx(actor_wrapper)),
             Err(_e) => Err(crate::error::SpawnError::LocationOccupied {
-                location: transform.location.clone(),
+                location: transform.location,
             }
             .into()),
         }
@@ -212,10 +214,7 @@ impl World {
         Ok(actors
             .find_by_type("traffic.traffic_light")
             .into_iter()
-            .filter_map(|actor| match actor.into_traffic_light() {
-                Ok(traffic_light) => Some(traffic_light),
-                Err(_) => None,
-            })
+            .filter_map(|actor| actor.into_traffic_light().ok())
             .collect())
     }
 
@@ -231,13 +230,13 @@ impl World {
         let simple_actor_list = self
             .inner
             .get_traffic_lights_from_waypoint(waypoint.inner().get_waypoint(), distance);
-        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
+        Ok(ActorList::new(simple_actor_list, Rc::clone(&self.inner)))
     }
 
     /// Get all traffic lights in a junction.
     pub fn traffic_lights_in_junction(&self, junction_id: i32) -> CarlaResult<ActorList> {
         let simple_actor_list = self.inner.get_traffic_lights_in_junction(junction_id);
-        Ok(ActorList::new(simple_actor_list, Arc::clone(&self.inner)))
+        Ok(ActorList::new(simple_actor_list, Rc::clone(&self.inner)))
     }
 
     /// Get reference to the internal WorldWrapper for advanced operations

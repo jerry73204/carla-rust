@@ -371,7 +371,7 @@ mod tests {
 
         // Get world vertices using the transform method
         let transformed_bbox = bbox.transform(&transform);
-        let world_vertices = transformed_bbox.vertices();
+        let _world_vertices = transformed_bbox.vertices();
 
         // The axis-aligned bounding box after transformation should contain all transformed vertices
         for transformed_vertex in &manually_transformed_vertices {

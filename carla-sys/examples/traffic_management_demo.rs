@@ -142,9 +142,11 @@ fn spawn_demo_vehicles(
         .find("vehicle.tesla.model3")
         .ok_or_else(|| anyhow::anyhow!("Tesla Model 3 blueprint not found"))?;
 
-    for i in 0..count.min(spawn_points.len()) {
-        let spawn_point = &spawn_points[i];
-
+    for (i, spawn_point) in spawn_points
+        .iter()
+        .enumerate()
+        .take(count.min(spawn_points.len()))
+    {
         match world.try_spawn_actor(&vehicle_bp, spawn_point, None) {
             Some(vehicle) => {
                 println!(
@@ -166,7 +168,7 @@ fn spawn_demo_vehicles(
 }
 
 fn configure_demo_vehicles(
-    tm: &TrafficManagerWrapper,
+    _tm: &TrafficManagerWrapper, // TODO: Use traffic manager for vehicle configuration
     vehicles: &[carla_sys::ActorWrapper],
 ) -> Result<()> {
     println!("Individual vehicle configuration would require:");
@@ -216,8 +218,8 @@ fn configure_demo_vehicles(
 }
 
 fn demonstrate_synchronous_mode(
-    tm: &TrafficManagerWrapper,
-    world: &carla_sys::WorldWrapper,
+    _tm: &TrafficManagerWrapper, // TODO: Use traffic manager for synchronous mode operations
+    _world: &carla_sys::WorldWrapper, // TODO: Use world for tick operations
 ) -> Result<()> {
     println!("Synchronous mode demonstration:");
     println!("  Would run 10 synchronous ticks");
@@ -230,7 +232,8 @@ fn demonstrate_synchronous_mode(
     Ok(())
 }
 
-fn monitor_traffic(tm: &TrafficManagerWrapper, ticks: u32) -> Result<()> {
+fn monitor_traffic(_tm: &TrafficManagerWrapper, ticks: u32) -> Result<()> {
+    // TODO: Use traffic manager for monitoring operations
     println!("Traffic monitoring simulation:");
     println!("  Would monitor for {} ticks", ticks);
     println!("  Each 5 ticks would show:");

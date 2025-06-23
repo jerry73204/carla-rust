@@ -22,7 +22,7 @@ impl Client {
     where
         W: Into<Option<usize>>,
     {
-        let worker_threads = worker_threads.into().unwrap_or(0);
+        let _worker_threads = worker_threads.into().unwrap_or(0);
         let inner = ClientWrapper::new(host, port).map_err(|e| {
             crate::error::CarlaError::Client(crate::error::ClientError::ConnectionFailed {
                 host: host.to_string(),

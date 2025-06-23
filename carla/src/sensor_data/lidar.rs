@@ -357,7 +357,7 @@ impl SemanticLiDARData {
             .detections
             .iter()
             .map(|d| SemanticLiDARDetection {
-                point: Location::new(d.point.x as f64, d.point.y as f64, d.point.z as f64),
+                point: Location::new(d.point.x, d.point.y, d.point.z),
                 cos_inc_angle: d.cos_inc_angle,
                 object_idx: d.object_idx,
                 object_tag: d.object_tag,

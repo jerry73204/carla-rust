@@ -52,6 +52,11 @@ impl BlueprintLibrary {
         self.inner.size()
     }
 
+    /// Check if the blueprint library is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Get an iterator over all blueprints in the library.
     pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> {
         self.inner

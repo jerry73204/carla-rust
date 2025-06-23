@@ -1,7 +1,7 @@
 //! Unit tests for carla-sys functionality.
 
 #[cfg(test)]
-mod tests {
+mod unit_tests {
     use crate::ffi::{
         SimpleBoundingBox, SimpleLocation, SimpleRotation, SimpleTransform, SimpleVector2D,
         SimpleVector3D,

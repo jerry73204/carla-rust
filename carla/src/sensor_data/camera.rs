@@ -61,7 +61,7 @@ impl DepthImageData {
                 if idx + 2 < self.image.data.len() {
                     let r = self.image.data[idx + 2] as f32;
                     let g = self.image.data[idx + 1] as f32;
-                    let b = self.image.data[idx + 0] as f32;
+                    let b = self.image.data[idx] as f32;
 
                     // CARLA depth encoding: depth = (R + G * 256 + B * 256 * 256) / (256^3 - 1) * 1000
                     let normalized = (r + g * 256.0 + b * 65536.0) / 16777215.0;
@@ -84,7 +84,7 @@ impl DepthImageData {
         if idx + 2 < self.image.data.len() {
             let r = self.image.data[idx + 2] as f32;
             let g = self.image.data[idx + 1] as f32;
-            let b = self.image.data[idx + 0] as f32;
+            let b = self.image.data[idx] as f32;
 
             let normalized = (r + g * 256.0 + b * 65536.0) / 16777215.0;
             Some(normalized * 1000.0)
@@ -286,7 +286,7 @@ impl InstanceSegmentationImageData {
                 if idx + 2 < self.image.data.len() {
                     let r = self.image.data[idx + 2] as u32;
                     let g = self.image.data[idx + 1] as u32;
-                    let b = self.image.data[idx + 0] as u32;
+                    let b = self.image.data[idx] as u32;
 
                     // Instance ID encoding: ID = R + G * 256 + B * 256^2
                     let instance_id = r + g * 256 + b * 65536;
@@ -308,7 +308,7 @@ impl InstanceSegmentationImageData {
         if idx + 2 < self.image.data.len() {
             let r = self.image.data[idx + 2] as u32;
             let g = self.image.data[idx + 1] as u32;
-            let b = self.image.data[idx + 0] as u32;
+            let b = self.image.data[idx] as u32;
 
             Some(r + g * 256 + b * 65536)
         } else {
@@ -498,13 +498,11 @@ mod tests {
     fn test_cityscapes_palette() {
         // Test all semantic tags have valid colors
         for tag in 0..CityScapesPalette::get_number_of_tags() {
-            let color = CityScapesPalette::get_color(tag as u8);
+            let _color = CityScapesPalette::get_color(tag as u8);
             let name = CityScapesPalette::get_tag_name(tag as u8);
 
-            // Verify color is valid RGB
-            assert!(color[0] <= 255);
-            assert!(color[1] <= 255);
-            assert!(color[2] <= 255);
+            // Note: color values are u8, so they're always valid RGB (0-255)
+            // TODO: Add tests for color values when needed
 
             // Verify name is not unknown for valid tags
             assert_ne!(name, "Unknown");

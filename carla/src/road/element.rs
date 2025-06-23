@@ -80,37 +80,51 @@ impl RoadGeometry {
 /// Road mark types.
 #[derive(Debug, Clone, PartialEq)]
 pub enum RoadMarkType {
+    /// No road mark.
     None,
+    /// Solid continuous line.
     Solid,
+    /// Broken/dashed line.
     Broken,
+    /// Double solid lines.
     SolidSolid,
+    /// Solid line followed by broken line.
     SolidBroken,
+    /// Broken line followed by solid line.
     BrokenSolid,
+    /// Double broken lines.
     BrokenBroken,
+    /// Bott's dots or similar raised markers.
     BottsDots,
+    /// Grass or vegetation marking.
     Grass,
+    /// Curb or raised edge.
     Curb,
+    /// Custom road mark type.
     Custom(String),
 }
 
-impl RoadMarkType {
-    /// Parse from string.
-    pub fn from_str(s: &str) -> Self {
+impl std::str::FromStr for RoadMarkType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "none" => Self::None,
-            "solid" => Self::Solid,
-            "broken" => Self::Broken,
-            "solid solid" => Self::SolidSolid,
-            "solid broken" => Self::SolidBroken,
-            "broken solid" => Self::BrokenSolid,
-            "broken broken" => Self::BrokenBroken,
-            "botts dots" => Self::BottsDots,
-            "grass" => Self::Grass,
-            "curb" => Self::Curb,
-            other => Self::Custom(other.to_string()),
+            "none" => Ok(Self::None),
+            "solid" => Ok(Self::Solid),
+            "broken" => Ok(Self::Broken),
+            "solid solid" => Ok(Self::SolidSolid),
+            "solid broken" => Ok(Self::SolidBroken),
+            "broken solid" => Ok(Self::BrokenSolid),
+            "broken broken" => Ok(Self::BrokenBroken),
+            "botts dots" => Ok(Self::BottsDots),
+            "grass" => Ok(Self::Grass),
+            "curb" => Ok(Self::Curb),
+            other => Ok(Self::Custom(other.to_string())),
         }
     }
+}
 
+impl RoadMarkType {
     /// Convert to string.
     pub fn as_str(&self) -> &str {
         match self {
@@ -132,31 +146,42 @@ impl RoadMarkType {
 /// Road mark colors.
 #[derive(Debug, Clone, PartialEq)]
 pub enum RoadMarkColor {
+    /// Standard/default color.
     Standard,
+    /// Blue color marking.
     Blue,
+    /// Green color marking.
     Green,
+    /// Red color marking.
     Red,
+    /// White color marking.
     White,
+    /// Yellow color marking.
     Yellow,
+    /// Orange color marking.
     Orange,
+    /// Custom color.
     Custom(String),
 }
 
-impl RoadMarkColor {
-    /// Parse from string.
-    pub fn from_str(s: &str) -> Self {
+impl std::str::FromStr for RoadMarkColor {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "standard" => Self::Standard,
-            "blue" => Self::Blue,
-            "green" => Self::Green,
-            "red" => Self::Red,
-            "white" => Self::White,
-            "yellow" => Self::Yellow,
-            "orange" => Self::Orange,
-            other => Self::Custom(other.to_string()),
+            "standard" => Ok(Self::Standard),
+            "blue" => Ok(Self::Blue),
+            "green" => Ok(Self::Green),
+            "red" => Ok(Self::Red),
+            "white" => Ok(Self::White),
+            "yellow" => Ok(Self::Yellow),
+            "orange" => Ok(Self::Orange),
+            other => Ok(Self::Custom(other.to_string())),
         }
     }
+}
 
+impl RoadMarkColor {
     /// Convert to string.
     pub fn as_str(&self) -> &str {
         match self {
@@ -175,24 +200,31 @@ impl RoadMarkColor {
 /// Road mark lane change permissions.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RoadMarkLaneChange {
+    /// No lane changing allowed.
     None,
+    /// Lane changing allowed to higher lane IDs.
     Increase,
+    /// Lane changing allowed to lower lane IDs.
     Decrease,
+    /// Lane changing allowed in both directions.
     Both,
 }
 
-impl RoadMarkLaneChange {
-    /// Parse from string.
-    pub fn from_str(s: &str) -> Self {
+impl std::str::FromStr for RoadMarkLaneChange {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "none" => Self::None,
-            "increase" => Self::Increase,
-            "decrease" => Self::Decrease,
-            "both" => Self::Both,
-            _ => Self::None,
+            "none" => Ok(Self::None),
+            "increase" => Ok(Self::Increase),
+            "decrease" => Ok(Self::Decrease),
+            "both" => Ok(Self::Both),
+            _ => Err(()),
         }
     }
+}
 
+impl RoadMarkLaneChange {
     /// Convert to string.
     pub fn as_str(&self) -> &str {
         match self {
@@ -257,10 +289,16 @@ mod tests {
 
     #[test]
     fn test_road_mark_types() {
-        assert_eq!(RoadMarkType::from_str("solid"), RoadMarkType::Solid);
-        assert_eq!(RoadMarkType::from_str("broken"), RoadMarkType::Broken);
         assert_eq!(
-            RoadMarkType::from_str("unknown"),
+            "solid".parse::<RoadMarkType>().unwrap(),
+            RoadMarkType::Solid
+        );
+        assert_eq!(
+            "broken".parse::<RoadMarkType>().unwrap(),
+            RoadMarkType::Broken
+        );
+        assert_eq!(
+            "unknown".parse::<RoadMarkType>().unwrap(),
             RoadMarkType::Custom("unknown".to_string())
         );
 
@@ -270,10 +308,16 @@ mod tests {
 
     #[test]
     fn test_road_mark_colors() {
-        assert_eq!(RoadMarkColor::from_str("white"), RoadMarkColor::White);
-        assert_eq!(RoadMarkColor::from_str("yellow"), RoadMarkColor::Yellow);
         assert_eq!(
-            RoadMarkColor::from_str("custom"),
+            "white".parse::<RoadMarkColor>().unwrap(),
+            RoadMarkColor::White
+        );
+        assert_eq!(
+            "yellow".parse::<RoadMarkColor>().unwrap(),
+            RoadMarkColor::Yellow
+        );
+        assert_eq!(
+            "custom".parse::<RoadMarkColor>().unwrap(),
             RoadMarkColor::Custom("custom".to_string())
         );
 
@@ -284,17 +328,14 @@ mod tests {
     #[test]
     fn test_road_mark_lane_change() {
         assert_eq!(
-            RoadMarkLaneChange::from_str("none"),
+            "none".parse::<RoadMarkLaneChange>().unwrap(),
             RoadMarkLaneChange::None
         );
         assert_eq!(
-            RoadMarkLaneChange::from_str("both"),
+            "both".parse::<RoadMarkLaneChange>().unwrap(),
             RoadMarkLaneChange::Both
         );
-        assert_eq!(
-            RoadMarkLaneChange::from_str("invalid"),
-            RoadMarkLaneChange::None
-        );
+        assert!("invalid".parse::<RoadMarkLaneChange>().is_err());
 
         assert_eq!(RoadMarkLaneChange::None.as_str(), "none");
         assert_eq!(RoadMarkLaneChange::Both.as_str(), "both");
@@ -319,18 +360,18 @@ mod tests {
     #[test]
     fn test_road_geometry_creation() {
         let geom = RoadGeometry::new(
-            10.0,   // s
-            100.0,  // x
-            200.0,  // y
-            1.5708, // hdg (90 degrees)
-            50.0,   // length
+            10.0,                        // s
+            100.0,                       // x
+            200.0,                       // y
+            std::f64::consts::FRAC_PI_2, // hdg (90 degrees)
+            50.0,                        // length
             GeometryType::Line,
         );
 
         assert_eq!(geom.s, 10.0);
         assert_eq!(geom.x, 100.0);
         assert_eq!(geom.y, 200.0);
-        assert_eq!(geom.hdg, 1.5708);
+        assert_eq!(geom.hdg, std::f64::consts::FRAC_PI_2);
         assert_eq!(geom.length, 50.0);
         assert_eq!(geom.geometry_type, GeometryType::Line);
     }

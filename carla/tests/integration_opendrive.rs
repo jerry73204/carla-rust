@@ -2,10 +2,13 @@
 //!
 //! These tests correspond to the C++ tests in test_opendrive.cpp
 
-use serial_test::serial;
-
 mod common;
-use carla::{client::Client, error::CarlaResult, geom::Location, road::LaneType};
+
+#[cfg(feature = "test-carla-server")]
+use carla::road::LaneType;
+
+#[cfg(feature = "test-carla-server")]
+use serial_test::serial;
 
 #[test]
 #[serial]
@@ -166,7 +169,7 @@ fn test_parse_junctions() {
 
         // Generate waypoints and find junctions
         let waypoints = map.generate_waypoints(2.0);
-        let mut junction_waypoints = Vec::new();
+        let junction_waypoints = Vec::new();
         let mut unique_junctions = HashSet::new();
 
         for waypoint in waypoints.iter() {
@@ -430,10 +433,11 @@ fn test_parse_geometry() {
             // Note: s() method doesn't exist - using index as substitute
             let s = 0.0; // Placeholder since s coordinate is not available
 
-            road_geometries
-                .entry(road_id)
-                .or_insert_with(Vec::new)
-                .push((s, transform.location.x, transform.location.y));
+            road_geometries.entry(road_id).or_default().push((
+                s,
+                transform.location.x,
+                transform.location.y,
+            ));
         }
 
         // Analyze curvature for some roads
@@ -446,7 +450,7 @@ fn test_parse_geometry() {
                 let mut max_curvature: f64 = 0.0;
                 for i in 1..points.len() - 1 {
                     let (s1, x1, y1) = points[i - 1];
-                    let (s2, x2, y2) = points[i];
+                    let (_s2, x2, y2) = points[i];
                     let (s3, x3, y3) = points[i + 1];
 
                     // Simple curvature approximation using three points

@@ -4,18 +4,19 @@
 
 mod common;
 
-use carla::{
-    actor::{ActorExt, Sensor},
-    error::CarlaResult,
-    geom::Transform,
-    sensor_data::{CollisionData, IMUData, LiDARData, RGBImageData, RadarData},
-};
+#[cfg(feature = "test-carla-server")]
+use carla::{actor::ActorExt, error::CarlaResult, geom::Transform};
+
+#[cfg(feature = "test-carla-server")]
+use std::time::Duration;
+
+#[cfg(feature = "test-carla-server")]
 use common::{get_test_client, reset_world, spawn_test_vehicle};
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
-use std::{
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+#[cfg(feature = "test-carla-server")]
+use std::sync::{Arc, Mutex};
 
 #[test]
 #[serial]
@@ -46,7 +47,7 @@ fn test_sensor_spawning() -> CarlaResult<()> {
             let sensor = world
                 .spawn_actor(&blueprint, &Transform::default(), None)?
                 .into_sensor()
-                .expect(&format!("Failed to cast {} to sensor", sensor_type));
+                .unwrap_or_else(|_| panic!("Failed to cast {} to sensor", sensor_type));
 
             // Verify sensor properties
             assert!(sensor.id() > 0);
@@ -84,7 +85,7 @@ fn test_camera_sensor_data_callback() -> CarlaResult<()> {
     camera_bp.set_attribute("image_size_x", "320")?;
     camera_bp.set_attribute("image_size_y", "240")?;
 
-    let mut sensor = world
+    let sensor = world
         .spawn_actor(&camera_bp, &Transform::default(), None)?
         .into_sensor()
         .expect("Failed to cast to sensor");
@@ -130,7 +131,7 @@ fn test_imu_sensor_streaming() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle to attach IMU to
-    let vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
 
     // Create IMU sensor
     let imu_bp = blueprint_library.find("sensor.other.imu")?.ok_or_else(|| {
@@ -139,7 +140,7 @@ fn test_imu_sensor_streaming() -> CarlaResult<()> {
         ))
     })?;
 
-    let mut sensor = world
+    let sensor = world
         .spawn_actor(&imu_bp, &Transform::default(), None)?
         .into_sensor()
         .expect("Failed to cast to sensor");
@@ -217,7 +218,8 @@ fn test_collision_sensor() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(&client)?;
+    // TODO: Attach collision sensor to vehicle when attachment FFI is implemented
 
     // Create collision sensor
     let collision_bp = blueprint_library
@@ -263,7 +265,8 @@ fn test_lane_invasion_sensor() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(&client)?;
+    // TODO: Attach lane invasion sensor to vehicle when attachment FFI is implemented
 
     // Create lane invasion sensor
     let lane_invasion_bp = blueprint_library
@@ -309,7 +312,7 @@ fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
 
     let mut sensors = Vec::new();
 
@@ -323,9 +326,9 @@ fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
     for (sensor_type, transform) in &sensor_configs {
         if let Some(bp) = blueprint_library.find(sensor_type)? {
             let sensor = world
-                .spawn_actor(&bp, &transform, None)?
+                .spawn_actor(&bp, transform, None)?
                 .into_sensor()
-                .expect(&format!("Failed to cast {} to sensor", sensor_type));
+                .unwrap_or_else(|_| panic!("Failed to cast {} to sensor", sensor_type));
 
             sensors.push(sensor);
         }
@@ -370,7 +373,7 @@ fn test_sensor_callback_cleanup() -> CarlaResult<()> {
 
     for i in 0..3 {
         if let Some(bp) = blueprint_library.find("sensor.other.gnss")? {
-            let mut sensor = world
+            let sensor = world
                 .spawn_actor(&bp, &Transform::default(), None)?
                 .into_sensor()
                 .expect("Failed to cast to sensor");
@@ -427,7 +430,7 @@ fn test_lidar_sensor() -> CarlaResult<()> {
     lidar_bp.set_attribute("rotation_frequency", "10")?;
     lidar_bp.set_attribute("range", "100")?;
 
-    let mut sensor = world
+    let sensor = world
         .spawn_actor(&lidar_bp, &Transform::default(), None)?
         .into_sensor()
         .expect("Failed to cast to sensor");
@@ -466,7 +469,7 @@ fn test_radar_sensor() -> CarlaResult<()> {
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
 
     // Create radar sensor
     let radar_bp = blueprint_library
@@ -477,7 +480,7 @@ fn test_radar_sensor() -> CarlaResult<()> {
             ))
         })?;
 
-    let mut sensor = world
+    let sensor = world
         .spawn_actor(&radar_bp, &Transform::default(), None)?
         .into_sensor()
         .expect("Failed to cast to sensor");
@@ -524,7 +527,7 @@ fn test_sensor_error_handling() -> CarlaResult<()> {
             ))
         })?;
 
-    let mut sensor = world
+    let sensor = world
         .spawn_actor(&sensor_bp, &Transform::default(), None)?
         .into_sensor()
         .expect("Failed to cast to sensor");

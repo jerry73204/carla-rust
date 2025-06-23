@@ -85,7 +85,7 @@ impl Waypoint {
             _ => LaneType::Any,
         };
         let right_marking = wrapper.get_right_lane_marking();
-        let left_marking = wrapper.get_left_lane_marking();
+        let _left_marking = wrapper.get_left_lane_marking();
 
         Self {
             transform,
@@ -127,18 +127,12 @@ impl Waypoint {
 
     /// Get the right lane waypoint.
     pub fn right_lane(&self) -> CarlaResult<Option<Waypoint>> {
-        Ok(self
-            .wrapper
-            .get_right()
-            .map(|w| Waypoint::from_cxx_wrapper(w)))
+        Ok(self.wrapper.get_right().map(Waypoint::from_cxx_wrapper))
     }
 
     /// Get the left lane waypoint.
     pub fn left_lane(&self) -> CarlaResult<Option<Waypoint>> {
-        Ok(self
-            .wrapper
-            .get_left()
-            .map(|w| Waypoint::from_cxx_wrapper(w)))
+        Ok(self.wrapper.get_left().map(Waypoint::from_cxx_wrapper))
     }
 
     /// Get the distance to another waypoint.
@@ -153,10 +147,7 @@ impl Waypoint {
 
     /// Get the junction this waypoint belongs to.
     pub fn junction(&self) -> CarlaResult<Option<Junction>> {
-        Ok(self
-            .wrapper
-            .get_junction()
-            .map(|j| Junction::from_cxx_wrapper(j)))
+        Ok(self.wrapper.get_junction().map(Junction::from_cxx_wrapper))
     }
 
     /// Get reference to internal wrapper for FFI operations

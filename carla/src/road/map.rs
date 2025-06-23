@@ -41,7 +41,7 @@ impl Map {
             true,
             Some(carla_sys::map::LaneType::Driving),
         );
-        waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 
     /// Get all spawn points for vehicles.
@@ -84,7 +84,7 @@ impl Map {
     pub fn junction(&self, waypoint: &Waypoint) -> Option<Junction> {
         self.inner
             .get_junction(waypoint.wrapper())
-            .map(|j| Junction::from_cxx_wrapper(j))
+            .map(Junction::from_cxx_wrapper)
     }
 
     /// Transform a location from geospatial (lat/lon) to map coordinates.
@@ -115,7 +115,7 @@ impl Map {
         let waypoint_wrapper = self
             .inner
             .get_next_waypoint_xodr(road_id, lane_id, s, distance);
-        waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 
     /// Get previous waypoint from coordinates (for waypoints without wrapper)
@@ -129,7 +129,7 @@ impl Map {
         let waypoint_wrapper = self
             .inner
             .get_previous_waypoint_xodr(road_id, lane_id, s, distance);
-        waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 
     /// Get right lane waypoint from coordinates (for waypoints without wrapper)
@@ -140,7 +140,7 @@ impl Map {
         s: f64,
     ) -> Option<Waypoint> {
         let waypoint_wrapper = self.inner.get_right_lane_waypoint_xodr(road_id, lane_id, s);
-        waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 
     /// Get left lane waypoint from coordinates (for waypoints without wrapper)
@@ -151,7 +151,7 @@ impl Map {
         s: f64,
     ) -> Option<Waypoint> {
         let waypoint_wrapper = self.inner.get_left_lane_waypoint_xodr(road_id, lane_id, s);
-        waypoint_wrapper.map(|w| Waypoint::from_cxx_wrapper(w))
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 }
 
@@ -311,7 +311,7 @@ impl WaypointList {
 
     /// Get a waypoint at the specified index.
     pub fn get(&self, index: usize) -> Option<Waypoint> {
-        self.inner.get(index).map(|w| Waypoint::from_cxx_wrapper(w))
+        self.inner.get(index).map(Waypoint::from_cxx_wrapper)
     }
 
     /// Iterate over the waypoints.
@@ -326,7 +326,7 @@ impl WaypointList {
     pub fn to_vec(self) -> Vec<Waypoint> {
         self.inner
             .into_iter()
-            .map(|w| Waypoint::from_cxx_wrapper(w))
+            .map(Waypoint::from_cxx_wrapper)
             .collect()
     }
 }
@@ -374,7 +374,7 @@ impl Iterator for WaypointListIntoIterator {
     type Item = Waypoint;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|w| Waypoint::from_cxx_wrapper(w))
+        self.inner.next().map(Waypoint::from_cxx_wrapper)
     }
 }
 
@@ -404,7 +404,7 @@ impl TransformList {
 
     /// Get a transform at the specified index.
     pub fn get(&self, index: usize) -> Option<Transform> {
-        self.inner.get(index).map(|t| Transform::from(t))
+        self.inner.get(index).map(Transform::from)
     }
 
     /// Iterate over the transforms.
@@ -417,7 +417,7 @@ impl TransformList {
 
     /// Convert to a Vec of Transforms.
     pub fn to_vec(self) -> Vec<Transform> {
-        self.inner.into_iter().map(|t| Transform::from(t)).collect()
+        self.inner.into_iter().map(Transform::from).collect()
     }
 }
 
@@ -464,7 +464,7 @@ impl Iterator for TransformListIntoIterator {
     type Item = Transform;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|t| Transform::from(t))
+        self.inner.next().map(Transform::from)
     }
 }
 

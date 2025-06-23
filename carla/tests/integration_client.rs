@@ -5,8 +5,13 @@
 #[path = "common/mod.rs"]
 mod common;
 
+#[cfg(feature = "test-carla-server")]
 use carla::{actor::ActorExt, client::Client, error::CarlaResult};
+
+#[cfg(feature = "test-carla-server")]
 use common::{get_test_client, reset_world, TEST_TIMEOUT};
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
 
 #[test]
@@ -99,7 +104,7 @@ fn test_world_reset() -> CarlaResult<()> {
     println!("Actors after reset: {}", actors.len());
 
     // Should have at least the spectator
-    assert!(actors.len() >= 1);
+    assert!(!actors.is_empty());
 
     // Check that we have a spectator
     let has_spectator = actors
@@ -152,9 +157,11 @@ fn test_world_weather() -> CarlaResult<()> {
 
     // Set new weather
     use carla::client::WeatherParameters;
-    let mut new_weather = WeatherParameters::default();
-    new_weather.cloudiness = 80.0;
-    new_weather.precipitation = 50.0;
+    let new_weather = WeatherParameters {
+        cloudiness: 80.0,
+        precipitation: 50.0,
+        ..Default::default()
+    };
 
     world.set_weather(&new_weather)?;
 
@@ -184,7 +191,6 @@ fn test_world_settings_modification() -> CarlaResult<()> {
     );
 
     // Modify settings
-    use carla::client::WorldSettings;
     let mut new_settings = original_settings.clone();
     new_settings.synchronous_mode = !original_settings.synchronous_mode;
 
@@ -214,7 +220,6 @@ fn test_world_tick() -> CarlaResult<()> {
     let original_settings = world.settings()?;
 
     // Enable synchronous mode for testing
-    use carla::client::WorldSettings;
     let mut sync_settings = original_settings.clone();
     sync_settings.synchronous_mode = true;
     sync_settings.fixed_delta_seconds = Some(0.05); // 20 FPS

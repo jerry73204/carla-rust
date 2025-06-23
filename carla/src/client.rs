@@ -5,10 +5,10 @@
 
 mod blueprint;
 mod blueprint_library;
-mod client;
+mod client_impl;
 mod world;
 
 pub use blueprint::{ActorAttribute, ActorAttributeType, ActorBlueprint, AttributeValue, RGBColor};
 pub use blueprint_library::BlueprintLibrary;
-pub use client::Client;
+pub use client_impl::Client;
 pub use world::{WeatherParameters, World, WorldSettings, WorldSnapshot};

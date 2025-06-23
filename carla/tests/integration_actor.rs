@@ -4,12 +4,17 @@
 
 mod common;
 
+#[cfg(feature = "test-carla-server")]
 use carla::{
     actor::ActorExt,
     error::{CarlaError, CarlaResult, DestroyError},
     geom::{Location, Rotation, Transform},
 };
+
+#[cfg(feature = "test-carla-server")]
 use common::{get_test_client, reset_world, spawn_test_vehicle, with_spawned_actor};
+
+#[cfg(feature = "test-carla-server")]
 use serial_test::serial;
 
 #[test]
@@ -311,7 +316,7 @@ fn test_actor_filtering() -> CarlaResult<()> {
         .filter(|actor| actor.type_id().contains("vehicle"))
         .collect();
     println!("Vehicle actors: {}", vehicles.len());
-    assert!(vehicles.len() >= 1);
+    assert!(!vehicles.is_empty());
 
     // Find our specific vehicle
     let our_vehicle = vehicles.iter().find(|actor| actor.id() == vehicle.id());
@@ -346,10 +351,7 @@ fn test_explicit_actor_destruction() -> CarlaResult<()> {
 
     // Get a proper spawn point instead of using default (0,0,0)
     let spawn_points = world.map()?.spawn_points();
-    let transform = spawn_points
-        .get(0)
-        .map(|t| t.clone())
-        .unwrap_or_else(|| Transform::default());
+    let transform = spawn_points.get(0).unwrap_or_default();
     let mut actor = world.spawn_actor(&vehicle_bp, &transform, None)?;
 
     // Verify actor is alive
@@ -499,7 +501,7 @@ fn test_actor_destruction_with_helper() -> CarlaResult<()> {
     let world = client.world()?;
 
     // Use helper to ensure cleanup
-    let result = with_spawned_actor(
+    with_spawned_actor(
         &world,
         "vehicle.dodge.charger",
         &Transform::default(),
@@ -517,9 +519,7 @@ fn test_actor_destruction_with_helper() -> CarlaResult<()> {
 
             Ok(())
         },
-    );
-
-    result
+    )
 }
 
 #[test]

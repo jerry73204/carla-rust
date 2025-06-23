@@ -102,7 +102,7 @@ impl ImageData {
                 if idx + 2 < self.data.len() {
                     rgb_data[[y, x, 0]] = self.data[idx + 2]; // R
                     rgb_data[[y, x, 1]] = self.data[idx + 1]; // G
-                    rgb_data[[y, x, 2]] = self.data[idx + 0]; // B
+                    rgb_data[[y, x, 2]] = self.data[idx]; // B
                 }
             }
         }
@@ -120,7 +120,7 @@ impl ImageData {
                 if idx + 2 < self.data.len() {
                     let r = self.data[idx + 2] as f32;
                     let g = self.data[idx + 1] as f32;
-                    let b = self.data[idx + 0] as f32;
+                    let b = self.data[idx] as f32;
                     // Standard luminance formula
                     let gray = (0.299 * r + 0.587 * g + 0.114 * b) as u8;
                     gray_data[[y, x]] = gray;
@@ -141,20 +141,23 @@ impl ImageData {
 pub mod image_io {
     /// Check if PNG format is supported
     pub fn has_png_support() -> bool {
-        // In Rust, we would use the 'image' crate which supports PNG by default
-        cfg!(feature = "png")
+        // TODO: Add 'png' feature to Cargo.toml if PNG support is needed
+        // For now, return false as the feature is not configured
+        false
     }
 
     /// Check if JPEG format is supported
     pub fn has_jpeg_support() -> bool {
-        // In Rust, we would use the 'image' crate which supports JPEG by default
-        cfg!(feature = "jpeg")
+        // TODO: Add 'jpeg' feature to Cargo.toml if JPEG support is needed
+        // For now, return false as the feature is not configured
+        false
     }
 
     /// Check if TIFF format is supported
     pub fn has_tiff_support() -> bool {
-        // In Rust, we would use the 'image' crate which supports TIFF optionally
-        cfg!(feature = "tiff")
+        // TODO: Add 'tiff' feature to Cargo.toml if TIFF support is needed
+        // For now, return false as the feature is not configured
+        false
     }
 }
 
