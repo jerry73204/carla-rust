@@ -36,6 +36,7 @@ bitflags = "2.4.2"
 [dev-dependencies]
 approx = "0.5"
 serial_test = "3.0"
+carla-test-server = { path = "../carla-test-server" }
 
 [features]
 default = []

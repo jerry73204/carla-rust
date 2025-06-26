@@ -1,56 +1,40 @@
 //! Client integration tests
 //!
-//! Tests for basic client functionality that require a CARLA server
+//! Tests for basic client functionality using carla-test-server infrastructure
 
-#[path = "common/mod.rs"]
-mod common;
+use carla::{actor::ActorExt, client::WeatherParameters};
+use carla_test_server::with_carla_server;
+use std::time::Duration;
 
-#[cfg(feature = "test-carla-server")]
-use carla::{actor::ActorExt, client::Client, error::CarlaResult};
+// Keep TEST_TIMEOUT for consistency
+const TEST_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[cfg(feature = "test-carla-server")]
-use common::{get_test_client, reset_world, TEST_TIMEOUT};
-
-#[cfg(feature = "test-carla-server")]
-use serial_test::serial;
-
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_client_connection() -> CarlaResult<()> {
-    // Test basic client connection
-    let client = get_test_client()?;
-
+#[with_carla_server]
+fn test_client_connection(client: &carla::client::Client) {
     // Verify we can get server version
-    let version = client.server_version()?;
+    let version = client
+        .server_version()
+        .expect("Failed to get server version");
     println!("Connected to CARLA server version: {}", version);
     assert!(version.starts_with("0.10"));
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_client_timeout() -> CarlaResult<()> {
-    // Test client with custom timeout
-    let client = Client::new("localhost", 2000, None::<usize>)?;
-
-    // Should still be able to connect and get version
-    let version = client.server_version()?;
+#[with_carla_server]
+fn test_client_timeout() {
+    // Client is automatically provided with proper timeout
+    // Verify connection works
+    let version = client
+        .server_version()
+        .expect("Failed to get server version");
     assert!(!version.is_empty());
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_available_maps() -> CarlaResult<()> {
-    let client = get_test_client()?;
-
+#[with_carla_server]
+fn test_available_maps(client: &carla::client::Client) {
     // Get available maps
-    let maps = client.available_maps()?;
+    let maps = client
+        .available_maps()
+        .expect("Failed to get available maps");
     println!("Available maps: {:?}", maps);
 
     // Should have at least one map
@@ -60,18 +44,12 @@ fn test_available_maps() -> CarlaResult<()> {
     let map_names: Vec<String> = maps.iter().map(|m| m.to_lowercase()).collect();
     let has_town = map_names.iter().any(|name| name.contains("town"));
     assert!(has_town, "Should have at least one Town map available");
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_world_access() -> CarlaResult<()> {
-    let client = get_test_client()?;
-
+#[with_carla_server]
+fn test_world_access() {
     // Get current world
-    let world = client.world()?;
+    let world = client.world().expect("Failed to get world");
 
     // Get world ID
     let world_id = world.id();
@@ -79,51 +57,55 @@ fn test_world_access() -> CarlaResult<()> {
     assert!(world_id > 0);
 
     // Get world settings
-    let settings = world.settings()?;
+    let settings = world.settings().expect("Failed to get world settings");
     println!(
         "World settings: synchronous_mode={}, no_rendering_mode={}",
         settings.synchronous_mode, settings.no_rendering_mode
     );
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_world_reset() -> CarlaResult<()> {
-    let client = get_test_client()?;
+#[with_carla_server]
+fn test_world_reset(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
-    // Reset world to clean state
-    reset_world(&client)?;
+    // Each test gets a fresh server, but we can still test cleanup
+    let actors_before = world.actors().expect("Failed to get actors");
+    let count_before = actors_before.len();
 
-    let world = client.world()?;
+    // Destroy all actors except spectator
+    for mut actor in actors_before {
+        if !actor.type_id().starts_with("spectator") {
+            actor.destroy().expect("Failed to destroy actor");
+        }
+    }
 
-    // After reset, should have minimal actors (just spectator)
-    let actors = world.actors()?;
-    println!("Actors after reset: {}", actors.len());
+    // After cleanup, should have minimal actors
+    let actors_after = world.actors().expect("Failed to get actors after cleanup");
+    println!(
+        "Actors before: {}, after: {}",
+        count_before,
+        actors_after.len()
+    );
 
     // Should have at least the spectator
-    assert!(!actors.is_empty());
+    assert!(!actors_after.is_empty());
 
     // Check that we have a spectator
-    let has_spectator = actors
+    let has_spectator = actors_after
         .iter()
         .any(|actor| actor.type_id().contains("spectator"));
-    assert!(has_spectator, "Should have spectator actor after reset");
-
-    Ok(())
+    assert!(has_spectator, "Should have spectator actor");
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_map_loading() -> CarlaResult<()> {
-    let client = get_test_client()?;
+#[with_carla_server]
+fn test_map_loading() {
+    use carla_test_server::helpers::retry_operation;
 
-    // Get current map
-    let world = client.world()?;
-    let map = world.map()?;
+    // Get current map with retry for stability
+    let world = retry_operation(3, Duration::from_millis(500), || client.world())
+        .expect("Failed to get world after retries");
+
+    let map = world.map().expect("Failed to get map");
 
     // Test basic map properties
     let name = map.name();
@@ -140,51 +122,50 @@ fn test_map_loading() -> CarlaResult<()> {
         .get(0)
         .expect("Should have at least one spawn point");
     println!("First spawn point: {:?}", first_spawn);
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_world_weather() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    let world = client.world()?;
+#[with_carla_server]
+fn test_world_weather(client: &carla::client::Client) {
+    use carla_test_server::helpers::wait_for_condition;
+
+    let world = client.world().expect("Failed to get world");
 
     // Get current weather
-    let current_weather = world.weather()?;
+    let current_weather = world.weather().expect("Failed to get weather");
     println!("Current weather cloudiness: {}", current_weather.cloudiness);
 
     // Set new weather
-    use carla::client::WeatherParameters;
     let new_weather = WeatherParameters {
         cloudiness: 80.0,
         precipitation: 50.0,
         ..Default::default()
     };
 
-    world.set_weather(&new_weather)?;
+    world
+        .set_weather(&new_weather)
+        .expect("Failed to set weather");
+
+    // Wait for weather to be applied
+    wait_for_condition(Duration::from_secs(5), Duration::from_millis(100), || {
+        world
+            .weather()
+            .map(|w| (w.cloudiness - 80.0).abs() < 1.0)
+            .unwrap_or(false)
+    })
+    .expect("Weather change timeout");
 
     // Verify weather was set
-    let updated_weather = world.weather()?;
+    let updated_weather = world.weather().expect("Failed to get updated weather");
     assert!((updated_weather.cloudiness - 80.0).abs() < 1.0);
     assert!((updated_weather.precipitation - 50.0).abs() < 1.0);
-
-    // Reset to default
-    world.set_weather(&WeatherParameters::default())?;
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_world_settings_modification() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    let world = client.world()?;
+#[with_carla_server]
+fn test_world_settings_modification() {
+    let world = client.world().expect("Failed to get world");
 
     // Get current settings
-    let original_settings = world.settings()?;
+    let original_settings = world.settings().expect("Failed to get settings");
     println!(
         "Original synchronous mode: {}",
         original_settings.synchronous_mode
@@ -194,45 +175,52 @@ fn test_world_settings_modification() -> CarlaResult<()> {
     let mut new_settings = original_settings.clone();
     new_settings.synchronous_mode = !original_settings.synchronous_mode;
 
-    world.apply_settings(&new_settings)?;
+    world
+        .apply_settings(&new_settings)
+        .expect("Failed to apply settings");
 
     // Verify settings were applied
-    let updated_settings = world.settings()?;
+    let updated_settings = world.settings().expect("Failed to get updated settings");
     assert_eq!(
         updated_settings.synchronous_mode,
         new_settings.synchronous_mode
     );
 
-    // Restore original settings
-    world.apply_settings(&original_settings)?;
-
-    Ok(())
+    // Note: No need to restore - each test gets fresh server
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_world_tick() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    let world = client.world()?;
+#[with_carla_server]
+fn test_world_tick(client: &carla::client::Client) {
+    use carla_test_server::helpers::TestArtifactGuard;
+
+    // Save artifacts if test fails
+    let _guard = TestArtifactGuard::new("test_world_tick");
+
+    let world = client.world().expect("Failed to get world");
 
     // Get current settings
-    let original_settings = world.settings()?;
+    let original_settings = world.settings().expect("Failed to get settings");
 
     // Enable synchronous mode for testing
     let mut sync_settings = original_settings.clone();
     sync_settings.synchronous_mode = true;
     sync_settings.fixed_delta_seconds = Some(0.05); // 20 FPS
 
-    world.apply_settings(&sync_settings)?;
+    world
+        .apply_settings(&sync_settings)
+        .expect("Failed to apply sync settings");
 
     // Test manual tick
-    let frame_before = world.wait_for_tick(Some(TEST_TIMEOUT))?;
+    let frame_before = world
+        .wait_for_tick(Some(TEST_TIMEOUT))
+        .expect("Failed to wait for tick");
     let frame_id_before = frame_before.timestamp.frame;
 
-    world.tick()?;
+    world.tick().expect("Failed to tick");
 
-    let frame_after = world.wait_for_tick(Some(TEST_TIMEOUT))?;
+    let frame_after = world
+        .wait_for_tick(Some(TEST_TIMEOUT))
+        .expect("Failed to wait for tick after");
     let frame_id_after = frame_after.timestamp.frame;
 
     // Frame should have advanced
@@ -242,9 +230,4 @@ fn test_world_tick() -> CarlaResult<()> {
         frame_id_before,
         frame_id_after
     );
-
-    // Restore original settings
-    world.apply_settings(&original_settings)?;
-
-    Ok(())
 }

@@ -55,7 +55,7 @@ fn main() {
 
             let spawn_point = spawn_points
                 .get(0)
-                .unwrap_or_else(|| carla::geom::Transform::default());
+                .unwrap_or_else(carla::geom::Transform::default);
 
             println!("Spawning vehicle at: {:?}", spawn_point);
 

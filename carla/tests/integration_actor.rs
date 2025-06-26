@@ -4,26 +4,20 @@
 
 mod common;
 
-#[cfg(feature = "test-carla-server")]
 use carla::{
     actor::ActorExt,
-    error::{CarlaError, CarlaResult, DestroyError},
+    error::{CarlaError, DestroyError},
     geom::{Location, Rotation, Transform},
 };
+use carla_test_server::with_carla_server;
+use common::{spawn_test_vehicle, with_spawned_actor};
 
-#[cfg(feature = "test-carla-server")]
-use common::{get_test_client, reset_world, spawn_test_vehicle, with_spawned_actor};
-
-#[cfg(feature = "test-carla-server")]
-use serial_test::serial;
-
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_blueprint_library_access() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_blueprint_library_access(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Test library size
     let size = blueprint_library.len();
@@ -31,27 +25,31 @@ fn test_blueprint_library_access() -> CarlaResult<()> {
     assert!(size > 0);
 
     // Test finding specific blueprints
-    let vehicle_bps = blueprint_library.filter("vehicle.*")?;
+    let vehicle_bps = blueprint_library
+        .filter("vehicle.*")
+        .expect("Failed to filter vehicle blueprints");
     println!("Found {} vehicle blueprints", vehicle_bps.len());
     assert!(!vehicle_bps.is_empty());
 
-    let sensor_bps = blueprint_library.filter("sensor.*")?;
+    let sensor_bps = blueprint_library
+        .filter("sensor.*")
+        .expect("Failed to filter sensor blueprints");
     println!("Found {} sensor blueprints", sensor_bps.len());
     assert!(!sensor_bps.is_empty());
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_blueprint_attributes() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_blueprint_attributes(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Find a vehicle blueprint (tesla not available in CARLA 0.10.0)
-    if let Some(vehicle_bp) = blueprint_library.find("vehicle.dodge.charger")? {
+    if let Some(vehicle_bp) = blueprint_library
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find vehicle blueprint")
+    {
         println!("Dodge Charger blueprint found");
         println!("ID: {}", vehicle_bp.id());
         println!("Tags: {:?}", vehicle_bp.tags());
@@ -70,7 +68,9 @@ fn test_blueprint_attributes() -> CarlaResult<()> {
         }
     } else {
         // Try any vehicle if Tesla is not available
-        let vehicle_bps = blueprint_library.filter("vehicle.*")?;
+        let vehicle_bps = blueprint_library
+            .filter("vehicle.*")
+            .expect("Failed to filter vehicle blueprints");
         assert!(
             !vehicle_bps.is_empty(),
             "Should have at least one vehicle blueprint"
@@ -83,37 +83,40 @@ fn test_blueprint_attributes() -> CarlaResult<()> {
         println!("Blueprint attributes: {:?}", attributes);
         // Note: attributes may be empty in CARLA 0.10.0, so just check the method works
     }
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_vehicle_spawning() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_vehicle_spawning(client: &carla::client::Client) {
+    // Note: reset_world was a helper function, we'll inline the necessary logic
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Find a vehicle blueprint
     let vehicle_bp = blueprint_library
-        .find("vehicle.dodge.charger")?
-        .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find vehicle blueprint")
+        .or_else(|| {
+            blueprint_library
+                .filter("vehicle.*")
+                .ok()
+                .and_then(|bps| bps.first().cloned())
+        })
         .expect("No vehicle blueprints found");
 
     println!("Spawning vehicle: {}", vehicle_bp.id());
 
     // Get a spawn point
-    let spawn_points = world.map()?.spawn_points();
+    let spawn_points = world.map().expect("Failed to get map").spawn_points();
     let spawn_point = spawn_points
         .get(0)
         .unwrap_or_else(|| Transform::new(Location::new(0.0, 0.0, 1.0), Rotation::default()));
 
     // Spawn the vehicle
     let actor = world
-        .try_spawn_actor(&vehicle_bp, &spawn_point, None)?
+        .try_spawn_actor(&vehicle_bp, &spawn_point, None)
+        .expect("Failed to spawn actor")
         .expect("Failed to spawn vehicle");
 
     // Convert to vehicle
@@ -139,59 +142,54 @@ fn test_vehicle_spawning() -> CarlaResult<()> {
     // Clean up - vehicle will be destroyed automatically when dropped
     drop(vehicle);
     println!("Vehicle destroyed");
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_actor_lifecycle() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
+#[with_carla_server]
+fn test_actor_lifecycle(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Count actors before spawning
-    let actors_before = world.actors()?.len();
+    let actors_before = world.actors().expect("Failed to get actors").len();
     println!("Actors before spawning: {}", actors_before);
 
     // Spawn a test vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
     let vehicle_id = vehicle.id();
 
     // Count actors after spawning
-    let actors_after = world.actors()?.len();
+    let actors_after = world
+        .actors()
+        .expect("Failed to get actors after spawning")
+        .len();
     println!("Actors after spawning: {}", actors_after);
     assert_eq!(actors_after, actors_before + 1);
 
     // Verify we can find the actor
-    let found_actor = world.actor(vehicle_id)?;
+    let found_actor = world.actor(vehicle_id).expect("Failed to find actor");
     assert!(found_actor.is_some());
 
     // Destroy the actor - automatically destroyed when dropped
+    drop(vehicle);
 
     // Verify it's gone
-    let actors_final = world.actors()?.len();
+    let actors_final = world
+        .actors()
+        .expect("Failed to get actors after destruction")
+        .len();
     println!("Actors after destruction: {}", actors_final);
     assert_eq!(actors_final, actors_before);
 
     // Should not be able to find it anymore
-    let not_found = world.actor(vehicle_id)?;
+    let not_found = world
+        .actor(vehicle_id)
+        .expect("Failed to check for destroyed actor");
     assert!(not_found.is_none());
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_actor_transform_updates() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
+#[with_carla_server]
+fn test_actor_transform_updates(client: &carla::client::Client) {
     // Spawn a test vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
 
     // Get initial transform
     let initial_transform = vehicle.transform();
@@ -203,7 +201,9 @@ fn test_actor_transform_updates() -> CarlaResult<()> {
         Rotation::new(0.0, 90.0, 0.0),
     );
 
-    vehicle.set_transform(&new_transform)?;
+    vehicle
+        .set_transform(&new_transform)
+        .expect("Failed to set transform");
 
     // Verify transform was updated
     let updated_transform = vehicle.transform();
@@ -220,19 +220,13 @@ fn test_actor_transform_updates() -> CarlaResult<()> {
     assert!(yaw_diff < 1.0, "Yaw should be close to 90 degrees");
 
     // Clean up - vehicle automatically destroyed when dropped
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_vehicle_attributes() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
+fn test_vehicle_attributes(client: &carla::client::Client) {
     // Spawn a test vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
 
     // Test basic actor properties
     let actor_id = vehicle.id();
@@ -248,35 +242,29 @@ fn test_vehicle_attributes() -> CarlaResult<()> {
     // Note: Some properties might require FFI implementation
 
     // Clean up - vehicle automatically destroyed when dropped
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_multiple_actors() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
-    let initial_count = world.actors()?.len();
+fn test_multiple_actors(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let initial_count = world.actors().expect("Failed to get actors").len();
 
     // Spawn multiple vehicles
     let mut vehicles = Vec::new();
     for i in 0..3 {
-        let vehicle = spawn_test_vehicle(&client)?;
+        let vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
         println!("Spawned vehicle {} with ID: {}", i, vehicle.id());
         vehicles.push(vehicle);
     }
 
     // Verify all actors exist
-    let current_count = world.actors()?.len();
+    let current_count = world.actors().expect("Failed to get actors").len();
     assert_eq!(current_count, initial_count + 3);
 
     // Verify each vehicle can be found
     for vehicle in &vehicles {
-        let found = world.actor(vehicle.id())?;
+        let found = world.actor(vehicle.id()).expect("Failed to find vehicle");
         assert!(found.is_some());
     }
 
@@ -287,27 +275,21 @@ fn test_multiple_actors() -> CarlaResult<()> {
     }
 
     // Verify count is back to original
-    let final_count = world.actors()?.len();
+    let final_count = world.actors().expect("Failed to get actors").len();
     assert_eq!(final_count, initial_count);
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_actor_filtering() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
+fn test_actor_filtering(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Spawn a test vehicle
-    let vehicle = spawn_test_vehicle(&client)?;
+    let vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
     let vehicle_type = vehicle.type_id();
 
     // Get all actors
-    let all_actors = world.actors()?;
+    let all_actors = world.actors().expect("Failed to get actors");
     println!("Total actors: {}", all_actors.len());
 
     // Find vehicles
@@ -325,34 +307,38 @@ fn test_actor_filtering() -> CarlaResult<()> {
     println!("Found our vehicle with type: {}", vehicle_type);
 
     // Clean up - vehicle automatically destroyed when dropped
-
-    Ok(())
 }
 
 // ============================================================================
 // Actor Destruction Tests
 // ============================================================================
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_explicit_actor_destruction() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
+fn test_explicit_actor_destruction(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Spawn an actor
-    let blueprint_library = world.blueprint_library()?;
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
-        .find("vehicle.dodge.charger")?
-        .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find blueprint")
+        .or_else(|| {
+            blueprint_library
+                .filter("vehicle.*")
+                .ok()
+                .and_then(|bps| bps.first().cloned())
+        })
         .expect("No vehicle blueprints found");
 
     // Get a proper spawn point instead of using default (0,0,0)
-    let spawn_points = world.map()?.spawn_points();
+    let spawn_points = world.map().expect("Failed to get map").spawn_points();
     let transform = spawn_points.get(0).unwrap_or_default();
-    let mut actor = world.spawn_actor(&vehicle_bp, &transform, None)?;
+    let mut actor = world
+        .spawn_actor(&vehicle_bp, &transform, None)
+        .expect("Failed to spawn actor");
 
     // Verify actor is alive
     assert!(actor.is_alive());
@@ -362,33 +348,36 @@ fn test_explicit_actor_destruction() -> CarlaResult<()> {
     actor.destroy().expect("Failed to destroy actor");
 
     // Verify actor is gone from world
-    let found = world.actor(actor_id)?;
+    let found = world.actor(actor_id).expect("Failed to find actor");
     assert!(
         found.is_none(),
         "Actor should not be found after destruction"
     );
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_vehicle_destruction() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
+fn test_vehicle_destruction(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Create vehicle
-    let blueprint_library = world.blueprint_library()?;
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
-        .find("vehicle.dodge.charger")?
-        .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find blueprint")
+        .or_else(|| {
+            blueprint_library
+                .filter("vehicle.*")
+                .ok()
+                .and_then(|bps| bps.first().cloned())
+        })
         .expect("No vehicle blueprints found");
 
     let mut vehicle = world
-        .spawn_actor(&vehicle_bp, &Transform::default(), None)?
+        .spawn_actor(&vehicle_bp, &Transform::default(), None)
+        .expect("Failed to spawn vehicle")
         .into_vehicle()
         .expect("Failed to cast to vehicle");
 
@@ -402,36 +391,30 @@ fn test_vehicle_destruction() -> CarlaResult<()> {
     vehicle.destroy().expect("Failed to destroy vehicle");
 
     // Verify it's gone
-    let found = world.actor(vehicle_id)?;
+    let found = world.actor(vehicle_id).expect("Failed to find actor");
     assert!(
         found.is_none(),
         "Vehicle should not be found after destruction"
     );
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_sensor_destruction_while_listening() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
+fn test_sensor_destruction_while_listening(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Create camera sensor
-    let blueprint_library = world.blueprint_library()?;
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
     let sensor_bp = blueprint_library
-        .find("sensor.camera.rgb")?
-        .ok_or_else(|| {
-            CarlaError::World(carla::error::WorldError::BlueprintNotFound(
-                "sensor.camera.rgb".to_string(),
-            ))
-        })?;
+        .find("sensor.camera.rgb")
+        .expect("Failed to search for blueprint")
+        .expect("Failed to find sensor.camera.rgb blueprint");
 
     let mut sensor = world
-        .spawn_actor(&sensor_bp, &Transform::default(), None)?
+        .spawn_actor(&sensor_bp, &Transform::default(), None)
+        .expect("Failed to spawn sensor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -450,31 +433,35 @@ fn test_sensor_destruction_while_listening() -> CarlaResult<()> {
     sensor.destroy().expect("Failed to destroy sensor");
 
     // Verify it's gone
-    let found = world.actor(sensor_id)?;
+    let found = world.actor(sensor_id).expect("Failed to find actor");
     assert!(
         found.is_none(),
         "Sensor should not be found after destruction"
     );
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_double_destruction_error() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+fn test_double_destruction_error(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     let vehicle_bp = blueprint_library
-        .find("vehicle.dodge.charger")?
-        .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find blueprint")
+        .or_else(|| {
+            blueprint_library
+                .filter("vehicle.*")
+                .ok()
+                .and_then(|bps| bps.first().cloned())
+        })
         .expect("No vehicle blueprints found");
 
-    let mut actor = world.spawn_actor(&vehicle_bp, &Transform::default(), None)?;
+    let mut actor = world
+        .spawn_actor(&vehicle_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor");
 
     // First destruction should succeed
     actor.destroy().expect("First destruction should succeed");
@@ -487,18 +474,12 @@ fn test_double_destruction_error() -> CarlaResult<()> {
         Ok(_) => panic!("Second destruction should fail"),
         Err(e) => panic!("Unexpected error: {:?}", e),
     }
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_actor_destruction_with_helper() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
+fn test_actor_destruction_with_helper(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Use helper to ensure cleanup
     with_spawned_actor(
@@ -511,44 +492,54 @@ fn test_actor_destruction_with_helper() -> CarlaResult<()> {
             let actor_id = actor.id();
 
             // Destroy explicitly
-            actor.destroy()?;
+            actor.destroy().expect("Failed to destroy actor");
 
             // Verify can't find it
-            let found = world.actor(actor_id)?;
+            let found = world.actor(actor_id).expect("Failed to find actor");
             assert!(found.is_none());
 
             Ok(())
         },
     )
+    .expect("Failed in with_spawned_actor test")
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_mass_actor_destruction() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+fn test_mass_actor_destruction(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     let vehicle_bp = blueprint_library
-        .find("vehicle.dodge.charger")?
-        .or_else(|| blueprint_library.filter("vehicle.*").ok()?.first().cloned())
+        .find("vehicle.dodge.charger")
+        .expect("Failed to find blueprint")
+        .or_else(|| {
+            blueprint_library
+                .filter("vehicle.*")
+                .ok()
+                .and_then(|bps| bps.first().cloned())
+        })
         .expect("No vehicle blueprints found");
 
-    let initial_count = world.actors()?.len();
+    let initial_count = world.actors().expect("Failed to get actors").len();
 
     // Spawn multiple actors
     let mut actors = Vec::new();
     for i in 0..5 {
-        let actor = world.spawn_actor(&vehicle_bp, &Transform::default(), None)?;
+        let actor = world
+            .spawn_actor(&vehicle_bp, &Transform::default(), None)
+            .expect("Failed to spawn actor");
         println!("Spawned actor {} with ID: {}", i, actor.id());
         actors.push(actor);
     }
 
     // Verify all spawned
-    assert_eq!(world.actors()?.len(), initial_count + 5);
+    assert_eq!(
+        world.actors().expect("Failed to get actors").len(),
+        initial_count + 5
+    );
 
     // Destroy all explicitly
     for (i, mut actor) in actors.into_iter().enumerate() {
@@ -557,35 +548,37 @@ fn test_mass_actor_destruction() -> CarlaResult<()> {
     }
 
     // Verify all destroyed
-    assert_eq!(world.actors()?.len(), initial_count);
-
-    Ok(())
+    assert_eq!(
+        world.actors().expect("Failed to get actors").len(),
+        initial_count
+    );
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_traffic_sign_destruction() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
+#[with_carla_server]
 
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+fn test_traffic_sign_destruction(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Try to find a traffic sign blueprint
-    if let Some(sign_bp) = blueprint_library.find("static.prop.trafficcone01")? {
-        let mut sign = world.spawn_actor(&sign_bp, &Transform::default(), None)?;
+    if let Some(sign_bp) = blueprint_library
+        .find("static.prop.trafficcone01")
+        .expect("Failed to find blueprint")
+    {
+        let mut sign = world
+            .spawn_actor(&sign_bp, &Transform::default(), None)
+            .expect("Failed to spawn traffic sign");
         let sign_id = sign.id();
 
         // Destroy traffic sign
         sign.destroy().expect("Failed to destroy traffic sign");
 
         // Verify it's gone
-        let found = world.actor(sign_id)?;
+        let found = world.actor(sign_id).expect("Failed to find actor");
         assert!(found.is_none());
     } else {
         println!("No traffic sign blueprint found, skipping test");
     }
-
-    Ok(())
 }

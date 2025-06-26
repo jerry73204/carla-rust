@@ -4,4 +4,6 @@ members = [
     "carla",
     "carla-sys",
     "carla-src",
+    "carla-test-server-macros",
+    "carla-test-server",
 ]

@@ -4,29 +4,20 @@
 
 mod common;
 
-#[cfg(feature = "test-carla-server")]
-use carla::{actor::ActorExt, error::CarlaResult, geom::Transform};
+use carla::{actor::ActorExt, geom::Transform};
+use carla_test_server::with_carla_server;
+use common::spawn_test_vehicle;
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
-#[cfg(feature = "test-carla-server")]
-use std::time::Duration;
-
-#[cfg(feature = "test-carla-server")]
-use common::{get_test_client, reset_world, spawn_test_vehicle};
-
-#[cfg(feature = "test-carla-server")]
-use serial_test::serial;
-#[cfg(feature = "test-carla-server")]
-use std::sync::{Arc, Mutex};
-
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_sensor_spawning() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_sensor_spawning(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Test spawning different sensor types
     let sensor_types = [
@@ -43,9 +34,13 @@ fn test_sensor_spawning() -> CarlaResult<()> {
     ];
 
     for sensor_type in &sensor_types {
-        if let Some(blueprint) = blueprint_library.find(sensor_type)? {
+        if let Some(blueprint) = blueprint_library
+            .find(sensor_type)
+            .expect("Failed to find blueprint")
+        {
             let sensor = world
-                .spawn_actor(&blueprint, &Transform::default(), None)?
+                .spawn_actor(&blueprint, &Transform::default(), None)
+                .expect("Failed to spawn actor")
                 .into_sensor()
                 .unwrap_or_else(|_| panic!("Failed to cast {} to sensor", sensor_type));
 
@@ -57,36 +52,38 @@ fn test_sensor_spawning() -> CarlaResult<()> {
             drop(sensor); // Automatic destruction
         }
     }
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_camera_sensor_data_callback() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_camera_sensor_data_callback(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Create RGB camera
     let camera_bp = blueprint_library
-        .find("sensor.camera.rgb")?
+        .find("sensor.camera.rgb")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.camera.rgb".to_string(),
             ))
-        })?;
+        })
+        .expect("Camera blueprint not found");
 
     // Set camera attributes
     let mut camera_bp = camera_bp;
-    camera_bp.set_attribute("image_size_x", "320")?;
-    camera_bp.set_attribute("image_size_y", "240")?;
+    camera_bp
+        .set_attribute("image_size_x", "320")
+        .expect("Failed to set image_size_x");
+    camera_bp
+        .set_attribute("image_size_y", "240")
+        .expect("Failed to set image_size_y");
 
     let sensor = world
-        .spawn_actor(&camera_bp, &Transform::default(), None)?
+        .spawn_actor(&camera_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -95,12 +92,14 @@ fn test_camera_sensor_data_callback() -> CarlaResult<()> {
     let data_received_clone = data_received.clone();
 
     // Register callback
-    sensor.listen(move |data: Vec<u8>| {
-        // Verify we received some data
-        if !data.is_empty() {
-            *data_received_clone.lock().unwrap() = true;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            // Verify we received some data
+            if !data.is_empty() {
+                *data_received_clone.lock().unwrap() = true;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     assert!(sensor.is_listening());
 
@@ -116,32 +115,32 @@ fn test_camera_sensor_data_callback() -> CarlaResult<()> {
     if !received {
         println!("Warning: Camera data not received within timeout");
     }
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_imu_sensor_streaming() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_imu_sensor_streaming(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Spawn a vehicle to attach IMU to
-    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
+    let _vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle"); // TODO: Use vehicle for sensor attachment testing
 
     // Create IMU sensor
-    let imu_bp = blueprint_library.find("sensor.other.imu")?.ok_or_else(|| {
-        carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
-            "sensor.other.imu".to_string(),
-        ))
-    })?;
+    let imu_bp = blueprint_library
+        .find("sensor.other.imu")
+        .expect("Failed to find blueprint")
+        .ok_or_else(|| {
+            carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
+                "sensor.other.imu".to_string(),
+            ))
+        })
+        .expect("IMU blueprint not found");
 
     let sensor = world
-        .spawn_actor(&imu_bp, &Transform::default(), None)?
+        .spawn_actor(&imu_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -150,11 +149,13 @@ fn test_imu_sensor_streaming() -> CarlaResult<()> {
     let data_count_clone = data_count.clone();
 
     // Register callback
-    sensor.listen(move |data: Vec<u8>| {
-        if !data.is_empty() {
-            *data_count_clone.lock().unwrap() += 1;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            if !data.is_empty() {
+                *data_count_clone.lock().unwrap() += 1;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     // Let it stream for a bit
     std::thread::sleep(Duration::from_millis(1000));
@@ -164,74 +165,73 @@ fn test_imu_sensor_streaming() -> CarlaResult<()> {
 
     let count = *data_count.lock().unwrap();
     println!("Received {} IMU data samples", count);
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_sensor_destruction_while_listening() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_sensor_destruction_while_listening(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Create GNSS sensor
     let gnss_bp = blueprint_library
-        .find("sensor.other.gnss")?
+        .find("sensor.other.gnss")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.other.gnss".to_string(),
             ))
-        })?;
+        })
+        .expect("GNSS blueprint not found");
 
     let mut sensor = world
-        .spawn_actor(&gnss_bp, &Transform::default(), None)?
+        .spawn_actor(&gnss_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
     // Start listening
-    sensor.listen(|data: Vec<u8>| {
-        // Process sensor data (generic handling)
-        let _ = data.len(); // Use data to avoid warnings
-    })?;
+    sensor
+        .listen(|data: Vec<u8>| {
+            // Process sensor data (generic handling)
+            let _ = data.len(); // Use data to avoid warnings
+        })
+        .expect("Failed to register sensor callback");
 
     assert!(sensor.is_listening());
 
     // Destroy while listening (should stop listening first)
-    sensor.destroy()?;
+    sensor.destroy().expect("Failed to destroy sensor");
 
     // Sensor should be destroyed cleanly
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_collision_sensor() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_collision_sensor(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Spawn a vehicle
-    let _vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
     // TODO: Attach collision sensor to vehicle when attachment FFI is implemented
 
     // Create collision sensor
     let collision_bp = blueprint_library
-        .find("sensor.other.collision")?
+        .find("sensor.other.collision")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.other.collision".to_string(),
             ))
-        })?;
+        })
+        .expect("Collision sensor blueprint not found");
 
     let sensor = world
-        .spawn_actor(&collision_bp, &Transform::default(), None)?
+        .spawn_actor(&collision_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -239,46 +239,46 @@ fn test_collision_sensor() -> CarlaResult<()> {
     let collision_detected_clone = collision_detected.clone();
 
     // Register collision callback
-    sensor.listen(move |data: Vec<u8>| {
-        if !data.is_empty() {
-            *collision_detected_clone.lock().unwrap() = true;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            if !data.is_empty() {
+                *collision_detected_clone.lock().unwrap() = true;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     // Note: Actually causing a collision would require more complex setup
     // For now, we just verify the sensor can be created and callbacks registered
 
     // Clean up
     sensor.stop();
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_lane_invasion_sensor() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_lane_invasion_sensor(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Spawn a vehicle
-    let _vehicle = spawn_test_vehicle(&client)?;
+    let _vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle");
     // TODO: Attach lane invasion sensor to vehicle when attachment FFI is implemented
 
     // Create lane invasion sensor
     let lane_invasion_bp = blueprint_library
-        .find("sensor.other.lane_invasion")?
+        .find("sensor.other.lane_invasion")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.other.lane_invasion".to_string(),
             ))
-        })?;
+        })
+        .expect("Lane invasion sensor blueprint not found");
 
     let sensor = world
-        .spawn_actor(&lane_invasion_bp, &Transform::default(), None)?
+        .spawn_actor(&lane_invasion_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -286,33 +286,30 @@ fn test_lane_invasion_sensor() -> CarlaResult<()> {
     let invasion_detected_clone = invasion_detected.clone();
 
     // Register lane invasion callback
-    sensor.listen(move |data: Vec<u8>| {
-        if !data.is_empty() {
-            *invasion_detected_clone.lock().unwrap() = true;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            if !data.is_empty() {
+                *invasion_detected_clone.lock().unwrap() = true;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     // Note: Actually causing a lane invasion would require vehicle movement
     // For now, we just verify the sensor can be created and callbacks registered
 
     // Clean up
     sensor.stop();
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_multiple_sensors_on_vehicle(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Spawn a vehicle
-    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
+    let _vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle"); // TODO: Use vehicle for sensor attachment testing
 
     let mut sensors = Vec::new();
 
@@ -324,9 +321,13 @@ fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
     ];
 
     for (sensor_type, transform) in &sensor_configs {
-        if let Some(bp) = blueprint_library.find(sensor_type)? {
+        if let Some(bp) = blueprint_library
+            .find(sensor_type)
+            .expect("Failed to find blueprint")
+        {
             let sensor = world
-                .spawn_actor(&bp, transform, None)?
+                .spawn_actor(&bp, transform, None)
+                .expect("Failed to spawn actor")
                 .into_sensor()
                 .unwrap_or_else(|_| panic!("Failed to cast {} to sensor", sensor_type));
 
@@ -339,10 +340,12 @@ fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
 
     // Start listening on all sensors
     for sensor in &mut sensors {
-        sensor.listen(|data: Vec<u8>| {
-            // Process sensor data
-            let _ = data.len(); // Use data to avoid warnings
-        })?;
+        sensor
+            .listen(|data: Vec<u8>| {
+                // Process sensor data
+                let _ = data.len(); // Use data to avoid warnings
+            })
+            .expect("Failed to register sensor callback");
     }
 
     // Let them run for a bit
@@ -354,36 +357,37 @@ fn test_multiple_sensors_on_vehicle() -> CarlaResult<()> {
     }
 
     // Clean up - sensors destroyed when dropped
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_sensor_callback_cleanup() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_sensor_callback_cleanup(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Create multiple sensors and register callbacks
     let mut sensors = Vec::new();
 
     for i in 0..3 {
-        if let Some(bp) = blueprint_library.find("sensor.other.gnss")? {
+        if let Some(bp) = blueprint_library
+            .find("sensor.other.gnss")
+            .expect("Failed to find blueprint")
+        {
             let sensor = world
-                .spawn_actor(&bp, &Transform::default(), None)?
+                .spawn_actor(&bp, &Transform::default(), None)
+                .expect("Failed to spawn actor")
                 .into_sensor()
                 .expect("Failed to cast to sensor");
 
             // Register unique callback for each sensor
             let sensor_id = i;
-            sensor.listen(move |data: Vec<u8>| {
-                // Callback specific to sensor_id
-                let _ = (sensor_id, data.len()); // Use to avoid warning
-            })?;
+            sensor
+                .listen(move |data: Vec<u8>| {
+                    // Callback specific to sensor_id
+                    let _ = (sensor_id, data.len()); // Use to avoid warning
+                })
+                .expect("Failed to register sensor callback");
 
             sensors.push(sensor);
         }
@@ -396,42 +400,48 @@ fn test_sensor_callback_cleanup() -> CarlaResult<()> {
 
     // Destroy sensors one by one
     while let Some(mut sensor) = sensors.pop() {
-        sensor.destroy()?;
+        sensor.destroy().expect("Failed to destroy sensor");
     }
 
     // All callbacks should be cleaned up
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_lidar_sensor() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_lidar_sensor(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Create LIDAR sensor
     let lidar_bp = blueprint_library
-        .find("sensor.lidar.ray_cast")?
+        .find("sensor.lidar.ray_cast")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.lidar.ray_cast".to_string(),
             ))
-        })?;
+        })
+        .expect("LIDAR blueprint not found");
 
     // Configure LIDAR parameters
     let mut lidar_bp = lidar_bp;
-    lidar_bp.set_attribute("channels", "32")?;
-    lidar_bp.set_attribute("points_per_second", "56000")?;
-    lidar_bp.set_attribute("rotation_frequency", "10")?;
-    lidar_bp.set_attribute("range", "100")?;
+    lidar_bp
+        .set_attribute("channels", "32")
+        .expect("Failed to set channels");
+    lidar_bp
+        .set_attribute("points_per_second", "56000")
+        .expect("Failed to set points_per_second");
+    lidar_bp
+        .set_attribute("rotation_frequency", "10")
+        .expect("Failed to set rotation_frequency");
+    lidar_bp
+        .set_attribute("range", "100")
+        .expect("Failed to set range");
 
     let sensor = world
-        .spawn_actor(&lidar_bp, &Transform::default(), None)?
+        .spawn_actor(&lidar_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -439,13 +449,15 @@ fn test_lidar_sensor() -> CarlaResult<()> {
     let point_count_clone = point_count.clone();
 
     // Register callback
-    sensor.listen(move |data: Vec<u8>| {
-        if !data.is_empty() {
-            // Estimate point count from data size (each point is ~16 bytes: x,y,z,intensity)
-            let estimated_points = data.len() / 16;
-            *point_count_clone.lock().unwrap() += estimated_points;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            if !data.is_empty() {
+                // Estimate point count from data size (each point is ~16 bytes: x,y,z,intensity)
+                let estimated_points = data.len() / 16;
+                *point_count_clone.lock().unwrap() += estimated_points;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     // Let it capture some data
     std::thread::sleep(Duration::from_millis(500));
@@ -454,34 +466,32 @@ fn test_lidar_sensor() -> CarlaResult<()> {
 
     let total_points = *point_count.lock().unwrap();
     println!("LIDAR captured {} points", total_points);
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_radar_sensor() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_radar_sensor(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Spawn a vehicle
-    let _vehicle = spawn_test_vehicle(&client)?; // TODO: Use vehicle for sensor attachment testing
+    let _vehicle = spawn_test_vehicle(client).expect("Failed to spawn test vehicle"); // TODO: Use vehicle for sensor attachment testing
 
     // Create radar sensor
     let radar_bp = blueprint_library
-        .find("sensor.other.radar")?
+        .find("sensor.other.radar")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.other.radar".to_string(),
             ))
-        })?;
+        })
+        .expect("Radar blueprint not found");
 
     let sensor = world
-        .spawn_actor(&radar_bp, &Transform::default(), None)?
+        .spawn_actor(&radar_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -489,13 +499,15 @@ fn test_radar_sensor() -> CarlaResult<()> {
     let detection_count_clone = detection_count.clone();
 
     // Register callback
-    sensor.listen(move |data: Vec<u8>| {
-        if !data.is_empty() {
-            // Estimate detection count from data size (each detection is ~24 bytes)
-            let estimated_detections = data.len() / 24;
-            *detection_count_clone.lock().unwrap() += estimated_detections;
-        }
-    })?;
+    sensor
+        .listen(move |data: Vec<u8>| {
+            if !data.is_empty() {
+                // Estimate detection count from data size (each detection is ~24 bytes)
+                let estimated_detections = data.len() / 24;
+                *detection_count_clone.lock().unwrap() += estimated_detections;
+            }
+        })
+        .expect("Failed to register sensor callback");
 
     // Let it run
     std::thread::sleep(Duration::from_millis(500));
@@ -504,31 +516,29 @@ fn test_radar_sensor() -> CarlaResult<()> {
 
     let total_detections = *detection_count.lock().unwrap();
     println!("Radar made {} detections", total_detections);
-
-    Ok(())
 }
 
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_sensor_error_handling() -> CarlaResult<()> {
-    let client = get_test_client()?;
-    reset_world(&client)?;
-
-    let world = client.world()?;
-    let blueprint_library = world.blueprint_library()?;
+#[with_carla_server]
+fn test_sensor_error_handling(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
 
     // Create a sensor
     let sensor_bp = blueprint_library
-        .find("sensor.other.gnss")?
+        .find("sensor.other.gnss")
+        .expect("Failed to find blueprint")
         .ok_or_else(|| {
             carla::error::CarlaError::World(carla::error::WorldError::BlueprintNotFound(
                 "sensor.other.gnss".to_string(),
             ))
-        })?;
+        })
+        .expect("GNSS blueprint not found");
 
     let sensor = world
-        .spawn_actor(&sensor_bp, &Transform::default(), None)?
+        .spawn_actor(&sensor_bp, &Transform::default(), None)
+        .expect("Failed to spawn actor")
         .into_sensor()
         .expect("Failed to cast to sensor");
 
@@ -536,9 +546,11 @@ fn test_sensor_error_handling() -> CarlaResult<()> {
     sensor.stop(); // Should not panic
 
     // Start listening
-    sensor.listen(|data: Vec<u8>| {
-        let _ = data.len(); // Use data to avoid warnings
-    })?;
+    sensor
+        .listen(|data: Vec<u8>| {
+            let _ = data.len(); // Use data to avoid warnings
+        })
+        .expect("Failed to register sensor callback");
 
     // Try to listen again (should fail)
     let result = sensor.listen(|data: Vec<u8>| {
@@ -548,6 +560,4 @@ fn test_sensor_error_handling() -> CarlaResult<()> {
 
     // Stop and clean up
     sensor.stop();
-
-    Ok(())
 }

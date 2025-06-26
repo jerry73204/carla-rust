@@ -1,29 +1,17 @@
 //! Integration tests for traffic light functionality
 
-#[cfg(feature = "test-carla-server")]
-use carla::{
-    actor::{ActorExt, TrafficLight, TrafficLightState},
-    client::Client,
-};
-
-#[cfg(feature = "test-carla-server")]
-use serial_test::serial;
-#[cfg(feature = "test-carla-server")]
+use carla::actor::{ActorExt, TrafficLight, TrafficLightState};
+use carla_test_server::with_carla_server;
 use std::time::Duration;
 
 /// Test that requires a running CARLA server
-/// Run with: cargo test --features test-carla-server
-#[test]
-#[serial]
-#[cfg(feature = "test-carla-server")]
-fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
-    // Connect to CARLA server
-    let client = Client::new("localhost", 2000, None)?;
-    let world = client.world()?;
+#[with_carla_server]
+fn test_traffic_light_basic_operations(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Get all actors in the world
     // This will fail with todo!() until actor list iteration is implemented
-    let actors = world.actors()?;
+    let actors = world.actors().expect("Failed to get actors");
 
     // Find traffic lights by checking actor type
     let traffic_lights: Vec<TrafficLight> = actors
@@ -33,7 +21,7 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
 
     if traffic_lights.is_empty() {
         eprintln!("No traffic lights found in the current map. Skipping test.");
-        return Ok(());
+        return;
     }
 
     let traffic_light = &traffic_lights[0];
@@ -44,27 +32,41 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     println!("Initial state: {:?}", initial_state);
 
     // Set to red
-    traffic_light.set_state(TrafficLightState::Red)?;
+    traffic_light
+        .set_state(TrafficLightState::Red)
+        .expect("Failed to set state to red");
     assert_eq!(traffic_light.state(), TrafficLightState::Red);
 
     // Set to green
-    traffic_light.set_state(TrafficLightState::Green)?;
+    traffic_light
+        .set_state(TrafficLightState::Green)
+        .expect("Failed to set state to green");
     assert_eq!(traffic_light.state(), TrafficLightState::Green);
 
     // Test time settings
-    traffic_light.set_green_time(Duration::from_secs(10))?;
-    traffic_light.set_yellow_time(Duration::from_secs(3))?;
-    traffic_light.set_red_time(Duration::from_secs(15))?;
+    traffic_light
+        .set_green_time(Duration::from_secs(10))
+        .expect("Failed to set green time");
+    traffic_light
+        .set_yellow_time(Duration::from_secs(3))
+        .expect("Failed to set yellow time");
+    traffic_light
+        .set_red_time(Duration::from_secs(15))
+        .expect("Failed to set red time");
 
     assert_eq!(traffic_light.green_time(), Duration::from_secs(10));
     assert_eq!(traffic_light.yellow_time(), Duration::from_secs(3));
     assert_eq!(traffic_light.red_time(), Duration::from_secs(15));
 
     // Test freeze functionality
-    traffic_light.freeze(true)?;
+    traffic_light
+        .freeze(true)
+        .expect("Failed to freeze traffic light");
     assert!(traffic_light.is_frozen());
 
-    traffic_light.freeze(false)?;
+    traffic_light
+        .freeze(false)
+        .expect("Failed to unfreeze traffic light");
     assert!(!traffic_light.is_frozen());
 
     // Test new methods (these will fail with todo!() until FFI functions are implemented)
@@ -82,20 +84,18 @@ fn test_traffic_light_basic_operations() -> anyhow::Result<()> {
     println!("Traffic light group contains {} lights", group_ids.len());
 
     // Restore initial state
-    traffic_light.set_state(initial_state)?;
-
-    Ok(())
+    traffic_light
+        .set_state(initial_state)
+        .expect("Failed to restore initial state");
 }
 
 /// Test that traffic light implements ActorT trait correctly
-#[test]
-#[cfg(feature = "test-carla-server")]
-fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
-    let client = Client::new("localhost", 2000, None)?;
-    let world = client.world()?;
+#[with_carla_server]
+fn test_traffic_light_actor_trait(client: &carla::client::Client) {
+    let world = client.world().expect("Failed to get world");
 
     // Get all actors - this will fail with todo!() until implemented
-    let actors = world.actors()?;
+    let actors = world.actors().expect("Failed to get actors");
     let traffic_lights: Vec<TrafficLight> = actors
         .iter()
         .filter_map(|actor| TrafficLight::from_actor(actor).ok())
@@ -103,7 +103,7 @@ fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
 
     if traffic_lights.is_empty() {
         eprintln!("No traffic lights found. Skipping test.");
-        return Ok(());
+        return;
     }
 
     let traffic_light = &traffic_lights[0];
@@ -119,6 +119,4 @@ fn test_traffic_light_actor_trait() -> anyhow::Result<()> {
     let _bbox = traffic_light.bounding_box();
 
     println!("Traffic light ActorT trait methods work correctly");
-
-    Ok(())
 }
