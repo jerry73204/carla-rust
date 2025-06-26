@@ -35,16 +35,21 @@ bitflags = "2.4.2"
 
 [dev-dependencies]
 approx = "0.5"
-serial_test = "3.0"
-carla-test-server = { path = "../carla-test-server" }
+clap = { version = "4.5", features = ["derive"] }
+env_logger = "0.11"
+# Example-specific dependencies
+csv = "1.3"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+image = "0.24"
+log = "0.4"
+chrono = "0.4"
 
 [features]
 default = []
 # TODO: Re-enable async feature in the future
 # Enable async sensor processing
 # async = ["tokio/rt-multi-thread"]
-# Enable tests that require CARLA server running
-test-carla-server = []
 
 [[example]]
 name = "actor_list_usage"
@@ -53,3 +58,64 @@ required-features = []
 [[example]]
 name = "actor_list_chaining"
 required-features = []
+
+# Basics examples
+[[example]]
+name = "01_connection"
+path = "examples/basics/01_connection.rs"
+
+[[example]]
+name = "02_world_info"
+path = "examples/basics/02_world_info.rs"
+
+[[example]]
+name = "03_blueprints"
+path = "examples/basics/03_blueprints.rs"
+
+# Actors examples
+[[example]]
+name = "01_spawn_vehicle"
+path = "examples/actors/01_spawn_vehicle.rs"
+
+[[example]]
+name = "vehicle_showcase"
+path = "examples/actors/vehicle_showcase.rs"
+
+[[example]]
+name = "vehicle_lighting"
+path = "examples/actors/vehicle_lighting.rs"
+
+# Traffic examples
+[[example]]
+name = "generate_traffic"
+path = "examples/traffic/generate_traffic.rs"
+
+# Sensors examples
+[[example]]
+name = "sensor_sync"
+path = "examples/sensors/sensor_sync.rs"
+
+# Road examples
+[[example]]
+name = "road_network_explorer"
+path = "examples/road/road_network_explorer.rs"
+
+# Actors examples (CARLA 0.10.0 features)
+[[example]]
+name = "vehicle_doors"
+path = "examples/actors/vehicle_doors.rs"
+
+# Camera examples
+[[example]]
+name = "camera_paths"
+path = "examples/cameras/camera_paths.rs"
+
+# Recording examples
+[[example]]
+name = "recording_playback"
+path = "examples/recording/recording_playback.rs"
+
+# AI examples
+[[example]]
+name = "ai_traffic_integration"
+path = "examples/ai/ai_traffic_integration.rs"
