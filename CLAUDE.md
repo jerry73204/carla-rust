@@ -41,6 +41,7 @@ make build
 make test
 
 # Run tests with CARLA server (server must be running)
+# Note: Requires cargo nextest for sequential execution
 make test-server
 
 # Run linting
@@ -212,11 +213,12 @@ cargo install cargo-nextest --locked
 make test
 
 # Run tests with CARLA server (server must be running)
+# Note: Requires cargo nextest for sequential execution
 make test-server
 
 # Run specific tests manually
 cargo nextest run --lib --no-fail-fast              # Unit tests only
-cargo nextest run --ignored --no-fail-fast          # Server-dependent tests
+cargo nextest run -E 'package(carla) and test(/integration_/)'  # CARLA integration tests
 
 # Run benchmarks
 cargo bench
@@ -227,15 +229,38 @@ cargo bench
 - Use `todo!()` for unimplemented test cases
 - Property-based tests for complex invariants
 - Mock server for CI/CD testing
+- CARLA integration tests use `#[with_carla_server]` macro for automatic server management
+- Sequential execution is enforced by nextest test groups (see `.config/nextest.toml`)
 
 For detailed test design, see [TEST.md](./TEST.md).
+
+## Test Infrastructure
+
+### CARLA Test Server
+The project includes automatic CARLA server management for integration tests:
+- Use `#[with_carla_server]` attribute on test functions
+- Server starts/stops automatically for each test
+- Sequential execution via nextest test groups
+- Configuration in `carla/carla_server.toml`
+
+### Nextest Configuration
+CARLA integration tests require nextest for proper sequential execution:
+```toml
+# carla/.config/nextest.toml
+[test-groups]
+carla-server = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'package(carla) and test(/integration_/)'
+test-group = 'carla-server'
+```
 
 ## Memories
 
 - Run the script `libcarla_c/build_libcarla_c.sh` to build the C library for testing.
 - Please prefix commands with `source /opt/ros/humble/setup.bash` to enable ROS2 libraries.
 - Run `make build` at the top-level directory to build the whole Rust workspace.
-- Run `make test` to test without CARLA server or `make test-server` to test with CARLA server.
+- Run `make test` to test without CARLA server or `make test-server` to test with CARLA server (requires nextest).
 - Run `make lint` to check code quality with clippy.
 - Please use `client.rs` + `client/submod.rs` pattern instead of `client/mod.rs`, similar for other Rust modules.
 - The carla-sys crate only provides C++ interface and essential items for Rust type conversion.
