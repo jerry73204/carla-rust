@@ -13,14 +13,6 @@ pub struct CarlaTestServer {
     config: CarlaTestConfig,
 }
 
-/// A resource wrapper that provides access to a CARLA server and ensures cleanup.
-pub struct ServerResource {
-    #[allow(dead_code)] // Held for Drop implementation
-    server: CarlaTestServer,
-    port: u16,
-    _lock_guard: crate::coordination::FileLockGuard,
-}
-
 impl CarlaTestServer {
     /// Starts a new CARLA server instance with the given configuration.
     pub fn start(config: &CarlaTestConfig) -> Result<Self, Box<dyn std::error::Error>> {
@@ -307,27 +299,5 @@ impl Drop for CarlaTestServer {
 
         // Final cleanup of any remaining processes
         let _ = Self::cleanup_existing_processes(self.port);
-    }
-}
-
-impl ServerResource {
-    /// Creates a new server resource with the given server and lock guard.
-    pub fn new(server: CarlaTestServer, lock_guard: crate::coordination::FileLockGuard) -> Self {
-        let port = server.port();
-        Self {
-            server,
-            port,
-            _lock_guard: lock_guard,
-        }
-    }
-
-    /// Creates a CARLA client connected to this server.
-    pub fn create_client(&self) -> Result<carla::client::Client, Box<dyn std::error::Error>> {
-        carla::client::Client::new("localhost", self.port, None).map_err(|e| e.into())
-    }
-
-    /// Returns the port the server is listening on.
-    pub fn port(&self) -> u16 {
-        self.port
     }
 }

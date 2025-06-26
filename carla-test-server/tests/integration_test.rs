@@ -9,7 +9,7 @@
 
 #[cfg(test)]
 mod tests {
-    use carla_test_server::{CarlaTestConfig, FileLockCoordinator};
+    use carla_test_server::CarlaTestConfig;
 
     #[test]
     fn test_config_loading() {
@@ -18,14 +18,6 @@ mod tests {
         assert_eq!(config.server.port, 2000);
         assert_eq!(config.server.quality_level, "Low");
         assert!(!config.server.windowed);
-    }
-
-    #[test]
-    fn test_coordinator_creation() {
-        // Test that we can create a coordinator
-        let config = CarlaTestConfig::default();
-        let coordinator = FileLockCoordinator::new(&config);
-        assert!(coordinator.is_ok());
     }
 
     #[test]

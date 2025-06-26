@@ -1,0 +1,41 @@
+# Nextest configuration for CARLA test infrastructure
+# This configuration ensures that CARLA integration tests run sequentially
+# to avoid conflicts when interacting with the CARLA server.
+
+# Define test groups
+[test-groups]
+# Mutual exclusion for CARLA tests - only one test can run at a time
+carla-server = { max-threads = 1 }
+
+# Default profile configuration
+[[profile.default.overrides]]
+# All integration tests that use CARLA
+filter = '''
+  package(carla) 
+  and (
+    test(/integration_actor::/)
+    or test(/integration_blueprint::/)
+    or test(/integration_client::/)
+    or test(/integration_client_migrated::/)
+    or test(/integration_opendrive::/)
+    or test(/integration_sensors::/)
+    or test(/integration_streaming::/)
+    or test(/integration_traffic_light::/)
+    or test(/integration_traffic_manager::/)
+  )
+'''
+test-group = 'carla-server'
+
+[[profile.default.overrides]]
+# Test examples using CARLA
+filter = 'package(carla) and test(/test_server_examples::/)'
+test-group = 'carla-server'
+
+[[profile.default.overrides]]
+# Sequential execution verification tests
+filter = 'package(carla) and test(/test_sequential_execution::test_sequential_execution_\d$/)'
+test-group = 'carla-server'
+
+# Increase timeout for CARLA tests as they need to start/stop server
+[profile.default]
+slow-timeout = { period = "60s", terminate-after = 2 }

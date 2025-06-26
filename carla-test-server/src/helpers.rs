@@ -124,15 +124,16 @@ impl Default for TestDebugConfig {
 /// Gets the default test timeout from environment or config.
 ///
 /// Checks the `CARLA_TEST_TIMEOUT` environment variable first,
-/// then falls back to the configured timeout.
-pub fn get_test_timeout(config: &CarlaTestConfig) -> Duration {
+/// then falls back to a default timeout.
+pub fn get_test_timeout(_config: &CarlaTestConfig) -> Duration {
     if let Ok(timeout_str) = std::env::var("CARLA_TEST_TIMEOUT") {
         if let Ok(seconds) = timeout_str.parse::<u64>() {
             return Duration::from_secs(seconds);
         }
     }
 
-    Duration::from_secs(config.coordination.timeout_seconds)
+    // Default timeout of 5 minutes
+    Duration::from_secs(300)
 }
 
 /// Ensures a test port is available before starting.

@@ -6,8 +6,6 @@ use std::path::Path;
 pub struct CarlaTestConfig {
     /// Server configuration
     pub server: ServerConfig,
-    /// Cross-process coordination configuration
-    pub coordination: CoordinationConfig,
     /// Logging configuration
     pub logging: LoggingConfig,
 }
@@ -31,15 +29,6 @@ pub struct ServerConfig {
     pub additional_args: Vec<String>,
 }
 
-/// Configuration for cross-process coordination.
-#[derive(Debug, Deserialize, Clone)]
-pub struct CoordinationConfig {
-    /// Path to lock file for sequential test execution
-    pub lock_file: String,
-    /// Timeout in seconds to wait for lock acquisition
-    pub timeout_seconds: u64,
-}
-
 /// Configuration for logging and output capture.
 #[derive(Debug, Deserialize, Clone)]
 pub struct LoggingConfig {
@@ -59,15 +48,6 @@ impl Default for ServerConfig {
             quality_level: "Low".to_string(),
             windowed: false,
             additional_args: vec!["-nosound".to_string(), "-benchmark".to_string()],
-        }
-    }
-}
-
-impl Default for CoordinationConfig {
-    fn default() -> Self {
-        Self {
-            lock_file: "/tmp/carla_test_server.lock".to_string(),
-            timeout_seconds: 300,
         }
     }
 }
@@ -143,10 +123,6 @@ fn validate_config(config: &CarlaTestConfig) -> Result<(), Box<dyn std::error::E
     // Validate timeouts
     if config.server.startup_timeout_seconds == 0 {
         return Err("Server startup timeout must be > 0".into());
-    }
-
-    if config.coordination.timeout_seconds == 0 {
-        return Err("Coordination timeout must be > 0".into());
     }
 
     // Validate quality level
