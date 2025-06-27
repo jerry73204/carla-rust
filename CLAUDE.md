@@ -74,7 +74,7 @@ cargo build --all-targets --features docs-only     # Skip build for docs.rs
 ### High-Level API (carla)
 Key modules:
 - `client/` - Client connection, world management, actor spawning
-- `sensor/` - Sensor data structures and handling  
+- `sensor/` - Sensor data structures and handling
 - `traffic_manager/` - Traffic simulation control
 - `road/` - Map, waypoints, junctions, and navigation
 - `actor/` - Vehicles, walkers, traffic lights/signs
@@ -93,7 +93,7 @@ All submodules are public for direct imports (e.g., `use carla::client::Client`)
 ## Key Dependencies
 - **cxx** - Safe C++ FFI bridge (replaced autocxx)
 - **nalgebra** - Linear algebra operations
-- **ndarray** - N-dimensional arrays for sensor data  
+- **ndarray** - N-dimensional arrays for sensor data
 - **anyhow/thiserror** - Error handling
 - **derive_more** - Derive trait implementations
 - **static_assertions** - Compile-time assertions
@@ -189,78 +189,69 @@ pub fn get_affected_lane_waypoints(&self) -> Vec<crate::road::Waypoint> {
 3. Use todo!() macro for any missing pieces to make them explicit
 4. Document in comments what specific FFI functions are needed
 
-## Testing Framework
+## Testing and Examples
 
-The Rust API includes a comprehensive testing framework that mirrors the C++ LibCarla tests. We use **cargo nextest** as the test runner for improved performance and better output:
+### Unit Tests
+The project includes unit tests that don't require a CARLA server:
 
-### Test Structure
-- **Unit Tests** (`carla/tests/unit/`) - Test individual components without server
-- **Integration Tests** (`carla/tests/integration/`) - Test with real or mock CARLA server  
-- **Benchmarks** (`carla/benches/`) - Performance benchmarks
-
-### Installing cargo nextest
 ```bash
-# Install nextest (one time setup)
-cargo install cargo-nextest --locked
-```
-
-### Running Tests
-```bash
-# Set up test fixtures (one time)
-./setup_test_fixtures.sh
-
-# Run tests without CARLA server
+# Run unit tests
 make test
-
-# Run tests with CARLA server (server must be running)
-# Note: Requires cargo nextest for sequential execution
-make test-server
-
-# Run specific tests manually
-cargo nextest run --lib --no-fail-fast              # Unit tests only
-cargo nextest run -E 'package(carla) and test(/integration_/)'  # CARLA integration tests
-
-# Run benchmarks
-cargo bench
 ```
 
-### Test Guidelines
-- Mirror each C++ test with equivalent Rust test
-- Use `todo!()` for unimplemented test cases
-- Property-based tests for complex invariants
-- Mock server for CI/CD testing
-- CARLA integration tests use `#[with_carla_server]` macro for automatic server management
-- Sequential execution is enforced by nextest test groups (see `.config/nextest.toml`)
+### Examples
+Instead of integration tests, we provide comprehensive examples that demonstrate real-world usage:
 
-For detailed test design, see [TEST.md](./TEST.md).
+```bash
+# List all available examples
+make list-examples
 
-## Test Infrastructure
+# Run an example with default server (localhost:2000)
+make run-example EXAMPLE=01_connection
 
-### CARLA Test Server
-The project includes automatic CARLA server management for integration tests:
-- Use `#[with_carla_server]` attribute on test functions
-- Server starts/stops automatically for each test
-- Sequential execution via nextest test groups
-- Configuration in `carla/carla_server.toml`
+# Run with custom server
+make run-example EXAMPLE=01_spawn_vehicle CARLA_HOST=192.168.1.100 CARLA_PORT=3000
 
-### Nextest Configuration
-CARLA integration tests require nextest for proper sequential execution:
-```toml
-# carla/.config/nextest.toml
-[test-groups]
-carla-server = { max-threads = 1 }
+# Run with additional arguments
+make run-example EXAMPLE=02_world_info ARGS="--verbose --clean"
 
-[[profile.default.overrides]]
-filter = 'package(carla) and test(/integration_/)'
-test-group = 'carla-server'
+# Build all examples
+make examples
 ```
+
+### Example Categories
+- **Basics**: Connection, world info, blueprints
+- **Actors**: Vehicle and pedestrian spawning
+- **Sensors**: Camera, LiDAR, radar data collection
+- **Traffic**: Traffic manager and traffic lights
+- **Navigation**: Waypoints and route planning
+
+See [carla/README_EXAMPLES.md](./carla/README_EXAMPLES.md) for detailed documentation.
+
+### Running Examples with CARLA Server
+1. Start CARLA server:
+   ```bash
+   cd /path/to/carla
+   ./CarlaUnreal.sh
+   ```
+
+2. Run examples:
+   ```bash
+   # Using make
+   make run-example EXAMPLE=01_spawn_vehicle
+
+   # Using cargo directly
+   cargo run --example 01_connection -- --host localhost --port 2000
+   ```
+
 
 ## Memories
 
 - Run the script `libcarla_c/build_libcarla_c.sh` to build the C library for testing.
 - Please prefix commands with `source /opt/ros/humble/setup.bash` to enable ROS2 libraries.
 - Run `make build` at the top-level directory to build the whole Rust workspace.
-- Run `make test` to test without CARLA server or `make test-server` to test with CARLA server (requires nextest).
+- Run `make test` to run unit tests.
+- Run `make run-example EXAMPLE=<name>` to run examples with CARLA server.
 - Run `make lint` to check code quality with clippy.
 - Please use `client.rs` + `client/submod.rs` pattern instead of `client/mod.rs`, similar for other Rust modules.
 - The carla-sys crate only provides C++ interface and essential items for Rust type conversion.
@@ -270,5 +261,6 @@ test-group = 'carla-server'
 - If a method, function or a fraction of code is not finished yet in Rust, leave a `todo!()` with TODO comments. Don't return a placeholder or dummy value. It would cause silent errors.
 - The methods and functions in carla/ Rust API follow the Rust convention. For example, `id()` is preferred over `get_id()`.
 - FFI types and functions are private to users in Rust API.
-- Tests in upstream C++ source code should have Rust counterparts in our Rust API. Our Rust tests records the corresponding test in C++ in comments.
-- When counting passing and failing tests, always add --no-fail-fast option to cargo nextest. It will run all tests so you can count them correctly.
+- Tests in upstream C++ source code can be converted to examples in our Rust API.
+- Examples serve both as tests and as educational resources for users.
+- Examples use a consistent CLI interface with clap for user-friendly execution.
