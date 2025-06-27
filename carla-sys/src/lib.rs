@@ -50,6 +50,7 @@ pub mod map;
 pub mod recording;
 pub mod ros2;
 pub mod sensor;
+pub mod sensor_callback_ffi;
 pub mod time;
 pub mod traffic_light;
 pub mod traffic_manager;

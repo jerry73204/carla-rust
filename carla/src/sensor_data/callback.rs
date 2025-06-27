@@ -3,15 +3,17 @@
 use crate::{
     actor::{ActorExt, Sensor},
     error::{CarlaResult, SensorError},
+    road::LaneMarkingType,
     sensor_data::{
-        CollisionData, DVSEventArray, DepthImageData, GNSSData, IMUData, ImageData,
-        InstanceSegmentationImageData, LaneInvasionData, LiDARData, LiDARPoint,
-        ObstacleDetectionData, RGBImageData, RSSData, RadarData, SemanticLiDARData,
-        SemanticSegmentationImageData,
+        CollisionData, DVSData, DepthImageData, GNSSData, IMUData, ImageData,
+        InstanceSegmentationImageData, LaneChange, LaneInvasionData, LaneMarkingColor,
+        LaneMarkingInfo, LiDARData, ObstacleDetectionData, RGBImageData, RSSData, RadarData,
+        SemanticLiDARData, SemanticSegmentationImageData,
     },
 };
-use carla_sys::callback::{
-    CallbackRegistration, SensorDataCallback, SensorDataHeader, SensorDataType,
+use carla_sys::{
+    callback::{SensorDataHeader, SensorDataType},
+    sensor_callback_ffi,
 };
 use std::{
     collections::HashMap,
@@ -19,11 +21,11 @@ use std::{
 };
 
 /// Type-erased sensor data callback.
-pub type SensorCallback = Box<dyn Fn(SensorData) + Send + 'static>;
+pub type SensorCallback = Box<dyn Fn(CallbackSensorData) + Send + 'static>;
 
 /// Sensor data variants that can be received in callbacks.
 #[derive(Debug, Clone)]
-pub enum SensorData {
+pub enum CallbackSensorData {
     /// RGB camera data
     RGB(RGBImageData),
     /// Depth camera data
@@ -49,7 +51,7 @@ pub enum SensorData {
     /// Obstacle detection data
     ObstacleDetection(ObstacleDetectionData),
     /// DVS event array data
-    DVS(DVSEventArray),
+    DVS(DVSData),
     /// RSS data
     RSS(RSSData),
 }
@@ -79,14 +81,14 @@ impl<'a> SensorCallbackManager<'a> {
     /// The callback will be invoked whenever new sensor data is available.
     pub fn register_callback<F>(&mut self, callback: F) -> CarlaResult<u64>
     where
-        F: Fn(SensorData) + Send + 'static,
+        F: Fn(CallbackSensorData) + Send + 'static,
     {
         // Create a boxed callback
         let boxed_callback = Box::new(callback);
 
         // Create callback context
         let context = CallbackContext {
-            sensor_id: self.sensor.id(),
+            _sensor_id: self.sensor.id(),
             callbacks: Arc::clone(&self.callbacks),
         };
 
@@ -95,7 +97,7 @@ impl<'a> SensorCallbackManager<'a> {
 
         // Register the FFI callback
         let handle = unsafe {
-            carla_sys::ffi::Sensor_RegisterCallback(
+            sensor_callback_ffi::Sensor_RegisterCallback(
                 self.sensor.inner.get_inner_sensor(),
                 sensor_data_callback_trampoline,
                 context_ptr,
@@ -126,7 +128,7 @@ impl<'a> SensorCallbackManager<'a> {
     /// Unregister a callback.
     pub fn unregister_callback(&mut self, handle: u64) -> CarlaResult<()> {
         // Unregister from FFI
-        let success = unsafe { carla_sys::ffi::Sensor_UnregisterCallback(handle) };
+        let success = unsafe { sensor_callback_ffi::Sensor_UnregisterCallback(handle) };
 
         if !success {
             return Err(
@@ -148,7 +150,7 @@ impl<'a> SensorCallbackManager<'a> {
     pub fn clear_callbacks(&mut self) {
         // Clear FFI callbacks
         unsafe {
-            carla_sys::ffi::Sensor_ClearCallbacks(self.sensor.inner.get_inner_sensor());
+            sensor_callback_ffi::Sensor_ClearCallbacks(self.sensor.inner.get_inner_sensor());
         }
 
         // Clear local storage
@@ -163,13 +165,13 @@ impl<'a> SensorCallbackManager<'a> {
 
 /// Context passed to FFI callbacks.
 struct CallbackContext {
-    sensor_id: u32,
+    _sensor_id: u32,
     callbacks: Arc<Mutex<HashMap<u64, SensorCallback>>>,
 }
 
 /// FFI callback trampoline that deserializes data and calls Rust callbacks.
 unsafe extern "C" fn sensor_data_callback_trampoline(
-    sensor_id: u32,
+    _sensor_id: u32,
     data: *const u8,
     size: usize,
     user_data: *mut u8,
@@ -199,7 +201,7 @@ unsafe extern "C" fn sensor_data_callback_trampoline(
 }
 
 /// Deserialize sensor data from FFI buffer.
-fn deserialize_sensor_data(data: &[u8]) -> CarlaResult<SensorData> {
+fn deserialize_sensor_data(data: &[u8]) -> CarlaResult<CallbackSensorData> {
     if data.len() < std::mem::size_of::<SensorDataHeader>() {
         return Err(SensorError::DataConversion(
             "Buffer too small for sensor data header".to_string(),
@@ -219,11 +221,8 @@ fn deserialize_sensor_data(data: &[u8]) -> CarlaResult<SensorData> {
         header.timestamp,
     );
 
-    // TODO: Extract transform from header when implemented
-    let transform = crate::geom::Transform::new(
-        crate::geom::Location::new(0.0, 0.0, 0.0),
-        crate::geom::Rotation::new(0.0, 0.0, 0.0),
-    );
+    // Extract transform from header
+    let transform = crate::geom::Transform::from(header.transform);
 
     // Deserialize based on data type
     match header.data_type {
@@ -249,7 +248,7 @@ fn deserialize_image_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // Image format: raw BGRA data (width*height*4 bytes)
     // We need to infer dimensions or use default values since C++ doesn't serialize them
 
@@ -268,7 +267,7 @@ fn deserialize_image_data(
         // Try to guess square image
         let pixel_count = payload.len() / 4;
         let side = (pixel_count as f64).sqrt() as u32;
-        if side * side * 4 == payload.len() {
+        if (side * side * 4) as usize == payload.len() {
             (side, side)
         } else {
             // Default fallback
@@ -287,7 +286,7 @@ fn deserialize_image_data(
     };
 
     // For now, return as RGB - in practice we'd need to detect the specific type
-    Ok(SensorData::RGB(RGBImageData::new(image)))
+    Ok(CallbackSensorData::RGB(RGBImageData::new(image)))
 }
 
 /// Deserialize LiDAR data from payload.
@@ -295,7 +294,7 @@ fn deserialize_lidar_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // LiDAR format: point_count(4) + points(count * 16 bytes per point)
     if payload.len() < 4 {
         return Err(SensorError::DataConversion("LiDAR payload too small".to_string()).into());
@@ -356,7 +355,7 @@ fn deserialize_lidar_data(
         points,
     };
 
-    Ok(SensorData::LiDAR(lidar_data))
+    Ok(CallbackSensorData::LiDAR(lidar_data))
 }
 
 /// Deserialize radar data from payload.
@@ -364,23 +363,26 @@ fn deserialize_radar_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // Radar format: detection_count(4) + detections(count * detection_size)
     if payload.len() < 4 {
         return Err(SensorError::DataConversion("Radar payload too small".to_string()).into());
     }
 
-    let detection_count = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]);
+    let _detection_count = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]);
 
     // For now, return basic radar data structure
     let radar_data = RadarData {
         timestamp,
         transform,
         sensor_id: 0,
-        detections: Vec::new(), // TODO: Implement proper radar detection parsing
+        detections: Vec::new(), // TODO: Implement proper radar detection parsing from binary payload
+                                // This requires understanding CARLA's binary serialization format for radar data
+                                // and parsing the payload bytes into Vec<RadarDetection> structures.
+                                // The SimpleRadarData structure shows the expected format with velocity, azimuth, altitude, depth.
     };
 
-    Ok(SensorData::Radar(radar_data))
+    Ok(CallbackSensorData::Radar(radar_data))
 }
 
 /// Deserialize IMU data from payload.
@@ -388,7 +390,7 @@ fn deserialize_imu_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // IMU format: 7 floats (3 accel + 3 gyro + 1 compass)
     if payload.len() < 28 {
         return Err(SensorError::DataConversion("IMU payload too small".to_string()).into());
@@ -408,12 +410,12 @@ fn deserialize_imu_data(
         timestamp,
         transform,
         sensor_id: 0,
-        accelerometer: crate::geom::Vector3D::new(accel_x, accel_y, accel_z),
-        gyroscope: crate::geom::Vector3D::new(gyro_x, gyro_y, gyro_z),
+        accelerometer: [accel_x, accel_y, accel_z],
+        gyroscope: [gyro_x, gyro_y, gyro_z],
         compass,
     };
 
-    Ok(SensorData::IMU(imu_data))
+    Ok(CallbackSensorData::IMU(imu_data))
 }
 
 /// Deserialize GNSS data from payload.
@@ -421,7 +423,7 @@ fn deserialize_gnss_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // GNSS format: 3 doubles (lat, lon, alt)
     if payload.len() < 24 {
         return Err(SensorError::DataConversion("GNSS payload too small".to_string()).into());
@@ -461,7 +463,7 @@ fn deserialize_gnss_data(
         altitude,
     };
 
-    Ok(SensorData::GNSS(gnss_data))
+    Ok(CallbackSensorData::GNSS(gnss_data))
 }
 
 /// Deserialize collision data from payload.
@@ -469,7 +471,7 @@ fn deserialize_collision_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // Collision format: normal_impulse(12) + other_actor_id(4)
     if payload.len() < 16 {
         return Err(SensorError::DataConversion("Collision payload too small".to_string()).into());
@@ -489,7 +491,7 @@ fn deserialize_collision_data(
         normal_impulse: crate::geom::Vector3D::new(normal_x, normal_y, normal_z),
     };
 
-    Ok(SensorData::Collision(collision_data))
+    Ok(CallbackSensorData::Collision(collision_data))
 }
 
 /// Deserialize lane invasion data from payload.
@@ -497,7 +499,7 @@ fn deserialize_lane_invasion_data(
     payload: &[u8],
     timestamp: crate::time::Timestamp,
     transform: crate::geom::Transform,
-) -> CarlaResult<SensorData> {
+) -> CarlaResult<CallbackSensorData> {
     // Lane invasion format: marking_count(4) + markings(count * 4)
     if payload.len() < 4 {
         return Err(
@@ -525,8 +527,15 @@ fn deserialize_lane_invasion_data(
             payload[offset + 2],
             payload[offset + 3],
         ]);
-        // TODO: Create proper LaneMarkingInfo structures
-        // For now, we'll skip creating the complex structure
+        // Create LaneMarkingInfo from parsed data
+        // Note: This implementation assumes the binary format only contains marking type
+        // Full implementation would require color and lane_change data from payload
+        let lane_marking_info = LaneMarkingInfo {
+            marking_type: LaneMarkingType::from_u32(marking_type as u32),
+            color: LaneMarkingColor::Standard, // Default value - would need to parse from payload
+            lane_change: LaneChange::None,     // Default value - would need to parse from payload
+        };
+        crossed_lane_markings.push(lane_marking_info);
         offset += 4;
     }
 
@@ -534,13 +543,13 @@ fn deserialize_lane_invasion_data(
         timestamp,
         transform,
         sensor_id: 0,
-        crossed_lane_markings, // Empty for now
+        crossed_lane_markings,
     };
 
-    Ok(SensorData::LaneInvasion(lane_invasion_data))
+    Ok(CallbackSensorData::LaneInvasion(lane_invasion_data))
 }
 
-impl Drop for SensorCallbackManager {
+impl<'a> Drop for SensorCallbackManager<'a> {
     fn drop(&mut self) {
         self.clear_callbacks();
     }

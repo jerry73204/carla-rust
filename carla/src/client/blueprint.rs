@@ -96,6 +96,16 @@ impl ActorBlueprint {
         self.inner.contains_attribute(key)
     }
 
+    /// Get all available attribute IDs for this blueprint.
+    pub fn attribute_ids(&self) -> Vec<String> {
+        self.inner.get_attribute_ids()
+    }
+
+    /// Get the number of attributes in this blueprint.
+    pub fn attribute_count(&self) -> usize {
+        self.inner.get_attribute_count()
+    }
+
     /// Check if blueprint has a specific tag.
     pub fn has_tag(&self, tag: &str) -> bool {
         self.inner.contains_tag(tag)
@@ -104,16 +114,6 @@ impl ActorBlueprint {
     /// Check if blueprint matches a wildcard pattern (for tags).
     pub fn matches_tags(&self, pattern: &str) -> bool {
         self.inner.match_tags(pattern)
-    }
-
-    /// Get an iterator over all attribute IDs in this blueprint.
-    pub fn attribute_ids(&self) -> impl Iterator<Item = String> {
-        self.inner.get_attribute_ids().into_iter()
-    }
-
-    /// Get the number of attributes in this blueprint.
-    pub fn attribute_count(&self) -> usize {
-        self.inner.get_attribute_count()
     }
 }
 

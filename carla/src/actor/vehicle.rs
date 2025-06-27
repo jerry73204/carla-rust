@@ -168,6 +168,8 @@ impl Vehicle {
     /// Try to enable or disable autopilot with Traffic Manager availability check.
     ///
     /// This is a safer version that handles cases where Traffic Manager is not available.
+    /// For applications that have access to the Client, you can use
+    /// `TrafficManager::is_available()` to check availability before calling this method.
     ///
     /// # Arguments
     /// * `enabled` - Whether to enable (true) or disable (false) autopilot
@@ -187,8 +189,8 @@ impl Vehicle {
         }
 
         // For enabling, we need to be more careful
-        // TODO: Add Traffic Manager availability check when FFI is available
-        // For now, we'll try and catch any crashes
+        // Note: Traffic Manager availability check is implemented via panic catching
+        // since vehicles don't have direct access to the Client for checking availability
         eprintln!(
             "Warning: Enabling autopilot without Traffic Manager may crash CARLA 0.10.0 server"
         );

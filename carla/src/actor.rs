@@ -124,6 +124,8 @@
 //! - `sensor_sync.rs` - Multi-sensor data collection
 //! - `generate_traffic.rs` - Traffic simulation setup
 
+/// Attribute list wrapper
+pub mod attribute_list;
 /// Base actor functionality and types.
 pub mod base;
 /// Camera sensor types and functionality.
@@ -164,6 +166,7 @@ pub mod vehicle;
 pub mod walker;
 
 // Re-export all major actor types for convenient access
+pub use attribute_list::AttributeList;
 pub use base::{Actor, ActorSnapshot};
 pub use camera::{Camera, CameraType};
 pub use collision::CollisionSensor;

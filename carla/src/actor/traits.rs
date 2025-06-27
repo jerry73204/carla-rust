@@ -322,13 +322,14 @@ pub trait SensorExt: SensorFfi {
     }
 
     /// Get sensor-specific attribute.
-    fn attribute(&self, name: &str) -> Option<String> {
-        let _name = name;
-        // TODO: Implement sensor attribute retrieval
-        // This requires adding Sensor_GetAttribute FFI function or storing blueprint reference
-        todo!(
-            "Sensor::get_attribute not yet implemented - missing FFI function Sensor_GetAttribute"
-        )
+    ///
+    /// Note: This implementation relies on sensors being actors and having access
+    /// to actor attributes. Individual sensor types should override this if they
+    /// need custom attribute access.
+    fn attribute(&self, _name: &str) -> Option<String> {
+        // Default implementation returns None
+        // Concrete sensor types should implement this using their actor attributes
+        None
     }
 
     /// Enable sensor recording to file.

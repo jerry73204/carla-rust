@@ -4,8 +4,16 @@
 //! focusing on sensor control which is the primary client-side ROS2 feature.
 //! The ROS2 system in CARLA 0.10.0 provides native integration without requiring external bridges.
 //!
-//! For more complex ROS2 features like custom publishers/subscribers, use the official
-//! CARLA ROS2 bridge or access the ROS2 functionality directly from Python/C++.
+//! # Important Limitations
+//!
+//! **WARNING**: The ROS2 functionality in CARLA requires that sensors be created with
+//! `shared_from_this()` support, which is not available when creating sensors through
+//! external bindings like this Rust API. The enable/disable methods will log warnings
+//! but won't crash. For full ROS2 support, sensors must be created directly in C++
+//! or through CARLA's Python API.
+//!
+//! For functional ROS2 integration, use the official CARLA ROS2 bridge or access
+//! the ROS2 functionality directly from Python/C++.
 
 use crate::ffi::{self, Sensor};
 

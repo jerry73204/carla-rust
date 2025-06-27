@@ -96,6 +96,52 @@ impl Map {
         self.inner.get_open_drive()
     }
 
+    /// Save the OpenDRIVE map to disk.
+    ///
+    /// # Arguments
+    /// * `path` - Path where to save the file. If empty, uses map name. Must have .xodr extension.
+    ///
+    /// # Errors
+    /// Returns [`crate::error::CarlaError::Map`] if the file cannot be written.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use carla::Map;
+    /// # fn example(map: &Map) -> carla::CarlaResult<()> {
+    /// // Save with default name
+    /// map.save_to_disk("")?;
+    ///
+    /// // Save with custom path
+    /// map.save_to_disk("my_map.xodr")?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn save_to_disk(&self, path: &str) -> CarlaResult<()> {
+        let opendrive_content = self.to_opendrive();
+
+        // Determine the file path
+        let file_path = if path.is_empty() {
+            format!("{}.xodr", self.name())
+        } else {
+            // Validate that the path has .xodr extension
+            if !path.ends_with(".xodr") {
+                return Err(crate::error::CarlaError::Map(
+                    crate::error::MapError::InvalidPath(
+                        "File path must have .xodr extension".to_string(),
+                    ),
+                ));
+            }
+            path.to_string()
+        };
+
+        // Write the file
+        std::fs::write(&file_path, opendrive_content).map_err(|e| {
+            crate::error::CarlaError::Map(crate::error::MapError::FileWrite(e.to_string()))
+        })?;
+
+        Ok(())
+    }
+
     /// Get topology of the road network.
     pub fn topology(&self) -> Topology {
         let topology_vec = self.inner.get_topology_vector();
@@ -191,20 +237,29 @@ impl Map {
 
     /// Get all landmarks in the map.
     pub fn landmarks(&self) -> Vec<Landmark> {
-        // TODO: Implement when landmark FFI functions are available
-        Vec::new()
+        self.inner
+            .get_all_landmarks()
+            .into_iter()
+            .map(Landmark::from)
+            .collect()
     }
 
     /// Get landmarks by ID.
-    pub fn landmarks_from_id(&self, _id: &str) -> Vec<Landmark> {
-        // TODO: Implement when landmark FFI functions are available
-        Vec::new()
+    pub fn landmarks_from_id(&self, id: &str) -> Vec<Landmark> {
+        self.inner
+            .get_landmarks_from_id(id)
+            .into_iter()
+            .map(Landmark::from)
+            .collect()
     }
 
     /// Get all landmarks of a specific type.
-    pub fn landmarks_of_type(&self, _landmark_type: &str) -> Vec<Landmark> {
-        // TODO: Implement when landmark FFI functions are available
-        Vec::new()
+    pub fn landmarks_of_type(&self, landmark_type: &str) -> Vec<Landmark> {
+        self.inner
+            .get_all_landmarks_of_type(landmark_type)
+            .into_iter()
+            .map(Landmark::from)
+            .collect()
     }
 }
 

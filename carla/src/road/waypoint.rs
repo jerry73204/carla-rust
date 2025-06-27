@@ -179,9 +179,8 @@ impl Waypoint {
 
     /// Get all landmarks within a distance from this waypoint.
     pub fn landmarks(&self, distance: f64) -> CarlaResult<Vec<Landmark>> {
-        // TODO: Implement when landmark FFI functions are available
-        let _distance = distance; // Silence unused warning
-        Ok(Vec::new())
+        let landmarks = self.wrapper.get_all_landmarks_in_distance(distance, true);
+        Ok(landmarks.into_iter().map(Landmark::from).collect())
     }
 
     /// Get landmarks of a specific type within a distance from this waypoint.
@@ -190,10 +189,10 @@ impl Waypoint {
         landmark_type: &str,
         distance: f64,
     ) -> CarlaResult<Vec<Landmark>> {
-        // TODO: Implement when landmark FFI functions are available
-        let _landmark_type = landmark_type; // Silence unused warning
-        let _distance = distance; // Silence unused warning
-        Ok(Vec::new())
+        let landmarks =
+            self.wrapper
+                .get_landmarks_of_type_in_distance(distance, landmark_type, true);
+        Ok(landmarks.into_iter().map(Landmark::from).collect())
     }
 
     /// Get reference to internal wrapper for FFI operations

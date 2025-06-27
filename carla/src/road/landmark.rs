@@ -31,27 +31,25 @@ pub struct Landmark {
     pub text: String,
 }
 
-impl Landmark {
-    // TODO: Re-enable when SimpleLandmark is available
-    // /// Create a Landmark from a SimpleLandmark FFI structure.
-    /*
-    pub fn from_simple(simple: SimpleLandmark) -> Self {
+impl From<carla_sys::landmark::LandmarkInfo> for Landmark {
+    fn from(info: carla_sys::landmark::LandmarkInfo) -> Self {
         Self {
-            id: simple.id,
-            name: simple.name,
-            landmark_type: simple.type_,
-            transform: Transform::from(simple.transform),
-            height: simple.height,
-            z_offset: simple.z_offset,
-            country: simple.country,
-            sub_type: simple.sub_type,
-            value: simple.value,
-            unit: simple.unit,
-            text: simple.text,
+            id: info.id,
+            name: info.name,
+            landmark_type: info.type_code,
+            transform: Transform::default(), // LandmarkInfo doesn't have transform, use default
+            height: info.height,
+            z_offset: info.z_offset,
+            country: info.country,
+            sub_type: info.sub_type,
+            value: info.value,
+            unit: info.unit,
+            text: info.text,
         }
     }
-    */
+}
 
+impl Landmark {
     /// Check if this landmark is a traffic light.
     pub fn is_traffic_light(&self) -> bool {
         self.landmark_type == "traffic_light"

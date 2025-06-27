@@ -130,10 +130,10 @@ impl Actor {
         }
     }
 
-    // TODO: Return a AttributeList type wrapping a C++ std::vector<ActorAttributeValue>.
     /// Get actor attributes.
-    pub fn attributes(&self) -> Vec<String> {
-        carla_sys::ffi::Actor_GetAttributes(self.inner.get_actor())
+    pub fn attributes(&self) -> super::AttributeList {
+        let attr_strings = carla_sys::ffi::Actor_GetAttributes(self.inner.get_actor());
+        super::AttributeList::from_strings(attr_strings)
     }
 
     /// Check if the actor is dormant.
@@ -177,23 +177,20 @@ impl Actor {
     /// Try to get the actor's transform with crash protection.
     ///
     /// This method adds defensive checks to prevent crashes observed
-    /// when accessing transform on invalid actors.
+    /// when accessing transform on invalid actors. The FFI layer also
+    /// includes exception handling to catch C++ exceptions.
     pub fn try_transform(&self) -> CarlaResult<Transform> {
         self.validate_for_operation("transform")?;
-
-        // TODO: Add exception handling at FFI level
-        // For now, we rely on validation checks
         Ok(self.transform())
     }
 
     /// Try to get the actor's velocity with crash protection.
     ///
     /// This method adds defensive checks to prevent crashes observed
-    /// when accessing velocity on invalid actors.
+    /// when accessing velocity on invalid actors. The FFI layer also
+    /// includes exception handling to catch C++ exceptions.
     pub fn try_velocity(&self) -> CarlaResult<Vector3D> {
         self.validate_for_operation("velocity")?;
-
-        // TODO: Add exception handling at FFI level
         Ok(self.velocity())
     }
 

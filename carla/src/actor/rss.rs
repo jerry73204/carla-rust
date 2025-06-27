@@ -57,30 +57,30 @@ impl RSSSensor {
 
     // RSS-specific configuration methods
 
-    /// Set the ego vehicle dynamics.
-    pub fn set_ego_vehicle_dynamics(&self, dynamics: &RSSEgoVehicleDynamics) -> CarlaResult<()> {
-        // TODO: Implement RSS configuration through FFI
-        let _dynamics = dynamics;
-        todo!("RSSSensor::set_ego_vehicle_dynamics not yet implemented - missing FFI function")
+    /// Get the ego dynamics mode attribute.
+    pub fn ego_dynamics_mode(&self) -> Option<String> {
+        self.attribute("ego_dynamics_mode")
     }
 
-    /// Set the other vehicles dynamics.
-    pub fn set_other_vehicles_dynamics(
-        &self,
-        dynamics: &RSSOtherVehicleDynamics,
-    ) -> CarlaResult<()> {
-        // TODO: Implement RSS configuration through FFI
-        let _dynamics = dynamics;
-        todo!("RSSSensor::set_other_vehicles_dynamics not yet implemented - missing FFI function")
+    /// Get the other dynamics mode attribute.
+    pub fn other_dynamics_mode(&self) -> Option<String> {
+        self.attribute("other_dynamics_mode")
     }
 
-    /// Set the pedestrian dynamics.
-    pub fn set_pedestrian_dynamics(&self, dynamics: &RSSPedestrianDynamics) -> CarlaResult<()> {
-        // TODO: Implement RSS configuration through FFI
-        let _dynamics = dynamics;
-        todo!("RSSSensor::set_pedestrian_dynamics not yet implemented - missing FFI function")
+    /// Check if RSS debug visualization is enabled.
+    pub fn is_debug_enabled(&self) -> Option<bool> {
+        self.attribute("visualize_results")
+            .and_then(|s| s.parse().ok())
     }
 }
+
+// Note: RSS sensor attributes are set during creation through the blueprint.
+// Runtime modification of RSS parameters is not supported by CARLA.
+// To change sensor parameters, you must destroy the sensor and create a new one
+// with the desired configuration.
+//
+// **WARNING**: The RSS functionality has been removed in CARLA 0.10.0.
+// This API is kept for compatibility but is non-functional.
 
 impl SensorFfi for RSSSensor {
     fn as_sensor_ffi(&self) -> &carla_sys::SensorWrapper {
@@ -94,29 +94,8 @@ crate::impl_sensor_conversions!(RSSSensor, is_rss);
 // Implement ActorExt trait using the macro
 crate::impl_sensor_actor_ext!(RSSSensor);
 
-// Placeholder types for RSS configuration
-// TODO: Implement these properly when FFI support is added
-
-/// RSS (Road Safety Service) dynamics configuration for the ego vehicle.
-///
-/// This struct will contain configuration parameters for the ego vehicle's
-/// dynamics model used in RSS calculations.
-#[derive(Debug, Clone)]
-pub struct RSSEgoVehicleDynamics;
-
-/// RSS dynamics configuration for other vehicles in the simulation.
-///
-/// This struct will contain configuration parameters for other vehicles'
-/// dynamics models used in RSS calculations.
-#[derive(Debug, Clone)]
-pub struct RSSOtherVehicleDynamics;
-
-/// RSS dynamics configuration for pedestrians in the simulation.
-///
-/// This struct will contain configuration parameters for pedestrian
-/// dynamics models used in RSS calculations.
-#[derive(Debug, Clone)]
-pub struct RSSPedestrianDynamics;
+// Note: RSS (Road Safety Service) has been removed in CARLA 0.10.0
+// These types are kept for API compatibility but are non-functional
 
 #[cfg(test)]
 mod tests {

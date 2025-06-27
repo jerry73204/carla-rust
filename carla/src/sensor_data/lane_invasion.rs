@@ -141,3 +141,63 @@ impl LaneInvasionData {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::road::LaneMarkingType;
+
+    #[test]
+    fn test_lane_marking_color_from_u32() {
+        assert_eq!(LaneMarkingColor::from_u32(0), LaneMarkingColor::Standard);
+        assert_eq!(LaneMarkingColor::from_u32(1), LaneMarkingColor::Blue);
+        assert_eq!(LaneMarkingColor::from_u32(2), LaneMarkingColor::Green);
+        assert_eq!(LaneMarkingColor::from_u32(3), LaneMarkingColor::Red);
+        assert_eq!(LaneMarkingColor::from_u32(4), LaneMarkingColor::White);
+        assert_eq!(LaneMarkingColor::from_u32(5), LaneMarkingColor::Yellow);
+        assert_eq!(LaneMarkingColor::from_u32(999), LaneMarkingColor::Other);
+    }
+
+    #[test]
+    fn test_lane_change_from_u8() {
+        assert_eq!(LaneChange::from_u8(0), LaneChange::None);
+        assert_eq!(LaneChange::from_u8(1), LaneChange::Right);
+        assert_eq!(LaneChange::from_u8(2), LaneChange::Left);
+        assert_eq!(LaneChange::from_u8(3), LaneChange::Both);
+        assert_eq!(LaneChange::from_u8(255), LaneChange::None);
+    }
+
+    #[test]
+    fn test_lane_marking_info_creation() {
+        let marking_info = LaneMarkingInfo {
+            marking_type: LaneMarkingType::Solid,
+            color: LaneMarkingColor::Yellow,
+            lane_change: LaneChange::Left,
+        };
+
+        assert_eq!(marking_info.color, LaneMarkingColor::Yellow);
+        assert_eq!(marking_info.lane_change, LaneChange::Left);
+    }
+
+    #[test]
+    fn test_lane_invasion_data_creation() {
+        use crate::{
+            geom::{Location, Rotation, Transform},
+            time::Timestamp,
+        };
+
+        let timestamp = Timestamp::new(123, 45.6, 0.016, 45.6);
+        let transform = Transform::new(Location::new(1.0, 2.0, 3.0), Rotation::new(0.1, 0.2, 0.3));
+
+        let lane_invasion_data = LaneInvasionData {
+            timestamp,
+            transform,
+            sensor_id: 456,
+            crossed_lane_markings: vec![],
+        };
+
+        assert_eq!(lane_invasion_data.sensor_id, 456);
+        assert_eq!(lane_invasion_data.crossed_lane_markings.len(), 0);
+        assert_eq!(lane_invasion_data.timestamp.frame, 123);
+    }
+}

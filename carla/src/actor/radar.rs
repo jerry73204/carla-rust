@@ -57,27 +57,33 @@ impl Radar {
 
     // Radar-specific configuration methods
 
-    /// Set horizontal field of view in degrees.
-    pub fn set_horizontal_fov(&self, fov: f32) -> CarlaResult<()> {
-        // TODO: Implement radar configuration through FFI
-        let _fov = fov;
-        todo!("Radar::set_horizontal_fov not yet implemented - missing FFI function")
+    /// Get horizontal field of view in degrees.
+    pub fn horizontal_fov(&self) -> Option<f32> {
+        self.attribute("horizontal_fov")
+            .and_then(|s| s.parse().ok())
     }
 
-    /// Set vertical field of view in degrees.
-    pub fn set_vertical_fov(&self, fov: f32) -> CarlaResult<()> {
-        // TODO: Implement radar configuration through FFI
-        let _fov = fov;
-        todo!("Radar::set_vertical_fov not yet implemented - missing FFI function")
+    /// Get vertical field of view in degrees.
+    pub fn vertical_fov(&self) -> Option<f32> {
+        self.attribute("vertical_fov").and_then(|s| s.parse().ok())
     }
 
-    /// Set maximum range in meters.
-    pub fn set_range(&self, range: f32) -> CarlaResult<()> {
-        // TODO: Implement radar configuration through FFI
-        let _range = range;
-        todo!("Radar::set_range not yet implemented - missing FFI function")
+    /// Get maximum range in meters.
+    pub fn range(&self) -> Option<f32> {
+        self.attribute("range").and_then(|s| s.parse().ok())
+    }
+
+    /// Get points per second.
+    pub fn points_per_second(&self) -> Option<i32> {
+        self.attribute("points_per_second")
+            .and_then(|s| s.parse().ok())
     }
 }
+
+// Note: Radar sensor attributes are set during creation through the blueprint.
+// Runtime modification of these parameters is not supported by CARLA.
+// To change sensor parameters, you must destroy the sensor and create a new one
+// with the desired configuration.
 
 impl SensorFfi for Radar {
     fn as_sensor_ffi(&self) -> &carla_sys::SensorWrapper {

@@ -303,6 +303,10 @@ pub enum SensorError {
     /// Sensor synchronization error
     #[error("Synchronization error: {0}")]
     Synchronization(String),
+
+    /// Data conversion error
+    #[error("Data conversion error: {0}")]
+    DataConversion(String),
 }
 
 /// Errors related to traffic manager operations.
@@ -364,6 +368,14 @@ pub enum MapError {
     /// Navigation error
     #[error("Navigation error: {0}")]
     Navigation(String),
+
+    /// Invalid file path
+    #[error("Invalid file path: {0}")]
+    InvalidPath(String),
+
+    /// File write error
+    #[error("File write error: {0}")]
+    FileWrite(String),
 }
 
 /// Errors related to vehicle operations.

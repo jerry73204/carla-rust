@@ -16,6 +16,17 @@ pub struct TrafficManager {
 }
 
 impl TrafficManager {
+    /// Check if a traffic manager is available on the specified port.
+    ///
+    /// This is a safe way to check availability without potentially crashing.
+    pub fn is_available(client: &Client, port: u16) -> bool {
+        // Try to get an instance safely and see if it succeeds
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            TrafficManagerWrapper::get_instance(client.inner().get_client(), port)
+        }))
+        .is_ok()
+    }
+
     /// Get or create a traffic manager instance on the specified port.
     pub fn get_instance(client: &Client, port: u16) -> CarlaResult<Self> {
         let inner = TrafficManagerWrapper::get_instance(client.inner().get_client(), port);
@@ -430,4 +441,62 @@ impl Drop for TrafficManager {
         // Automatically shutdown when dropped
         let _ = self.shutdown();
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_traffic_manager_config_defaults() {
+        let config = TrafficManagerConfig::default();
+        assert!(!config.synchronous_mode);
+        assert!(!config.hybrid_physics_mode);
+        assert!(!config.osm_mode);
+        assert!(!config.respawn_dormant_vehicles);
+    }
+
+    #[test]
+    fn test_traffic_manager_vehicle_config_defaults() {
+        let config = TrafficManagerVehicleConfig::default();
+        assert!(config.auto_lane_change);
+        assert_eq!(config.percentage_running_light, 0.0);
+        assert_eq!(config.percentage_running_sign, 0.0);
+        assert_eq!(config.percentage_ignore_walkers, 0.0);
+        assert_eq!(config.percentage_ignore_vehicles, 0.0);
+        assert_eq!(config.distance_to_leading_vehicle, 5.0);
+        assert_eq!(config.desired_speed, 30.0);
+        assert_eq!(config.speed_percentage, 30.0);
+    }
+
+    #[test]
+    fn test_traffic_manager_action_creation() {
+        let action = TrafficManagerAction {
+            actor_id: 123,
+            action_type: crate::traffic_manager::ActionType::LaneFollow,
+            target_speed: 50.0,
+            target_lane_id: 1,
+            distance_to_target: 10.0,
+        };
+        assert_eq!(action.actor_id, 123);
+        assert_eq!(
+            action.action_type,
+            crate::traffic_manager::ActionType::LaneFollow
+        );
+        assert_eq!(action.target_speed, 50.0);
+    }
+
+    #[test]
+    fn test_traffic_manager_stats_default() {
+        let stats = TrafficManagerStats::default();
+        assert_eq!(stats.registered_vehicles_count, 0);
+        assert_eq!(stats.active_vehicles_count, 0);
+        assert_eq!(stats.dormant_vehicles_count, 0);
+        assert_eq!(stats.destroyed_vehicles_count, 0);
+        assert_eq!(stats.average_vehicle_speed, 0.0);
+        assert_eq!(stats.total_distance_traveled, 0.0);
+    }
+
+    // Note: TrafficManager::is_available() cannot be unit tested without a Client instance
+    // which requires CARLA server connection. This would be tested in integration tests.
 }

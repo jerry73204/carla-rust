@@ -57,27 +57,30 @@ impl DVSCamera {
 
     // DVS-specific configuration methods
 
-    /// Set the positive threshold.
-    pub fn set_positive_threshold(&self, threshold: f32) -> CarlaResult<()> {
-        // TODO: Implement DVS configuration through FFI
-        let _threshold = threshold;
-        todo!("DVSCamera::set_positive_threshold not yet implemented - missing FFI function")
+    /// Get the positive threshold.
+    pub fn positive_threshold(&self) -> Option<f32> {
+        self.attribute("positive_threshold")
+            .and_then(|s| s.parse().ok())
     }
 
-    /// Set the negative threshold.
-    pub fn set_negative_threshold(&self, threshold: f32) -> CarlaResult<()> {
-        // TODO: Implement DVS configuration through FFI
-        let _threshold = threshold;
-        todo!("DVSCamera::set_negative_threshold not yet implemented - missing FFI function")
+    /// Get the negative threshold.
+    pub fn negative_threshold(&self) -> Option<f32> {
+        self.attribute("negative_threshold")
+            .and_then(|s| s.parse().ok())
     }
 
-    /// Set the refractory period in seconds.
-    pub fn set_refractory_period(&self, period: f32) -> CarlaResult<()> {
-        // TODO: Implement DVS configuration through FFI
-        let _period = period;
-        todo!("DVSCamera::set_refractory_period not yet implemented - missing FFI function")
+    /// Get the refractory period in seconds.
+    pub fn refractory_period(&self) -> Option<f32> {
+        self.attribute("refractory_period_ns")
+            .and_then(|s| s.parse::<f32>().ok())
+            .map(|ns| ns / 1_000_000_000.0) // Convert nanoseconds to seconds
     }
 }
+
+// Note: DVS sensor attributes are set during creation through the blueprint.
+// Runtime modification of these parameters is not supported by CARLA.
+// To change sensor parameters, you must destroy the sensor and create a new one
+// with the desired configuration.
 
 impl SensorFfi for DVSCamera {
     fn as_sensor_ffi(&self) -> &carla_sys::SensorWrapper {
