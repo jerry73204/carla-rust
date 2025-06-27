@@ -14,6 +14,8 @@
 //! - RSS (Road Safety) sensors
 
 // Sensor modules
+// TODO: Re-enable when callback FFI functions are CXX-compatible
+// pub mod callback;
 pub mod camera;
 pub mod collision;
 pub mod data;
@@ -31,6 +33,8 @@ pub mod rss;
 pub use data::*;
 
 // Re-export sensor implementations
+// TODO: Re-enable when callback FFI functions are CXX-compatible
+// pub use callback::*;
 pub use camera::*;
 pub use collision::*;
 pub use dvs::*;

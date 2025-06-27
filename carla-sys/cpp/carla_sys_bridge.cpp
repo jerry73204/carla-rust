@@ -1,5 +1,6 @@
 #include "carla_sys_bridge.h"
 #include "carla-sys/src/ffi.rs.h"
+#include "sensor_callback_bridge.h"
 
 // Must include the actual CARLA headers
 #include <carla/Time.h>
@@ -1059,7 +1060,8 @@ std::shared_ptr<Vehicle> Actor_CastToVehicle(std::shared_ptr<Actor> actor) {
 
 std::shared_ptr<Actor> Vehicle_CastToActor(std::shared_ptr<Vehicle> vehicle) {
   // Cast Vehicle to Actor base class using static_pointer_cast
-  if (!vehicle) return nullptr;
+  if (!vehicle)
+    return nullptr;
   try {
     // Since Vehicle inherits from Actor, we can use static_pointer_cast
     return std::static_pointer_cast<Actor>(vehicle);
@@ -1130,7 +1132,8 @@ Actor_CastToTrafficSign(std::shared_ptr<Actor> actor) {
 
 std::shared_ptr<Actor> Sensor_CastToActor(std::shared_ptr<Sensor> sensor) {
   // Cast Sensor to Actor base class using static_pointer_cast
-  if (!sensor) return nullptr;
+  if (!sensor)
+    return nullptr;
   try {
     return std::static_pointer_cast<Actor>(sensor);
   } catch (const std::exception &e) {
@@ -1143,7 +1146,8 @@ std::shared_ptr<Actor> Sensor_CastToActor(std::shared_ptr<Sensor> sensor) {
 std::shared_ptr<Actor>
 TrafficLight_CastToActor(std::shared_ptr<TrafficLight> traffic_light) {
   // Cast TrafficLight to Actor base class using static_pointer_cast
-  if (!traffic_light) return nullptr;
+  if (!traffic_light)
+    return nullptr;
   try {
     return std::static_pointer_cast<Actor>(traffic_light);
   } catch (const std::exception &e) {
@@ -1155,7 +1159,8 @@ TrafficLight_CastToActor(std::shared_ptr<TrafficLight> traffic_light) {
 std::shared_ptr<Actor>
 TrafficSign_CastToActor(std::shared_ptr<TrafficSign> traffic_sign) {
   // Cast TrafficSign to Actor base class using static_pointer_cast
-  if (!traffic_sign) return nullptr;
+  if (!traffic_sign)
+    return nullptr;
   try {
     return std::static_pointer_cast<Actor>(traffic_sign);
   } catch (const std::exception &e) {
@@ -1593,7 +1598,8 @@ void Walker_GetPoseFromAnimation(const Walker &walker) {
 
 std::shared_ptr<Actor> Walker_CastToActor(std::shared_ptr<Walker> walker) {
   // Cast Walker to Actor base class using static_pointer_cast
-  if (!walker) return nullptr;
+  if (!walker)
+    return nullptr;
   try {
     return std::static_pointer_cast<Actor>(walker);
   } catch (const std::exception &e) {
@@ -4574,4 +4580,40 @@ void Sensor_DisableForROS(const carla::client::Sensor &sensor) {
 bool Sensor_IsEnabledForROS(const carla::client::Sensor &sensor) {
   // TODO: Implement safe ROS check without shared_from_this()
   return false;
+}
+
+// True callback implementation
+uint64_t Sensor_RegisterCallback(const carla::client::Sensor &sensor,
+                                 void (*callback)(uint32_t, const uint8_t *,
+                                                  size_t, uint8_t *),
+                                 uint8_t *user_data) {
+
+  uint32_t sensor_id = sensor.GetId();
+
+  // Register our internal callback with the sensor
+  auto cpp_callback = [sensor_id](
+                          std::shared_ptr<carla::sensor::SensorData> data) {
+    carla_sys::SensorCallbackManager::getInstance().processSensorData(sensor_id,
+                                                                      data);
+  };
+
+  // Start listening with our C++ callback
+  const_cast<carla::client::Sensor &>(sensor).Listen(std::move(cpp_callback));
+
+  // Register the Rust callback
+  return carla_sys::SensorCallbackManager::getInstance().registerCallback(
+      sensor_id, callback, user_data);
+}
+
+bool Sensor_UnregisterCallback(uint64_t handle) {
+  return carla_sys::SensorCallbackManager::getInstance().unregisterCallback(
+      handle);
+}
+
+void Sensor_ClearCallbacks(const carla::client::Sensor &sensor) {
+  uint32_t sensor_id = sensor.GetId();
+  carla_sys::SensorCallbackManager::getInstance().cleanupSensor(sensor_id);
+
+  // Stop the sensor from listening
+  const_cast<carla::client::Sensor &>(sensor).Stop();
 }

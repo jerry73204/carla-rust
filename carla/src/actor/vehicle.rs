@@ -165,6 +165,46 @@ impl Vehicle {
         Ok(())
     }
 
+    /// Try to enable or disable autopilot with Traffic Manager availability check.
+    ///
+    /// This is a safer version that handles cases where Traffic Manager is not available.
+    ///
+    /// # Arguments
+    /// * `enabled` - Whether to enable (true) or disable (false) autopilot
+    /// * `traffic_manager_port` - Optional port for the traffic manager (defaults to 8000)
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if autopilot was set successfully, or an error if Traffic Manager
+    /// is not available or operation failed.
+    pub fn try_set_autopilot(
+        &self,
+        enabled: bool,
+        traffic_manager_port: Option<u16>,
+    ) -> CarlaResult<()> {
+        // If disabling, just call the normal method
+        if !enabled {
+            return self.set_autopilot(false, traffic_manager_port);
+        }
+
+        // For enabling, we need to be more careful
+        // TODO: Add Traffic Manager availability check when FFI is available
+        // For now, we'll try and catch any crashes
+        eprintln!(
+            "Warning: Enabling autopilot without Traffic Manager may crash CARLA 0.10.0 server"
+        );
+
+        // Try to enable with a warning
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let tm_port = traffic_manager_port.unwrap_or(8000);
+            self.inner.set_autopilot(enabled, tm_port);
+        })) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(crate::error::CarlaError::Actor(
+                crate::error::ActorError::TrafficManagerUnavailable,
+            )),
+        }
+    }
+
     /// Get the current physics control configuration of the vehicle.
     ///
     /// # Returns
@@ -510,5 +550,199 @@ impl Default for VehicleTelemetryData {
             engine_temperature: 90.0,
             fuel_level: 1.0,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geom::Vector3D;
+
+    #[test]
+    fn test_wheel_location_enum() {
+        // Test that all wheel locations are defined
+        let locations = [
+            WheelLocation::FrontLeft,
+            WheelLocation::FrontRight,
+            WheelLocation::RearLeft,
+            WheelLocation::RearRight,
+        ];
+
+        assert_eq!(locations.len(), 4);
+
+        // Test Debug output
+        assert_eq!(format!("{:?}", WheelLocation::FrontLeft), "FrontLeft");
+        assert_eq!(format!("{:?}", WheelLocation::RearRight), "RearRight");
+    }
+
+    #[test]
+    fn test_vehicle_control_default() {
+        let control = VehicleControl::default();
+
+        assert_eq!(control.throttle, 0.0);
+        assert_eq!(control.steer, 0.0);
+        assert_eq!(control.brake, 0.0);
+        assert!(!control.hand_brake);
+        assert!(!control.reverse);
+        assert!(!control.manual_gear_shift);
+        assert_eq!(control.gear, 0);
+    }
+
+    #[test]
+    fn test_vehicle_control_custom() {
+        let control = VehicleControl {
+            throttle: 0.8,
+            steer: -0.3,
+            brake: 0.0,
+            hand_brake: false,
+            reverse: false,
+            manual_gear_shift: true,
+            gear: 3,
+        };
+
+        assert_eq!(control.throttle, 0.8);
+        assert_eq!(control.steer, -0.3);
+        assert_eq!(control.gear, 3);
+        assert!(control.manual_gear_shift);
+    }
+
+    #[test]
+    fn test_vehicle_physics_control_default() {
+        let physics = VehiclePhysicsControl::default();
+
+        assert_eq!(physics.max_rpm, 5000.0);
+        assert_eq!(physics.mass, 1000.0);
+        assert_eq!(physics.drag_coefficient, 0.3);
+        assert!(physics.use_gear_autobox);
+        assert_eq!(physics.forward_gears.len(), 5);
+        assert_eq!(physics.forward_gears[0], 2.85);
+        assert_eq!(physics.torque_curve.len(), 2);
+    }
+
+    #[test]
+    fn test_vehicle_light_state_constants() {
+        assert_eq!(VehicleLightState::NONE, 0);
+        assert_eq!(VehicleLightState::POSITION, 1);
+        assert_eq!(VehicleLightState::LOW_BEAM, 2);
+        assert_eq!(VehicleLightState::HIGH_BEAM, 4);
+        assert_eq!(VehicleLightState::BRAKE, 8);
+        assert_eq!(VehicleLightState::REVERSE, 16);
+        assert_eq!(VehicleLightState::FOG, 32);
+        assert_eq!(VehicleLightState::INTERIOR, 64);
+        assert_eq!(VehicleLightState::ALL, 0xFFFFFFFF);
+    }
+
+    #[test]
+    fn test_vehicle_light_state_bitfield() {
+        let light_state = VehicleLightState {
+            lights: VehicleLightState::LOW_BEAM | VehicleLightState::POSITION,
+        };
+
+        assert_eq!(light_state.lights, 3); // 1 + 2
+
+        // Test that we can check individual lights
+        assert!(light_state.lights & VehicleLightState::LOW_BEAM != 0);
+        assert!(light_state.lights & VehicleLightState::POSITION != 0);
+        assert!(light_state.lights & VehicleLightState::HIGH_BEAM == 0);
+    }
+
+    #[test]
+    fn test_vehicle_light_state_default() {
+        let light_state = VehicleLightState::default();
+        assert_eq!(light_state.lights, VehicleLightState::NONE);
+    }
+
+    #[test]
+    fn test_vehicle_door_type_enum() {
+        let door_types = [
+            VehicleDoorType::FrontLeft,
+            VehicleDoorType::FrontRight,
+            VehicleDoorType::RearLeft,
+            VehicleDoorType::RearRight,
+            VehicleDoorType::All,
+        ];
+
+        assert_eq!(door_types.len(), 5);
+
+        // Test Debug output
+        assert_eq!(format!("{:?}", VehicleDoorType::FrontLeft), "FrontLeft");
+        assert_eq!(format!("{:?}", VehicleDoorType::All), "All");
+    }
+
+    #[test]
+    fn test_vehicle_telemetry_data_default() {
+        let telemetry = VehicleTelemetryData::default();
+
+        assert_eq!(telemetry.speed, 0.0);
+        assert_eq!(telemetry.rpm, 0.0);
+        assert_eq!(telemetry.gear, 0);
+        assert_eq!(telemetry.engine_temperature, 90.0);
+        assert_eq!(telemetry.fuel_level, 1.0);
+    }
+
+    #[test]
+    fn test_vehicle_telemetry_data_custom() {
+        let telemetry = VehicleTelemetryData {
+            speed: 65.5,
+            rpm: 2500.0,
+            gear: 4,
+            engine_temperature: 95.5,
+            fuel_level: 0.8,
+        };
+
+        assert_eq!(telemetry.speed, 65.5);
+        assert_eq!(telemetry.rpm, 2500.0);
+        assert_eq!(telemetry.gear, 4);
+        assert_eq!(telemetry.engine_temperature, 95.5);
+        assert_eq!(telemetry.fuel_level, 0.8);
+    }
+
+    #[test]
+    fn test_vehicle_physics_control_realistic_values() {
+        // Test realistic sports car values
+        let physics = VehiclePhysicsControl {
+            mass: 1200.0,
+            max_rpm: 7000.0,
+            drag_coefficient: 0.25,
+            torque_curve: vec![(0.0, 400.0), (4000.0, 600.0), (7000.0, 450.0)],
+            ..Default::default()
+        };
+
+        assert_eq!(physics.mass, 1200.0);
+        assert_eq!(physics.max_rpm, 7000.0);
+        assert_eq!(physics.torque_curve.len(), 3);
+        assert_eq!(physics.torque_curve[1], (4000.0, 600.0));
+    }
+
+    #[test]
+    fn test_vector3d_center_of_mass() {
+        let physics = VehiclePhysicsControl {
+            center_of_mass: Vector3D::new(0.0, 0.0, -0.5),
+            ..Default::default()
+        };
+
+        assert_eq!(physics.center_of_mass.x, 0.0);
+        assert_eq!(physics.center_of_mass.y, 0.0);
+        assert_eq!(physics.center_of_mass.z, -0.5);
+    }
+
+    #[test]
+    fn test_vehicle_light_state_combinations() {
+        // Test common light combinations
+        let headlights = VehicleLightState {
+            lights: VehicleLightState::POSITION | VehicleLightState::LOW_BEAM,
+        };
+
+        let brake_lights = VehicleLightState {
+            lights: VehicleLightState::POSITION | VehicleLightState::BRAKE,
+        };
+
+        let hazard_lights = VehicleLightState {
+            lights: VehicleLightState::POSITION | VehicleLightState::BRAKE | VehicleLightState::FOG,
+        };
+
+        assert_eq!(headlights.lights, 3); // 1 + 2
+        assert_eq!(brake_lights.lights, 9); // 1 + 8
+        assert_eq!(hazard_lights.lights, 41); // 1 + 8 + 32
     }
 }

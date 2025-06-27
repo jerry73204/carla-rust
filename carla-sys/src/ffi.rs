@@ -1538,6 +1538,21 @@ pub mod bridge {
         // Traffic Manager type
         type TrafficManager;
     }
+
+    // Global namespace functions
+    unsafe extern "C++" {
+        include!("carla_sys_bridge.h");
+
+        // TODO: True callback support requires different CXX approach
+        // These functions exist but need CXX-compatible signatures
+        // unsafe fn Sensor_RegisterCallback(
+        //     sensor: &Sensor,
+        //     callback: unsafe extern "C" fn(u32, *const u8, usize, *mut u8),
+        //     user_data: *mut u8,
+        // ) -> u64;
+        // fn Sensor_UnregisterCallback(handle: u64) -> bool;
+        // fn Sensor_ClearCallbacks(sensor: &Sensor);
+    }
 }
 
 // Re-export bridge types for easier access

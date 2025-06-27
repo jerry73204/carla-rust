@@ -204,3 +204,150 @@ impl TrafficLightState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn test_traffic_light_state_enum() {
+        // Test all traffic light states
+        let states = [
+            TrafficLightState::Red,
+            TrafficLightState::Yellow,
+            TrafficLightState::Green,
+            TrafficLightState::Off,
+            TrafficLightState::Unknown,
+        ];
+
+        assert_eq!(states.len(), 5);
+
+        // Test Debug output
+        assert_eq!(format!("{:?}", TrafficLightState::Red), "Red");
+        assert_eq!(format!("{:?}", TrafficLightState::Green), "Green");
+        assert_eq!(format!("{:?}", TrafficLightState::Unknown), "Unknown");
+    }
+
+    #[test]
+    fn test_traffic_light_state_default() {
+        let default_state = TrafficLightState::default();
+        assert_eq!(default_state, TrafficLightState::Red);
+    }
+
+    #[test]
+    fn test_traffic_light_state_equality() {
+        assert_eq!(TrafficLightState::Red, TrafficLightState::Red);
+        assert_ne!(TrafficLightState::Red, TrafficLightState::Green);
+        assert_ne!(TrafficLightState::Yellow, TrafficLightState::Off);
+    }
+
+    #[test]
+    fn test_traffic_light_state_clone() {
+        let state = TrafficLightState::Green;
+        let cloned_state = state;
+        assert_eq!(state, cloned_state);
+    }
+
+    #[test]
+    fn test_traffic_light_state_copy() {
+        let state = TrafficLightState::Yellow;
+        let copied_state = state; // Copy trait
+        assert_eq!(state, copied_state);
+        // Both variables should still be usable
+        assert_eq!(state, TrafficLightState::Yellow);
+        assert_eq!(copied_state, TrafficLightState::Yellow);
+    }
+
+    // Note: Testing actual traffic light functionality would require FFI mocks
+    // Here we focus on testing the data structures and enums
+
+    #[test]
+    fn test_duration_conversion_concepts() {
+        // Test that Duration operations work as expected
+        let green_time = Duration::from_secs(30);
+        let yellow_time = Duration::from_secs(5);
+        let red_time = Duration::from_secs(25);
+
+        assert_eq!(green_time.as_secs(), 30);
+        assert_eq!(yellow_time.as_secs(), 5);
+        assert_eq!(red_time.as_secs(), 25);
+
+        // Test fractional seconds
+        let fractional_time = Duration::from_secs_f32(2.5);
+        assert_eq!(fractional_time.as_secs_f32(), 2.5);
+    }
+
+    #[test]
+    fn test_traffic_light_timing_constants() {
+        // Test common traffic light timing values
+        let typical_green = Duration::from_secs(30);
+        let typical_yellow = Duration::from_secs(3);
+        let typical_red = Duration::from_secs(30);
+
+        let total_cycle = typical_green + typical_yellow + typical_red;
+        assert_eq!(total_cycle.as_secs(), 63);
+    }
+
+    #[test]
+    fn test_traffic_light_short_cycles() {
+        // Test pedestrian crossing timing
+        let ped_green = Duration::from_secs(15);
+        let ped_yellow = Duration::from_secs(3);
+        let ped_red = Duration::from_secs(45);
+
+        assert!(ped_green < Duration::from_secs(20));
+        assert!(ped_yellow >= Duration::from_secs(3));
+        assert!(ped_red > ped_green);
+    }
+
+    #[test]
+    fn test_traffic_light_state_pattern_matching() {
+        fn get_next_state(current: TrafficLightState) -> TrafficLightState {
+            match current {
+                TrafficLightState::Red => TrafficLightState::Green,
+                TrafficLightState::Green => TrafficLightState::Yellow,
+                TrafficLightState::Yellow => TrafficLightState::Red,
+                TrafficLightState::Off => TrafficLightState::Off,
+                TrafficLightState::Unknown => TrafficLightState::Red,
+            }
+        }
+
+        assert_eq!(
+            get_next_state(TrafficLightState::Red),
+            TrafficLightState::Green
+        );
+        assert_eq!(
+            get_next_state(TrafficLightState::Green),
+            TrafficLightState::Yellow
+        );
+        assert_eq!(
+            get_next_state(TrafficLightState::Yellow),
+            TrafficLightState::Red
+        );
+        assert_eq!(
+            get_next_state(TrafficLightState::Off),
+            TrafficLightState::Off
+        );
+        assert_eq!(
+            get_next_state(TrafficLightState::Unknown),
+            TrafficLightState::Red
+        );
+    }
+
+    #[test]
+    fn test_traffic_light_state_is_active() {
+        fn is_active_state(state: TrafficLightState) -> bool {
+            matches!(
+                state,
+                TrafficLightState::Red | TrafficLightState::Yellow | TrafficLightState::Green
+            )
+        }
+
+        assert!(is_active_state(TrafficLightState::Red));
+        assert!(is_active_state(TrafficLightState::Yellow));
+        assert!(is_active_state(TrafficLightState::Green));
+        assert!(!is_active_state(TrafficLightState::Off));
+        assert!(!is_active_state(TrafficLightState::Unknown));
+    }
+}

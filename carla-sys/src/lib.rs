@@ -39,6 +39,7 @@ pub mod actor_blueprint;
 pub mod advanced_world;
 pub mod batch_operations;
 pub mod blueprint;
+pub mod callback;
 pub mod client;
 pub mod debug_helper;
 pub mod ffi;
@@ -78,6 +79,7 @@ pub use batch_operations::{
     TrafficLightState as BatchTrafficLightState, VehicleLightState as BatchVehicleLightState,
 };
 pub use blueprint::ActorBlueprintExt;
+pub use callback::{CallbackRegistration, SensorDataCallback, SensorDataHeader, SensorDataType};
 pub use client::{ActorWrapper, BlueprintLibraryWrapper, ClientWrapper, WorldWrapper};
 pub use landmark::{landmark_utils, LandmarkInfo, LandmarkType};
 pub use light_manager::{LightGroup, LightInfo, LightManagerWrapper, LightState};

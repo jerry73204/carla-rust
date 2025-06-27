@@ -143,6 +143,14 @@ pub enum WorldError {
     /// Weather setting error
     #[error("Weather error: {0}")]
     Weather(String),
+
+    /// Settings are invalid
+    #[error("Settings invalid: {0}")]
+    SettingsInvalid(String),
+
+    /// Tick operation failed
+    #[error("Tick failed: {0}")]
+    TickFailed(String),
 }
 
 /// Errors related to actor operations.
@@ -195,6 +203,37 @@ pub enum ActorError {
     /// Attribute is not modifiable
     #[error("Attribute '{0}' is not modifiable")]
     AttributeNotModifiable(String),
+
+    /// Actor operation crashed
+    #[error("Actor operation crashed: {operation} on actor {actor_id}")]
+    ActorCrashed {
+        /// Actor ID that crashed
+        actor_id: u32,
+        /// Operation that caused the crash
+        operation: String,
+    },
+
+    /// Actor is in invalid state
+    #[error("Actor {actor_id} is in invalid state for operation: {operation}")]
+    ActorInvalid {
+        /// Actor ID
+        actor_id: u32,
+        /// Operation attempted
+        operation: String,
+    },
+
+    /// Traffic Manager is not available
+    #[error("Traffic Manager is not available")]
+    TrafficManagerUnavailable,
+
+    /// Actor lifecycle violation
+    #[error("Lifecycle violation for actor {actor_id}: {violation}")]
+    LifecycleViolation {
+        /// Actor ID
+        actor_id: u32,
+        /// Violation description
+        violation: String,
+    },
 }
 
 /// Errors related to actor spawning.
@@ -302,6 +341,8 @@ pub enum MapError {
     WaypointNotFound {
         /// Requested location
         location: crate::geom::Location,
+        /// Optional lane type filter
+        lane_type: Option<String>,
     },
 
     /// Invalid lane ID
@@ -347,6 +388,15 @@ pub enum VehicleError {
     /// Autopilot operation failed
     #[error("Vehicle autopilot operation failed: {0}")]
     AutopilotFailed(String),
+
+    /// Invalid control parameters
+    #[error("Invalid vehicle control: {parameter} = {value}")]
+    InvalidControl {
+        /// Parameter that was invalid
+        parameter: String,
+        /// Value that was invalid
+        value: String,
+    },
 }
 
 /// Errors related to actor destruction operations.
@@ -440,3 +490,222 @@ impl FromCxxError for ActorError {
 
 /// Result type alias for operations that can fail
 pub type CarlaResult<T> = Result<T, CarlaError>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geom::Location;
+
+    #[test]
+    fn test_carla_error_display() {
+        let client_error = CarlaError::Client(ClientError::ConnectionFailed {
+            host: "localhost".to_string(),
+            port: 2000,
+            reason: "Connection refused".to_string(),
+        });
+
+        let error_string = format!("{}", client_error);
+        assert!(error_string.contains("Client error"));
+        assert!(error_string.contains("Connection failed"));
+        assert!(error_string.contains("localhost:2000"));
+    }
+
+    #[test]
+    fn test_client_error_variants() {
+        let connection_error = ClientError::ConnectionFailed {
+            host: "192.168.1.100".to_string(),
+            port: 2000,
+            reason: "Timeout".to_string(),
+        };
+
+        let map_error = ClientError::MapNotFound {
+            map_name: "Town01".to_string(),
+            available_maps: vec!["Town02".to_string(), "Town03".to_string()],
+        };
+
+        let rpc_error = ClientError::Rpc("RPC call failed".to_string());
+
+        // Test that errors can be formatted
+        assert!(format!("{}", connection_error).contains("192.168.1.100"));
+        assert!(format!("{}", map_error).contains("Town01"));
+        assert!(format!("{}", rpc_error).contains("RPC call failed"));
+    }
+
+    #[test]
+    fn test_world_error_variants() {
+        let map_load_error = WorldError::MapLoadFailed {
+            map_name: "InvalidMap".to_string(),
+            reason: "Map file not found".to_string(),
+        };
+
+        let settings_error = WorldError::SettingsInvalid("Invalid weather settings".to_string());
+        let tick_error = WorldError::TickFailed("Server not responding".to_string());
+
+        assert!(format!("{}", map_load_error).contains("InvalidMap"));
+        assert!(format!("{}", settings_error).contains("Invalid weather"));
+        assert!(format!("{}", tick_error).contains("not responding"));
+    }
+
+    #[test]
+    fn test_actor_error_variants() {
+        let not_found_error = ActorError::NotFound(12345);
+        let control_error = ActorError::ControlFailed("Autopilot failed".to_string());
+        let lifecycle_error = ActorError::LifecycleViolation {
+            actor_id: 678,
+            violation: "destroyed state during get_transform".to_string(),
+        };
+
+        assert!(format!("{}", not_found_error).contains("12345"));
+        assert!(format!("{}", control_error).contains("Autopilot failed"));
+        assert!(format!("{}", lifecycle_error).contains("678"));
+        assert!(format!("{}", lifecycle_error).contains("destroyed"));
+    }
+
+    #[test]
+    fn test_spawn_error_variants() {
+        let location = Location {
+            x: 10.0,
+            y: 20.0,
+            z: 0.5,
+        };
+        let location_error = SpawnError::LocationOccupied { location };
+
+        let blueprint_error = SpawnError::InvalidBlueprint {
+            blueprint_id: "vehicle.invalid.model".to_string(),
+            reason: "Blueprint not found".to_string(),
+        };
+
+        let no_spawn_error = SpawnError::NoSpawnPoints;
+
+        assert!(format!("{}", location_error).contains("10"));
+        assert!(format!("{}", blueprint_error).contains("vehicle.invalid.model"));
+        assert!(format!("{}", no_spawn_error).contains("No spawn points"));
+    }
+
+    #[test]
+    fn test_sensor_error_variants() {
+        let not_listening = SensorError::NotListening(123);
+        let already_listening = SensorError::AlreadyListening(456);
+        let config_error = SensorError::InvalidConfiguration("Invalid image size".to_string());
+
+        assert!(format!("{}", not_listening).contains("123"));
+        assert!(format!("{}", already_listening).contains("456"));
+        assert!(format!("{}", config_error).contains("Invalid image size"));
+    }
+
+    #[test]
+    fn test_traffic_manager_error_variants() {
+        let not_found = TrafficManagerError::NotFound(8000);
+        let not_registered = TrafficManagerError::VehicleNotRegistered(789);
+
+        assert!(format!("{}", not_found).contains("8000"));
+        assert!(format!("{}", not_registered).contains("789"));
+    }
+
+    #[test]
+    fn test_vehicle_error_variants() {
+        let _control = VehicleControl {
+            throttle: 1.5, // Invalid value
+            ..Default::default()
+        };
+
+        let control_error = VehicleError::InvalidControl {
+            parameter: "throttle".to_string(),
+            value: "1.5".to_string(),
+        };
+
+        let physics_error = VehicleError::PhysicsControlFailed("Invalid mass".to_string());
+
+        assert!(format!("{}", control_error).contains("throttle"));
+        assert!(format!("{}", physics_error).contains("Invalid mass"));
+    }
+
+    #[test]
+    fn test_map_error_variants() {
+        let opendrive_error = MapError::OpenDriveParsing("Invalid XML".to_string());
+        let waypoint_error = MapError::WaypointNotFound {
+            location: Location {
+                x: 100.0,
+                y: 200.0,
+                z: 1.0,
+            },
+            lane_type: None,
+        };
+
+        assert!(format!("{}", opendrive_error).contains("Invalid XML"));
+        assert!(format!("{}", waypoint_error).contains("100"));
+        assert!(format!("{}", waypoint_error).contains("200"));
+    }
+
+    #[test]
+    fn test_error_conversion() {
+        let client_error = ClientError::ConnectionFailed {
+            host: "test".to_string(),
+            port: 2000,
+            reason: "test".to_string(),
+        };
+
+        let carla_error: CarlaError = client_error.into();
+
+        match carla_error {
+            CarlaError::Client(_) => {} // Expected
+            _ => panic!("Expected Client error"),
+        }
+    }
+
+    #[test]
+    fn test_carla_result_type() {
+        let success_value = 42;
+        let success: CarlaResult<i32> = Ok(success_value);
+        let failure: CarlaResult<i32> = Err(CarlaError::Runtime("Test error".to_string()));
+
+        assert!(success.is_ok());
+        assert!(failure.is_err());
+        assert_eq!(success_value, 42);
+    }
+
+    #[test]
+    fn test_error_debug_format() {
+        let error = CarlaError::Runtime("Debug test".to_string());
+        let debug_string = format!("{:?}", error);
+
+        assert!(debug_string.contains("Runtime"));
+        assert!(debug_string.contains("Debug test"));
+    }
+
+    #[test]
+    fn test_nested_error_types() {
+        let spawn_error = SpawnError::LocationOccupied {
+            location: Location {
+                x: 1.0,
+                y: 2.0,
+                z: 3.0,
+            },
+        };
+
+        let carla_error = CarlaError::Spawn(spawn_error);
+
+        match carla_error {
+            CarlaError::Spawn(SpawnError::LocationOccupied { location }) => {
+                assert_eq!(location.x, 1.0);
+                assert_eq!(location.y, 2.0);
+                assert_eq!(location.z, 3.0);
+            }
+            _ => panic!("Expected nested spawn error"),
+        }
+    }
+
+    #[test]
+    fn test_from_cxx_error_trait() {
+        let anyhow_error = anyhow::anyhow!("Test FFI error");
+        let client_error = ClientError::from_cxx_error(anyhow_error, "test_operation");
+
+        match client_error {
+            ClientError::Rpc(msg) => {
+                assert!(msg.contains("test_operation"));
+                assert!(msg.contains("Test FFI error"));
+            }
+            _ => panic!("Expected RPC error"),
+        }
+    }
+}

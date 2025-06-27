@@ -1,3 +1,129 @@
+//! # CARLA Actor System
+//!
+//! This module provides comprehensive support for all CARLA actors including vehicles,
+//! walkers (pedestrians), sensors, and traffic infrastructure. The actor system is the
+//! core of CARLA's simulation, representing all dynamic and static entities in the world.
+//!
+//! ## Actor Types
+//!
+//! CARLA supports several categories of actors:
+//!
+//! ### Vehicles
+//! - **Cars, Trucks, Motorcycles**: Controllable vehicles with physics simulation
+//! - **Control**: Throttle, steering, braking, gear shifting, handbrake
+//! - **Physics**: Mass, drag, engine characteristics, wheel properties
+//! - **Features**: Autopilot, traffic manager integration, door control, lighting
+//!
+//! ### Sensors
+//! - **Cameras**: RGB, depth, semantic/instance segmentation, optical flow
+//! - **LiDAR**: Point cloud generation with configurable parameters
+//! - **Radar**: Object detection with velocity and distance measurements
+//! - **IMU**: Inertial measurement with accelerometer and gyroscope data
+//! - **GNSS**: GPS-like positioning with configurable noise
+//! - **Collision**: Collision detection and impulse measurement
+//! - **Lane Invasion**: Lane boundary crossing detection
+//! - **Obstacle Detection**: Distance-based obstacle sensing
+//!
+//! ### Pedestrians (Walkers)
+//! - **AI Control**: Autonomous walking behavior
+//! - **Physics**: Collision detection and response
+//! - **Animation**: Walking, running, idle states
+//!
+//! ### Traffic Infrastructure
+//! - **Traffic Lights**: State control (red, yellow, green, off)
+//! - **Traffic Signs**: Static signage information
+//! - **Timing**: Configurable light cycle durations
+//!
+//! ## Architecture
+//!
+//! The actor system uses a trait-based design for type safety and flexibility:
+//!
+//! ```rust,no_run
+//! use carla::{
+//!     actor::{ActorExt, Camera, Vehicle},
+//!     client::Client,
+//! };
+//!
+//! # fn example() -> carla::error::CarlaResult<()> {
+//! let client = Client::new("localhost", 2000, None)?;
+//! let world = client.world()?;
+//!
+//! // Generic actor operations
+//! let actors = world.actors()?;
+//! for actor in actors.iter() {
+//!     println!("Actor ID: {}, Type: {:?}", actor.id(), actor.type_id());
+//!
+//!     // Type-safe downcasting
+//!     if let Ok(vehicle) = Vehicle::from_actor(actor.clone()) {
+//!         println!("  Vehicle speed: {:.1} km/h", vehicle.speed());
+//!     }
+//!
+//!     if let Ok(camera) = Camera::from_actor(actor.clone()) {
+//!         println!("  Camera type: {:?}", camera.camera_type());
+//!     }
+//! }
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Actor Lifecycle
+//!
+//! Actors follow a managed lifecycle:
+//!
+//! 1. **Spawning**: Created via `World::spawn_actor()` or batch operations
+//! 2. **Active**: Participating in simulation, can be controlled and queried
+//! 3. **Destruction**: Explicitly destroyed via `destroy()` or automatic cleanup
+//!
+//! ```rust,no_run
+//! use carla::{
+//!     actor::Vehicle,
+//!     geom::{Location, Transform},
+//! };
+//!
+//! # fn lifecycle_example() -> carla::error::CarlaResult<()> {
+//! # let world = todo!(); // Would get from client
+//! # let blueprint = todo!(); // Would get from blueprint library
+//!
+//! // Spawn a vehicle
+//! let spawn_point = Transform::new(Location::new(0.0, 0.0, 0.5), Default::default());
+//! let actor = world.spawn_actor(&blueprint, &spawn_point, None)?;
+//!
+//! // Convert to specific type
+//! let vehicle = Vehicle::from_actor(actor).map_err(|_| "Not a vehicle")?;
+//!
+//! // Use the vehicle
+//! let speed = vehicle.speed();
+//!
+//! // Explicit cleanup (optional - automatic on drop)
+//! vehicle.destroy()?;
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Error Handling
+//!
+//! Actor operations use comprehensive error types:
+//!
+//! - **ActorError::NotFound**: Actor no longer exists in simulation
+//! - **ActorError::ControlFailed**: Control command rejected
+//! - **ActorError::LifecycleViolation**: Invalid operation for actor state
+//! - **SpawnError**: Actor spawning failures
+//! - **SensorError**: Sensor-specific operation failures
+//!
+//! ## Performance Considerations
+//!
+//! - **Batch Operations**: Use `World::batch_spawn_actors()` for multiple actors
+//! - **Actor Queries**: `World::actors()` returns all actors - filter as needed
+//! - **Sensor Data**: Use callbacks for high-frequency sensor data
+//! - **Memory**: Actors are automatically cleaned up on drop
+//!
+//! ## Examples
+//!
+//! See the `/examples` directory for comprehensive usage examples:
+//! - `vehicle_showcase.rs` - Vehicle control and physics
+//! - `sensor_sync.rs` - Multi-sensor data collection
+//! - `generate_traffic.rs` - Traffic simulation setup
+
 /// Base actor functionality and types.
 pub mod base;
 /// Camera sensor types and functionality.
@@ -37,6 +163,7 @@ pub mod vehicle;
 /// Walker (pedestrian) types and control functionality.
 pub mod walker;
 
+// Re-export all major actor types for convenient access
 pub use base::{Actor, ActorSnapshot};
 pub use camera::{Camera, CameraType};
 pub use collision::CollisionSensor;

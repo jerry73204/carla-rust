@@ -376,11 +376,14 @@ std::shared_ptr<WalkerAIController>
 Actor_CastToWalkerAIController(std::shared_ptr<Actor> actor);
 std::shared_ptr<Sensor> Actor_CastToSensor(std::shared_ptr<Actor> actor);
 std::shared_ptr<Actor> Sensor_CastToActor(std::shared_ptr<Sensor> sensor);
-std::shared_ptr<TrafficLight> Actor_CastToTrafficLight(std::shared_ptr<Actor> actor);
-std::shared_ptr<TrafficSign> Actor_CastToTrafficSign(std::shared_ptr<Actor> actor);
+std::shared_ptr<TrafficLight>
+Actor_CastToTrafficLight(std::shared_ptr<Actor> actor);
+std::shared_ptr<TrafficSign>
+Actor_CastToTrafficSign(std::shared_ptr<Actor> actor);
 std::shared_ptr<Actor>
 TrafficLight_CastToActor(std::shared_ptr<TrafficLight> traffic_light);
-std::shared_ptr<Actor> TrafficSign_CastToActor(std::shared_ptr<TrafficSign> traffic_sign);
+std::shared_ptr<Actor>
+TrafficSign_CastToActor(std::shared_ptr<TrafficSign> traffic_sign);
 
 // Vehicle wrapper functions
 void Vehicle_ApplyControl(const Vehicle &vehicle,
@@ -852,3 +855,11 @@ bool World_IsWeatherEnabled(const carla::client::World &world);
 void Sensor_EnableForROS(const carla::client::Sensor &sensor);
 void Sensor_DisableForROS(const carla::client::Sensor &sensor);
 bool Sensor_IsEnabledForROS(const carla::client::Sensor &sensor);
+
+// Global namespace sensor callback functions
+uint64_t Sensor_RegisterCallback(const carla::client::Sensor &sensor,
+                                 void (*callback)(uint32_t, const uint8_t *,
+                                                  size_t, uint8_t *),
+                                 uint8_t *user_data);
+bool Sensor_UnregisterCallback(uint64_t handle);
+void Sensor_ClearCallbacks(const carla::client::Sensor &sensor);

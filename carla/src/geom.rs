@@ -1,7 +1,161 @@
-//! Geometry types and operations for CARLA.
+//! # CARLA Geometry System
 //!
-//! This module provides Rust equivalents of CARLA's geometry types from `carla::geom`,
-//! with additional convenience methods and integration with the `nalgebra` crate.
+//! This module provides comprehensive geometry types and operations that mirror CARLA's
+//! `carla::geom` namespace. All types are designed for high-performance 3D spatial
+//! computations and seamless integration with CARLA's coordinate system.
+//!
+//! ## Coordinate System
+//!
+//! CARLA uses a **right-handed coordinate system** with:
+//! - **X-axis**: Forward (positive = forward, negative = backward)
+//! - **Y-axis**: Right (positive = right, negative = left)  
+//! - **Z-axis**: Up (positive = up, negative = down)
+//!
+//! ## Core Types
+//!
+//! ### Spatial Positioning
+//! - [`Location`]: 3D point in world space (x, y, z)
+//! - [`Rotation`]: 3D orientation using Euler angles (pitch, yaw, roll)
+//! - [`Transform`]: Combined position and orientation
+//! - [`Vector3D`]: 3D vector for directions and displacements
+//! - [`Vector2D`]: 2D vector for planar operations
+//!
+//! ### Spatial Bounds
+//! - [`BoundingBox`]: Axis-aligned bounding box for collision detection
+//!
+//! ## Usage Examples
+//!
+//! ### Basic Positioning
+//! ```rust
+//! use carla::geom::{Location, Rotation, Transform};
+//!
+//! // Create a location
+//! let spawn_point = Location::new(10.0, 20.0, 0.5);
+//!
+//! // Create a rotation (in degrees)
+//! let facing_east = Rotation::new(0.0, 90.0, 0.0); // pitch, yaw, roll
+//!
+//! // Combine into a transform
+//! let spawn_transform = Transform::new(spawn_point, facing_east);
+//!
+//! // Distance calculation
+//! let other_location = Location::new(13.0, 24.0, 0.5);
+//! let distance = spawn_point.distance(&other_location);
+//! println!("Distance: {:.2} meters", distance);
+//! ```
+//!
+//! ### Vector Operations
+//! ```rust
+//! use carla::geom::{Location, Vector3D};
+//!
+//! // Create vectors
+//! let velocity = Vector3D::new(15.0, 0.0, 0.0); // 15 m/s forward
+//! let offset = Vector3D::new(0.0, 2.0, 1.0); // 2m right, 1m up
+//!
+//! // Vector arithmetic
+//! let combined = velocity + offset;
+//! let magnitude = velocity.length();
+//! let normalized = velocity.normalize();
+//!
+//! // Convert between vectors and locations
+//! let origin = Location::new(0.0, 0.0, 0.0);
+//! let new_position = origin + velocity.to_location();
+//! ```
+//!
+//! ### Transform Operations
+//! ```rust
+//! use carla::geom::{Location, Rotation, Transform};
+//!
+//! let transform = Transform::new(Location::new(10.0, 5.0, 1.0), Rotation::new(0.0, 45.0, 0.0));
+//!
+//! // Transform a point from local to world space
+//! let local_point = Location::new(1.0, 0.0, 0.0);
+//! let world_point = transform.transform_point(&local_point);
+//!
+//! // Get forward/right/up vectors
+//! let forward = transform.get_forward_vector();
+//! let right = transform.get_right_vector();
+//! let up = transform.get_up_vector();
+//!
+//! // Inverse transform
+//! let inverse = transform.inverse();
+//! ```
+//!
+//! ### Bounding Box Operations
+//! ```rust
+//! use carla::geom::{BoundingBox, Location, Vector3D};
+//!
+//! // Create a bounding box
+//! let bbox = BoundingBox::new(
+//!     Location::new(0.0, 0.0, 1.0), // center
+//!     Vector3D::new(2.0, 1.0, 0.5), // half-extents
+//! );
+//!
+//! // Check if point is inside
+//! let point = Location::new(0.5, 0.5, 1.2);
+//! let inside = bbox.contains(&point);
+//!
+//! // Get vertices
+//! let vertices = bbox.vertices();
+//! println!("Bounding box has {} vertices", vertices.len());
+//! ```
+//!
+//! ## Mathematical Utilities
+//!
+//! The module provides mathematical constants and conversion utilities:
+//!
+//! ```rust
+//! use carla::geom::constants::*;
+//!
+//! // Angle conversions
+//! let degrees = 90.0;
+//! let radians = degrees * DEG_TO_RAD;
+//! let back_to_degrees = radians * RAD_TO_DEG;
+//!
+//! // Common angles
+//! assert_eq!(PI_2, 90.0 * DEG_TO_RAD);
+//! assert_eq!(TAU, 360.0 * DEG_TO_RAD);
+//! ```
+//!
+//! ## Integration with nalgebra
+//!
+//! This module integrates with the `nalgebra` crate for advanced mathematical operations:
+//!
+//! ```rust
+//! use carla::geom::{Matrix3, UnitQuaternion, Vector3D};
+//! use nalgebra::Vector3;
+//!
+//! // Convert to nalgebra types
+//! let carla_vec = Vector3D::new(1.0, 2.0, 3.0);
+//! let na_vec: Vector3<f32> = carla_vec.into();
+//!
+//! // Use nalgebra operations
+//! let cross_product = na_vec.cross(&Vector3::new(0.0, 0.0, 1.0));
+//!
+//! // Create rotation matrices
+//! let rotation_matrix = Matrix3::from_euler_angles(0.0, 0.0, PI / 4.0);
+//! ```
+//!
+//! ## Performance Considerations
+//!
+//! - All operations use single-precision floats (`f32`) for consistency with CARLA
+//! - Vector operations are optimized using SIMD when available
+//! - Transform operations minimize memory allocations
+//! - Distance calculations avoid square root when possible (use `distance_squared()`)
+//!
+//! ## Coordinate System Notes
+//!
+//! - **Unreal Engine Origin**: CARLA uses Unreal Engine's left-handed coordinate system internally
+//! - **CARLA Client**: Presents a right-handed coordinate system to users
+//! - **Automatic Conversion**: This library handles coordinate system conversion transparently
+//! - **Rotation Order**: Euler angles follow ZYX order (yaw, pitch, roll)
+//!
+//! ## Common Pitfalls
+//!
+//! - **Angle Units**: Rotations use degrees, not radians (unlike many 3D libraries)
+//! - **Transform Order**: When combining transforms, order matters (not commutative)
+//! - **Floating Point**: Be aware of precision limitations with large world coordinates
+//! - **Null Checks**: Vectors can have zero length - check before normalizing
 
 mod bounding_box;
 mod location;
@@ -15,7 +169,7 @@ pub use rotation::Rotation;
 pub use transform::Transform;
 pub use vector::{Vector2D, Vector3D};
 
-// Re-export nalgebra types for convenience
+// Re-export nalgebra types for advanced mathematical operations
 pub use nalgebra::{Matrix3, Matrix4, Point2, Point3, UnitQuaternion, Vector2, Vector3};
 
 /// Trait for types that can be converted to/from carla-sys geometry types.

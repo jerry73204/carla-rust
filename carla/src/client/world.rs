@@ -167,6 +167,49 @@ impl World {
         }
     }
 
+    /// Spawn an actor with retry logic.
+    ///
+    /// This function attempts to spawn an actor multiple times to handle
+    /// cases where actors are immediately destroyed after spawning.
+    pub fn spawn_actor_with_retry(
+        &self,
+        blueprint: &ActorBlueprint,
+        transform: &Transform,
+        parent: Option<&Actor>,
+        max_attempts: u32,
+    ) -> CarlaResult<Actor> {
+        for attempt in 1..=max_attempts {
+            match self.spawn_actor(blueprint, transform, parent) {
+                Ok(actor) => {
+                    // Check if actor is immediately valid
+                    if actor.is_alive() {
+                        return Ok(actor);
+                    } else if attempt < max_attempts {
+                        eprintln!(
+                            "Warning: Spawned actor was immediately invalid, retrying... (attempt {}/{})",
+                            attempt,
+                            max_attempts
+                        );
+                        // Small delay before retry
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    }
+                }
+                Err(e) if attempt < max_attempts => {
+                    eprintln!(
+                        "Warning: Failed to spawn actor: {}, retrying... (attempt {}/{})",
+                        e, attempt, max_attempts
+                    );
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                }
+                Err(e) => return Err(e),
+            }
+        }
+
+        Err(crate::error::CarlaError::Runtime(
+            "Failed to spawn valid actor after all attempts".to_string(),
+        ))
+    }
+
     /// Tick the world (advance simulation by one step).
     pub fn tick(&self) -> CarlaResult<WorldSnapshot> {
         let timeout = Duration::from_secs(10); // Default timeout

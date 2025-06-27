@@ -340,3 +340,178 @@ impl From<u8> for ActorAttributeType {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rgb_color_creation() {
+        let color = RGBColor::new(255, 128, 64);
+        assert_eq!(color.r, 255);
+        assert_eq!(color.g, 128);
+        assert_eq!(color.b, 64);
+    }
+
+    #[test]
+    fn test_rgb_color_from_tuple() {
+        let color = RGBColor::from((200, 100, 50));
+        assert_eq!(color.r, 200);
+        assert_eq!(color.g, 100);
+        assert_eq!(color.b, 50);
+    }
+
+    #[test]
+    fn test_rgb_color_common_colors() {
+        let black = RGBColor::new(0, 0, 0);
+        let white = RGBColor::new(255, 255, 255);
+        let red = RGBColor::new(255, 0, 0);
+        let green = RGBColor::new(0, 255, 0);
+        let blue = RGBColor::new(0, 0, 255);
+
+        assert_eq!(black.r + black.g + black.b, 0);
+        assert_eq!(white.r as u16 + white.g as u16 + white.b as u16, 765);
+        assert!(red.r > red.g && red.r > red.b);
+        assert!(green.g > green.r && green.g > green.b);
+        assert!(blue.b > blue.r && blue.b > blue.g);
+    }
+
+    #[test]
+    fn test_attribute_value_variants() {
+        let bool_attr = AttributeValue::Bool(true);
+        let int_attr = AttributeValue::Int(42);
+        let float_attr = AttributeValue::Float(std::f64::consts::PI);
+        let string_attr = AttributeValue::String("test".to_string());
+        let color_attr = AttributeValue::RGBColor(RGBColor::new(255, 128, 0));
+
+        match bool_attr {
+            AttributeValue::Bool(val) => assert!(val),
+            _ => panic!("Expected Bool variant"),
+        }
+
+        match int_attr {
+            AttributeValue::Int(val) => assert_eq!(val, 42),
+            _ => panic!("Expected Int variant"),
+        }
+
+        match float_attr {
+            AttributeValue::Float(val) => assert!((val - std::f64::consts::PI).abs() < 0.001),
+            _ => panic!("Expected Float variant"),
+        }
+
+        match string_attr {
+            AttributeValue::String(val) => assert_eq!(val, "test"),
+            _ => panic!("Expected String variant"),
+        }
+
+        match color_attr {
+            AttributeValue::RGBColor(color) => {
+                assert_eq!(color.r, 255);
+                assert_eq!(color.g, 128);
+                assert_eq!(color.b, 0);
+            }
+            _ => panic!("Expected RGBColor variant"),
+        }
+    }
+
+    #[test]
+    fn test_attribute_value_from_conversions() {
+        let bool_val: AttributeValue = true.into();
+        let int_val: AttributeValue = 123.into();
+        let float_val: AttributeValue = std::f64::consts::E.into();
+        let string_val: AttributeValue = "hello".to_string().into();
+        let color_val: AttributeValue = (255, 255, 0).into();
+
+        assert!(matches!(bool_val, AttributeValue::Bool(true)));
+        assert!(matches!(int_val, AttributeValue::Int(123)));
+        assert!(
+            matches!(float_val, AttributeValue::Float(f) if (f - std::f64::consts::E).abs() < 0.001)
+        );
+        assert!(matches!(string_val, AttributeValue::String(s) if s == "hello"));
+        assert!(
+            matches!(color_val, AttributeValue::RGBColor(c) if c.r == 255 && c.g == 255 && c.b == 0)
+        );
+    }
+
+    #[test]
+    fn test_actor_attribute_type_enum() {
+        let types = [
+            ActorAttributeType::Bool,
+            ActorAttributeType::Int,
+            ActorAttributeType::Float,
+            ActorAttributeType::String,
+            ActorAttributeType::RGBColor,
+        ];
+
+        assert_eq!(types.len(), 5);
+
+        // Test Debug output
+        assert_eq!(format!("{:?}", ActorAttributeType::Bool), "Bool");
+        assert_eq!(format!("{:?}", ActorAttributeType::RGBColor), "RGBColor");
+    }
+
+    #[test]
+    fn test_actor_attribute_type_from_u8() {
+        assert_eq!(ActorAttributeType::from(0), ActorAttributeType::Bool);
+        assert_eq!(ActorAttributeType::from(1), ActorAttributeType::Int);
+        assert_eq!(ActorAttributeType::from(2), ActorAttributeType::Float);
+        assert_eq!(ActorAttributeType::from(3), ActorAttributeType::String);
+        assert_eq!(ActorAttributeType::from(4), ActorAttributeType::RGBColor);
+
+        // Test unknown values default to String
+        assert_eq!(ActorAttributeType::from(99), ActorAttributeType::String);
+        assert_eq!(ActorAttributeType::from(255), ActorAttributeType::String);
+    }
+
+    #[test]
+    fn test_actor_attribute_type_equality() {
+        assert_eq!(ActorAttributeType::Bool, ActorAttributeType::Bool);
+        assert_ne!(ActorAttributeType::Bool, ActorAttributeType::Int);
+        assert_ne!(ActorAttributeType::Float, ActorAttributeType::String);
+    }
+
+    #[test]
+    fn test_rgb_color_display() {
+        let color = RGBColor::new(128, 64, 32);
+        let debug_string = format!("{:?}", color);
+
+        assert!(debug_string.contains("128"));
+        assert!(debug_string.contains("64"));
+        assert!(debug_string.contains("32"));
+    }
+
+    #[test]
+    fn test_attribute_value_debug() {
+        let values = vec![
+            AttributeValue::Bool(false),
+            AttributeValue::Int(-42),
+            AttributeValue::Float(0.0),
+            AttributeValue::String("debug_test".to_string()),
+            AttributeValue::RGBColor(RGBColor::new(1, 2, 3)),
+        ];
+
+        for value in values {
+            let debug_string = format!("{:?}", value);
+            assert!(!debug_string.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_rgb_color_edge_cases() {
+        // Test boundary values
+        let min_color = RGBColor::new(0, 0, 0);
+        let max_color = RGBColor::new(255, 255, 255);
+
+        assert_eq!(min_color.r, 0);
+        assert_eq!(max_color.r, 255);
+
+        // Test that values are stored as provided
+        let test_color = RGBColor::new(1, 254, 127);
+        assert_eq!(test_color.r, 1);
+        assert_eq!(test_color.g, 254);
+        assert_eq!(test_color.b, 127);
+    }
+
+    // Note: Testing actual blueprint functionality would require FFI mocks
+    // These tests focus on the data structures and type conversions
+}

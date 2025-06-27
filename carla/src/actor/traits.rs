@@ -1,8 +1,7 @@
 use crate::{
     actor::ActorId,
-    error::{CarlaResult, DestroyError, SensorError},
+    error::{CarlaError, CarlaResult, DestroyError, SensorError},
     geom::{BoundingBox, FromCxx, ToCxx, Transform, Vector3D},
-    CarlaError,
 };
 
 pub(crate) trait ActorFfi {
@@ -45,6 +44,75 @@ pub trait ActorExt {
 
     /// Check if this actor is still alive in the simulation.
     fn is_alive(&self) -> bool;
+
+    /// Check if this actor is valid for operations.
+    ///
+    /// This checks both if the actor is alive and has a valid state.
+    /// An actor may be alive but in an invalid state (e.g., during destruction).
+    ///
+    /// # Returns
+    /// Returns `true` if the actor is both alive and in a valid state.
+    fn is_valid(&self) -> bool {
+        self.is_alive()
+    }
+
+    /// Try to get the actor's transform with crash protection.
+    ///
+    /// This method adds defensive checks to prevent crashes observed
+    /// when accessing transform on invalid actors.
+    fn try_transform(&self) -> CarlaResult<Transform> {
+        if !self.is_valid() {
+            return Err(CarlaError::Runtime(format!(
+                "Actor {} is not valid for transform operation",
+                self.id()
+            )));
+        }
+        Ok(self.transform())
+    }
+
+    /// Try to get the actor's velocity with crash protection.
+    fn try_velocity(&self) -> CarlaResult<Vector3D> {
+        if !self.is_valid() {
+            return Err(CarlaError::Runtime(format!(
+                "Actor {} is not valid for velocity operation",
+                self.id()
+            )));
+        }
+        Ok(self.velocity())
+    }
+
+    /// Try to get the actor's angular velocity with crash protection.
+    fn try_angular_velocity(&self) -> CarlaResult<Vector3D> {
+        if !self.is_valid() {
+            return Err(CarlaError::Runtime(format!(
+                "Actor {} is not valid for angular_velocity operation",
+                self.id()
+            )));
+        }
+        Ok(self.angular_velocity())
+    }
+
+    /// Try to get the actor's acceleration with crash protection.
+    fn try_acceleration(&self) -> CarlaResult<Vector3D> {
+        if !self.is_valid() {
+            return Err(CarlaError::Runtime(format!(
+                "Actor {} is not valid for acceleration operation",
+                self.id()
+            )));
+        }
+        Ok(self.acceleration())
+    }
+
+    /// Try to get the actor's bounding box with crash protection.
+    fn try_bounding_box(&self) -> CarlaResult<BoundingBox> {
+        if !self.is_valid() {
+            return Err(CarlaError::Runtime(format!(
+                "Actor {} is not valid for bounding_box operation",
+                self.id()
+            )));
+        }
+        Ok(self.bounding_box())
+    }
 
     /// Enable or disable actor physics simulation.
     fn set_simulate_physics(&self, enabled: bool) -> CarlaResult<()>;

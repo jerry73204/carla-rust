@@ -9,6 +9,8 @@ fn main() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=src/ffi.rs");
     println!("cargo:rerun-if-changed=include/carla_sys_bridge.h");
     println!("cargo:rerun-if-changed=cpp/carla_sys_bridge.cpp");
+    println!("cargo:rerun-if-changed=cpp/sensor_callback_bridge.h");
+    println!("cargo:rerun-if-changed=cpp/sensor_callback_bridge.cpp");
     println!("cargo:rerun-if-env-changed=CARLA_ROOT");
 
     // Get CARLA source using carla-src
@@ -35,6 +37,8 @@ fn main() -> anyhow::Result<()> {
     // Configure compiler
     bridge
         .file("cpp/carla_sys_bridge.cpp")
+        // TODO: Fix sensor callback bridge C++ API compatibility issues
+        // .file("cpp/sensor_callback_bridge.cpp")
         .std("c++20") // Use C++20 for std::identity
         .flag_if_supported("-std=c++20")
         .flag("-DCARLA_SYS_BRIDGE")

@@ -1,6 +1,6 @@
 //! Map representation and utilities.
 
-use super::{Junction, Waypoint};
+use super::{Junction, Landmark, Waypoint};
 use crate::{
     error::CarlaResult,
     geom::{Location, Transform},
@@ -41,6 +41,41 @@ impl Map {
             true,
             Some(carla_sys::map::LaneType::Driving),
         );
+        waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
+    }
+
+    /// Get a waypoint at the given location with options.
+    ///
+    /// # Arguments
+    /// * `location` - The location to search for a waypoint
+    /// * `project_to_road` - Whether to project the location to the nearest road
+    /// * `lane_type` - Optional lane type filter
+    pub fn get_waypoint(
+        &self,
+        location: Location,
+        project_to_road: bool,
+        lane_type: Option<super::LaneType>,
+    ) -> Option<Waypoint> {
+        use carla_sys::ffi::SimpleLocation;
+        let simple_location = SimpleLocation {
+            x: location.x,
+            y: location.y,
+            z: location.z,
+        };
+
+        let carla_lane_type = lane_type.map(|lt| match lt {
+            super::LaneType::Driving => carla_sys::map::LaneType::Driving,
+            super::LaneType::Sidewalk => carla_sys::map::LaneType::Sidewalk,
+            super::LaneType::Shoulder => carla_sys::map::LaneType::Shoulder,
+            super::LaneType::Biking => carla_sys::map::LaneType::Biking,
+            super::LaneType::Stop => carla_sys::map::LaneType::Stop,
+            super::LaneType::Parking => carla_sys::map::LaneType::Parking,
+            _ => carla_sys::map::LaneType::Driving,
+        });
+
+        let waypoint_wrapper =
+            self.inner
+                .get_waypoint(&simple_location, project_to_road, carla_lane_type);
         waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
     }
 
@@ -152,6 +187,24 @@ impl Map {
     ) -> Option<Waypoint> {
         let waypoint_wrapper = self.inner.get_left_lane_waypoint_xodr(road_id, lane_id, s);
         waypoint_wrapper.map(Waypoint::from_cxx_wrapper)
+    }
+
+    /// Get all landmarks in the map.
+    pub fn landmarks(&self) -> Vec<Landmark> {
+        // TODO: Implement when landmark FFI functions are available
+        Vec::new()
+    }
+
+    /// Get landmarks by ID.
+    pub fn landmarks_from_id(&self, _id: &str) -> Vec<Landmark> {
+        // TODO: Implement when landmark FFI functions are available
+        Vec::new()
+    }
+
+    /// Get all landmarks of a specific type.
+    pub fn landmarks_of_type(&self, _landmark_type: &str) -> Vec<Landmark> {
+        // TODO: Implement when landmark FFI functions are available
+        Vec::new()
     }
 }
 

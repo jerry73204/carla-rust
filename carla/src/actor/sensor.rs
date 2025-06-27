@@ -4,6 +4,10 @@ use crate::{
     actor::{Actor, ActorExt, SensorFfi},
     error::{CarlaError, CarlaResult, SensorError},
     geom::{FromCxx, ToCxx},
+    // TODO: Re-enable when sensor_data module is available
+    // sensor_data::SensorData,
+    // TODO: Re-enable when callback module is available
+    // sensor_data::SensorCallbackManager,
 };
 
 /// Sensor actor.
@@ -175,6 +179,28 @@ impl Sensor {
     pub fn is_rss(&self) -> bool {
         let type_id = self.type_id();
         type_id.contains("sensor.other.rss")
+    }
+
+    // TODO: Re-enable when callback module is available
+    // /// Create a callback manager for this sensor.
+    // ///
+    // /// The callback manager allows registering multiple callbacks for sensor data.
+    // pub fn callback_manager(&self) -> SensorCallbackManager {
+    //     SensorCallbackManager::new(self)
+    // }
+
+    /// Register a callback directly on the sensor.
+    ///
+    /// This is a convenience method that creates a temporary callback manager.
+    /// For multiple callbacks, use `callback_manager()` instead.
+    pub fn register_callback<F>(&self, _callback: F) -> CarlaResult<u64>
+    where
+        F: Fn(Vec<u8>) + Send + 'static,
+    {
+        // TODO: Re-enable when callback module is available
+        // let mut manager = self.callback_manager();
+        // manager.register_callback(callback)
+        todo!("Sensor::register_callback not yet implemented - missing callback manager")
     }
 
     /// Convert this sensor back to an Actor.
