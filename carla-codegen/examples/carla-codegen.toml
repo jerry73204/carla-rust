@@ -1,0 +1,64 @@
+# Example configuration file for carla-codegen
+# This file demonstrates all available configuration options
+
+# Output directory for generated code
+output_dir = "src/generated"
+
+# Generate builder patterns for methods with >2 optional parameters
+builder_threshold = 2
+
+# Generate async versions of methods
+generate_async = false
+
+# Module organization: "nested" or "flat"
+module_structure = "nested"
+
+[type_mapping]
+# Custom type mappings from Python to Rust
+mappings = { "int" = "i32", "float" = "f32", "long" = "i64" }
+
+# Special type handling
+[type_mapping.special]
+actor_id = "u32"
+timestamp = "f64"
+
+[filters]
+# Include specific classes (if empty, all classes are included)
+include_classes = ["Actor", "Vehicle", "World", "Client"]
+
+# Exclude specific classes
+exclude_classes = ["DeprecatedClass", "InternalClass"]
+
+# Include specific methods (if empty, all methods are included)
+include_methods = []
+
+# Exclude specific methods
+exclude_methods = ["deprecated_method", "internal_method"]
+
+# Skip generation for specific modules
+skip_modules = ["osm2odr"]
+
+[naming]
+# Naming conventions
+method_case = "snake_case"
+type_case = "PascalCase"
+module_case = "snake_case"
+
+# Prefixes to remove from method names
+remove_prefix = ["get_", "set_"]
+
+# Suffix for actor types
+actor_suffix = "Actor"
+
+[documentation]
+# Include warning sections in generated documentation
+include_warnings = true
+
+# Include note sections in generated documentation
+include_notes = true
+
+# Include Python examples in generated documentation
+include_python_examples = false
+
+# Generate doc tests from examples
+generate_doc_tests = true
