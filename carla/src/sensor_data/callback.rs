@@ -369,17 +369,68 @@ fn deserialize_radar_data(
         return Err(SensorError::DataConversion("Radar payload too small".to_string()).into());
     }
 
-    let _detection_count = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]);
+    let detection_count =
+        u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
 
-    // For now, return basic radar data structure
+    // Each RadarDetection is 4 floats (16 bytes): velocity, azimuth, altitude, depth
+    const DETECTION_SIZE: usize = 16; // 4 floats * 4 bytes
+    let expected_size = 4 + (detection_count * DETECTION_SIZE);
+
+    if payload.len() < expected_size {
+        return Err(SensorError::DataConversion(format!(
+            "Radar payload size mismatch: expected {}, got {}",
+            expected_size,
+            payload.len()
+        ))
+        .into());
+    }
+
+    // Parse detections
+    let mut detections = Vec::with_capacity(detection_count);
+    let mut offset = 4; // Skip count bytes
+
+    for _ in 0..detection_count {
+        // Read 4 floats for each detection
+        let velocity = f32::from_le_bytes([
+            payload[offset],
+            payload[offset + 1],
+            payload[offset + 2],
+            payload[offset + 3],
+        ]);
+        let azimuth = f32::from_le_bytes([
+            payload[offset + 4],
+            payload[offset + 5],
+            payload[offset + 6],
+            payload[offset + 7],
+        ]);
+        let altitude = f32::from_le_bytes([
+            payload[offset + 8],
+            payload[offset + 9],
+            payload[offset + 10],
+            payload[offset + 11],
+        ]);
+        let depth = f32::from_le_bytes([
+            payload[offset + 12],
+            payload[offset + 13],
+            payload[offset + 14],
+            payload[offset + 15],
+        ]);
+
+        detections.push(crate::sensor_data::RadarDetection {
+            velocity,
+            azimuth,
+            altitude,
+            depth,
+        });
+
+        offset += DETECTION_SIZE;
+    }
+
     let radar_data = RadarData {
         timestamp,
         transform,
         sensor_id: 0,
-        detections: Vec::new(), // TODO: Implement proper radar detection parsing from binary payload
-                                // This requires understanding CARLA's binary serialization format for radar data
-                                // and parsing the payload bytes into Vec<RadarDetection> structures.
-                                // The SimpleRadarData structure shows the expected format with velocity, azimuth, altitude, depth.
+        detections,
     };
 
     Ok(CallbackSensorData::Radar(radar_data))

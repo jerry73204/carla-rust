@@ -65,6 +65,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 // Global storage for sensor data - in a real implementation this would be
 // per-sensor
@@ -1462,10 +1463,34 @@ float Vehicle_GetTireFriction(const Vehicle &vehicle) {
 }
 
 float Vehicle_GetEngineRpm(const Vehicle &vehicle) {
-  // Note: This might need to be implemented differently based on CARLA 0.10.0
-  // API For now, return a calculated value based on speed and gear
+  // Calculate RPM based on vehicle speed, gear, and physics
   auto control = vehicle.GetControl();
-  return control.throttle * 3000.0f; // Placeholder calculation
+  auto velocity = vehicle.GetVelocity();
+  auto physics = vehicle.GetPhysicsControl();
+
+  // Calculate vehicle speed in m/s
+  float speed = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y +
+                          velocity.z * velocity.z);
+
+  // Base RPM calculation using throttle position
+  float base_rpm = control.throttle * physics.max_rpm;
+
+  // Adjust based on gear and speed
+  if (control.gear > 0 &&
+      control.gear <= static_cast<int>(physics.forward_gear_ratios.size())) {
+    float gear_ratio = physics.forward_gear_ratios[control.gear - 1];
+    float wheel_rpm = (speed * 60.0f) /
+                      (2.0f * 3.14159f * 0.35f); // Assume 0.35m wheel radius
+    float calculated_rpm = wheel_rpm * gear_ratio * physics.final_ratio;
+
+    // Blend calculated RPM with throttle-based RPM for realism
+    base_rpm =
+        std::max(calculated_rpm, base_rpm * 0.3f); // Minimum RPM when moving
+  }
+
+  // Clamp to reasonable bounds
+  return std::min(std::max(base_rpm, 800.0f),
+                  physics.max_rpm); // Idle RPM min 800
 }
 
 float Vehicle_GetGearRatio(const Vehicle &vehicle) {
@@ -1583,15 +1608,35 @@ SimpleVehicleTelemetryData Vehicle_GetTelemetryData(const Vehicle &vehicle) {
                           velocity.z * velocity.z) *
                 3.6f; // Convert m/s to km/h
 
-  // Get engine RPM (may not be directly available in all CARLA versions)
-  float rpm =
-      control.throttle * 5000.0f; // Placeholder calculation based on throttle
+  // Get improved engine RPM calculation
+  float rpm = Vehicle_GetEngineRpm(vehicle);
 
-  return SimpleVehicleTelemetryData{
-      speed, rpm, control.gear,
-      90.0f, // Engine temperature placeholder (Celsius)
-      1.0f   // Fuel level placeholder (full tank)
-  };
+  // Calculate realistic engine temperature based on load and time
+  // Base temperature increases with throttle and RPM
+  float base_temp = 80.0f; // Normal operating temperature
+  float load_factor = control.throttle * 0.3f + (rpm / 6000.0f) * 0.2f;
+  float engine_temp =
+      base_temp + (load_factor * 30.0f);       // Up to 110°C under load
+  engine_temp = std::min(engine_temp, 120.0f); // Cap at reasonable maximum
+
+  // Calculate fuel consumption based on throttle and speed
+  // This is a simulation - CARLA doesn't track actual fuel
+  static std::unordered_map<uint32_t, float> vehicle_fuel_levels;
+  uint32_t vehicle_id = vehicle.GetId();
+
+  // Initialize fuel level for new vehicles
+  if (vehicle_fuel_levels.find(vehicle_id) == vehicle_fuel_levels.end()) {
+    vehicle_fuel_levels[vehicle_id] = 1.0f; // Start with full tank
+  }
+
+  // Simulate fuel consumption (very basic model)
+  float consumption_rate =
+      control.throttle * 0.0001f + speed * 0.000005f; // Per frame
+  vehicle_fuel_levels[vehicle_id] =
+      std::max(0.0f, vehicle_fuel_levels[vehicle_id] - consumption_rate);
+
+  return SimpleVehicleTelemetryData{speed, rpm, control.gear, engine_temp,
+                                    vehicle_fuel_levels[vehicle_id]};
 }
 
 // Vehicle ID and actor property functions

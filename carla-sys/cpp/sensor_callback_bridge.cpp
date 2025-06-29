@@ -101,6 +101,16 @@ std::vector<uint8_t> SensorCallbackManager::serializeSensorData(
   header.frame = data->GetFrame();
   header.timestamp = data->GetTimestamp();
 
+  // Extract transform from sensor data
+  auto transform = data->GetSensorTransform();
+  header.transform.location.x = static_cast<float>(transform.location.x);
+  header.transform.location.y = static_cast<float>(transform.location.y);
+  header.transform.location.z = static_cast<float>(transform.location.z);
+  header.transform.rotation.pitch =
+      static_cast<float>(transform.rotation.pitch);
+  header.transform.rotation.yaw = static_cast<float>(transform.rotation.yaw);
+  header.transform.rotation.roll = static_cast<float>(transform.rotation.roll);
+
   // Try to cast to each sensor data type and serialize
   if (auto image = std::dynamic_pointer_cast<
           carla::sensor::data::ImageTmpl<carla::sensor::data::Color>>(data)) {

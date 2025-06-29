@@ -28,12 +28,26 @@ enum class SensorDataType : uint8_t {
   RSS = 10,
 };
 
+// Forward declaration from main bridge
+struct SimpleLocation {
+  float x, y, z;
+};
+
+struct SimpleRotation {
+  float pitch, yaw, roll;
+};
+
+struct SimpleTransform {
+  SimpleLocation location;
+  SimpleRotation rotation;
+};
+
 // Sensor data header matching Rust
 struct SensorDataHeader {
   SensorDataType data_type;
   uint64_t frame;
   double timestamp;
-  // Transform will be added here
+  SimpleTransform transform;
 };
 
 // Callback manager for sensor data
