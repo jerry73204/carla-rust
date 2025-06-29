@@ -198,7 +198,7 @@ fn spawn_ai_vehicles(
     let mut vehicles = Vec::new();
     let mut behaviors = Vec::new();
 
-    println!("Spawning {} AI-controlled vehicles...", vehicle_count);
+    println!("Spawning {vehicle_count} AI-controlled vehicles...");
 
     // Get blueprint library and spawn points
     let blueprint_library = world.blueprint_library()?;
@@ -226,7 +226,7 @@ fn spawn_ai_vehicles(
 
             match world.try_spawn_actor(blueprint, &spawn_transform, None) {
                 Ok(Some(vehicle)) => {
-                    let actor_id = format!("ai_vehicle_{:03}", i);
+                    let actor_id = format!("ai_vehicle_{i:03}");
 
                     // TODO: Enable autopilot
                     if enable_autopilot {
@@ -256,10 +256,10 @@ fn spawn_ai_vehicles(
                     }
                 }
                 Ok(None) => {
-                    log::warn!("Failed to spawn vehicle {} - spawn point occupied", i);
+                    log::warn!("Failed to spawn vehicle {i} - spawn point occupied");
                 }
                 Err(e) => {
-                    log::warn!("Failed to spawn vehicle {}: {}", i, e);
+                    log::warn!("Failed to spawn vehicle {i}: {e}");
                 }
             }
         }
@@ -276,7 +276,7 @@ fn spawn_ai_walkers(
 ) -> Result<ActorList> {
     let walkers = Vec::new();
 
-    println!("Spawning {} AI-controlled walkers...", walker_count);
+    println!("Spawning {walker_count} AI-controlled walkers...");
 
     // TODO: Walker spawning and AI controller not implemented
     println!("TODO: Walker spawning not implemented");
@@ -289,7 +289,7 @@ fn spawn_ai_walkers(
 
     // Simulate walker spawning for demonstration
     for i in 0..walker_count {
-        println!("  Simulated walker {} at speed {:.1} m/s", i, walker_speed);
+        println!("  Simulated walker {i} at speed {walker_speed:.1} m/s");
     }
 
     Ok(walkers)
@@ -301,7 +301,7 @@ fn simulate_ai_traffic_behavior(
     duration: f64,
 ) -> Result<(EventList, AITrafficStats)> {
     println!("\n=== AI Traffic Simulation ===");
-    println!("Running AI traffic for {:.1}s...", duration);
+    println!("Running AI traffic for {duration:.1}s...");
 
     let mut events = Vec::new();
     let mut stats = AITrafficStats {
@@ -396,7 +396,7 @@ fn simulate_ai_traffic_behavior(
                     event_type: "speed_adjustment".to_string(),
                     actor_id: behavior.actor_id.clone(),
                     location: vehicle.transform().location,
-                    description: format!("Target speed adjusted to {:.1} km/h", target_speed),
+                    description: format!("Target speed adjusted to {target_speed:.1} km/h"),
                     severity: "info".to_string(),
                 });
             }
@@ -490,7 +490,7 @@ fn main() -> Result<()> {
 
     // Set random seed if provided
     if let Some(seed) = args.seed {
-        println!("Using random seed: {}", seed);
+        println!("Using random seed: {seed}");
         // TODO: Set CARLA random seed
         // world.set_random_seed(seed)?;
     }
@@ -582,7 +582,7 @@ fn main() -> Result<()> {
 
     println!("\n=== Performance Metrics ===");
     for (metric, value) in &performance_metrics {
-        println!("  {}: {:.3}", metric, value);
+        println!("  {metric}: {value:.3}");
     }
 
     // Event analysis by type
@@ -630,11 +630,11 @@ fn main() -> Result<()> {
         match vehicle.destroy() {
             Ok(_) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                log::debug!("Destroyed AI vehicle {}", i);
+                log::debug!("Destroyed AI vehicle {i}");
             }
             Err(e) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                log::warn!("Failed to destroy AI vehicle {}: {}", i, e);
+                log::warn!("Failed to destroy AI vehicle {i}: {e}");
             }
         }
     }
@@ -645,11 +645,11 @@ fn main() -> Result<()> {
         match walker.destroy() {
             Ok(_) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                log::debug!("Destroyed AI walker {}", i);
+                log::debug!("Destroyed AI walker {i}");
             }
             Err(e) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                log::warn!("Failed to destroy AI walker {}: {}", i, e);
+                log::warn!("Failed to destroy AI walker {i}: {e}");
             }
         }
     }

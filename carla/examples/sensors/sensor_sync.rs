@@ -175,7 +175,7 @@ fn main() -> Result<()> {
     let sensor_configs = create_sensor_config();
     let sensor_count = sensor_configs.len();
 
-    println!("Configuring {} sensors...", sensor_count);
+    println!("Configuring {sensor_count} sensors...");
 
     // Create sensor queue for synchronization
     let sensor_queue = SensorSyncQueue::new(sensor_count);
@@ -202,7 +202,7 @@ fn main() -> Result<()> {
     let mut sensor_stats = HashMap::new();
 
     for (sensor_name, blueprint_id, attributes) in &sensor_configs {
-        println!("Creating sensor: {} ({})", sensor_name, blueprint_id);
+        println!("Creating sensor: {sensor_name} ({blueprint_id})");
 
         // Find blueprint
         let blueprint_opt = blueprint_library.find(blueprint_id)?;
@@ -215,22 +215,19 @@ fn main() -> Result<()> {
             // For now, we'll spawn without callbacks
             match world.try_spawn_actor(&blueprint, &Transform::default(), None) {
                 Ok(Some(sensor)) => {
-                    println!("  ✓ Spawned sensor: {}", sensor_name);
+                    println!("  ✓ Spawned sensor: {sensor_name}");
                     sensors.push((sensor, sensor_name.to_string()));
                     sensor_stats.insert(sensor_name.to_string(), PerformanceStats::new());
                 }
                 Ok(None) => {
-                    log::warn!(
-                        "Failed to spawn sensor: {} - spawn point occupied",
-                        sensor_name
-                    );
+                    log::warn!("Failed to spawn sensor: {sensor_name} - spawn point occupied");
                 }
                 Err(e) => {
-                    log::warn!("Failed to spawn sensor {}: {}", sensor_name, e);
+                    log::warn!("Failed to spawn sensor {sensor_name}: {e}");
                 }
             }
         } else {
-            log::warn!("Blueprint not found: {}", blueprint_id);
+            log::warn!("Blueprint not found: {blueprint_id}");
         }
     }
 
@@ -313,10 +310,7 @@ fn main() -> Result<()> {
         // Log frame results
         if frame_data.len() == expected_sensors {
             log::debug!(
-                "Frame {}: All {} sensors synchronized ({}ms)",
-                frame_id,
-                expected_sensors,
-                sync_delay
+                "Frame {frame_id}: All {expected_sensors} sensors synchronized ({sync_delay}ms)"
             );
         } else {
             log::warn!(
@@ -355,10 +349,10 @@ fn main() -> Result<()> {
     );
 
     if let Some(min) = frame_stats.min_duration_ms {
-        println!("Fastest sync: {}ms", min);
+        println!("Fastest sync: {min}ms");
     }
     if let Some(max) = frame_stats.max_duration_ms {
-        println!("Slowest sync: {}ms", max);
+        println!("Slowest sync: {max}ms");
     }
 
     // Print per-sensor statistics
@@ -391,11 +385,11 @@ fn main() -> Result<()> {
         match sensor.destroy() {
             Ok(_) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                log::debug!("Destroyed sensor: {}", sensor_name);
+                log::debug!("Destroyed sensor: {sensor_name}");
             }
             Err(e) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                log::warn!("Failed to destroy sensor {}: {}", sensor_name, e);
+                log::warn!("Failed to destroy sensor {sensor_name}: {e}");
             }
         }
     }

@@ -195,7 +195,7 @@ unsafe extern "C" fn sensor_data_callback_trampoline(
             }
         }
         Err(e) => {
-            eprintln!("Failed to deserialize sensor data: {}", e);
+            eprintln!("Failed to deserialize sensor data: {e}");
         }
     }
 }

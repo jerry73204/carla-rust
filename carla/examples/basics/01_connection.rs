@@ -48,7 +48,7 @@ fn run_example(client: &carla::client::Client) -> Result<()> {
     println!("Server Information:");
     println!("==================");
     let version = client.server_version()?;
-    println!("Server version: {}", version);
+    println!("Server version: {version}");
 
     // Get current world
     let world = client.world()?;

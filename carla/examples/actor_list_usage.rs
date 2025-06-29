@@ -22,7 +22,7 @@ fn main() -> Result<()> {
     // Get just the actor IDs without fetching full actor data
     println!("\nActor IDs only:");
     for id in actors.ids() {
-        println!("  - ID: {}", id);
+        println!("  - ID: {id}");
     }
 
     // Find specific types of actors
@@ -50,7 +50,7 @@ fn main() -> Result<()> {
     let has_fast_vehicle = actors.any(|actor| {
         actor.type_id().contains("vehicle") && actor.velocity().length() > 20.0 // > 20 m/s
     });
-    println!("\nAny vehicle moving fast? {}", has_fast_vehicle);
+    println!("\nAny vehicle moving fast? {has_fast_vehicle}");
 
     // Get traffic lights efficiently
     let traffic_lights = world.traffic_lights()?;

@@ -189,7 +189,7 @@ impl TableFormatter {
         print!("|");
         for (i, cell) in row.iter().enumerate() {
             let width = self.max_widths.get(i).unwrap_or(&10);
-            print!(" {:width$} |", cell, width = width);
+            print!(" {cell:width$} |");
         }
         println!();
     }
@@ -235,7 +235,7 @@ impl Histogram {
             } else {
                 0.0
             };
-            println!("  {}: {} ({:.1}%)", key, count, percentage);
+            println!("  {key}: {count} ({percentage:.1}%)");
         }
     }
 

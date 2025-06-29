@@ -158,17 +158,17 @@ fn main() -> Result<()> {
 
         match world.try_spawn_actor(&vehicle_blueprint, &spawn_transform, None) {
             Ok(Some(vehicle)) => {
-                vehicles.push((vehicle, format!("vehicle_{:02}", i)));
+                vehicles.push((vehicle, format!("vehicle_{i:02}")));
                 println!(
                     "  ✓ Spawned vehicle {} at x={:.1}",
                     i, spawn_transform.location.x
                 );
             }
             Ok(None) => {
-                log::warn!("Failed to spawn vehicle {} - spawn point occupied", i);
+                log::warn!("Failed to spawn vehicle {i} - spawn point occupied");
             }
             Err(e) => {
-                log::warn!("Failed to spawn vehicle {}: {}", i, e);
+                log::warn!("Failed to spawn vehicle {i}: {e}");
             }
         }
     }
@@ -209,7 +209,7 @@ fn main() -> Result<()> {
         println!("\n--- Cycle {}/{} ---", cycle, args.cycles);
 
         for (vehicle_index, (vehicle, vehicle_id)) in vehicles.iter().enumerate() {
-            println!("Vehicle {} ({}):", vehicle_index, vehicle_id);
+            println!("Vehicle {vehicle_index} ({vehicle_id}):");
 
             // Perform door operations for each door type
             for (door_type, door_name) in DOOR_TYPES {
@@ -235,10 +235,7 @@ fn main() -> Result<()> {
                 door_type_histogram.add(door_type.to_string());
                 all_operations.push(open_operation.clone());
 
-                println!(
-                    "  ✓ Opened {} ({}) in {}ms",
-                    door_name, door_type, open_duration
-                );
+                println!("  ✓ Opened {door_name} ({door_type}) in {open_duration}ms");
 
                 // Small delay between open and close
                 thread::sleep(Duration::from_millis(operation_delay_ms / 4));
@@ -264,10 +261,7 @@ fn main() -> Result<()> {
                 operation_histogram.add("close".to_string());
                 all_operations.push(close_operation.clone());
 
-                println!(
-                    "  ✓ Closed {} ({}) in {}ms",
-                    door_name, door_type, close_duration
-                );
+                println!("  ✓ Closed {door_name} ({door_type}) in {close_duration}ms");
 
                 // Export to CSV if enabled
                 if let Some(ref mut writer) = csv_writer {
@@ -296,7 +290,7 @@ fn main() -> Result<()> {
                 thread::sleep(Duration::from_millis(100));
             }
 
-            println!("  → All doors operated for vehicle {}", vehicle_index);
+            println!("  → All doors operated for vehicle {vehicle_index}");
         }
 
         // Pause between cycles
@@ -320,10 +314,10 @@ fn main() -> Result<()> {
     println!("Success rate: {:.1}%", door_stats.success_rate() * 100.0);
 
     if let Some(min) = door_stats.min_duration_ms {
-        println!("Fastest operation: {}ms", min);
+        println!("Fastest operation: {min}ms");
     }
     if let Some(max) = door_stats.max_duration_ms {
-        println!("Slowest operation: {}ms", max);
+        println!("Slowest operation: {max}ms");
     }
 
     // Print operation type histogram
@@ -379,11 +373,11 @@ fn main() -> Result<()> {
         match vehicle.destroy() {
             Ok(_) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                log::debug!("Destroyed vehicle: {}", vehicle_id);
+                log::debug!("Destroyed vehicle: {vehicle_id}");
             }
             Err(e) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                log::warn!("Failed to destroy vehicle {}: {}", vehicle_id, e);
+                log::warn!("Failed to destroy vehicle {vehicle_id}: {e}");
             }
         }
     }

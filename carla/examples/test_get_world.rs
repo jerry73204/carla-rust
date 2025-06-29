@@ -10,10 +10,10 @@ fn main() {
             // Try to get server version first
             match client.server_version() {
                 Ok(version) => {
-                    println!("Server version: {}", version);
+                    println!("Server version: {version}");
                 }
                 Err(e) => {
-                    println!("Failed to get server version: {:?}", e);
+                    println!("Failed to get server version: {e:?}");
                     return;
                 }
             }
@@ -26,12 +26,12 @@ fn main() {
                     println!("World ID: {}", world.id());
                 }
                 Err(e) => {
-                    println!("Failed to get world: {:?}", e);
+                    println!("Failed to get world: {e:?}");
                 }
             }
         }
         Err(e) => {
-            println!("Failed to create client: {:?}", e);
+            println!("Failed to create client: {e:?}");
         }
     }
 }

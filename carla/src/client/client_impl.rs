@@ -99,7 +99,7 @@ impl Client {
     pub fn reload_world(&self) -> CarlaResult<World> {
         let world_wrapper = self.inner.reload_world(true).map_err(|e| {
             crate::error::CarlaError::Client(crate::error::ClientError::ServerCommunicationFailed {
-                reason: format!("Failed to reload world: {}", e),
+                reason: format!("Failed to reload world: {e}"),
             })
         })?; // reset_settings = true by default
         Ok(World::from_cxx(world_wrapper))
@@ -107,14 +107,14 @@ impl Client {
 
     /// Generate OpenDRIVE map from file.
     pub fn generate_opendrive_world(&self, opendrive: &str) -> CarlaResult<World> {
-        let world_wrapper =
-            self.inner
-                .generate_opendrive_world(opendrive)
-                .map_err(|e| {
-                    crate::error::CarlaError::Map(crate::error::MapError::OpenDriveParsing(
-                        format!("Failed to generate OpenDRIVE world: {}", e),
-                    ))
-                })?;
+        let world_wrapper = self
+            .inner
+            .generate_opendrive_world(opendrive)
+            .map_err(|e| {
+                crate::error::CarlaError::Map(crate::error::MapError::OpenDriveParsing(format!(
+                    "Failed to generate OpenDRIVE world: {e}"
+                )))
+            })?;
         Ok(World::from_cxx(world_wrapper))
     }
 

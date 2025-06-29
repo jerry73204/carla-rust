@@ -10,7 +10,7 @@ fn main() -> anyhow::Result<()> {
 
             // Get server version
             let version = client.get_server_version();
-            println!("✓ Server version: {}", version);
+            println!("✓ Server version: {version}");
 
             // Get world
             let world = client.get_world()?;
@@ -62,7 +62,7 @@ fn main() -> anyhow::Result<()> {
                             println!("  - Alive: {}", vehicle.is_alive());
                         }
                         Err(e) => {
-                            println!("✗ Failed to spawn vehicle: {}", e);
+                            println!("✗ Failed to spawn vehicle: {e}");
                         }
                     }
                 } else {
@@ -71,7 +71,7 @@ fn main() -> anyhow::Result<()> {
 
                 // Tick the world
                 let frame_id = world.tick(std::time::Duration::from_secs(1));
-                println!("✓ World ticked to frame: {}", frame_id);
+                println!("✓ World ticked to frame: {frame_id}");
             } else {
                 println!("✗ Tesla Model 3 blueprint not found");
                 println!(
@@ -86,7 +86,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Err(e) => {
-            println!("✗ Failed to connect to CARLA server: {}", e);
+            println!("✗ Failed to connect to CARLA server: {e}");
             println!("Make sure CARLA simulator is running on localhost:2000");
         }
     }

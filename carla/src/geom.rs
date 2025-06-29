@@ -454,17 +454,11 @@ mod tests {
             let nearest = math::get_nearest_segment(&point, &segments);
             // Debug print to see which segment is actually nearest
             if nearest != Some(expected_idx) {
-                eprintln!(
-                    "Point {:?} - Expected segment {}, got {:?}",
-                    point, expected_idx, nearest
-                );
+                eprintln!("Point {point:?} - Expected segment {expected_idx}, got {nearest:?}");
                 // Calculate distances to all segments for debugging
                 for (idx, (start, end)) in segments.iter().enumerate() {
                     let dist = math::distance_point_to_segment(&point, start, end);
-                    eprintln!(
-                        "  Segment {} ({:?} to {:?}): distance = {}",
-                        idx, start, end, dist
-                    );
+                    eprintln!("  Segment {idx} ({start:?} to {end:?}): distance = {dist}");
                 }
             }
             assert_eq!(nearest, Some(expected_idx));
@@ -518,10 +512,7 @@ mod tests {
         for (point, arc_start, arc_end, center, radius, expected) in test_cases {
             let result = math::distance_arc_to_point(&point, &arc_start, &arc_end, &center, radius);
             if (result - expected).abs() > 0.5 {
-                eprintln!(
-                    "Arc test failed: point {:?}, expected {}, got {}",
-                    point, expected, result
-                );
+                eprintln!("Arc test failed: point {point:?}, expected {expected}, got {result}");
             }
             assert_relative_eq!(result, expected, epsilon = 0.5); // More tolerance for arc approximation
         }

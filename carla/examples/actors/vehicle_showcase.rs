@@ -281,11 +281,11 @@ fn main() -> Result<()> {
             })
             .unwrap_or_else(|| "unknown".to_string());
 
-        println!("  Brand: {}", brand);
-        println!("  Model: {}", model);
-        println!("  Generation: {}", generation);
-        println!("  Base Type: {}", base_type);
-        println!("  Wheels: {}", number_of_wheels);
+        println!("  Brand: {brand}");
+        println!("  Model: {model}");
+        println!("  Generation: {generation}");
+        println!("  Base Type: {base_type}");
+        println!("  Wheels: {number_of_wheels}");
 
         // Spawn vehicle
         match world.try_spawn_actor(blueprint, &spawn_transform, None) {
@@ -359,7 +359,7 @@ fn main() -> Result<()> {
                         log::debug!("  ✓ Vehicle destroyed");
                     }
                     Err(e) => {
-                        log::warn!("  ⚠ Failed to destroy vehicle: {}", e);
+                        log::warn!("  ⚠ Failed to destroy vehicle: {e}");
                     }
                 }
 
@@ -376,7 +376,7 @@ fn main() -> Result<()> {
                 showcase_stats.record_operation(showcase_timer.elapsed_ms(), false);
             }
             Err(e) => {
-                log::warn!("  ✗ Failed to spawn vehicle: {}", e);
+                log::warn!("  ✗ Failed to spawn vehicle: {e}");
                 showcase_stats.record_operation(showcase_timer.elapsed_ms(), false);
             }
         }

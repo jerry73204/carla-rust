@@ -129,7 +129,7 @@ fn simulate_traffic_for_recording(
     let blueprint_library = world.blueprint_library()?;
 
     // Spawn vehicles
-    println!("Spawning {} vehicles for recording...", vehicle_count);
+    println!("Spawning {vehicle_count} vehicles for recording...");
     let vehicle_blueprints = blueprint_library.filter("vehicle.*")?;
 
     for i in 0..vehicle_count {
@@ -150,7 +150,7 @@ fn simulate_traffic_for_recording(
 
             match world.try_spawn_actor(blueprint, &spawn_transform, None) {
                 Ok(Some(vehicle)) => {
-                    let actor_id = format!("vehicle_{:03}", i);
+                    let actor_id = format!("vehicle_{i:03}");
 
                     // Record spawn event
                     events.push(RecordingEvent {
@@ -174,10 +174,10 @@ fn simulate_traffic_for_recording(
                     );
                 }
                 Ok(None) => {
-                    log::warn!("Failed to spawn vehicle {} - spawn point occupied", i);
+                    log::warn!("Failed to spawn vehicle {i} - spawn point occupied");
                 }
                 Err(e) => {
-                    log::warn!("Failed to spawn vehicle {}: {}", i, e);
+                    log::warn!("Failed to spawn vehicle {i}: {e}");
                 }
             }
         }
@@ -191,7 +191,7 @@ fn simulate_traffic_for_recording(
         events.push(RecordingEvent {
             timestamp: start_time.elapsed().as_secs_f64(),
             event_type: "spawn".to_string(),
-            actor_id: format!("walker_{:03}", i),
+            actor_id: format!("walker_{i:03}"),
             description: "Spawned walker (simulated)".to_string(),
             location: Location {
                 x: (i as f64) * 5.0,
@@ -221,7 +221,7 @@ fn simulate_recording_session(
     let frame_duration = Duration::from_millis(50); // 20 FPS
     let total_frames = (duration * 20.0) as u64;
 
-    println!("Recording simulation events for {:.1}s...", duration);
+    println!("Recording simulation events for {duration:.1}s...");
     let mut progress = ProgressTracker::new(total_frames, total_frames / 10);
 
     for frame in 0..total_frames {
@@ -246,7 +246,7 @@ fn simulate_recording_session(
                 all_events.push(RecordingEvent {
                     timestamp: recording_time,
                     event_type: "transform".to_string(),
-                    actor_id: format!("vehicle_{:03}", i),
+                    actor_id: format!("vehicle_{i:03}"),
                     description: "Vehicle moved".to_string(),
                     location: new_location,
                     additional_data: {
@@ -266,7 +266,7 @@ fn simulate_recording_session(
                 all_events.push(RecordingEvent {
                     timestamp: recording_time,
                     event_type: "control".to_string(),
-                    actor_id: format!("vehicle_{:03}", i),
+                    actor_id: format!("vehicle_{i:03}"),
                     description: "Applied vehicle control".to_string(),
                     location: actor.transform().location,
                     additional_data: {
@@ -286,7 +286,7 @@ fn simulate_recording_session(
                 timestamp: recording_time,
                 event_type: "world_tick".to_string(),
                 actor_id: "world".to_string(),
-                description: format!("World tick frame {}", frame),
+                description: format!("World tick frame {frame}"),
                 location: Location {
                     x: 0.0,
                     y: 0.0,
@@ -363,8 +363,7 @@ fn simulate_playback(
     let frame_duration = Duration::from_millis((50.0 / playback_speed) as u64);
 
     println!(
-        "Playing back {:.1}s recording at {:.1}x speed ({:.1}s actual)",
-        total_duration, playback_speed, adjusted_duration
+        "Playing back {total_duration:.1}s recording at {playback_speed:.1}x speed ({adjusted_duration:.1}s actual)"
     );
 
     let start_time = Instant::now();
@@ -429,10 +428,7 @@ fn simulate_playback(
     }
 
     let actual_duration = start_time.elapsed().as_secs_f64();
-    println!(
-        "Playback completed in {:.1}s (expected {:.1}s)",
-        actual_duration, adjusted_duration
-    );
+    println!("Playback completed in {actual_duration:.1}s (expected {adjusted_duration:.1}s)");
 
     if analysis_mode {
         println!("\n=== Playback Analysis ===");
@@ -514,7 +510,7 @@ fn main() -> Result<()> {
     if args.playback_only {
         if let Some(ref playback_file) = args.playback_file {
             println!("\n=== Playback Only Mode ===");
-            println!("TODO: Would load and playback file: {}", playback_file);
+            println!("TODO: Would load and playback file: {playback_file}");
             println!("This requires implementing file loading and event parsing");
         } else {
             anyhow::bail!("Playback file required for playback-only mode");
@@ -527,7 +523,7 @@ fn main() -> Result<()> {
         std::fs::create_dir_all(&args.output_dir)?;
         let recording_file = create_recording_filename(&args.recording_name, &args.output_dir);
 
-        println!("Recording simulation to: {}", recording_file);
+        println!("Recording simulation to: {recording_file}");
         println!("Duration: {:.1}s", args.recording_duration);
 
         // TODO: Start actual CARLA recorder
@@ -600,11 +596,11 @@ fn main() -> Result<()> {
             match actor.destroy() {
                 Ok(_) => {
                     cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                    log::debug!("Destroyed actor {}", i);
+                    log::debug!("Destroyed actor {i}");
                 }
                 Err(e) => {
                     cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                    log::warn!("Failed to destroy actor {}: {}", i, e);
+                    log::warn!("Failed to destroy actor {i}: {e}");
                 }
             }
         }

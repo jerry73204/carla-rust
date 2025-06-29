@@ -411,8 +411,7 @@ mod tests {
         for type_id in camera_types {
             assert!(
                 type_id.contains("sensor.camera"),
-                "Camera type check failed for {}",
-                type_id
+                "Camera type check failed for {type_id}"
             );
         }
 
@@ -425,8 +424,7 @@ mod tests {
         for type_id in lidar_types {
             assert!(
                 type_id.contains("sensor.lidar") || type_id.contains("velodyne"),
-                "LiDAR type check failed for {}",
-                type_id
+                "LiDAR type check failed for {type_id}"
             );
         }
     }

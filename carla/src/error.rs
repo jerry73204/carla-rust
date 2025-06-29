@@ -484,19 +484,19 @@ pub trait FromCxxError {
 
 impl FromCxxError for CarlaError {
     fn from_cxx_error(error: anyhow::Error, context: &str) -> Self {
-        CarlaError::Runtime(format!("{}: {}", context, error))
+        CarlaError::Runtime(format!("{context}: {error}"))
     }
 }
 
 impl FromCxxError for ClientError {
     fn from_cxx_error(error: anyhow::Error, context: &str) -> Self {
-        ClientError::Rpc(format!("{}: {}", context, error))
+        ClientError::Rpc(format!("{context}: {error}"))
     }
 }
 
 impl FromCxxError for ActorError {
     fn from_cxx_error(error: anyhow::Error, context: &str) -> Self {
-        ActorError::ControlFailed(format!("{}: {}", context, error))
+        ActorError::ControlFailed(format!("{context}: {error}"))
     }
 }
 
@@ -516,7 +516,7 @@ mod tests {
             reason: "Connection refused".to_string(),
         });
 
-        let error_string = format!("{}", client_error);
+        let error_string = format!("{client_error}");
         assert!(error_string.contains("Client error"));
         assert!(error_string.contains("Connection failed"));
         assert!(error_string.contains("localhost:2000"));
@@ -538,9 +538,9 @@ mod tests {
         let rpc_error = ClientError::Rpc("RPC call failed".to_string());
 
         // Test that errors can be formatted
-        assert!(format!("{}", connection_error).contains("192.168.1.100"));
-        assert!(format!("{}", map_error).contains("Town01"));
-        assert!(format!("{}", rpc_error).contains("RPC call failed"));
+        assert!(format!("{connection_error}").contains("192.168.1.100"));
+        assert!(format!("{map_error}").contains("Town01"));
+        assert!(format!("{rpc_error}").contains("RPC call failed"));
     }
 
     #[test]
@@ -553,9 +553,9 @@ mod tests {
         let settings_error = WorldError::SettingsInvalid("Invalid weather settings".to_string());
         let tick_error = WorldError::TickFailed("Server not responding".to_string());
 
-        assert!(format!("{}", map_load_error).contains("InvalidMap"));
-        assert!(format!("{}", settings_error).contains("Invalid weather"));
-        assert!(format!("{}", tick_error).contains("not responding"));
+        assert!(format!("{map_load_error}").contains("InvalidMap"));
+        assert!(format!("{settings_error}").contains("Invalid weather"));
+        assert!(format!("{tick_error}").contains("not responding"));
     }
 
     #[test]
@@ -567,10 +567,10 @@ mod tests {
             violation: "destroyed state during get_transform".to_string(),
         };
 
-        assert!(format!("{}", not_found_error).contains("12345"));
-        assert!(format!("{}", control_error).contains("Autopilot failed"));
-        assert!(format!("{}", lifecycle_error).contains("678"));
-        assert!(format!("{}", lifecycle_error).contains("destroyed"));
+        assert!(format!("{not_found_error}").contains("12345"));
+        assert!(format!("{control_error}").contains("Autopilot failed"));
+        assert!(format!("{lifecycle_error}").contains("678"));
+        assert!(format!("{lifecycle_error}").contains("destroyed"));
     }
 
     #[test]
@@ -589,9 +589,9 @@ mod tests {
 
         let no_spawn_error = SpawnError::NoSpawnPoints;
 
-        assert!(format!("{}", location_error).contains("10"));
-        assert!(format!("{}", blueprint_error).contains("vehicle.invalid.model"));
-        assert!(format!("{}", no_spawn_error).contains("No spawn points"));
+        assert!(format!("{location_error}").contains("10"));
+        assert!(format!("{blueprint_error}").contains("vehicle.invalid.model"));
+        assert!(format!("{no_spawn_error}").contains("No spawn points"));
     }
 
     #[test]
@@ -600,9 +600,9 @@ mod tests {
         let already_listening = SensorError::AlreadyListening(456);
         let config_error = SensorError::InvalidConfiguration("Invalid image size".to_string());
 
-        assert!(format!("{}", not_listening).contains("123"));
-        assert!(format!("{}", already_listening).contains("456"));
-        assert!(format!("{}", config_error).contains("Invalid image size"));
+        assert!(format!("{not_listening}").contains("123"));
+        assert!(format!("{already_listening}").contains("456"));
+        assert!(format!("{config_error}").contains("Invalid image size"));
     }
 
     #[test]
@@ -610,8 +610,8 @@ mod tests {
         let not_found = TrafficManagerError::NotFound(8000);
         let not_registered = TrafficManagerError::VehicleNotRegistered(789);
 
-        assert!(format!("{}", not_found).contains("8000"));
-        assert!(format!("{}", not_registered).contains("789"));
+        assert!(format!("{not_found}").contains("8000"));
+        assert!(format!("{not_registered}").contains("789"));
     }
 
     #[test]
@@ -628,8 +628,8 @@ mod tests {
 
         let physics_error = VehicleError::PhysicsControlFailed("Invalid mass".to_string());
 
-        assert!(format!("{}", control_error).contains("throttle"));
-        assert!(format!("{}", physics_error).contains("Invalid mass"));
+        assert!(format!("{control_error}").contains("throttle"));
+        assert!(format!("{physics_error}").contains("Invalid mass"));
     }
 
     #[test]
@@ -644,9 +644,9 @@ mod tests {
             lane_type: None,
         };
 
-        assert!(format!("{}", opendrive_error).contains("Invalid XML"));
-        assert!(format!("{}", waypoint_error).contains("100"));
-        assert!(format!("{}", waypoint_error).contains("200"));
+        assert!(format!("{opendrive_error}").contains("Invalid XML"));
+        assert!(format!("{waypoint_error}").contains("100"));
+        assert!(format!("{waypoint_error}").contains("200"));
     }
 
     #[test]
@@ -679,7 +679,7 @@ mod tests {
     #[test]
     fn test_error_debug_format() {
         let error = CarlaError::Runtime("Debug test".to_string());
-        let debug_string = format!("{:?}", error);
+        let debug_string = format!("{error:?}");
 
         assert!(debug_string.contains("Runtime"));
         assert!(debug_string.contains("Debug test"));

@@ -49,7 +49,7 @@ fn main() -> Result<()> {
             actor
         }
         Err(e) => {
-            println!("✗ Failed to spawn actor: {}", e);
+            println!("✗ Failed to spawn actor: {e}");
             return Ok(());
         }
     };
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
             );
         }
         Err(e) => {
-            println!("✗ Failed to get transform: {}", e);
+            println!("✗ Failed to get transform: {e}");
         }
     }
 
@@ -79,7 +79,7 @@ fn main() -> Result<()> {
             );
         }
         Err(e) => {
-            println!("✗ Failed to get velocity: {}", e);
+            println!("✗ Failed to get velocity: {e}");
         }
     }
 
@@ -92,7 +92,7 @@ fn main() -> Result<()> {
             );
         }
         Err(e) => {
-            println!("✗ Failed to get bounding box: {}", e);
+            println!("✗ Failed to get bounding box: {e}");
         }
     }
 
@@ -105,7 +105,7 @@ fn main() -> Result<()> {
     println!("\nTest 4: Safe physics operations...");
     match actor.set_simulate_physics(true) {
         Ok(_) => println!("✓ Enabled physics simulation"),
-        Err(e) => println!("✗ Failed to enable physics: {}", e),
+        Err(e) => println!("✗ Failed to enable physics: {e}"),
     }
 
     // Add a small impulse
@@ -116,7 +116,7 @@ fn main() -> Result<()> {
     };
     match actor.add_impulse(&impulse) {
         Ok(_) => println!("✓ Applied impulse"),
-        Err(e) => println!("✗ Failed to apply impulse: {}", e),
+        Err(e) => println!("✗ Failed to apply impulse: {e}"),
     }
 
     // Test 5: Destruction with enhanced error handling
@@ -124,14 +124,14 @@ fn main() -> Result<()> {
     let mut actor = actor; // Make mutable for destroy
     match actor.destroy() {
         Ok(_) => println!("✓ Successfully destroyed actor"),
-        Err(e) => println!("✗ Failed to destroy actor: {}", e),
+        Err(e) => println!("✗ Failed to destroy actor: {e}"),
     }
 
     // Test 6: Operations after destruction should fail gracefully
     println!("\nTest 6: Operations after destruction...");
     match actor.try_transform() {
         Ok(_) => println!("✗ Unexpected: Got transform after destruction"),
-        Err(e) => println!("✓ Expected error: {}", e),
+        Err(e) => println!("✓ Expected error: {e}"),
     }
 
     println!("\nDefensive actor tests completed!");

@@ -128,7 +128,7 @@ fn create_cinematic_paths(
                 },
             },
             fov: 90.0,
-            description: format!("Orbit frame {}", i),
+            description: format!("Orbit frame {i}"),
         });
     }
 
@@ -163,7 +163,7 @@ fn create_cinematic_paths(
                 },
             },
             fov: 90.0 - (progress * 20.0) as f32, // Zoom in during ascent
-            description: format!("Spiral frame {}", i),
+            description: format!("Spiral frame {i}"),
         });
     }
 
@@ -198,7 +198,7 @@ fn create_cinematic_paths(
                 },
             },
             fov: 85.0 + (t.sin() * 10.0) as f32,
-            description: format!("Figure-8 frame {}", i),
+            description: format!("Figure-8 frame {i}"),
         });
     }
 
@@ -522,7 +522,7 @@ fn main() -> Result<()> {
 
     // Print recording statistics
     println!("\n=== Recording Statistics ===");
-    println!("Total frames recorded: {}", total_frames);
+    println!("Total frames recorded: {total_frames}");
     println!(
         "Recording duration: {:.1}s (target: {:.1}s)",
         total_recording_time.as_secs_f64(),
@@ -539,10 +539,10 @@ fn main() -> Result<()> {
     );
 
     if let Some(min) = frame_stats.min_duration_ms {
-        println!("Fastest frame: {}ms", min);
+        println!("Fastest frame: {min}ms");
     }
     if let Some(max) = frame_stats.max_duration_ms {
-        println!("Slowest frame: {}ms", max);
+        println!("Slowest frame: {max}ms");
     }
 
     // Print per-path statistics

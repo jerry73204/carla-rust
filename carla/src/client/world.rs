@@ -40,8 +40,7 @@ impl World {
     pub fn map(&self) -> CarlaResult<Map> {
         let map_wrapper = self.inner.get_map().map_err(|e| {
             crate::error::CarlaError::Map(crate::error::MapError::Navigation(format!(
-                "Failed to get map: {}",
-                e
+                "Failed to get map: {e}"
             )))
         })?;
         Ok(Map::new(map_wrapper))
@@ -51,8 +50,7 @@ impl World {
     pub fn blueprint_library(&self) -> CarlaResult<BlueprintLibrary> {
         let blueprint_library_wrapper = self.inner.get_blueprint_library().map_err(|e| {
             crate::error::CarlaError::World(crate::error::WorldError::BlueprintNotFound(format!(
-                "Failed to get blueprint library: {}",
-                e
+                "Failed to get blueprint library: {e}"
             )))
         })?;
         Ok(BlueprintLibrary::from_cxx(blueprint_library_wrapper))
@@ -186,9 +184,7 @@ impl World {
                         return Ok(actor);
                     } else if attempt < max_attempts {
                         eprintln!(
-                            "Warning: Spawned actor was immediately invalid, retrying... (attempt {}/{})",
-                            attempt,
-                            max_attempts
+                            "Warning: Spawned actor was immediately invalid, retrying... (attempt {attempt}/{max_attempts})"
                         );
                         // Small delay before retry
                         std::thread::sleep(std::time::Duration::from_millis(100));
@@ -196,8 +192,7 @@ impl World {
                 }
                 Err(e) if attempt < max_attempts => {
                     eprintln!(
-                        "Warning: Failed to spawn actor: {}, retrying... (attempt {}/{})",
-                        e, attempt, max_attempts
+                        "Warning: Failed to spawn actor: {e}, retrying... (attempt {attempt}/{max_attempts})"
                     );
                     std::thread::sleep(std::time::Duration::from_millis(100));
                 }

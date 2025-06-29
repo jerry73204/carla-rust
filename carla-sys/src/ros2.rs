@@ -119,7 +119,7 @@ pub mod ros2_utils {
     /// # Returns
     /// Standard ROS2 topic name
     pub fn generate_topic_name(actor_name: &str, sensor_name: &str) -> String {
-        format!("/carla/{}/{}", actor_name, sensor_name)
+        format!("/carla/{actor_name}/{sensor_name}")
     }
 
     /// Common ROS2 sensor names used in CARLA.

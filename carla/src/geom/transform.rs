@@ -488,8 +488,7 @@ mod tests {
             + identity.rotation.roll.abs();
         assert!(
             total_angle < 5.0,
-            "Total rotation angle {} is too large",
-            total_angle
+            "Total rotation angle {total_angle} is too large"
         );
     }
 

@@ -20,7 +20,7 @@ pub fn connect_with_retry(host: &str, port: u16, timeout_secs: u32) -> Result<Cl
             Ok(client) => return Ok(client),
             Err(e) if attempts < max_attempts => {
                 attempts += 1;
-                eprintln!("Connection attempt {} failed: {}. Retrying...", attempts, e);
+                eprintln!("Connection attempt {attempts} failed: {e}. Retrying...");
                 thread::sleep(Duration::from_secs(1));
             }
             Err(e) => return Err(e).context("Failed to connect to CARLA server. Is it running?"),
@@ -34,7 +34,7 @@ pub fn ensure_clean_world(world: &World) -> Result<()> {
     let count = actors.len();
 
     if count > 0 {
-        println!("Cleaning up {} existing actors...", count);
+        println!("Cleaning up {count} existing actors...");
         for actor in actors.iter() {
             if actor.type_id() != "spectator" {
                 // Cannot destroy actor here as we don't have mutable reference
@@ -89,10 +89,7 @@ where
         match operation() {
             Ok(result) => return Ok(result),
             Err(e) if attempt < max_attempts => {
-                eprintln!(
-                    "Attempt {} failed: {}. Retrying in {:?}...",
-                    attempt, e, delay
-                );
+                eprintln!("Attempt {attempt} failed: {e}. Retrying in {delay:?}...");
                 thread::sleep(delay);
                 delay *= 2; // Exponential backoff
             }

@@ -26,13 +26,13 @@ fn main() -> anyhow::Result<()> {
             // 1. Start Recording
             println!("\n🔴 Starting recording...");
             let start_result = client.start_recorder(recording_filename, true);
-            println!("Start recording result: {}", start_result);
+            println!("Start recording result: {start_result}");
 
             // Let the simulation run for a few ticks to record some data
             println!("📊 Recording simulation data for 5 seconds...");
             for i in 1..=5 {
                 world.tick(Duration::from_secs(2));
-                println!("   Tick {}/5 completed", i);
+                println!("   Tick {i}/5 completed");
             }
 
             // 2. Stop Recording
@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
             // Show file information
             println!("\n📄 File Information:");
             let file_info = client.show_recorder_file_info(recording_filename, true);
-            println!("{}", file_info);
+            println!("{file_info}");
 
             // Show collision analysis (all actor types)
             println!("\n💥 Collision Analysis:");
@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
                 actor_types::ALL,
                 actor_types::ALL,
             );
-            println!("{}", collision_analysis);
+            println!("{collision_analysis}");
 
             // Show blocked actors analysis
             println!("\n🚫 Blocked Actors Analysis:");
@@ -64,7 +64,7 @@ fn main() -> anyhow::Result<()> {
                 defaults::MIN_TIME_BLOCKED,
                 defaults::MIN_DISTANCE_BLOCKED,
             );
-            println!("{}", blocked_analysis);
+            println!("{blocked_analysis}");
 
             // 4. Playback Demo
             println!("\n▶️  Starting playback demo...");
@@ -82,7 +82,7 @@ fn main() -> anyhow::Result<()> {
                 0,    // follow_id (0 for no follow)
                 true, // replay_sensors
             );
-            println!("Replay result: {}", replay_result);
+            println!("Replay result: {replay_result}");
 
             // Let it play for a moment
             std::thread::sleep(Duration::from_secs(3));
@@ -107,7 +107,7 @@ fn main() -> anyhow::Result<()> {
                 actor_types::VEHICLE,
                 actor_types::VEHICLE,
             );
-            println!("{}", vehicle_collisions);
+            println!("{vehicle_collisions}");
 
             // Custom blocked actor analysis with different thresholds
             println!("\n⏱️  Custom Blocked Actor Analysis (stricter thresholds):");
@@ -116,14 +116,14 @@ fn main() -> anyhow::Result<()> {
                 10.0, // 10 second threshold
                 5.0,  // 5 meter threshold
             );
-            println!("{}", strict_blocked);
+            println!("{strict_blocked}");
 
             println!("\n✨ Recording and playback demo completed successfully!");
-            println!("💡 Recording saved as: {}", recording_filename);
+            println!("💡 Recording saved as: {recording_filename}");
             println!("💡 You can replay this file later or analyze it further");
         }
         Err(e) => {
-            println!("❌ Failed to connect to CARLA server: {}", e);
+            println!("❌ Failed to connect to CARLA server: {e}");
             println!("💡 Make sure CARLA simulator is running on localhost:2000");
             println!("   Example: ./CarlaUE4.sh -windowed -ResX=800 -ResY=600");
             return Err(e);

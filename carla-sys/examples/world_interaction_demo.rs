@@ -137,13 +137,13 @@ fn main() -> Result<()> {
 
         // Demo 5: Get specific actors by IDs
         let first_few_ids = &all_actors.get_ids()[..std::cmp::min(3, all_actors.len())];
-        println!("\n🔍 Querying specific actors by IDs: {:?}", first_few_ids);
+        println!("\n🔍 Querying specific actors by IDs: {first_few_ids:?}");
         let specific_actors = world.get_actors_by_ids(first_few_ids);
         println!("✅ Retrieved {} specific actors", specific_actors.len());
 
         // Demo 6: Get individual actor details
         if let Some(&first_id) = all_actors.get_ids().first() {
-            println!("\n🔍 Getting details for actor ID {}", first_id);
+            println!("\n🔍 Getting details for actor ID {first_id}");
             if let Some(actor) = world.get_actor(first_id) {
                 println!("✅ Actor found:");
                 println!("   🆔 ID: {}", actor.get_id());
@@ -155,7 +155,7 @@ fn main() -> Result<()> {
                     actor.get_location().z
                 );
             } else {
-                println!("❌ Actor with ID {} not found", first_id);
+                println!("❌ Actor with ID {first_id} not found");
             }
         }
     }

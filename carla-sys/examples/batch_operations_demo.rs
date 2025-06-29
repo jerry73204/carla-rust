@@ -50,10 +50,7 @@ fn main() -> Result<()> {
     let sample_size = std::cmp::min(5, actor_ids.len());
     let sample_actors = &actor_ids[..sample_size];
 
-    println!(
-        "🎯 Using {} sample actors: {:?}",
-        sample_size, sample_actors
-    );
+    println!("🎯 Using {sample_size} sample actors: {sample_actors:?}");
 
     // === DEMO 2: BULK VEHICLE CONTROL ===
     println!("\n🚗 Demo 2: Bulk Vehicle Control");
@@ -77,7 +74,7 @@ fn main() -> Result<()> {
     // Create batch commands for vehicle controls
     let control_commands = batch_utils::create_vehicle_controls(sample_actors, &vehicle_controls);
 
-    println!("🎮 Applying vehicle controls to {} actors...", sample_size);
+    println!("🎮 Applying vehicle controls to {sample_size} actors...");
     println!("   Controls: throttle [0.3-0.7], alternating steering");
 
     // Apply batch asynchronously (fire and forget)
@@ -99,7 +96,7 @@ fn main() -> Result<()> {
             0 => {
                 // Set autopilot on some vehicles
                 mixed_commands.push(BatchCommandBuilder::set_autopilot(actor_id, true, 8000));
-                println!("   🤖 Setting autopilot ON for actor {}", actor_id);
+                println!("   🤖 Setting autopilot ON for actor {actor_id}");
             }
             1 => {
                 // Apply new location to some actors
@@ -123,10 +120,7 @@ fn main() -> Result<()> {
                     actor_id,
                     light_state,
                 ));
-                println!(
-                    "   💡 Setting lights (position + low beam) for actor {}",
-                    actor_id
-                );
+                println!("   💡 Setting lights (position + low beam) for actor {actor_id}");
             }
             3 => {
                 // Apply some force
@@ -136,7 +130,7 @@ fn main() -> Result<()> {
                     z: 0.0,
                 };
                 mixed_commands.push(BatchCommandBuilder::apply_force(actor_id, &force));
-                println!("   💨 Applying forward force to actor {}", actor_id);
+                println!("   💨 Applying forward force to actor {actor_id}");
             }
             _ => unreachable!(),
         }
@@ -151,12 +145,12 @@ fn main() -> Result<()> {
         if response.is_success() {
             println!("   ✅ Command {}: Success", i + 1);
             if let Some(actor_id) = response.get_actor_id() {
-                println!("      Result actor ID: {}", actor_id);
+                println!("      Result actor ID: {actor_id}");
             }
         } else {
             println!("   ❌ Command {}: Failed", i + 1);
             if let Some(error) = response.get_error_message() {
-                println!("      Error: {}", error);
+                println!("      Error: {error}");
             }
         }
     }
@@ -178,7 +172,7 @@ fn main() -> Result<()> {
                     z: 5000.0, // Upward impulse
                 };
                 physics_commands.push(BatchCommandBuilder::apply_impulse(actor_id, &impulse));
-                println!("   🚀 Applying upward impulse to actor {}", actor_id);
+                println!("   🚀 Applying upward impulse to actor {actor_id}");
             }
             1 => {
                 // Set target velocity
@@ -190,10 +184,7 @@ fn main() -> Result<()> {
                 physics_commands.push(BatchCommandBuilder::apply_target_velocity(
                     actor_id, &velocity,
                 ));
-                println!(
-                    "   🏃 Setting target velocity (10 m/s forward) for actor {}",
-                    actor_id
-                );
+                println!("   🏃 Setting target velocity (10 m/s forward) for actor {actor_id}");
             }
             2 => {
                 // Toggle physics simulation
@@ -223,8 +214,8 @@ fn main() -> Result<()> {
     let success_count = physics_responses.iter().filter(|r| r.is_success()).count();
     let error_count = physics_responses.len() - success_count;
 
-    println!("   ✅ Successful: {}", success_count);
-    println!("   ❌ Failed: {}", error_count);
+    println!("   ✅ Successful: {success_count}");
+    println!("   ❌ Failed: {error_count}");
 
     if error_count > 0 {
         println!("   📝 Error details:");
@@ -259,17 +250,14 @@ fn main() -> Result<()> {
     let controls = vec![simple_control; large_batch_size];
     let performance_commands = batch_utils::create_vehicle_controls(large_sample, &controls);
 
-    println!(
-        "🏁 Performance test: {} vehicle control commands",
-        large_batch_size
-    );
+    println!("🏁 Performance test: {large_batch_size} vehicle control commands");
 
     // Measure batch operation time
     let start_time = std::time::Instant::now();
     client.apply_batch(&performance_commands, false);
     let batch_duration = start_time.elapsed();
 
-    println!("⚡ Batch operation completed in: {:?}", batch_duration);
+    println!("⚡ Batch operation completed in: {batch_duration:?}");
     println!(
         "📊 Average time per command: {:?}",
         batch_duration / large_batch_size as u32
@@ -278,16 +266,10 @@ fn main() -> Result<()> {
     // === DEMONSTRATION SUMMARY ===
     println!("\n📊 Batch Operations Demo Summary");
     println!("=================================");
-    println!(
-        "✅ Bulk vehicle controls: Applied different controls to {} actors",
-        sample_size
-    );
+    println!("✅ Bulk vehicle controls: Applied different controls to {sample_size} actors");
     println!("✅ Mixed batch operations: Combined autopilot, positioning, lights, and forces");
     println!("✅ Physics operations: Applied impulses, velocities, and physics toggles");
-    println!(
-        "✅ Performance testing: Processed {} commands in {:?}",
-        large_batch_size, batch_duration
-    );
+    println!("✅ Performance testing: Processed {large_batch_size} commands in {batch_duration:?}");
     println!("✅ Error handling: Demonstrated synchronous batch with response checking");
 
     println!("\n🎉 Batch operations demonstration completed successfully!");

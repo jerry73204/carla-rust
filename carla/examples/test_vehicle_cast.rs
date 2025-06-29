@@ -13,7 +13,7 @@ fn main() {
             let world = match client.world() {
                 Ok(w) => w,
                 Err(e) => {
-                    println!("Failed to get world: {:?}", e);
+                    println!("Failed to get world: {e:?}");
                     return;
                 }
             };
@@ -24,7 +24,7 @@ fn main() {
             let blueprint_library = match world.blueprint_library() {
                 Ok(bl) => bl,
                 Err(e) => {
-                    println!("Failed to get blueprint library: {:?}", e);
+                    println!("Failed to get blueprint library: {e:?}");
                     return;
                 }
             };
@@ -37,7 +37,7 @@ fn main() {
                     return;
                 }
                 Err(e) => {
-                    println!("Failed to find blueprint: {:?}", e);
+                    println!("Failed to find blueprint: {e:?}");
                     return;
                 }
             };
@@ -48,7 +48,7 @@ fn main() {
             let spawn_points = match world.map() {
                 Ok(map) => map.spawn_points(),
                 Err(e) => {
-                    println!("Failed to get map: {:?}", e);
+                    println!("Failed to get map: {e:?}");
                     return;
                 }
             };
@@ -57,7 +57,7 @@ fn main() {
                 .get(0)
                 .unwrap_or_else(carla::geom::Transform::default);
 
-            println!("Spawning vehicle at: {:?}", spawn_point);
+            println!("Spawning vehicle at: {spawn_point:?}");
 
             // Spawn the actor
             let actor = match world.try_spawn_actor(&vehicle_bp, &spawn_point, None) {
@@ -67,7 +67,7 @@ fn main() {
                     return;
                 }
                 Err(e) => {
-                    println!("Error spawning actor: {:?}", e);
+                    println!("Error spawning actor: {e:?}");
                     return;
                 }
             };
@@ -90,7 +90,7 @@ fn main() {
             }
         }
         Err(e) => {
-            println!("Failed to create client: {:?}", e);
+            println!("Failed to create client: {e:?}");
         }
     }
 }

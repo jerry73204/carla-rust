@@ -56,8 +56,8 @@ fn main() -> Result<()> {
     // Example 7: Use any() and all() with filtered lists
     let has_fast_vehicles = vehicles.any(|actor| actor.velocity().length() > 20.0);
     let all_vehicles_alive = vehicles.all(|actor| actor.is_alive());
-    println!("7. Has fast vehicles (>20 m/s): {}", has_fast_vehicles);
-    println!("   All vehicles alive: {}", all_vehicles_alive);
+    println!("7. Has fast vehicles (>20 m/s): {has_fast_vehicles}");
+    println!("   All vehicles alive: {all_vehicles_alive}");
 
     // Example 8: Iterate through filtered results
     println!("\n8. Iterating through fast vehicles:");

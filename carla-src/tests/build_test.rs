@@ -88,15 +88,11 @@ fn test_build_directory_structure() {
 
     // Verify all include directories exist
     for include_dir in source.include_dirs() {
-        assert!(
-            include_dir.exists(),
-            "Include dir missing: {:?}",
-            include_dir
-        );
+        assert!(include_dir.exists(), "Include dir missing: {include_dir:?}");
     }
 
     // Verify all library directories exist
     for lib_dir in source.lib_dirs() {
-        assert!(lib_dir.exists(), "Library dir missing: {:?}", lib_dir);
+        assert!(lib_dir.exists(), "Library dir missing: {lib_dir:?}");
     }
 }

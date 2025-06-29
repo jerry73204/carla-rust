@@ -78,7 +78,7 @@ fn main() -> anyhow::Result<()> {
             println!("\n✨ Weather demo completed successfully!");
         }
         Err(e) => {
-            println!("❌ Failed to connect to CARLA server: {}", e);
+            println!("❌ Failed to connect to CARLA server: {e}");
             println!("💡 Make sure CARLA simulator is running on localhost:2000");
             println!("   Example: ./CarlaUE4.sh -windowed -ResX=800 -ResY=600");
             return Err(e);

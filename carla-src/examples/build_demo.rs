@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             print_build_info(&source);
         }
         Err(e) => {
-            println!("✗ Failed to load CARLA source: {}", e);
+            println!("✗ Failed to load CARLA source: {e}");
             println!("\nTo use carla-src:");
             println!("  export CARLA_ROOT=/path/to/carla/source");
             println!("  cargo run --example build_demo");
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             print_build_info(&source);
         }
         Err(e) => {
-            println!("✗ Expected error for non-existent path: {}", e);
+            println!("✗ Expected error for non-existent path: {e}");
         }
     }
 

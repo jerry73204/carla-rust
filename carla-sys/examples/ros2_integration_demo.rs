@@ -190,7 +190,7 @@ fn main() -> anyhow::Result<()> {
         world.tick(Duration::from_millis(50));
 
         if frame % 10 == 0 {
-            println!("   Frame {}: Sensors publishing to ROS2 topics", frame);
+            println!("   Frame {frame}: Sensors publishing to ROS2 topics");
         }
 
         thread::sleep(Duration::from_millis(50));
@@ -206,9 +206,9 @@ fn main() -> anyhow::Result<()> {
     ];
 
     for (sensor_type, sensor_name) in &sensor_types {
-        let full_name = format!("{}_{}", sensor_name, sensor_type);
+        let full_name = format!("{sensor_name}_{sensor_type}");
         let topic = ros2_utils::generate_topic_name(actor_name, &full_name);
-        println!("   {}: {}", sensor_type, topic);
+        println!("   {sensor_type}: {topic}");
     }
 
     // Cleanup

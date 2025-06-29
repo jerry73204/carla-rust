@@ -292,7 +292,7 @@ mod tests {
     #[test]
     fn test_waypoint_debug_format() {
         let waypoint = create_test_waypoint();
-        let debug_string = format!("{:?}", waypoint);
+        let debug_string = format!("{waypoint:?}");
 
         assert!(debug_string.contains("Waypoint"));
         assert!(debug_string.contains("lane_id"));

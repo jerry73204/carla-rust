@@ -183,10 +183,7 @@ fn demo_traffic_lights(world: &carla_sys::WorldWrapper) -> Result<()> {
     );
 
     for (actor_id, light_state) in vehicle_lights.iter().take(5) {
-        println!(
-            "   Vehicle {}: Light state = {:#010b}",
-            actor_id, light_state
-        );
+        println!("   Vehicle {actor_id}: Light state = {light_state:#010b}");
     }
 
     Ok(())
@@ -214,7 +211,7 @@ fn demo_textures(world: &carla_sys::WorldWrapper) -> Result<()> {
 
     // Apply textures to first object
     if let Some(first_object) = object_names.first() {
-        println!("\n🎨 Applying textures to '{}'...", first_object);
+        println!("\n🎨 Applying textures to '{first_object}'...");
 
         // Create a red diffuse texture
         println!("🔴 Creating red diffuse texture...");

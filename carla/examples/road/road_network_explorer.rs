@@ -149,7 +149,7 @@ fn explore_waypoints_from_location(
         let offset_y = (i as f64) * distance * 0.1;
 
         let waypoint_info = WaypointInfo {
-            id: format!("wp_{:03}", i),
+            id: format!("wp_{i:03}"),
             transform: Transform {
                 location: Location {
                     x: start_location.x + offset_x,
@@ -431,10 +431,10 @@ fn main() -> Result<()> {
     );
 
     if let Some(min) = waypoint_stats.min_duration_ms {
-        println!("Fastest waypoint: {}ms", min);
+        println!("Fastest waypoint: {min}ms");
     }
     if let Some(max) = waypoint_stats.max_duration_ms {
-        println!("Slowest waypoint: {}ms", max);
+        println!("Slowest waypoint: {max}ms");
     }
 
     // Print detailed road information

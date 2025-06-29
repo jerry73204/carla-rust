@@ -30,10 +30,7 @@ fn main() -> CarlaResult<()> {
     let has_fast_vehicle = actors.any(|actor| {
         actor.type_id().contains("vehicle") && actor.velocity().length() > fast_threshold
     });
-    println!(
-        "\nAny vehicle moving > {}m/s (50km/h)? {}",
-        fast_threshold, has_fast_vehicle
-    );
+    println!("\nAny vehicle moving > {fast_threshold}m/s (50km/h)? {has_fast_vehicle}");
 
     // Get traffic lights using specialized methods
     let traffic_lights = world.traffic_lights()?;
@@ -71,10 +68,7 @@ fn main() -> CarlaResult<()> {
             pedestrian_count += 1;
         }
     });
-    println!(
-        "\nVehicles: {}, Pedestrians: {}",
-        vehicle_count, pedestrian_count
-    );
+    println!("\nVehicles: {vehicle_count}, Pedestrians: {pedestrian_count}");
 
     // Filter actors by custom predicate
     let static_actors = actors.filter(|actor| {

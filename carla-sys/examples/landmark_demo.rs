@@ -68,7 +68,7 @@ fn main() -> Result<()> {
         }
 
         for (speed, count) in speed_values {
-            println!("  {}km/h: {} signs", speed, count);
+            println!("  {speed}km/h: {count} signs");
         }
 
         // Show some examples
@@ -164,7 +164,7 @@ fn main() -> Result<()> {
 
                 // Check for speed limit at this location
                 if let Some(speed_limit) = waypoint.get_speed_limit(Some(50.0)) {
-                    println!("  🚀 Speed limit here: {}km/h", speed_limit);
+                    println!("  🚀 Speed limit here: {speed_limit}km/h");
                 } else {
                     println!("  ❓ No speed limit found within 50m");
                 }
@@ -241,7 +241,7 @@ fn main() -> Result<()> {
 
     // Get applicable speed limit (closest one)
     if let Some(applicable_speed) = landmark_utils::get_applicable_speed_limit(&all_landmarks) {
-        println!("  • Applicable speed limit: {}km/h", applicable_speed);
+        println!("  • Applicable speed limit: {applicable_speed}km/h");
     }
 
     println!("\n📋 Landmark Information Structure:");
@@ -274,7 +274,7 @@ fn main() -> Result<()> {
         if example.is_speed_limit() {
             println!("    ➜ This is a speed limit sign");
             if let Some(limit) = example.get_speed_limit() {
-                println!("    ➜ Speed limit: {}km/h", limit);
+                println!("    ➜ Speed limit: {limit}km/h");
             }
         } else if example.is_stop_sign() {
             println!("    ➜ This is a stop sign");

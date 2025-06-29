@@ -375,7 +375,7 @@ fn demo_coordinate_systems(world: &WorldWrapper) -> Result<()> {
             .life_time(30.0)
             .transform(&transform, 2.0);
 
-        let label = format!("Yaw: {}°", angle);
+        let label = format!("Yaw: {angle}°");
         world
             .debug_draw()
             .color(debug_colors::WHITE)

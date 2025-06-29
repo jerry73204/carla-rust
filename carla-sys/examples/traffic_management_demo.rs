@@ -235,7 +235,7 @@ fn demonstrate_synchronous_mode(
 fn monitor_traffic(_tm: &TrafficManagerWrapper, ticks: u32) -> Result<()> {
     // TODO: Use traffic manager for monitoring operations
     println!("Traffic monitoring simulation:");
-    println!("  Would monitor for {} ticks", ticks);
+    println!("  Would monitor for {ticks} ticks");
     println!("  Each 5 ticks would show:");
     println!("    - Active vehicle count");
     println!("    - Collision count");

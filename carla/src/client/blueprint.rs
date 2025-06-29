@@ -473,7 +473,7 @@ mod tests {
     #[test]
     fn test_rgb_color_display() {
         let color = RGBColor::new(128, 64, 32);
-        let debug_string = format!("{:?}", color);
+        let debug_string = format!("{color:?}");
 
         assert!(debug_string.contains("128"));
         assert!(debug_string.contains("64"));
@@ -491,7 +491,7 @@ mod tests {
         ];
 
         for value in values {
-            let debug_string = format!("{:?}", value);
+            let debug_string = format!("{value:?}");
             assert!(!debug_string.is_empty());
         }
     }

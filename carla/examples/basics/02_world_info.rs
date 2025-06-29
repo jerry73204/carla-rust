@@ -94,7 +94,7 @@ fn run_example(client: &Client, args: &CommonArgs) -> Result<()> {
     sorted_types.sort_by(|a, b| b.1.cmp(&a.1));
 
     for (type_id, count) in sorted_types {
-        println!("  {}: {}", type_id, count);
+        println!("  {type_id}: {count}");
     }
 
     // Get world snapshot

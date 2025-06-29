@@ -157,17 +157,17 @@ fn main() -> Result<()> {
 
         match world.try_spawn_actor(&vehicle_blueprint, &spawn_transform, None) {
             Ok(Some(vehicle)) => {
-                vehicles.push((vehicle, format!("vehicle_{:02}", i)));
+                vehicles.push((vehicle, format!("vehicle_{i:02}")));
                 println!(
                     "  ✓ Spawned vehicle {} at x={:.1}",
                     i, spawn_transform.location.x
                 );
             }
             Ok(None) => {
-                log::warn!("Failed to spawn vehicle {} - spawn point occupied", i);
+                log::warn!("Failed to spawn vehicle {i} - spawn point occupied");
             }
             Err(e) => {
-                log::warn!("Failed to spawn vehicle {}: {}", i, e);
+                log::warn!("Failed to spawn vehicle {i}: {e}");
             }
         }
     }
@@ -191,7 +191,7 @@ fn main() -> Result<()> {
     let total_cycles = total_duration_ms / cycle_duration_ms;
 
     println!("Pattern cycle duration: {:.1}s", args.cycle_duration);
-    println!("Total cycles: {}", total_cycles);
+    println!("Total cycles: {total_cycles}");
     println!("Available lighting patterns: {}", LIGHTING_PATTERNS.len());
 
     // Performance tracking
@@ -243,11 +243,7 @@ fn main() -> Result<()> {
                 ])?;
             }
 
-            log::debug!(
-                "  Vehicle {}: Applied '{}' lighting pattern",
-                vehicle_index,
-                pattern_name
-            );
+            log::debug!("  Vehicle {vehicle_index}: Applied '{pattern_name}' lighting pattern");
         }
 
         // Record pattern usage
@@ -264,7 +260,7 @@ fn main() -> Result<()> {
 
     // Print lighting demonstration statistics
     println!("\n=== Lighting Demonstration Statistics ===");
-    println!("Total cycles completed: {}", total_cycles);
+    println!("Total cycles completed: {total_cycles}");
     println!("Vehicles controlled: {}", vehicles.len());
     println!(
         "Average cycle time: {:.1}ms",
@@ -301,11 +297,11 @@ fn main() -> Result<()> {
         match vehicle.destroy() {
             Ok(_) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), true);
-                log::debug!("Destroyed vehicle: {}", vehicle_id);
+                log::debug!("Destroyed vehicle: {vehicle_id}");
             }
             Err(e) => {
                 cleanup_stats.record_operation(cleanup_timer.elapsed_ms(), false);
-                log::warn!("Failed to destroy vehicle {}: {}", vehicle_id, e);
+                log::warn!("Failed to destroy vehicle {vehicle_id}: {e}");
             }
         }
     }

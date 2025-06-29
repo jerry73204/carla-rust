@@ -54,7 +54,7 @@ impl CarlaSource {
             )
         })?;
 
-        log::info!("Using CARLA source from CARLA_ROOT: {}", root);
+        log::info!("Using CARLA source from CARLA_ROOT: {root}");
         Self::from_local(root)
     }
 
@@ -150,7 +150,7 @@ impl CarlaSource {
         }
 
         // If we can't verify version, log a warning but continue
-        log::warn!("Could not verify CARLA version, assuming {}", CARLA_VERSION);
+        log::warn!("Could not verify CARLA version, assuming {CARLA_VERSION}");
         Ok(())
     }
 

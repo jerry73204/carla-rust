@@ -249,16 +249,13 @@ impl Actor {
                 }
             }
             InternalState::Destroying => Err(CarlaError::Runtime(format!(
-                "Cannot perform {} on actor being destroyed",
-                operation
+                "Cannot perform {operation} on actor being destroyed"
             ))),
             InternalState::Destroyed => Err(CarlaError::Runtime(format!(
-                "Cannot perform {} on destroyed actor",
-                operation
+                "Cannot perform {operation} on destroyed actor"
             ))),
             InternalState::Invalid => Err(CarlaError::Runtime(format!(
-                "Cannot perform {} on invalid actor",
-                operation
+                "Cannot perform {operation} on invalid actor"
             ))),
         }
     }
