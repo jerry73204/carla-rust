@@ -58,8 +58,12 @@ cargo doc --open
 
 # Build with specific features
 cargo build --all-targets --features save-lib      # Save built library as tarball
-cargo build --all-targets --features save-bindgen  # Save generated bindings
 cargo build --all-targets --features docs-only     # Skip build for docs.rs
+
+# Regenerate pre-generated code (maintainers only)
+cd carla-sys
+cargo build --features save-bindgen                # Regenerate FFI implementations
+cargo build --features "save-bindgen docs-only"    # Regenerate stub implementations
 ```
 
 ## Architecture
@@ -70,6 +74,8 @@ cargo build --all-targets --features docs-only     # Skip build for docs.rs
 - Headers in `include/carla_sys_bridge.h` define the C++ interface
 - `src/ffi.rs` defines the Rust side of the CXX bridge
 - Provides thin wrappers around CARLA C++ types with zero-copy where possible
+- Generates Rust types from CARLA's Python API YAML documentation
+- Pre-generated code in `src/generated/` for faster builds
 
 ### High-Level API (carla)
 Key modules:
@@ -89,6 +95,12 @@ All submodules are public for direct imports (e.g., `use carla::client::Client`)
 - Supports `x86_64-unknown-linux-gnu` platform
 - Uses CMake for building CARLA C++ library
 - Handles library path configuration for linking
+
+### Code Generation (carla-codegen)
+- Converts CARLA Python API YAML documentation to Rust types
+- Used by carla-sys during development (with save-bindgen feature)
+- Pre-generated code ships with source for normal builds
+- Supports both FFI and stub implementations
 
 ## Key Dependencies
 - **cxx** - Safe C++ FFI bridge (replaced autocxx)
