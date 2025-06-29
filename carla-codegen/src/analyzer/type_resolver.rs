@@ -30,18 +30,22 @@ impl RustType {
     pub fn to_rust_string(&self) -> String {
         match self {
             RustType::Primitive(name) => name.clone(),
-            RustType::Option(inner) => format!("Option<{}>", inner.to_rust_string()),
-            RustType::Vec(inner) => format!("Vec<{}>", inner.to_rust_string()),
+            RustType::Option(inner) => {
+                let inner_str = inner.to_rust_string();
+                format!("Option<{inner_str}>")
+            }
+            RustType::Vec(inner) => {
+                let inner_str = inner.to_rust_string();
+                format!("Vec<{inner_str}>")
+            }
             RustType::HashMap(key, value) => {
-                format!(
-                    "HashMap<{}, {}>",
-                    key.to_rust_string(),
-                    value.to_rust_string()
-                )
+                let key_str = key.to_rust_string();
+                let value_str = value.to_rust_string();
+                format!("HashMap<{key_str}, {value_str}>")
             }
             RustType::Custom(name) => name.clone(),
-            RustType::Reference(name) => format!("&{}", name),
-            RustType::MutReference(name) => format!("&mut {}", name),
+            RustType::Reference(name) => format!("&{name}"),
+            RustType::MutReference(name) => format!("&mut {name}"),
             RustType::Str => "&str".to_string(),
         }
     }

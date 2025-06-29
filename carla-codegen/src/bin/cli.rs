@@ -125,6 +125,7 @@ fn main() -> Result<()> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn generate(
     input: PathBuf,
     output: PathBuf,
@@ -249,8 +250,7 @@ fn parse_type_mapping(s: &str) -> Result<(String, String), String> {
     let parts: Vec<&str> = s.split('=').collect();
     if parts.len() != 2 {
         return Err(format!(
-            "Invalid type mapping format: '{}'. Expected format: 'python_type=rust_type'",
-            s
+            "Invalid type mapping format: '{s}'. Expected format: 'python_type=rust_type'"
         ));
     }
     Ok((parts[0].to_string(), parts[1].to_string()))

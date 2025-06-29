@@ -189,6 +189,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports Debug
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_debug(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {
@@ -208,6 +209,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports Clone
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_clone(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {
@@ -227,6 +229,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports Copy
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_copy(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {
@@ -261,6 +264,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports PartialEq
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_partial_eq(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {
@@ -280,6 +284,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports Eq (stricter than PartialEq)
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_eq(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {
@@ -299,6 +304,7 @@ impl TraitBuilder {
     }
 
     /// Check if a type supports Hash
+    #[allow(clippy::only_used_in_recursion)]
     fn type_supports_hash(&self, rust_type: &RustType) -> bool {
         match rust_type {
             RustType::Primitive(name) => {

@@ -105,7 +105,7 @@ impl CodeGenerator {
         for module in modules {
             let module_name = module.module_name.replace("carla.", "");
             if !module_name.is_empty() && module_name != "carla" {
-                content.push_str(&format!("pub mod {};\n", module_name));
+                content.push_str(&format!("pub mod {module_name};\n"));
             }
         }
 

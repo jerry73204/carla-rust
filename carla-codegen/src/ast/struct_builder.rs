@@ -138,7 +138,7 @@ impl StructBuilder {
 
             if let Some(ref units) = field.units {
                 attrs.push(parse_quote!(#[doc = ""]));
-                let units_doc = format!("**Units**: {}", units);
+                let units_doc = format!("**Units**: {units}");
                 attrs.push(parse_quote!(#[doc = #units_doc]));
             }
 
@@ -157,6 +157,7 @@ impl StructBuilder {
     }
 
     /// Convert RustType to syn Type
+    #[allow(clippy::only_used_in_recursion)]
     fn rust_type_to_syn_type(&self, rust_type: &RustType) -> SynResult<Type> {
         match rust_type {
             RustType::Primitive(name) => {
@@ -223,7 +224,7 @@ impl AstBuilder for StructBuilder {
             let name = field.name.to_string();
             if !field_names.insert(name.clone()) {
                 return Err(
-                    AstError::InvalidIdentifier(format!("Duplicate field name: {}", name)).into(),
+                    AstError::InvalidIdentifier(format!("Duplicate field name: {name}")).into(),
                 );
             }
         }

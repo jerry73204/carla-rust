@@ -33,6 +33,8 @@ bitflags = "2.4.2"
 # Async support (for sensor callbacks)
 # tokio = { version = "1.35.1", features = ["sync", "rt"] }
 
+# Build dependencies removed - code generation now handled in carla-sys
+
 [dev-dependencies]
 approx = "0.5"
 clap = { version = "4.5", features = ["derive"] }
@@ -47,6 +49,10 @@ chrono = "0.4"
 
 [features]
 default = []
+# Enable code generation from CARLA Python API YAML files
+codegen = []
+# Documentation-only build (no C++ compilation)
+docs-only = ["carla-sys/docs-only"]
 # TODO: Re-enable async feature in the future
 # Enable async sensor processing
 # async = ["tokio/rt-multi-thread"]

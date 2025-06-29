@@ -1,0 +1,61 @@
+# Configuration for carla-codegen integration with carla-sys crate
+# This file is used by the build.rs script to customize code generation
+
+# Output directory (will be overridden by build.rs based on feature flags)
+# - save-bindgen: writes to src/generated/ffi or src/generated/stubs
+# - default: uses pre-generated code from src/generated/
+output_dir = "src/generated"
+
+# Generate builder patterns for methods with >3 optional parameters
+builder_threshold = 3
+
+# Use nested module structure for better organization
+module_structure = "nested"
+
+[type_mapping]
+# Map Python types to appropriate Rust types for carla crate
+[type_mapping.mappings]
+"int" = "i32"
+"float" = "f32"
+"long" = "i64"
+"str" = "String"
+"bool" = "bool"
+
+# Special type handling for CARLA-specific types
+[type_mapping.special]
+actor_id = "u32"
+timestamp = "f64"
+transform_id = "u64"
+
+[filters]
+# Skip modules that conflict with existing manual implementations
+skip_modules = ["osm2odr"]
+
+# Exclude classes that are manually implemented or deprecated
+exclude_classes = [
+    # Classes that might conflict with manual implementations
+    "DeprecatedClass",
+    "InternalClass"
+]
+
+# Skip methods that are manually implemented or cause conflicts
+exclude_methods = [
+    "deprecated_method",
+    "internal_method"
+]
+
+[naming]
+# Use Rust naming conventions
+method_case = "snake_case"
+type_case = "PascalCase"
+module_case = "snake_case"
+
+# Remove common prefixes from method names to make them more idiomatic
+remove_prefix = ["get_", "set_"]
+
+[documentation]
+# Include comprehensive documentation in generated code
+include_warnings = true
+include_notes = true
+include_python_examples = false
+generate_doc_tests = true

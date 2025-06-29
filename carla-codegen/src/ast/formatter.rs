@@ -75,7 +75,8 @@ impl RustFormatter {
 
         // Format file-level attributes
         for attr in &file.attrs {
-            output.push_str(&format!("{}\n", attr.to_token_stream()));
+            let attr_str = attr.to_token_stream();
+            output.push_str(&format!("{attr_str}\n"));
         }
 
         if !file.attrs.is_empty() {
@@ -203,33 +204,33 @@ impl RustFormatter {
         for line in doc.lines() {
             let trimmed = line.trim();
             if trimmed.is_empty() {
-                formatted.push_str(&format!("{}///\n", indent));
+                formatted.push_str(&format!("{indent}///\n"));
                 continue;
             }
 
             // Word wrap long lines
             if trimmed.len() <= max_line_width {
-                formatted.push_str(&format!("{}/// {}\n", indent, trimmed));
+                formatted.push_str(&format!("{indent}/// {trimmed}\n"));
             } else {
                 let words: Vec<&str> = trimmed.split_whitespace().collect();
                 let mut current_line = String::new();
 
                 for word in words {
-                    if current_line.len() + word.len() + 1 <= max_line_width {
+                    if current_line.len() + word.len() < max_line_width {
                         if !current_line.is_empty() {
                             current_line.push(' ');
                         }
                         current_line.push_str(word);
                     } else {
                         if !current_line.is_empty() {
-                            formatted.push_str(&format!("{}/// {}\n", indent, current_line));
+                            formatted.push_str(&format!("{indent}/// {current_line}\n"));
                         }
                         current_line = word.to_string();
                     }
                 }
 
                 if !current_line.is_empty() {
-                    formatted.push_str(&format!("{}/// {}\n", indent, current_line));
+                    formatted.push_str(&format!("{indent}/// {current_line}\n"));
                 }
             }
         }

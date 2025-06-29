@@ -125,3 +125,8 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// CARLA simulator version this library targets
 pub const CARLA_VERSION: &str = "0.10.0";
+
+// Re-export generated types from carla-sys
+// These types are now pre-generated in carla-sys for better architecture
+#[cfg(feature = "codegen")]
+pub use carla_sys::generated;

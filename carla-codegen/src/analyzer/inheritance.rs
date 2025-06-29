@@ -58,7 +58,7 @@ impl InheritanceResolver {
                     parent_map.insert(class_name.clone(), clean_parent.to_string());
                     children_map
                         .entry(clean_parent.to_string())
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(class_name.clone());
 
                     // Update inheritance info
@@ -70,7 +70,7 @@ impl InheritanceResolver {
         }
 
         // Second pass: build ancestor chains
-        for (class, _parent) in &parent_map {
+        for class in parent_map.keys() {
             let ancestors = self.build_ancestor_chain(class, &parent_map);
             if let Some(info) = self.inheritance_map.get_mut(class) {
                 info.ancestors = ancestors;

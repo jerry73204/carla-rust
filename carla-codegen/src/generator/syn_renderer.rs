@@ -186,7 +186,7 @@ impl SynRenderer {
                     serde_yaml::Value::String(s) => s.clone(),
                     serde_yaml::Value::Number(n) => n.to_string(),
                     serde_yaml::Value::Bool(b) => b.to_string(),
-                    _ => format!("{:?}", default),
+                    _ => format!("{default:?}"),
                 };
                 parameter = parameter.with_default(default_str);
             }
@@ -379,7 +379,7 @@ impl TemplateRenderer for SynRenderer {
 
         // Add use statements as raw items
         for use_stmt in &data.use_statements {
-            if let Ok(item) = syn::parse_str::<Item>(&format!("{};", use_stmt)) {
+            if let Ok(item) = syn::parse_str::<Item>(&format!("{use_stmt};")) {
                 items.push(item);
             }
         }

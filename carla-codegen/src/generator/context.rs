@@ -94,16 +94,16 @@ impl<'a> GeneratorContext<'a> {
                         "[{}]",
                         seq.iter()
                             .map(|v| match v {
-                                serde_yaml::Value::String(s) => format!("\"{}\"", s),
+                                serde_yaml::Value::String(s) => format!("\"{s}\""),
                                 serde_yaml::Value::Number(n) => n.to_string(),
                                 serde_yaml::Value::Bool(b) => b.to_string(),
-                                _ => format!("{:?}", v),
+                                _ => format!("{v:?}"),
                             })
                             .collect::<Vec<_>>()
                             .join(", ")
                     )
                 }
-                _ => format!("{:?}", val),
+                _ => format!("{val:?}"),
             }
         });
 
@@ -138,7 +138,8 @@ impl<'a> GeneratorContext<'a> {
         };
 
         // Generate FFI function name
-        let ffi_function = format!("{}_{}", class_name, method.def_name.to_case(Case::Pascal));
+        let method_pascal = method.def_name.to_case(Case::Pascal);
+        let ffi_function = format!("{class_name}_{method_pascal}");
 
         Ok(RustMethod {
             name: rust_name,

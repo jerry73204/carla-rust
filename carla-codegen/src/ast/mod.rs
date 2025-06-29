@@ -86,7 +86,7 @@ pub mod utils {
 
         // Escape keywords by adding underscore suffix
         let escaped_name = if RUST_KEYWORDS.contains(&clean_name.as_str()) {
-            format!("{}_", clean_name)
+            format!("{clean_name}_")
         } else {
             clean_name
         };

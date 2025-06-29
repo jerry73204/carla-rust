@@ -112,11 +112,9 @@ impl AstBuilder for ImplBuilder {
         for method in &self.methods {
             let name = method.name.to_string();
             if !method_names.insert(name.clone()) {
-                return Err(AstError::InvalidIdentifier(format!(
-                    "Duplicate method name: {}",
-                    name
-                ))
-                .into());
+                return Err(
+                    AstError::InvalidIdentifier(format!("Duplicate method name: {name}")).into(),
+                );
             }
         }
 
@@ -240,12 +238,10 @@ impl MethodBuilder {
     fn build_body(&self) -> SynResult<Block> {
         let class_name = &self.carla_class;
         let method_name = &self.python_name;
-        let ffi_function_name = format!("{}_{}", class_name, method_name);
+        let ffi_function_name = format!("{class_name}_{method_name}");
 
-        let todo_message = format!(
-            "{} not yet implemented - missing FFI function {}",
-            method_name, ffi_function_name
-        );
+        let todo_message =
+            format!("{method_name} not yet implemented - missing FFI function {ffi_function_name}");
 
         Ok(parse_quote! {
             {
@@ -257,6 +253,7 @@ impl MethodBuilder {
     }
 
     /// Convert RustType to syn Type (same as in struct_builder, should be shared)
+    #[allow(clippy::only_used_in_recursion)]
     fn rust_type_to_syn_type(&self, rust_type: &RustType) -> SynResult<Type> {
         match rust_type {
             RustType::Primitive(name) => {
@@ -307,8 +304,7 @@ impl MethodBuilder {
             let name = param.name.to_string();
             if !param_names.insert(name.clone()) {
                 return Err(AstError::InvalidIdentifier(format!(
-                    "Duplicate parameter name: {}",
-                    name
+                    "Duplicate parameter name: {name}"
                 ))
                 .into());
             }

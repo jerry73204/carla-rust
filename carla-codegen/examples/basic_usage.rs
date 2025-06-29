@@ -4,7 +4,6 @@
 //! to generate Rust code from CARLA Python API YAML files.
 
 use carla_codegen::{config::Config, Generator};
-use std::path::PathBuf;
 
 fn main() -> carla_codegen::Result<()> {
     // Initialize logging
@@ -25,7 +24,7 @@ fn basic_generation() -> carla_codegen::Result<()> {
 
     // Create a generator with default configuration
     let config = Config::default();
-    let mut generator = Generator::new(config);
+    let _generator = Generator::new(config);
 
     // This would normally point to actual CARLA YAML files
     // For this example, we'll just show the API usage
@@ -51,7 +50,7 @@ fn advanced_generation() -> carla_codegen::Result<()> {
         .skip_module("osm2odr".to_string())
         .build();
 
-    let mut generator = Generator::new(config);
+    let _generator = Generator::new(config);
 
     // Configure type mappings and filters
     println!("Custom configuration:");

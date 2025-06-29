@@ -95,7 +95,8 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
 
     /// Generate a single class file
     fn generate_class_file(&self, class: &Class, output_dir: &Path) -> Result<()> {
-        let filename = format!("{}.rs", class.class_name.to_case(Case::Snake));
+        let class_snake = class.class_name.to_case(Case::Snake);
+        let filename = format!("{class_snake}.rs");
         let filepath = output_dir.join(filename);
 
         debug!("Generating class file: {}", filepath.display());
@@ -109,7 +110,8 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
         let impl_code = if impl_data.methods.is_empty() {
             String::new()
         } else {
-            format!("\n\n{}", self.renderer.render_impl(&impl_data)?)
+            let impl_rendered = self.renderer.render_impl(&impl_data)?;
+            format!("\n\n{impl_rendered}")
         };
 
         // Combine code
@@ -154,7 +156,7 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
         // Determine if this is an FFI wrapper type
         let has_ffi_inner = !fields.is_empty() || !class.methods.is_empty();
         let ffi_type = if has_ffi_inner {
-            format!("SharedPtr<ffi::{}>", rust_name)
+            format!("SharedPtr<ffi::{rust_name}>")
         } else {
             String::new()
         };

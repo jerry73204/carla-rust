@@ -184,7 +184,7 @@ fn test_dependency_graph() {
     let sorted = dep_graph.topological_sort().unwrap();
 
     // Debug: print the sorted order
-    eprintln!("Topological sort order: {:?}", sorted);
+    eprintln!("Topological sort order: {sorted:?}");
 
     let transform_idx = sorted.iter().position(|x| x == "Transform").unwrap();
     let actor_idx = sorted.iter().position(|x| x == "Actor").unwrap();

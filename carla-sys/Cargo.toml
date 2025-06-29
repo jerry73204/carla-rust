@@ -19,9 +19,14 @@ anyhow = "1.0"
 cc = "1.0"
 carla-src = { path = "../carla-src" }
 cmake = "0.1"
+bindgen = { version = "0.69", optional = true }
+carla-codegen = { path = "../carla-codegen" }
 
 [features]
 default = []
+bindgen = ["dep:bindgen"]
+docs-only = []
+save-bindgen = []  # Regenerate pre-generated code
 
 [[example]]
 name = "basic_client"
@@ -34,6 +39,9 @@ name = "weather_demo"
 
 [[example]]
 name = "recording_demo"
+
+[package.metadata.docs.rs]
+features = ["docs-only"]
 
 
 

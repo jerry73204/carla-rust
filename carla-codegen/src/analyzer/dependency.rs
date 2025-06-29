@@ -40,7 +40,7 @@ impl DependencyGraph {
                 // Ensure every class has an entry in dependencies map
                 self.dependencies
                     .entry(class.class_name.clone())
-                    .or_insert_with(IndexSet::new);
+                    .or_default();
 
                 // Track inheritance
                 if let Some(parent) = &class.parent {
@@ -119,12 +119,12 @@ impl DependencyGraph {
 
         self.dependencies
             .entry(class.to_string())
-            .or_insert_with(IndexSet::new)
+            .or_default()
             .insert(normalized_dep.to_string());
 
         self.dependents
             .entry(normalized_dep.to_string())
-            .or_insert_with(IndexSet::new)
+            .or_default()
             .insert(class.to_string());
     }
 
@@ -158,8 +158,7 @@ impl DependencyGraph {
                     self.dfs_check_circular(dep, visited, stack)?;
                 } else if stack.contains(dep) {
                     return Err(CodegenError::CircularDependency(format!(
-                        "Circular dependency detected: {} -> {}",
-                        class, dep
+                        "Circular dependency detected: {class} -> {dep}"
                     )));
                 }
             }
@@ -198,8 +197,7 @@ impl DependencyGraph {
     ) -> Result<()> {
         if temp_visited.contains(class) {
             return Err(CodegenError::CircularDependency(format!(
-                "Circular dependency detected at: {}",
-                class
+                "Circular dependency detected at: {class}"
             )));
         }
 

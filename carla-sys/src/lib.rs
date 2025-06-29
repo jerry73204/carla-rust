@@ -38,6 +38,7 @@
 pub mod actor_blueprint;
 pub mod advanced_world;
 pub mod batch_operations;
+pub mod bindings;
 pub mod blueprint;
 pub mod callback;
 pub mod client;
@@ -60,6 +61,9 @@ pub mod walker;
 pub mod walker_ai;
 pub mod weather;
 pub mod world_interaction;
+
+// Export pre-generated types from Python API
+pub mod generated;
 
 #[cfg(test)]
 mod tests;

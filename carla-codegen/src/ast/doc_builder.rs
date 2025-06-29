@@ -119,8 +119,7 @@ impl DocBuilder {
 pub fn generate_ffi_todo_doc(class_name: &str, method_name: &str) -> DocBuilder {
     let content = format!(
         "TODO: Implement using carla-sys FFI interface\n\
-         This requires adding {}_{} FFI function to carla-sys.",
-        class_name, method_name
+         This requires adding {class_name}_{method_name} FFI function to carla-sys."
     );
 
     DocBuilder::new(content).with_note(
@@ -152,13 +151,13 @@ pub fn generate_method_doc(
     if !params.is_empty() {
         content.push_str("\n\n# Parameters\n\n");
         for (name, param_doc) in params {
-            writeln!(content, "* `{}` - {}", name, param_doc).unwrap();
+            writeln!(content, "* `{name}` - {param_doc}").unwrap();
         }
     }
 
     // Returns section
     if let Some(return_doc) = return_doc {
-        writeln!(content, "\n# Returns\n\n{}", return_doc).unwrap();
+        writeln!(content, "\n# Returns\n\n{return_doc}").unwrap();
     }
 
     let mut builder = DocBuilder::new(content);
@@ -197,7 +196,7 @@ pub fn generate_field_doc(
         if !attrs.is_empty() {
             attrs.push(parse_quote!(#[doc = ""]));
         }
-        let units_doc = format!("**Units**: {}", units);
+        let units_doc = format!("**Units**: {units}");
         attrs.push(parse_quote!(#[doc = #units_doc]));
     }
 
@@ -222,12 +221,9 @@ pub fn generate_module_doc(module_name: &str, doc: Option<&str>) -> Vec<Attribut
     let mut attrs = Vec::new();
 
     let content = if let Some(doc) = doc {
-        format!("# {}\n\n{}", module_name, doc)
+        format!("# {module_name}\n\n{doc}")
     } else {
-        format!(
-            "# {}\n\nAuto-generated module from CARLA Python API",
-            module_name
-        )
+        format!("# {module_name}\n\nAuto-generated module from CARLA Python API")
     };
 
     attrs.push(parse_quote!(#[doc = ""]));

@@ -56,16 +56,15 @@ pub fn validate_class(class: &Class) -> Result<()> {
 pub fn validate_instance_variable(var: &InstanceVariable, class_name: &str) -> Result<()> {
     if var.var_name.is_empty() {
         return Err(CodegenError::InvalidStructure(format!(
-            "Instance variable name cannot be empty in class {}",
-            class_name
+            "Instance variable name cannot be empty in class {class_name}"
         )));
     }
 
     if let Some(ref var_type) = var.var_type {
         if var_type.is_empty() {
             return Err(CodegenError::InvalidStructure(format!(
-                "Instance variable '{}' has empty type in class {}",
-                var.var_name, class_name
+                "Instance variable '{}' has empty type in class {class_name}",
+                var.var_name
             )));
         }
     }
@@ -78,8 +77,7 @@ pub fn validate_instance_variable(var: &InstanceVariable, class_name: &str) -> R
 pub fn validate_method(method: &Method, class_name: &str) -> Result<()> {
     if method.def_name.is_empty() {
         return Err(CodegenError::InvalidStructure(format!(
-            "Method name cannot be empty in class {}",
-            class_name
+            "Method name cannot be empty in class {class_name}"
         )));
     }
 
@@ -103,8 +101,7 @@ pub fn validate_method(method: &Method, class_name: &str) -> Result<()> {
 pub fn validate_parameter(param: &Parameter, method_name: &str, class_name: &str) -> Result<()> {
     if param.param_name.is_empty() {
         return Err(CodegenError::InvalidStructure(format!(
-            "Parameter name cannot be empty in method '{}' of class '{}'",
-            method_name, class_name
+            "Parameter name cannot be empty in method '{method_name}' of class '{class_name}'"
         )));
     }
 

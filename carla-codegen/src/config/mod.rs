@@ -41,6 +41,10 @@ pub struct Config {
     /// Documentation generation options
     #[serde(default)]
     pub documentation: DocumentationConfig,
+
+    /// Generate stub implementations instead of real FFI calls
+    #[serde(default)]
+    pub stub_mode: bool,
 }
 
 /// Type mapping configuration
@@ -199,6 +203,11 @@ impl Config {
     pub fn should_generate_module(&self, module_name: &str) -> bool {
         !self.filters.skip_modules.contains(&module_name.to_string())
     }
+
+    /// Set stub mode
+    pub fn set_stub_mode(&mut self, stub: bool) {
+        self.stub_mode = stub;
+    }
 }
 
 impl Default for Config {
@@ -213,6 +222,7 @@ impl Default for Config {
             filters: FilterConfig::default(),
             naming: NamingConfig::default(),
             documentation: DocumentationConfig::default(),
+            stub_mode: false,
         }
     }
 }
@@ -310,6 +320,12 @@ impl ConfigBuilder {
         if !self.config.filters.skip_modules.contains(&module_name) {
             self.config.filters.skip_modules.push(module_name);
         }
+        self
+    }
+
+    /// Set stub mode
+    pub fn stub_mode(mut self, stub: bool) -> Self {
+        self.config.stub_mode = stub;
         self
     }
 
