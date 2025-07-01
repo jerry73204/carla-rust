@@ -276,3 +276,4 @@ See [carla/README_EXAMPLES.md](./carla/README_EXAMPLES.md) for detailed document
 - Tests in upstream C++ source code can be converted to examples in our Rust API.
 - Examples serve both as tests and as educational resources for users.
 - Examples use a consistent CLI interface with clap for user-friendly execution.
+- When tasks are completed, notify GNU Screen with a bell: `printf '\a'; echo "[Task Complete] <task description>"`.
