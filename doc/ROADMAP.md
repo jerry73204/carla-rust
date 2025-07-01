@@ -496,3 +496,146 @@ The CARLA Rust client code generation system has been successfully implemented a
 - **Testing**: Unit tests don't require server, examples provide integration testing
 
 The foundation is now in place for continued development of the CARLA Rust client library with automatic synchronization to CARLA API updates.
+
+## New Architecture Roadmap (2025)
+
+### Overview
+The project is transitioning to a fully code-generated architecture where carla-codegen automatically generates all types and methods from CARLA's Python API specifications. This ensures complete API coverage and easy synchronization with CARLA updates.
+
+### Phase 1: Complete Code Generation (🚧 In Progress)
+**Goal**: Finish carla-codegen to generate all types, methods, and FFI stubs
+
+1. **Complete Type Generation** ✅
+   - Parse all YAML files successfully
+   - Generate Rust structs for all CARLA types
+   - Handle complex type mappings (unions, generics, etc.)
+   - Generate proper module structure
+
+2. **Method Generation** ✅
+   - Generate method signatures from YAML
+   - Handle various parameter patterns
+   - Generate builder patterns for complex APIs
+   - Add proper documentation
+
+3. **FFI Stub Generation** ✅
+   - Generate CXX bridge declarations
+   - Create C++ header templates
+   - Generate stub implementations for docs-only builds
+   - Add todo!() markers for missing implementations
+
+4. **Remaining Tasks**:
+   - [ ] Fix type resolution for complex nested types (e.g., `list([name,world, actor, relative])`)
+   - [ ] Handle circular dependencies between types
+   - [ ] Improve error messages for type mapping failures
+   - [ ] Add validation for generated code
+
+### Phase 2: carla-sys Integration (⏳ Next)
+**Goal**: Re-enable carla-sys and integrate code generation
+
+1. **Enable carla-sys in Workspace**:
+   - [ ] Re-add carla-sys to workspace Cargo.toml
+   - [ ] Update build.rs to use carla-codegen
+   - [ ] Configure pre-generated code location
+   - [ ] Test compilation with generated types
+
+2. **Implement FFI Functions**:
+   - [ ] Review generated C++ headers
+   - [ ] Implement core FFI functions in cpp/carla_sys_bridge.cpp
+   - [ ] Priority order:
+     - Client connection and world access
+     - Actor spawning and manipulation
+     - Blueprint library access
+     - Basic sensor functionality
+   - [ ] Test FFI functions with simple C++ tests
+
+3. **CXX Bridge Integration**:
+   - [ ] Update src/ffi.rs to include generated declarations
+   - [ ] Handle type conversions between C++ and Rust
+   - [ ] Implement collection wrappers (WaypointList, etc.)
+   - [ ] Add safety documentation
+
+### Phase 3: High-Level carla Crate (⏳ Future)
+**Goal**: Create ergonomic Rust wrappers around generated code
+
+1. **Enable carla Crate**:
+   - [ ] Re-add carla to workspace Cargo.toml
+   - [ ] Import generated types from carla-sys
+   - [ ] Set up module structure matching CARLA organization
+
+2. **Implement Wrapper Patterns**:
+   - [ ] **Mirror/Wrapper Pattern** for complex types:
+     - Client, World, Actor, Vehicle, Walker
+     - Add lifetime management and safety guarantees
+     - Implement Drop traits for proper cleanup
+   
+   - [ ] **Trait Extension Pattern** for simple types:
+     - Vector3D, Transform, Location, Rotation
+     - Add mathematical operations
+     - Implement standard traits (Add, Sub, etc.)
+   
+   - [ ] **Pure Rust Types** for new functionality:
+     - Collection helpers and iterators
+     - Async wrappers for callbacks
+     - Builder pattern implementations
+
+3. **Update Examples**:
+   - [ ] Port existing examples to new API
+   - [ ] Create comprehensive example suite:
+     - Basic connection and world queries
+     - Vehicle spawning and control
+     - Sensor setup and data processing
+     - Traffic scenarios
+   - [ ] Add error handling examples
+
+### Implementation Strategy
+
+**Recommended Approach**:
+1. **Focus on carla-codegen completion first** - This is the foundation
+2. **Implement carla-sys FFI incrementally** - Start with core functionality
+3. **Build carla wrappers iteratively** - Add features as FFI becomes available
+
+**Testing Strategy**:
+- Unit tests for code generation logic
+- FFI tests using simple C++ programs
+- Integration tests via examples (no server required for compilation)
+- Full integration tests with CARLA server
+
+**Quality Checkpoints**:
+- [ ] All YAML files parse without errors
+- [ ] Generated code compiles without warnings
+- [ ] Basic example (connection + spawn) works
+- [ ] All examples from Python API have Rust equivalents
+
+### Known Challenges & Solutions
+
+1. **Complex Type Mappings**:
+   - Challenge: Types like `list([name,world, actor, relative])`
+   - Solution: Create custom type aliases or tuple structs
+
+2. **Circular Dependencies**:
+   - Challenge: Some CARLA types reference each other
+   - Solution: Use forward declarations and smart pointers
+
+3. **CXX Limitations**:
+   - Challenge: Cannot return opaque C++ types by value
+   - Solution: Use pointers/references and wrapper types
+
+4. **Sensor Callbacks**:
+   - Challenge: C++ callbacks to Rust functions
+   - Solution: Use CXX's callback support with proper lifetime management
+
+### Success Metrics
+
+- ✅ 100% of CARLA Python API types generated
+- ✅ 100% of methods have signatures generated
+- ⏳ Core FFI functions implemented (Client, World, Actor)
+- ⏳ Basic examples working with CARLA server
+- ⏳ Performance comparable to Python client
+
+### Future Considerations
+
+Once the three phases are complete:
+- Add async/await support for non-blocking operations
+- Implement streaming APIs for sensor data
+- Create derive macros for custom user types
+- Build higher-level abstractions (scenario DSL, etc.)

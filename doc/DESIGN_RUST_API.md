@@ -4,6 +4,8 @@
 
 This document details the design of the high-level Rust API for the CARLA client library. The API aims to provide a safe, ergonomic, and idiomatic Rust interface while maintaining the full functionality of CARLA's C++ client library.
 
+**Note**: This document was originally written before the code generation approach was adopted. The design principles still apply, but the implementation strategy has evolved to use automatic code generation from CARLA's Python API specifications. See ROADMAP.md for the current implementation plan.
+
 ## Design Goals
 
 ### 1. **Rust-First Experience**
@@ -47,7 +49,82 @@ carla/
 └── error/           // Error types and handling
 ```
 
-### Module Design Pattern
+### Code Generation Integration
+
+With the adoption of automatic code generation from CARLA's Python API specifications, the implementation strategy has evolved while maintaining the design principles outlined in this document.
+
+### Generated vs Hand-Written Code
+
+The carla crate now uses a hybrid approach:
+
+1. **Generated Base Types** (from carla-sys):
+   - All CARLA types are automatically generated from YAML specs
+   - Methods signatures are generated with proper documentation
+   - FFI function declarations are created automatically
+
+2. **Hand-Written Wrappers** (in carla crate):
+   - Safety wrappers around generated FFI types
+   - Ergonomic extensions and trait implementations
+   - Additional functionality not in Python API
+
+### Implementation Patterns
+
+**Pattern 1: Direct Re-export with Extensions**
+```rust
+// Re-export generated type
+pub use carla_sys::generated::Transform;
+
+// Add ergonomic extensions via traits
+pub trait TransformExt {
+    fn forward_vector(&self) -> Vector3D;
+    fn right_vector(&self) -> Vector3D;
+    fn up_vector(&self) -> Vector3D;
+}
+
+impl TransformExt for Transform {
+    // Implementation using generated fields
+}
+```
+
+**Pattern 2: Wrapper for Complex Types**
+```rust
+pub struct World {
+    // Wrap generated type
+    inner: carla_sys::generated::World,
+    // Add Rust-specific state
+    client: Weak<Client>,
+    actors_cache: RefCell<HashMap<u32, Actor>>,
+}
+
+impl World {
+    // Delegate to generated methods
+    pub fn id(&self) -> u32 {
+        self.inner.id()
+    }
+    
+    // Add high-level functionality
+    pub fn spawn_vehicle(&self, blueprint: &str, transform: Transform) -> Result<Vehicle> {
+        // Use generated FFI methods with safety checks
+    }
+}
+```
+
+**Pattern 3: Pure Rust Types**
+```rust
+// Types that don't exist in Python API
+pub struct ActorBuilder<'a> {
+    world: &'a World,
+    blueprint: Blueprint,
+    transform: Option<Transform>,
+    attach_to: Option<ActorId>,
+}
+
+impl<'a> ActorBuilder<'a> {
+    // Builder pattern for ergonomic API
+}
+```
+
+## Module Design Pattern
 
 Each module follows the hybrid architecture pattern:
 
