@@ -39,18 +39,31 @@ The project has transitioned to a fully code-generated architecture:
   - Special methods mapping (Python magic methods to Rust traits)
   - Smart trait derivation based on class analysis
   - Dual implementation (FFI for production, stubs for docs.rs)
+- **Recent Fixes**:
+  - Fixed syn parsing errors for union types (e.g., `bool / int / float / str / carla.Color / carla.ActorAttribute`)
+  - Fixed double Result wrapping in method signatures
+  - Union type parameters now generate multiple trait implementations
+  - Complex nested types like `list([name,world, actor, relative])` now supported
 
 ### Remaining Tasks
-- [ ] Fix type resolution for complex nested types (e.g., `list([name,world, actor, relative])`)
+- [x] ~~Fix type resolution for complex nested types (e.g., `list([name,world, actor, relative])`)~~ ✅ **COMPLETED**
 - [ ] Handle circular dependencies between types
-- [ ] Improve error messages for type mapping failures
+- [ ] **Enhanced Error Reporting** (High Priority):
+  - [ ] Add source context tracking (YAML file → class → method → parameter)
+  - [ ] Show generated code snippets in AST parsing errors
+  - [ ] Add `--continue-on-error` CLI flag for batch processing
+  - [ ] Improve error messages with actionable suggestions
+  - [ ] Add stage tracking (type resolution, AST generation, formatting)
+- [ ] Add missing type mappings (e.g., `callback` types)
 - [ ] Add validation for generated code
-- [ ] Continue-on-error mode for partial generation
+- [ ] Performance optimization for large YAML files
 
 ### Known Issues
 - Some YAML files have duplicate fields causing warnings
-- Complex tuple-like types fail to parse
+- ~~Complex tuple-like types fail to parse~~ ✅ **FIXED**
 - CXX limitations with opaque C++ types
+- Missing type mappings for some Python types (e.g., `callback`)
+- Generic error messages make debugging difficult (addressed by error reporting enhancement)
 
 ## Phase 2: carla-sys Integration (⏳ Next)
 **Goal**: Re-enable carla-sys and integrate code generation
@@ -134,18 +147,27 @@ The project has transitioned to a fully code-generated architecture:
 ## Known Challenges & Solutions
 
 1. **Complex Type Mappings**:
-   - Challenge: Types like `list([name,world, actor, relative])`
-   - Solution: Create custom type aliases or tuple structs
+   - ~~Challenge: Types like `list([name,world, actor, relative])`~~ ✅ **SOLVED**
+   - ~~Solution: Create custom type aliases or tuple structs~~ ✅ **IMPLEMENTED**
 
-2. **Circular Dependencies**:
+2. **Union Type Parameters**:
+   - ~~Challenge: Python union types like `bool / int / float / str` in method parameters~~ ✅ **SOLVED**
+   - ~~Solution: Generate multiple trait implementations for each type in union~~ ✅ **IMPLEMENTED**
+
+3. **Error Debugging Difficulty**:
+   - Challenge: Generic error messages like "syn parsing error: unexpected token"
+   - Solution: Enhanced error reporting with source context and generated code snippets
+   - Status: 📋 **DESIGNED** → Implementation planned
+
+4. **Circular Dependencies**:
    - Challenge: Some CARLA types reference each other
    - Solution: Use forward declarations and smart pointers
 
-3. **CXX Limitations**:
+5. **CXX Limitations**:
    - Challenge: Cannot return opaque C++ types by value
    - Solution: Use pointers/references and wrapper types
 
-4. **Sensor Callbacks**:
+6. **Sensor Callbacks**:
    - Challenge: C++ callbacks to Rust functions
    - Solution: Use CXX's callback support with proper lifetime management
 
@@ -190,5 +212,6 @@ To contribute to the current phase:
 
 - [Architecture Document](ARCH.md) - Overall system design
 - [Code Generation Design](DESIGN_CODEGEN.md) - Detailed codegen architecture
+- [Error Reporting Design](DESIGN_ERROR_REPORTING.md) - Enhanced error reporting system
 - [Rust API Design](DESIGN_RUST_API.md) - API design principles (still applicable)
 - [CLAUDE.md](../CLAUDE.md) - Development guidelines
