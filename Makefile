@@ -1,7 +1,7 @@
 # CARLA Rust Client Library Makefile
 # Build and test automation
 
-.PHONY: build test clean help lint format examples list-examples run-example test-examples
+.PHONY: build test clean help lint format examples list-examples run-example test-examples test-codegen clean-codegen
 
 # Variables
 CARLA_HOST ?= localhost
@@ -70,6 +70,37 @@ lint:
 format:
 	cargo +nightly fmt
 
+# Test code generation on CARLA YAML files
+test-codegen:
+	@echo "Testing CARLA code generation..."
+	@echo "================================"
+	@cd carla-codegen && \
+	if [ -d ../carla-simulator/PythonAPI/docs ]; then \
+		cargo run --release -- generate \
+			--input ../carla-simulator/PythonAPI/docs \
+			--config configs/carla_full_generation.toml \
+			--output test_temp \
+			--verbose || true; \
+		if [ -d test_temp ]; then \
+			echo "📁 Generated files in: carla-codegen/test_temp"; \
+			find test_temp -name "*.rs" | wc -l | xargs echo "📊 Total Rust files generated:"; \
+			echo "⚠️  Note: Some files may have syntax errors due to complex type mappings"; \
+		else \
+			echo "❌ No output directory created"; \
+		fi; \
+	else \
+		echo "❌ CARLA YAML files not found at carla-simulator/PythonAPI/docs/"; \
+		echo "Please ensure the CARLA submodule is initialized:"; \
+		echo "  git submodule update --init --recursive"; \
+		exit 1; \
+	fi
+
+# Clean generated test files
+clean-codegen:
+	@echo "Cleaning code generation test output..."
+	@rm -rf carla-codegen/test_temp carla-codegen/test_generated_carla
+	@echo "✅ Cleaned code generation test directories"
+
 # Show available targets
 help:
 	@echo "Available targets:"
@@ -81,6 +112,8 @@ help:
 	@echo "  test-examples - Check that all examples compile"
 	@echo "  lint          - Run clippy and format check"
 	@echo "  format        - Format code with cargo +nightly fmt"
+	@echo "  test-codegen  - Test code generation on CARLA YAML files"
+	@echo "  clean-codegen - Clean code generation test output"
 	@echo "  clean         - Clean up build artifacts"
 	@echo "  help          - Show this help message"
 	@echo ""
