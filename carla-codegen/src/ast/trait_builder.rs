@@ -209,6 +209,10 @@ impl TraitBuilder {
                 // Union types support Debug if all component types do
                 types.iter().all(|t| self.type_supports_debug(t))
             }
+            RustType::Tuple(types) => {
+                // Tuples support Debug if all element types do
+                types.iter().all(|t| self.type_supports_debug(t))
+            }
         }
     }
 
@@ -231,6 +235,10 @@ impl TraitBuilder {
             RustType::Str => false, // &str is Copy, but String is Clone
             RustType::Union(types) => {
                 // Union types support Clone if all component types do
+                types.iter().all(|t| self.type_supports_clone(t))
+            }
+            RustType::Tuple(types) => {
+                // Tuples support Clone if all element types do
                 types.iter().all(|t| self.type_supports_clone(t))
             }
         }
@@ -269,6 +277,10 @@ impl TraitBuilder {
             RustType::MutReference(_) => false, // Mutable references are not Copy
             RustType::Str => true,              // &str is Copy
             RustType::Union(_) => false,        // Union types can't be Copy
+            RustType::Tuple(types) => {
+                // Tuples can be Copy if all element types are Copy
+                types.iter().all(|t| self.type_supports_copy(t))
+            }
         }
     }
 
@@ -291,6 +303,10 @@ impl TraitBuilder {
             RustType::Str => true,
             RustType::Union(types) => {
                 // Union types support PartialEq if all component types do
+                types.iter().all(|t| self.type_supports_partial_eq(t))
+            }
+            RustType::Tuple(types) => {
+                // Tuples support PartialEq if all element types do
                 types.iter().all(|t| self.type_supports_partial_eq(t))
             }
         }
@@ -317,6 +333,10 @@ impl TraitBuilder {
                 // Union types support Eq if all component types do
                 types.iter().all(|t| self.type_supports_eq(t))
             }
+            RustType::Tuple(types) => {
+                // Tuples support Eq if all element types do
+                types.iter().all(|t| self.type_supports_eq(t))
+            }
         }
     }
 
@@ -339,6 +359,10 @@ impl TraitBuilder {
                 // Union types support Hash if all component types do
                 types.iter().all(|t| self.type_supports_hash(t))
             }
+            RustType::Tuple(types) => {
+                // Tuples support Hash if all element types do
+                types.iter().all(|t| self.type_supports_hash(t))
+            }
         }
     }
 
@@ -357,6 +381,7 @@ impl TraitBuilder {
             RustType::MutReference(_) => false,
             RustType::Str => false,      // &str can't have Default
             RustType::Union(_) => false, // Union types can't have Default
+            RustType::Tuple(_) => false, // Tuples don't have Default
         }
     }
 
@@ -549,5 +574,45 @@ mod tests {
         // But f32 should prevent Eq and Hash
         assert!(!derives.contains(&"Eq".to_string()));
         assert!(!derives.contains(&"Hash".to_string()));
+    }
+
+    #[test]
+    fn test_tuple_derive_analysis() {
+        let context = AstContext::default();
+        let type_name = to_rust_type_name("TupleStruct");
+
+        // Test with tuple of Copy types
+        let builder = TraitBuilder::new(type_name.clone(), context.clone()).add_field_type(
+            RustType::Tuple(vec![
+                RustType::Primitive("i32".to_string()),
+                RustType::Primitive("u32".to_string()),
+                RustType::Primitive("bool".to_string()),
+            ]),
+        );
+
+        let derives = builder.analyze_derivable_traits();
+
+        // Should be able to derive Copy for simple primitives tuple
+        assert!(derives.contains(&"Copy".to_string()));
+        assert!(derives.contains(&"Clone".to_string()));
+        assert!(derives.contains(&"Debug".to_string()));
+        assert!(derives.contains(&"PartialEq".to_string()));
+        assert!(derives.contains(&"Eq".to_string()));
+        assert!(derives.contains(&"Hash".to_string()));
+
+        // Test with tuple containing non-Copy type
+        let builder2 = TraitBuilder::new(type_name, context).add_field_type(RustType::Tuple(vec![
+            RustType::Primitive("i32".to_string()),
+            RustType::Vec(Box::new(RustType::Primitive("u8".to_string()))),
+        ]));
+
+        let derives2 = builder2.analyze_derivable_traits();
+
+        // Should not be able to derive Copy (Vec is not Copy)
+        assert!(!derives2.contains(&"Copy".to_string()));
+        // But should still have Clone, Debug, etc.
+        assert!(derives2.contains(&"Clone".to_string()));
+        assert!(derives2.contains(&"Debug".to_string()));
+        assert!(derives2.contains(&"PartialEq".to_string()));
     }
 }

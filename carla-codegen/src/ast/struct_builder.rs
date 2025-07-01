@@ -199,6 +199,12 @@ impl StructBuilder {
                     ))
                 }
             }
+            RustType::Tuple(types) => {
+                // Generate tuple type like (Type1, Type2, Type3)
+                let type_strings: Vec<String> = types.iter().map(|t| t.to_rust_string()).collect();
+                let tuple_str = format!("({})", type_strings.join(", "));
+                syn::parse_str(&tuple_str)
+            }
         }
     }
 }
@@ -383,5 +389,41 @@ mod tests {
         assert!(tokens.contains("Option < i32 >"));
         assert!(tokens.contains("Vec < f32 >"));
         assert!(tokens.contains("crate :: geom :: Location"));
+    }
+
+    #[test]
+    fn test_tuple_fields() {
+        let context = AstContext::default();
+        let name = to_rust_type_name("TupleStruct");
+
+        let field1 = StructField::new(
+            to_rust_ident("coordinates"),
+            RustType::Tuple(vec![
+                RustType::Primitive("f32".to_string()),
+                RustType::Primitive("f32".to_string()),
+                RustType::Primitive("f32".to_string()),
+            ]),
+        )
+        .with_doc("3D coordinates as tuple".to_string());
+
+        let field2 = StructField::new(
+            to_rust_ident("name_and_id"),
+            RustType::Tuple(vec![
+                RustType::Primitive("String".to_string()),
+                RustType::Primitive("u32".to_string()),
+            ]),
+        );
+
+        let builder = StructBuilder::new(name, context)
+            .with_doc("Struct with tuple fields".to_string())
+            .add_field(field1)
+            .add_field(field2);
+
+        let result = builder.build().expect("Failed to build struct");
+        let tokens = result.to_token_stream().to_string();
+
+        assert!(tokens.contains("coordinates : (f32 , f32 , f32)"));
+        assert!(tokens.contains("name_and_id : (String , u32)"));
+        assert!(tokens.contains("3D coordinates as tuple"));
     }
 }

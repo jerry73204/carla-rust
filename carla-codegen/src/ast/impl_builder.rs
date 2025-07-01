@@ -311,6 +311,12 @@ impl MethodBuilder {
                     ))
                 }
             }
+            RustType::Tuple(types) => {
+                // Generate tuple type like (Type1, Type2, Type3)
+                let type_strings: Vec<String> = types.iter().map(|t| t.to_rust_string()).collect();
+                let tuple_str = format!("({})", type_strings.join(", "));
+                syn::parse_str(&tuple_str)
+            }
         }
     }
 
@@ -577,5 +583,31 @@ mod tests {
 
         assert!(tokens.contains("optional_value : Option < i32 >"));
         assert!(tokens.contains("location : & crate :: geom :: Location"));
+    }
+
+    #[test]
+    fn test_tuple_parameter_types() {
+        let tuple_param = MethodParameter::new(
+            to_rust_ident("coordinate_tuple"),
+            RustType::Tuple(vec![
+                RustType::Primitive("f32".to_string()),
+                RustType::Primitive("f32".to_string()),
+                RustType::Primitive("f32".to_string()),
+            ]),
+        );
+
+        let method = MethodBuilder::new(
+            to_rust_ident("tuple_method"),
+            "Actor".to_string(),
+            "TupleMethod".to_string(),
+        )
+        .add_parameter(tuple_param);
+
+        let result = method
+            .build()
+            .expect("Failed to build method with tuple parameter");
+        let tokens = result.to_token_stream().to_string();
+
+        assert!(tokens.contains("coordinate_tuple : (f32 , f32 , f32)"));
     }
 }

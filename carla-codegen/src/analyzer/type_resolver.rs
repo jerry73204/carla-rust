@@ -25,6 +25,8 @@ pub enum RustType {
     Str,
     /// Union of multiple types
     Union(Vec<RustType>),
+    /// Tuple type
+    Tuple(Vec<RustType>),
 }
 
 impl RustType {
@@ -56,6 +58,11 @@ impl RustType {
                     .map(|t| t.to_rust_string())
                     .collect::<Vec<_>>()
                     .join(" | ")
+            }
+            RustType::Tuple(types) => {
+                // Generate tuple type like (Type1, Type2, Type3)
+                let type_strs: Vec<String> = types.iter().map(|t| t.to_rust_string()).collect();
+                format!("({})", type_strs.join(", "))
             }
         }
     }
@@ -97,11 +104,17 @@ impl TypeResolver {
         self.type_mappings
             .insert("int".to_string(), RustType::Primitive("i32".to_string()));
         self.type_mappings
+            .insert("uint".to_string(), RustType::Primitive("u32".to_string()));
+        self.type_mappings
             .insert("float".to_string(), RustType::Primitive("f32".to_string()));
         self.type_mappings
             .insert("double".to_string(), RustType::Primitive("f64".to_string()));
         self.type_mappings
             .insert("bool".to_string(), RustType::Primitive("bool".to_string()));
+        self.type_mappings.insert(
+            "boolean".to_string(),
+            RustType::Primitive("bool".to_string()),
+        );
         self.type_mappings
             .insert("str".to_string(), RustType::Primitive("String".to_string()));
         self.type_mappings.insert(
@@ -196,9 +209,19 @@ impl TypeResolver {
             return Ok(RustType::Primitive("()".to_string()));
         }
 
+        // Handle tuple types (e.g., "[name, world, actor, relative]")
+        if python_type.starts_with('[') && python_type.ends_with(']') {
+            return self.parse_tuple_type(python_type);
+        }
+
         // Handle list types
         if python_type.starts_with("list(") && python_type.ends_with(")") {
             let inner = &python_type[5..python_type.len() - 1];
+            // Check if inner is a tuple type (starts with '[' and ends with ']')
+            if inner.starts_with('[') && inner.ends_with(']') {
+                let tuple_type = self.parse_tuple_type(inner)?;
+                return Ok(RustType::Vec(Box::new(tuple_type)));
+            }
             let inner_type = self.resolve_type(inner)?;
             return Ok(RustType::Vec(Box::new(inner_type)));
         }
@@ -226,6 +249,11 @@ impl TypeResolver {
             ));
         }
 
+        // Handle "carla.Actor or int" type as special case for backwards compatibility
+        if python_type == "carla.Actor or int" {
+            return Ok(RustType::Custom("crate::actor::ActorOrId".to_string()));
+        }
+
         // Handle union types with " or " separator
         if python_type.contains(" or ") {
             let parts: Vec<&str> = python_type.split(" or ").map(|s| s.trim()).collect();
@@ -250,11 +278,6 @@ impl TypeResolver {
             }
         }
 
-        // Handle "carla.Actor or int" type as special case for backwards compatibility
-        if python_type == "carla.Actor or int" {
-            return Ok(RustType::Custom("crate::actor::ActorOrId".to_string()));
-        }
-
         // Handle "single char" type
         if python_type == "single char" {
             return Ok(RustType::Primitive("char".to_string()));
@@ -270,6 +293,11 @@ impl TypeResolver {
             return Ok(RustType::Vec(Box::new(RustType::Primitive(
                 "u8".to_string(),
             ))));
+        }
+
+        // Handle function/callable types
+        if python_type == "function" || python_type == "callable" {
+            return Ok(RustType::Custom("Box<dyn Fn() + Send + Sync>".to_string()));
         }
 
         // Handle CARLA types
@@ -326,6 +354,55 @@ impl TypeResolver {
     /// Add a CARLA type mapping
     pub fn add_carla_type(&mut self, python_type: String, rust_path: String) {
         self.carla_types.insert(python_type, rust_path);
+    }
+
+    /// Parse a tuple type like "[name, world, actor, relative]"
+    fn parse_tuple_type(&self, tuple_str: &str) -> Result<RustType> {
+        // Remove the brackets
+        let inner = tuple_str.trim_start_matches('[').trim_end_matches(']');
+
+        // Split by comma and parse each element
+        let elements: Vec<&str> = inner.split(',').map(|s| s.trim()).collect();
+
+        if elements.is_empty() {
+            return Ok(RustType::Tuple(vec![]));
+        }
+
+        // For the specific case of bone transforms, we know the structure
+        if elements == vec!["name", "world", "actor", "relative"] {
+            // This represents a bone transform tuple
+            return Ok(RustType::Tuple(vec![
+                RustType::Primitive("String".to_string()), // name
+                RustType::Custom("crate::geom::Transform".to_string()), // world transform
+                RustType::Custom("crate::geom::Transform".to_string()), // actor transform
+                RustType::Custom("crate::geom::Transform".to_string()), // relative transform
+            ]));
+        }
+
+        // For other tuples, try to resolve each element type
+        let mut tuple_types = Vec::new();
+        for element in elements {
+            // Try to resolve as a type, otherwise treat as a field name
+            match self.resolve_type(element) {
+                Ok(rust_type) => tuple_types.push(rust_type),
+                Err(_) => {
+                    // If it's not a known type, it's likely a field name
+                    // We'll need context to determine the actual type
+                    // For now, use a generic approach
+                    match element {
+                        "name" | "id" => {
+                            tuple_types.push(RustType::Primitive("String".to_string()))
+                        }
+                        "x" | "y" | "z" | "pitch" | "yaw" | "roll" => {
+                            tuple_types.push(RustType::Primitive("f32".to_string()))
+                        }
+                        _ => tuple_types.push(RustType::Custom("serde_json::Value".to_string())),
+                    }
+                }
+            }
+        }
+
+        Ok(RustType::Tuple(tuple_types))
     }
 }
 
@@ -406,5 +483,69 @@ mod tests {
         // Test list of module.Type
         let list_type = resolver.resolve_type("list(command.Response)").unwrap();
         assert_eq!(list_type.to_rust_string(), "Vec<crate::command::Response>");
+    }
+
+    #[test]
+    fn test_resolve_tuple_types() {
+        let resolver = TypeResolver::new();
+
+        // Test simple tuple
+        let tuple_type = resolver
+            .resolve_type("[name, world, actor, relative]")
+            .unwrap();
+        assert_eq!(
+            tuple_type.to_rust_string(),
+            "(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)"
+        );
+
+        // Test list of tuples
+        let list_tuple = resolver
+            .resolve_type("list([name, world, actor, relative])")
+            .unwrap();
+        assert_eq!(
+            list_tuple.to_rust_string(),
+            "Vec<(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)>"
+        );
+    }
+
+    #[test]
+    fn test_carla_specific_types() {
+        let resolver = TypeResolver::new();
+
+        // Test the specific bone transforms type from CARLA
+        let bone_type = resolver
+            .resolve_type("list([name,world, actor, relative])")
+            .unwrap();
+        assert_eq!(
+            bone_type.to_rust_string(),
+            "Vec<(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)>"
+        );
+
+        // Test other CARLA types we added
+        assert_eq!(
+            resolver.resolve_type("boolean").unwrap(),
+            RustType::Primitive("bool".to_string())
+        );
+        assert_eq!(
+            resolver.resolve_type("uint").unwrap(),
+            RustType::Primitive("u32".to_string())
+        );
+        assert_eq!(
+            resolver.resolve_type("function").unwrap(),
+            RustType::Custom("Box<dyn Fn() + Send + Sync>".to_string())
+        );
+    }
+
+    #[test]
+    fn test_nested_complex_types() {
+        let resolver = TypeResolver::new();
+
+        // Test nested lists
+        let nested_list = resolver.resolve_type("list(list(float))").unwrap();
+        assert_eq!(nested_list.to_rust_string(), "Vec<Vec<f32>>");
+
+        // Test list with union types
+        let union_list = resolver.resolve_type("list(carla.Actor or int)").unwrap();
+        assert_eq!(union_list.to_rust_string(), "Vec<crate::actor::ActorOrId>");
     }
 }
