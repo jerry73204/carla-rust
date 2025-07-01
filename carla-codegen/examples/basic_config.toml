@@ -1,0 +1,27 @@
+# Basic Configuration Example for carla-codegen
+
+# Essential settings
+output_dir = "generated"
+builder_threshold = 2
+
+# Enable code formatting
+[formatting]
+enable_rustfmt = true
+line_width = 100
+
+# Basic type mappings
+[type_mapping.mappings]
+"int" = "i32"
+"float" = "f32"
+"bool" = "bool"
+"str" = "String"
+
+# Method signature defaults
+[method_signatures]
+use_result_return_types = true
+error_type = "crate::error::Result"
+
+# Argument handling
+[argument_handling]
+optional_args_style = "option"
+enable_builder_patterns = true

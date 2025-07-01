@@ -187,6 +187,18 @@ impl StructBuilder {
                 Ok(parse_quote!(&mut #inner_type))
             }
             RustType::Str => Ok(parse_quote!(&str)),
+            RustType::Union(types) => {
+                // For union types, use the first type as a fallback
+                // This is a temporary solution - union types need special handling
+                if let Some(first_type) = types.first() {
+                    self.rust_type_to_syn_type(first_type)
+                } else {
+                    Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Empty union type",
+                    ))
+                }
+            }
         }
     }
 }

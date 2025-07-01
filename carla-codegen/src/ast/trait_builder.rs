@@ -205,6 +205,10 @@ impl TraitBuilder {
             RustType::Reference(_) => true,
             RustType::MutReference(_) => true,
             RustType::Str => true,
+            RustType::Union(types) => {
+                // Union types support Debug if all component types do
+                types.iter().all(|t| self.type_supports_debug(t))
+            }
         }
     }
 
@@ -225,6 +229,10 @@ impl TraitBuilder {
             RustType::Reference(_) => false, // References themselves are Copy, but we mean the owned version
             RustType::MutReference(_) => false,
             RustType::Str => false, // &str is Copy, but String is Clone
+            RustType::Union(types) => {
+                // Union types support Clone if all component types do
+                types.iter().all(|t| self.type_supports_clone(t))
+            }
         }
     }
 
@@ -260,6 +268,7 @@ impl TraitBuilder {
             RustType::Reference(_) => true,
             RustType::MutReference(_) => false, // Mutable references are not Copy
             RustType::Str => true,              // &str is Copy
+            RustType::Union(_) => false,        // Union types can't be Copy
         }
     }
 
@@ -280,6 +289,10 @@ impl TraitBuilder {
             RustType::Reference(_) => true,
             RustType::MutReference(_) => true,
             RustType::Str => true,
+            RustType::Union(types) => {
+                // Union types support PartialEq if all component types do
+                types.iter().all(|t| self.type_supports_partial_eq(t))
+            }
         }
     }
 
@@ -300,6 +313,10 @@ impl TraitBuilder {
             RustType::Reference(_) => true,
             RustType::MutReference(_) => true,
             RustType::Str => true,
+            RustType::Union(types) => {
+                // Union types support Eq if all component types do
+                types.iter().all(|t| self.type_supports_eq(t))
+            }
         }
     }
 
@@ -318,6 +335,10 @@ impl TraitBuilder {
             RustType::Reference(_) => true,
             RustType::MutReference(_) => false, // Mutable references don't implement Hash
             RustType::Str => true,
+            RustType::Union(types) => {
+                // Union types support Hash if all component types do
+                types.iter().all(|t| self.type_supports_hash(t))
+            }
         }
     }
 
@@ -334,7 +355,8 @@ impl TraitBuilder {
             RustType::Custom(_) => false, // Custom types might not have Default
             RustType::Reference(_) => false, // References can't have Default
             RustType::MutReference(_) => false,
-            RustType::Str => false, // &str can't have Default
+            RustType::Str => false,      // &str can't have Default
+            RustType::Union(_) => false, // Union types can't have Default
         }
     }
 

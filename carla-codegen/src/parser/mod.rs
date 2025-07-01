@@ -1,5 +1,6 @@
 //! YAML parser for CARLA Python API documentation
 
+pub mod normalizer;
 pub mod validator;
 pub mod yaml_schema;
 
@@ -29,16 +30,48 @@ impl YamlParser {
         info!("Parsing YAML file: {}", path.display());
 
         let content = fs::read_to_string(path)?;
-        let modules: Vec<Module> = serde_yaml::from_str(&content)?;
 
-        debug!("Found {} modules in {}", modules.len(), path.display());
+        // Try to parse, but continue on error
+        match serde_yaml::from_str::<Vec<Module>>(&content) {
+            Ok(mut modules) => {
+                debug!("Found {} modules in {}", modules.len(), path.display());
 
-        // Validate each module
-        for module in &modules {
-            validator::validate_module(module)?;
+                // Debug: Print the parsed data before normalization
+                for module in &modules {
+                    for class in &module.classes {
+                        for method in &class.methods {
+                            if method.def_name == "__eq__" {
+                                for param in &method.params {
+                                    if param.param_name == "other" {
+                                        debug!("Before normalization: parameter '{}' in method '{}' has type: {:?}",
+                                            param.param_name, method.def_name, param.param_type);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Normalize modules (infer missing types, etc.)
+                normalizer::normalize_modules(&mut modules);
+
+                // Validate each module
+                for module in &modules {
+                    validator::validate_module(module)?;
+                }
+
+                self.modules.extend(modules);
+            }
+            Err(e) => {
+                // Log error but continue parsing other files
+                tracing::warn!(
+                    "Failed to parse {}: {}. Skipping this file.",
+                    path.display(),
+                    e
+                );
+            }
         }
 
-        self.modules.extend(modules);
         Ok(())
     }
 

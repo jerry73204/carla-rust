@@ -23,6 +23,8 @@ pub enum RustType {
     MutReference(String),
     /// String slice
     Str,
+    /// Union of multiple types
+    Union(Vec<RustType>),
 }
 
 impl RustType {
@@ -47,6 +49,14 @@ impl RustType {
             RustType::Reference(name) => format!("&{name}"),
             RustType::MutReference(name) => format!("&mut {name}"),
             RustType::Str => "&str".to_string(),
+            RustType::Union(types) => {
+                // For display purposes, show as "Type1 | Type2 | Type3"
+                types
+                    .iter()
+                    .map(|t| t.to_rust_string())
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            }
         }
     }
 }
@@ -209,14 +219,92 @@ impl TypeResolver {
             ));
         }
 
+        // Handle special compound types
+        if python_type == "any carla Command" {
+            return Ok(RustType::Custom(
+                "Box<dyn crate::command::Command>".to_string(),
+            ));
+        }
+
+        // Handle union types with " or " separator
+        if python_type.contains(" or ") {
+            let parts: Vec<&str> = python_type.split(" or ").map(|s| s.trim()).collect();
+            if parts.len() > 1 {
+                let mut types = Vec::new();
+                for part in parts {
+                    types.push(self.resolve_type(part)?);
+                }
+                return Ok(RustType::Union(types));
+            }
+        }
+
+        // Handle union types with " / " separator
+        if python_type.contains(" / ") {
+            let parts: Vec<&str> = python_type.split(" / ").map(|s| s.trim()).collect();
+            if parts.len() > 1 {
+                let mut types = Vec::new();
+                for part in parts {
+                    types.push(self.resolve_type(part)?);
+                }
+                return Ok(RustType::Union(types));
+            }
+        }
+
+        // Handle "carla.Actor or int" type as special case for backwards compatibility
+        if python_type == "carla.Actor or int" {
+            return Ok(RustType::Custom("crate::actor::ActorOrId".to_string()));
+        }
+
+        // Handle "single char" type
+        if python_type == "single char" {
+            return Ok(RustType::Primitive("char".to_string()));
+        }
+
+        // Handle "string" return type
+        if python_type == "string" {
+            return Ok(RustType::Primitive("String".to_string()));
+        }
+
+        // Handle "bytes" type
+        if python_type == "bytes" {
+            return Ok(RustType::Vec(Box::new(RustType::Primitive(
+                "u8".to_string(),
+            ))));
+        }
+
         // Handle CARLA types
         if let Some(rust_type) = self.carla_types.get(python_type) {
             return Ok(RustType::Custom(rust_type.clone()));
         }
 
+        // Handle any type starting with "carla."
+        if python_type.starts_with("carla.") {
+            let type_name = python_type.strip_prefix("carla.").unwrap_or(python_type);
+            return Ok(RustType::Custom(format!("crate::{type_name}")));
+        }
+
+        // Handle module.Type pattern (e.g., "command.Response")
+        if python_type.contains('.') && !python_type.starts_with("carla.") {
+            // Split into module and type
+            let parts: Vec<&str> = python_type.split('.').collect();
+            if parts.len() == 2 {
+                let module = parts[0];
+                let type_name = parts[1];
+                return Ok(RustType::Custom(format!("crate::{module}::{type_name}")));
+            }
+        }
+
         // Handle primitive types
         if let Some(rust_type) = self.type_mappings.get(python_type) {
             return Ok(rust_type.clone());
+        }
+
+        // Handle bare 'list' type (without inner type)
+        if python_type == "list" {
+            // Default to list of dynamic type
+            return Ok(RustType::Vec(Box::new(RustType::Custom(
+                "Box<dyn std::any::Any>".to_string(),
+            ))));
         }
 
         // Handle tuple of lists (e.g., "list(list(float))")
@@ -303,5 +391,20 @@ mod tests {
             resolver.resolve_type("carla.Actor").unwrap(),
             RustType::Custom("crate::actor::Actor".to_string())
         );
+    }
+
+    #[test]
+    fn test_resolve_module_types() {
+        let resolver = TypeResolver::new();
+
+        // Test module.Type pattern
+        assert_eq!(
+            resolver.resolve_type("command.Response").unwrap(),
+            RustType::Custom("crate::command::Response".to_string())
+        );
+
+        // Test list of module.Type
+        let list_type = resolver.resolve_type("list(command.Response)").unwrap();
+        assert_eq!(list_type.to_rust_string(), "Vec<crate::command::Response>");
     }
 }

@@ -55,6 +55,10 @@ enum Commands {
         /// Builder pattern threshold
         #[arg(long)]
         builder_threshold: Option<usize>,
+
+        /// Generate stub implementations for docs-only mode
+        #[arg(long)]
+        stub_mode: bool,
     },
 
     /// Validate YAML files without generating code
@@ -106,6 +110,7 @@ fn main() -> Result<()> {
             include_class,
             skip_module,
             builder_threshold,
+            stub_mode,
         } => generate(
             input,
             output,
@@ -115,6 +120,7 @@ fn main() -> Result<()> {
             include_class,
             skip_module,
             builder_threshold,
+            stub_mode,
         ),
         Commands::Validate { input, config } => validate(input, config),
         Commands::List {
@@ -135,6 +141,7 @@ fn generate(
     include_classes: Vec<String>,
     skip_modules: Vec<String>,
     builder_threshold: Option<usize>,
+    stub_mode: bool,
 ) -> Result<()> {
     info!("Starting code generation");
 
@@ -168,6 +175,11 @@ fn generate(
 
     if let Some(threshold) = builder_threshold {
         config.set_builder_threshold(threshold);
+    }
+
+    // Set stub mode if requested
+    if stub_mode {
+        config.set_stub_mode(true);
     }
 
     // Create generator

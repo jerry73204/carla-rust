@@ -1,7 +1,7 @@
 //! Implementation block AST generation for CARLA types
 
 use crate::{
-    analyzer::type_resolver::RustType,
+    analyzer::{type_resolver::RustType, SelfType},
     ast::{doc_builder::DocBuilder, AstBuilder, AstContext, AstError},
 };
 use syn::{
@@ -41,6 +41,8 @@ pub struct MethodBuilder {
     pub carla_class: String,
     /// Original method name from Python API
     pub python_name: String,
+    /// Self parameter type (None for static methods)
+    pub self_type: Option<SelfType>,
 }
 
 /// Represents a method parameter
@@ -140,6 +142,7 @@ impl MethodBuilder {
             is_unsafe: false,
             carla_class,
             python_name,
+            self_type: Some(SelfType::Ref), // Default to &self
         }
     }
 
@@ -179,6 +182,12 @@ impl MethodBuilder {
         self
     }
 
+    /// Set the self parameter type
+    pub fn with_self_type(mut self, self_type: Option<SelfType>) -> Self {
+        self.self_type = self_type;
+        self
+    }
+
     /// Build method signature
     fn build_signature(&self) -> SynResult<Signature> {
         let name = &self.name;
@@ -186,7 +195,14 @@ impl MethodBuilder {
             syn::punctuated::Punctuated::new();
 
         // Add self parameter if not static
-        inputs.push(parse_quote!(self));
+        if let Some(self_type) = &self.self_type {
+            let self_param = match self_type {
+                SelfType::Owned => parse_quote!(self),
+                SelfType::Ref => parse_quote!(&self),
+                SelfType::MutRef => parse_quote!(&mut self),
+            };
+            inputs.push(self_param);
+        }
 
         // Add other parameters
         for param in &self.parameters {
@@ -283,6 +299,18 @@ impl MethodBuilder {
                 Ok(parse_quote!(&mut #inner_type))
             }
             RustType::Str => Ok(parse_quote!(&str)),
+            RustType::Union(types) => {
+                // For union types, use the first type as a fallback
+                // This is a temporary solution - union types need special handling
+                if let Some(first_type) = types.first() {
+                    self.rust_type_to_syn_type(first_type)
+                } else {
+                    Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Empty union type",
+                    ))
+                }
+            }
         }
     }
 

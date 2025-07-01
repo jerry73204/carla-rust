@@ -1,7 +1,10 @@
 //! Generator context for code generation
 
 use crate::{
-    analyzer::{InheritanceResolver, TypeResolver},
+    analyzer::{
+        determine_self_type_with_config, AnalysisResult, InheritanceResolver, SelfType,
+        TypeResolver,
+    },
     config::Config,
     parser::yaml_schema::{Method, Module, Parameter},
 };
@@ -120,19 +123,63 @@ impl<'a> GeneratorContext<'a> {
     pub fn rust_method(&self, method: &Method, class_name: &str) -> crate::Result<RustMethod> {
         let rust_name = self.rust_method_name(&method.def_name);
 
-        // Convert parameters
+        // Convert parameters (excluding self)
         let mut rust_params = Vec::new();
         for param in &method.params {
+            // Skip 'self' parameter
+            if param.param_name == "self" {
+                continue;
+            }
             rust_params.push(self.rust_parameter(param)?);
         }
 
-        // Determine return type
-        let return_type = if let Some(ret) = &method.return_type {
+        // Determine self type
+        let self_type = if method.is_static {
+            None
+        } else {
+            Some(determine_self_type_with_config(
+                method,
+                class_name,
+                self.config,
+            ))
+        };
+
+        // Check for return type override
+        let return_type = if let Some(override_type) = self
+            .config
+            .get_return_type_override(class_name, &method.def_name)
+        {
+            override_type.clone()
+        } else if let Some(ret) = &method.return_type {
             if ret == "None" || ret.is_empty() {
-                "()".to_string()
+                if self.config.method_signatures.use_result_return_types {
+                    self.config.method_signatures.error_type.clone()
+                } else {
+                    "()".to_string()
+                }
             } else {
-                self.type_resolver.resolve_type(ret)?.to_rust_string()
+                match self.type_resolver.resolve_type(ret) {
+                    Ok(rust_type) => {
+                        let resolved_type = rust_type.to_rust_string();
+                        if self.config.method_signatures.use_result_return_types {
+                            format!("Result<{resolved_type}>")
+                        } else {
+                            resolved_type
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to resolve return type '{}': {}", ret, e);
+                        // Fall back to error type
+                        if self.config.method_signatures.use_result_return_types {
+                            self.config.method_signatures.error_type.clone()
+                        } else {
+                            "()".to_string()
+                        }
+                    }
+                }
             }
+        } else if self.config.method_signatures.use_result_return_types {
+            self.config.method_signatures.error_type.clone()
         } else {
             "()".to_string()
         };
@@ -143,6 +190,7 @@ impl<'a> GeneratorContext<'a> {
 
         Ok(RustMethod {
             name: rust_name,
+            self_type,
             params: rust_params,
             return_type,
             doc: method.doc.clone(),
@@ -182,6 +230,7 @@ pub struct RustParameter {
 #[derive(Debug, Clone, Serialize)]
 pub struct RustMethod {
     pub name: String,
+    pub self_type: Option<SelfType>,
     pub params: Vec<RustParameter>,
     pub return_type: String,
     pub doc: Option<String>,
@@ -213,6 +262,9 @@ pub struct StructData {
     pub fields: Vec<RustField>,
     pub has_ffi_inner: bool,
     pub ffi_type: String,
+    pub derives: Vec<String>,
+    #[serde(skip)]
+    pub special_methods_analysis: Option<AnalysisResult>,
 }
 
 /// Data for impl template

@@ -1,0 +1,155 @@
+# Advanced Configuration Example for carla-codegen
+
+# Output directory
+output_dir = "generated"
+
+# Builder pattern threshold
+builder_threshold = 3
+
+# Code formatting configuration
+[formatting]
+enable_rustfmt = true
+line_width = 120
+tab_width = 4
+use_tabs = false
+force_trailing_commas = false
+# rustfmt_config = "rustfmt.toml"  # Optional path to rustfmt.toml
+
+# Method signature configuration
+[method_signatures]
+default_self_type = "ref"
+auto_detect_self_type = true
+generate_async_variants = false
+use_result_return_types = true
+error_type = "Result<()>"
+
+# Patterns for self parameter types
+owned_self_patterns = [
+    "destroy",
+    "delete", 
+    "consume",
+    "take",
+    "into_*"
+]
+
+mut_self_patterns = [
+    "set_*",
+    "add_*", 
+    "remove_*",
+    "clear_*",
+    "reset_*",
+    "apply_*",
+    "enable_*",
+    "disable_*",
+    "open_*",
+    "close_*"
+]
+
+ref_self_patterns = [
+    "get_*",
+    "is_*",
+    "has_*", 
+    "list_*",
+    "find_*",
+    "count_*"
+]
+
+# Argument handling configuration  
+[argument_handling]
+optional_args_style = "option"  # "option", "builder", "overload"
+kwargs_style = "builder"        # "builder", "map", "ignore"
+enable_builder_patterns = true
+builder_threshold = 3
+generate_overloads = false
+max_overloads = 3
+
+# Type mappings
+[type_mapping.mappings]
+"int" = "i32"
+"long" = "i64"
+"float" = "f32"
+"double" = "f64"
+"bool" = "bool"
+"str" = "String"
+"bytes" = "Vec<u8>"
+"carla.Location" = "crate::geom::Location"
+"carla.Rotation" = "crate::geom::Rotation"
+"carla.Transform" = "crate::geom::Transform"
+"carla.Vector3D" = "crate::geom::Vector3D"
+
+# Filter configuration
+[filters]
+exclude_classes = [
+    "DeprecatedClass",
+    "InternalClass" 
+]
+
+exclude_methods = [
+    "__del__",
+    "__getattr__",
+    "__setattr__"
+]
+
+skip_modules = [
+    "test",
+    "internal"
+]
+
+# Naming configuration
+[naming]
+method_case = "snake_case"
+type_case = "PascalCase"
+module_case = "snake_case"
+remove_prefix = ["get_", "set_", "carla."]
+actor_suffix = "Actor"
+
+# Documentation configuration
+[documentation]
+include_warnings = true
+include_notes = true
+include_python_examples = false
+generate_doc_tests = true
+
+# Per-class configuration overrides
+[class_overrides.Actor]
+custom_derives = ["Clone", "Debug", "PartialEq"]
+implement_traits = ["Send", "Sync"]
+generate_clone = true
+generate_debug = true
+custom_doc = "Base class for all CARLA actors with enhanced functionality"
+
+[class_overrides.Actor.method_signatures]
+default_self_type = "ref"
+use_result_return_types = true
+
+[class_overrides.Vehicle]
+custom_derives = ["Clone", "Debug"]
+
+# Per-method configuration overrides
+[method_overrides."Actor::destroy"]
+self_type = "self"
+return_type = "Result<bool>"
+custom_doc = "Destroys the actor and returns success status"
+
+[method_overrides."Actor::get_location"]
+return_type = "Result<Location>"
+generate_async = true
+
+[method_overrides."Vehicle::set_autopilot"]
+self_type = "mut_ref" 
+skip = false
+
+[method_overrides."Vehicle::apply_control"]
+custom_impl = '''
+    // Custom implementation for apply_control
+    if let Some(control) = control {
+        self.ffi.apply_control(control)?;
+    }
+    Ok(())
+'''
+
+# Parameter-specific overrides
+[method_overrides."Vehicle::apply_control".parameter_overrides.control]
+optional = true
+default_value = "None"
+custom_doc = "Vehicle control to apply (optional)"

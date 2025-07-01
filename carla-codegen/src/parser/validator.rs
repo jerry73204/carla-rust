@@ -86,15 +86,41 @@ pub fn validate_method(method: &Method, class_name: &str) -> Result<()> {
         validate_parameter(param, &method.def_name, class_name)?;
     }
 
-    // Warn about methods without return type (except __init__ and similar)
-    if method.return_type.is_none() && !method.def_name.starts_with("__") {
-        warn!(
-            "Method '{}' in class '{}' has no return type specified",
-            method.def_name, class_name
-        );
-    }
+    // Methods without return type are valid - they return None in Python, () in Rust
+    // No warning needed
 
     Ok(())
+}
+
+/// Check if a method is a special Python method where parameter types can be inferred
+fn is_special_method_with_implicit_types(method_name: &str, param_name: &str) -> bool {
+    match method_name {
+        // Comparison methods where 'other' is typically the same type as self
+        "__eq__" | "__ne__" | "__lt__" | "__le__" | "__gt__" | "__ge__" => param_name == "other",
+        // Arithmetic operators where 'other' is typically the same type as self
+        "__add__" | "__sub__" | "__mul__" | "__div__" | "__mod__" | "__pow__" => {
+            param_name == "other" || param_name == "rhs"
+        }
+        // Reverse arithmetic operators
+        "__radd__" | "__rsub__" | "__rmul__" | "__rdiv__" | "__rmod__" | "__rpow__" => {
+            param_name == "other" || param_name == "lhs"
+        }
+        // In-place operators
+        "__iadd__" | "__isub__" | "__imul__" | "__idiv__" | "__imod__" | "__ipow__" => {
+            param_name == "other" || param_name == "rhs"
+        }
+        // Bitwise operators
+        "__and__" | "__or__" | "__xor__" | "__lshift__" | "__rshift__" => {
+            param_name == "other" || param_name == "rhs"
+        }
+        // Contains method where 'item' type depends on container
+        "__contains__" => param_name == "item",
+        // Index/slice methods
+        "__getitem__" | "__setitem__" | "__delitem__" => {
+            param_name == "key" || param_name == "index" || param_name == "value"
+        }
+        _ => false,
+    }
 }
 
 /// Validate a parameter
@@ -105,8 +131,11 @@ pub fn validate_parameter(param: &Parameter, method_name: &str, class_name: &str
         )));
     }
 
-    // Warn about parameters without type (except 'self')
-    if param.param_type.is_none() && param.param_name != "self" {
+    // Warn about parameters without type (except 'self' and special method parameters)
+    if param.param_type.is_none()
+        && param.param_name != "self"
+        && !is_special_method_with_implicit_types(method_name, &param.param_name)
+    {
         warn!(
             "Parameter '{}' in method '{}' of class '{}' has no type specified",
             param.param_name, method_name, class_name

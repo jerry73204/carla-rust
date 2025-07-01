@@ -1,0 +1,295 @@
+# Comprehensive Configuration for Full CARLA API Generation
+# Use this config to generate all types from carla-simulator/PythonAPI/docs/
+
+# Output settings
+output_dir = "generated_carla"
+builder_threshold = 2
+
+# Code formatting - high quality output
+[formatting]
+enable_rustfmt = true
+line_width = 100
+tab_width = 4
+use_tabs = false
+force_trailing_commas = false
+
+# Method signatures optimized for CARLA
+[method_signatures]
+default_self_type = "ref"
+auto_detect_self_type = true
+generate_async_variants = false
+use_result_return_types = true
+error_type = "crate::error::Result<()>"
+
+# CARLA-specific self parameter patterns
+owned_self_patterns = [
+    "destroy",
+    "delete", 
+    "remove",
+    "consume",
+    "take",
+    "close"
+]
+
+mut_self_patterns = [
+    "set_*",
+    "add_*", 
+    "remove_*",
+    "clear_*",
+    "reset_*",
+    "apply_*",
+    "enable_*",
+    "disable_*",
+    "open_*",
+    "start_*",
+    "stop_*",
+    "freeze_*",
+    "unfreeze_*",
+    "show_*",
+    "hide_*",
+    "blend_*",
+    "use_*",
+    "listen",
+    "stop_listening",
+    "record_*",
+    "replay_*"
+]
+
+ref_self_patterns = [
+    "get_*",
+    "is_*",
+    "has_*", 
+    "list_*",
+    "find_*",
+    "count_*",
+    "contains_*",
+    "to_*",
+    "as_*"
+]
+
+# Argument handling for CARLA's Python API patterns
+[argument_handling]
+optional_args_style = "option"
+kwargs_style = "builder"
+enable_builder_patterns = true
+builder_threshold = 3
+generate_overloads = false
+max_overloads = 4
+
+# Comprehensive CARLA type mappings
+[type_mapping.mappings]
+# Basic types
+"int" = "i32"
+"long" = "i64"
+"float" = "f32"
+"double" = "f64"
+"bool" = "bool"
+"str" = "String"
+"bytes" = "Vec<u8>"
+"list" = "Vec"
+"dict" = "std::collections::HashMap"
+
+# CARLA geometry types
+"carla.Location" = "crate::geom::Location"
+"carla.Rotation" = "crate::geom::Rotation"
+"carla.Transform" = "crate::geom::Transform"
+"carla.Vector3D" = "crate::geom::Vector3D"
+"carla.Vector2D" = "crate::geom::Vector2D"
+"carla.BoundingBox" = "crate::geom::BoundingBox"
+"carla.GeoLocation" = "crate::geom::GeoLocation"
+
+# CARLA color and material types
+"carla.Color" = "crate::rpc::Color"
+"carla.ColorConverter" = "crate::rpc::ColorConverter"
+"carla.MaterialParameter" = "crate::rpc::MaterialParameter"
+
+# CARLA actor types
+"carla.Actor" = "crate::client::Actor"
+"carla.Vehicle" = "crate::client::Vehicle"
+"carla.Walker" = "crate::client::Walker"
+"carla.TrafficSign" = "crate::client::TrafficSign"
+"carla.TrafficLight" = "crate::client::TrafficLight"
+
+# CARLA world and client types
+"carla.World" = "crate::client::World"
+"carla.Client" = "crate::client::Client"
+"carla.Blueprint" = "crate::client::Blueprint"
+"carla.BlueprintLibrary" = "crate::client::BlueprintLibrary"
+"carla.ActorBlueprint" = "crate::client::ActorBlueprint"
+"carla.ActorAttribute" = "crate::client::ActorAttribute"
+
+# CARLA sensor types
+"carla.Sensor" = "crate::sensor::Sensor"
+"carla.ServerSideSensor" = "crate::sensor::ServerSideSensor"
+"carla.ClientSideSensor" = "crate::sensor::ClientSideSensor"
+
+# CARLA control types
+"carla.VehicleControl" = "crate::rpc::VehicleControl"
+"carla.WalkerControl" = "crate::rpc::WalkerControl"
+"carla.VehiclePhysicsControl" = "crate::rpc::VehiclePhysicsControl"
+"carla.WheelPhysicsControl" = "crate::rpc::WheelPhysicsControl"
+
+# CARLA road/map types
+"carla.Map" = "crate::road::Map"
+"carla.Waypoint" = "crate::road::Waypoint"
+"carla.Junction" = "crate::road::Junction"
+"carla.Landmark" = "crate::road::Landmark"
+"carla.LaneMarking" = "crate::road::LaneMarking"
+
+# CARLA traffic manager
+"carla.TrafficManager" = "crate::traffic_manager::TrafficManager"
+
+# CARLA weather and lighting
+"carla.WeatherParameters" = "crate::rpc::WeatherParameters"
+"carla.LightState" = "crate::rpc::LightState"
+"carla.LightGroup" = "crate::rpc::LightGroup"
+
+# Filter configuration - exclude problematic or internal classes
+[filters]
+exclude_classes = [
+    # Internal/test classes
+    "carla.command.SpawnActor",  # Command classes have complex nested structures
+    "carla.command.DestroyActor",
+    "carla.command.ApplyVehicleControl",
+    "carla.command.ApplyWalkerControl",
+    "carla.command.ApplyTransform",
+    "carla.command.ApplyWalkerState",
+    "carla.command.ApplyVehiclePhysicsControl",
+    "carla.command.ApplyTargetVelocity",
+    "carla.command.ApplyTargetAngularVelocity",
+    "carla.command.ApplyImpulse",
+    "carla.command.ApplyForce",
+    "carla.command.SetSimulatePhysics",
+    "carla.command.SetAutopilot",
+    "carla.command.SetVehicleLightState",
+    "carla.command.ShowDebugTelemetry",
+    
+    # Deprecated classes
+    "carla.LightManager",  # Removed in 0.10.0
+    
+    # RSS classes (removed in 0.10.0)
+    "carla.RssRestrictor",
+    "carla.RssResponse",
+    "carla.RssSensor",
+    
+    # Internal utility classes
+    "carla.DebugHelper",
+    "carla.Timestamp",  # Simple timestamp, better as primitive
+]
+
+exclude_methods = [
+    # Python-specific methods
+    "__del__",
+    "__getattr__",
+    "__setattr__",
+    "__getstate__",
+    "__setstate__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__sizeof__",
+    "__format__",
+    "__subclasshook__",
+    "__dir__",
+    
+    # Iterator methods (handle separately)
+    "__iter__",
+    "__next__",
+    "__reversed__",
+    
+    # Container methods that need special handling
+    "__getitem__",
+    "__setitem__",
+    "__delitem__",
+    "__contains__",
+    "__len__",
+]
+
+skip_modules = [
+    "test",
+    "tests", 
+    "internal",
+    "deprecated",
+    "experimental"
+]
+
+# Naming conventions for CARLA
+[naming]
+method_case = "snake_case"
+type_case = "PascalCase"
+module_case = "snake_case"
+remove_prefix = ["get_", "carla."]
+actor_suffix = ""
+
+# Documentation settings
+[documentation]
+include_warnings = true
+include_notes = true
+include_python_examples = false
+generate_doc_tests = false  # Disable for large-scale generation
+
+# Class-specific overrides for important CARLA types
+[class_overrides.Client]
+custom_derives = ["Debug"]
+custom_doc = "Main client interface to connect to CARLA server"
+
+[class_overrides.World]
+custom_derives = ["Debug"]
+custom_doc = "Represents the CARLA world and provides access to all simulation features"
+
+[class_overrides.Actor]
+custom_derives = ["Debug", "Clone"]
+custom_doc = "Base class for all objects in the CARLA world that can be spawned"
+
+[class_overrides.Vehicle]
+custom_derives = ["Debug", "Clone"]
+custom_doc = "A vehicle actor in the CARLA world"
+
+[class_overrides.Walker]
+custom_derives = ["Debug", "Clone"] 
+custom_doc = "A pedestrian actor in the CARLA world"
+
+[class_overrides.Sensor]
+custom_derives = ["Debug"]
+custom_doc = "Base class for all sensor types in CARLA"
+
+[class_overrides.Map]
+custom_derives = ["Debug", "Clone"]
+custom_doc = "Represents the OpenDRIVE map with road network information"
+
+[class_overrides.TrafficManager]
+custom_derives = ["Debug"]
+custom_doc = "Traffic manager for controlling AI vehicle behavior"
+
+# Method-specific overrides for common patterns
+[method_overrides."Client::get_world"]
+return_type = "Result<World>"
+custom_doc = "Get the current world from the server"
+
+[method_overrides."World::get_actors"]
+return_type = "Result<Vec<Actor>>"
+custom_doc = "Get all actors currently in the world"
+
+[method_overrides."World::spawn_actor"]
+return_type = "Result<Actor>"
+custom_doc = "Spawn a new actor in the world"
+
+[method_overrides."Actor::destroy"]
+self_type = "self"
+return_type = "Result<bool>"
+custom_doc = "Destroy this actor and remove it from the world"
+
+[method_overrides."Vehicle::set_autopilot"]
+self_type = "mut_ref"
+custom_doc = "Enable or disable autopilot for this vehicle"
+
+[method_overrides."Vehicle::apply_control"]
+self_type = "mut_ref"
+custom_doc = "Apply vehicle control (throttle, steering, brake, etc.)"
+
+[method_overrides."Sensor::listen"]
+self_type = "mut_ref"
+custom_doc = "Start listening for sensor data with a callback"
+
+[method_overrides."Sensor::stop"]
+self_type = "mut_ref"
+custom_doc = "Stop listening for sensor data"

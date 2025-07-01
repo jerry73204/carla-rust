@@ -280,6 +280,11 @@ impl TemplateRenderer for SynRenderer {
             builder = builder.with_doc(doc.clone());
         }
 
+        // Add derives from special methods analysis
+        if !data.derives.is_empty() {
+            builder = builder.with_derives(data.derives.clone());
+        }
+
         // Add fields
         for field in &data.fields {
             let field_name = to_rust_ident(&field.name);
@@ -320,6 +325,9 @@ impl TemplateRenderer for SynRenderer {
             let method_name = to_rust_ident(&method.name);
             let mut method_builder =
                 MethodBuilder::new(method_name, data.name.clone(), method.name.clone());
+
+            // Set self type
+            method_builder = method_builder.with_self_type(method.self_type);
 
             // Add parameters
             for param in &method.params {
@@ -569,6 +577,8 @@ mod tests {
             }],
             has_ffi_inner: false,
             ffi_type: "TestStruct".to_string(),
+            derives: vec!["Debug".to_string(), "Clone".to_string()],
+            special_methods_analysis: None,
         };
 
         let result = renderer.render_struct(&struct_data);
