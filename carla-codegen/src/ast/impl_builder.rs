@@ -222,7 +222,16 @@ impl MethodBuilder {
         let output = match &self.return_type {
             Some(rust_type) => {
                 let ty = self.rust_type_to_syn_type(rust_type)?;
-                ReturnType::Type(parse_quote!(->), Box::new(parse_quote!(crate::Result<#ty>)))
+
+                // Check if the type already contains "Result" to avoid double wrapping
+                let type_string = rust_type.to_rust_string();
+                if type_string.contains("Result") {
+                    // Already has Result wrapper, use as-is
+                    ReturnType::Type(parse_quote!(->), Box::new(ty))
+                } else {
+                    // Add Result wrapper
+                    ReturnType::Type(parse_quote!(->), Box::new(parse_quote!(crate::Result<#ty>)))
+                }
             }
             None => ReturnType::Type(parse_quote!(->), Box::new(parse_quote!(crate::Result<()>))),
         };

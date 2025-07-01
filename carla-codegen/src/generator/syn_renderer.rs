@@ -267,6 +267,30 @@ impl SynRenderer {
         // Format and return
         self.formatter.format_file(&file).map_err(Into::into)
     }
+
+    /// Parse a return type string back into a proper RustType
+    /// This handles union types and other complex type strings that were
+    /// converted to strings during context processing
+    fn parse_return_type_string(
+        &self,
+        type_str: &str,
+    ) -> Result<crate::analyzer::type_resolver::RustType> {
+        use crate::analyzer::type_resolver::RustType;
+
+        // Check if this is a union type (contains |)
+        if type_str.contains(" | ") {
+            let parts: Vec<&str> = type_str.split(" | ").map(|s| s.trim()).collect();
+            if parts.len() > 1 {
+                // For union types, use the first type as fallback
+                // This matches the behavior in impl_builder.rs
+                return Ok(RustType::Custom(parts[0].to_string()));
+            }
+        }
+
+        // For non-union types, use as Custom type
+        // This preserves the existing behavior for normal types
+        Ok(RustType::Custom(type_str.to_string()))
+    }
 }
 
 impl TemplateRenderer for SynRenderer {
@@ -332,8 +356,7 @@ impl TemplateRenderer for SynRenderer {
             // Add parameters
             for param in &method.params {
                 let param_name = to_rust_ident(&param.name);
-                let rust_type =
-                    crate::analyzer::type_resolver::RustType::Custom(param.rust_type.clone());
+                let rust_type = self.parse_return_type_string(&param.rust_type)?;
 
                 let mut parameter = MethodParameter::new(param_name, rust_type);
 
@@ -350,8 +373,7 @@ impl TemplateRenderer for SynRenderer {
 
             // Set return type if specified
             if !method.return_type.is_empty() && method.return_type != "()" {
-                let rust_return_type =
-                    crate::analyzer::type_resolver::RustType::Custom(method.return_type.clone());
+                let rust_return_type = self.parse_return_type_string(&method.return_type)?;
                 method_builder = method_builder.with_return_type(rust_return_type);
             }
 
