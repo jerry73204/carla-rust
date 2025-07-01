@@ -63,7 +63,7 @@ clean:
 	rm -rf /tmp/carla_test_logs/
 
 lint:
-	cargo fmt --all -- --check
+	cargo +nightly fmt --all -- --check
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo clippy --examples -- -D warnings
 
