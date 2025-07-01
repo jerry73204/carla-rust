@@ -132,6 +132,40 @@ impl TypeResolver {
         self.type_mappings
             .insert("uchar".to_string(), RustType::Primitive("u8".to_string()));
 
+        // Callback and function types
+        self.type_mappings.insert(
+            "callback".to_string(),
+            RustType::Primitive("u64".to_string()), // Callback ID
+        );
+        self.type_mappings.insert(
+            "function".to_string(),
+            RustType::Custom("Box<dyn Fn() + Send + Sync>".to_string()),
+        );
+        self.type_mappings.insert(
+            "callable".to_string(),
+            RustType::Custom("Box<dyn Fn() + Send + Sync>".to_string()),
+        );
+
+        // Texture types
+        self.type_mappings.insert(
+            "TextureColor".to_string(),
+            RustType::Custom("crate::sensor::TextureColor".to_string()),
+        );
+        self.type_mappings.insert(
+            "TextureFloatColor".to_string(),
+            RustType::Custom("crate::sensor::TextureFloatColor".to_string()),
+        );
+
+        // Other special types
+        self.type_mappings.insert(
+            "tuple".to_string(),
+            RustType::Custom("(String, String)".to_string()), // Generic tuple fallback
+        );
+        self.type_mappings.insert(
+            "set(int)".to_string(),
+            RustType::Vec(Box::new(RustType::Primitive("i32".to_string()))), // Set as Vec for simplicity
+        );
+
         // CARLA types
         self.carla_types.insert(
             "carla.Vector2D".to_string(),
@@ -293,11 +327,6 @@ impl TypeResolver {
             return Ok(RustType::Vec(Box::new(RustType::Primitive(
                 "u8".to_string(),
             ))));
-        }
-
-        // Handle function/callable types
-        if python_type == "function" || python_type == "callable" {
-            return Ok(RustType::Custom("Box<dyn Fn() + Send + Sync>".to_string()));
         }
 
         // Handle CARLA types
