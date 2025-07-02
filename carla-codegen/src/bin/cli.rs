@@ -3,7 +3,7 @@
 use anyhow::Result;
 use carla_codegen::{config::Config, Generator};
 use clap::{Parser, Subcommand};
-use std::{error::Error, path::PathBuf};
+use std::path::PathBuf;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
@@ -59,6 +59,22 @@ enum Commands {
         /// Generate stub implementations for docs-only mode
         #[arg(long)]
         stub_mode: bool,
+
+        /// Continue processing after errors
+        #[arg(long)]
+        continue_on_error: bool,
+
+        /// Maximum number of errors before stopping (default: 10)
+        #[arg(long, default_value = "10")]
+        max_errors: usize,
+
+        /// Disable colored output
+        #[arg(long)]
+        no_color: bool,
+
+        /// Suppress detailed error context (quiet mode)
+        #[arg(short = 'q', long)]
+        quiet: bool,
     },
 
     /// Validate YAML files without generating code
@@ -111,6 +127,10 @@ fn main() -> Result<()> {
             skip_module,
             builder_threshold,
             stub_mode,
+            continue_on_error,
+            max_errors,
+            no_color,
+            quiet,
         } => generate(
             input,
             output,
@@ -121,6 +141,11 @@ fn main() -> Result<()> {
             skip_module,
             builder_threshold,
             stub_mode,
+            continue_on_error,
+            max_errors,
+            no_color,
+            quiet,
+            cli.verbose,
         ),
         Commands::Validate { input, config } => validate(input, config),
         Commands::List {
@@ -142,6 +167,11 @@ fn generate(
     skip_modules: Vec<String>,
     builder_threshold: Option<usize>,
     stub_mode: bool,
+    continue_on_error: bool,
+    max_errors: usize,
+    no_color: bool,
+    quiet: bool,
+    verbose: bool,
 ) -> Result<()> {
     info!("Starting code generation");
 
@@ -182,8 +212,17 @@ fn generate(
         config.set_stub_mode(true);
     }
 
-    // Create generator
-    let mut generator = Generator::new(config);
+    // Create error configuration
+    let error_config = carla_codegen::ErrorConfig {
+        show_generated_code: !quiet && verbose,
+        show_source_context: !quiet,
+        continue_on_error,
+        max_errors,
+        use_colors: !no_color && atty::is(atty::Stream::Stderr),
+    };
+
+    // Create generator with error config
+    let mut generator = Generator::new(config).with_error_config(error_config);
 
     // Add input files
     if input.is_file() {
@@ -203,10 +242,9 @@ fn generate(
             Ok(())
         }
         Err(e) => {
-            eprintln!("Code generation failed: {e}");
-            if let Some(source) = e.source() {
-                eprintln!("Caused by: {source}");
-            }
+            // Use enhanced error formatting
+            eprintln!("{}", e.format_with_context(&error_config));
+
             // Still indicate that files were generated if they were
             if generator.config.output_dir.exists() {
                 if let Ok(entries) = std::fs::read_dir(&generator.config.output_dir) {
@@ -216,7 +254,7 @@ fn generate(
                         .collect();
                     if !rust_files.is_empty() {
                         eprintln!(
-                            "Note: {} Rust files were generated before the error occurred",
+                            "\nNote: {} Rust files were generated before the error occurred",
                             rust_files.len()
                         );
                     }

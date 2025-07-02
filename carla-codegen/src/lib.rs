@@ -7,10 +7,11 @@ pub mod analyzer;
 pub mod ast;
 pub mod config;
 pub mod error;
+pub mod error_context;
 pub mod generator;
 pub mod parser;
 
-pub use error::{CodegenError, Result};
+pub use error::{CodegenError, ErrorCollector, ErrorConfig, Result};
 
 use std::path::Path;
 use tracing::info;
@@ -20,6 +21,7 @@ pub struct Generator {
     pub config: config::Config,
     parser: parser::YamlParser,
     generator: Option<generator::CodeGenerator>,
+    error_config: ErrorConfig,
 }
 
 impl Generator {
@@ -29,7 +31,14 @@ impl Generator {
             config,
             parser: parser::YamlParser::new(),
             generator: None,
+            error_config: ErrorConfig::default(),
         }
+    }
+
+    /// Set error configuration
+    pub fn with_error_config(mut self, error_config: ErrorConfig) -> Self {
+        self.error_config = error_config;
+        self
     }
 
     /// Add a YAML directory to parse

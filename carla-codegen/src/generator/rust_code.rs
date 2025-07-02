@@ -236,7 +236,21 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
                 continue;
             };
 
-            let rust_type = self.context.type_resolver.resolve_type(var_type)?;
+            // Create source context for type resolution
+            let yaml_file = self
+                .context
+                .module
+                .source_file
+                .clone()
+                .unwrap_or_else(|| std::path::PathBuf::from("unknown.yml"));
+            let context =
+                crate::error::SourceContext::new_class(yaml_file, class.class_name.clone())
+                    .with_python_type(var_type.clone());
+
+            let rust_type = self
+                .context
+                .type_resolver
+                .resolve_type_with_context(var_type, context)?;
             let rust_type_string = rust_type.to_rust_string();
 
             // Add debug output for HashMap issue

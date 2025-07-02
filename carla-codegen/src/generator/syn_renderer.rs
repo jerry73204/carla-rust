@@ -429,17 +429,35 @@ impl TemplateRenderer for SynRenderer {
             match syn::parse_str::<Item>(&struct_info.rendered) {
                 Ok(item) => items.push(item),
                 Err(e) => {
-                    eprintln!("=== SYN PARSING ERROR ===");
-                    eprintln!("Error: {e}");
-                    eprintln!("Error span: {:?}", e.span());
-                    eprintln!("Struct content that failed to parse:");
-                    eprintln!("{}", struct_info.rendered);
-                    // Show line numbers for debugging
-                    for (i, line) in struct_info.rendered.lines().enumerate() {
-                        eprintln!("{:3}: {}", i + 1, line);
-                    }
-                    eprintln!("=========================");
-                    return Err(crate::error::CodegenError::SynError(e));
+                    // Create source context
+                    let yaml_file = data
+                        .source_file
+                        .clone()
+                        .unwrap_or_else(|| std::path::PathBuf::from("unknown.yml"));
+                    let context = crate::error::SourceContext::new_class(
+                        yaml_file,
+                        struct_info.struct_name.clone(),
+                    );
+
+                    // Create code context
+                    let code_context = crate::error::CodeContext::new(
+                        struct_info.rendered.clone(),
+                        std::path::PathBuf::from(format!(
+                            "{}.rs",
+                            struct_info.struct_name.to_lowercase()
+                        )),
+                        format!("{} struct", struct_info.struct_name),
+                    );
+
+                    // Create enhanced error
+                    let error =
+                        crate::error::CodegenError::syn_error(e, context, Some(code_context));
+
+                    // Print detailed error with context
+                    let config = crate::error::ErrorConfig::default();
+                    eprintln!("{}", error.format_with_context(&config));
+
+                    return Err(error);
                 }
             }
 
@@ -448,12 +466,35 @@ impl TemplateRenderer for SynRenderer {
                 match syn::parse_str::<Item>(&struct_info.impl_rendered) {
                     Ok(item) => items.push(item),
                     Err(e) => {
-                        eprintln!("=== SYN PARSING ERROR (IMPL) ===");
-                        eprintln!("Error: {e}");
-                        eprintln!("Impl content that failed to parse:");
-                        eprintln!("{}", struct_info.impl_rendered);
-                        eprintln!("================================");
-                        return Err(crate::error::CodegenError::SynError(e));
+                        // Create source context
+                        let yaml_file = data
+                            .source_file
+                            .clone()
+                            .unwrap_or_else(|| std::path::PathBuf::from("unknown.yml"));
+                        let context = crate::error::SourceContext::new_class(
+                            yaml_file,
+                            struct_info.struct_name.clone(),
+                        );
+
+                        // Create code context
+                        let code_context = crate::error::CodeContext::new(
+                            struct_info.impl_rendered.clone(),
+                            std::path::PathBuf::from(format!(
+                                "{}.rs",
+                                struct_info.struct_name.to_lowercase()
+                            )),
+                            format!("{} impl block", struct_info.struct_name),
+                        );
+
+                        // Create enhanced error
+                        let error =
+                            crate::error::CodegenError::syn_error(e, context, Some(code_context));
+
+                        // Print detailed error with context
+                        let config = crate::error::ErrorConfig::default();
+                        eprintln!("{}", error.format_with_context(&config));
+
+                        return Err(error);
                     }
                 }
             }
@@ -566,6 +607,7 @@ mod tests {
             module_name: "test".to_string(),
             doc: None,
             classes: vec![class.clone()],
+            source_file: None,
         };
 
         let type_resolver = TypeResolver::new();
@@ -593,6 +635,7 @@ mod tests {
             module_name: "test".to_string(),
             doc: None,
             classes: vec![class.clone()],
+            source_file: None,
         };
 
         let type_resolver = TypeResolver::new();

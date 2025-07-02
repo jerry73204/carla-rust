@@ -280,6 +280,9 @@ pub struct ModuleData {
     pub module_doc: Option<String>,
     pub use_statements: Vec<String>,
     pub structs: Vec<StructInfo>,
+    /// Source file path for error reporting
+    #[serde(skip)]
+    pub source_file: Option<std::path::PathBuf>,
 }
 
 /// Struct information for module template
@@ -288,4 +291,6 @@ pub struct StructInfo {
     pub rendered: String,
     pub impl_rendered: String,
     pub has_impl: bool,
+    /// Struct name for error reporting
+    pub struct_name: String,
 }

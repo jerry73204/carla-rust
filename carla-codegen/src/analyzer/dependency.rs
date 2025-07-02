@@ -294,6 +294,7 @@ mod tests {
         let modules = vec![Module {
             module_name: "carla".to_string(),
             doc: None,
+            source_file: None,
             classes: vec![
                 Class {
                     class_name: "Actor".to_string(),

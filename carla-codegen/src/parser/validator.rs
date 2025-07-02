@@ -154,6 +154,7 @@ mod tests {
         let module = Module {
             module_name: "carla".to_string(),
             doc: Some("Test module".to_string()),
+            source_file: None,
             classes: vec![Class {
                 class_name: "TestClass".to_string(),
                 parent: None,
@@ -195,6 +196,7 @@ mod tests {
             module_name: "".to_string(),
             doc: None,
             classes: vec![],
+            source_file: None,
         };
 
         assert!(matches!(

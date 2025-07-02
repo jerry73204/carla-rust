@@ -30,6 +30,9 @@ prettyplease = { version = "0.2" }
 anyhow = "1.0"
 thiserror = "1.0"
 
+# Terminal detection
+atty = "0.2"
+
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

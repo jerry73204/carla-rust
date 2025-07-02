@@ -1,7 +1,7 @@
 //! Type resolution and mapping from Python to Rust types
 
-use crate::error::{CodegenError, Result};
-use std::collections::HashMap;
+use crate::error::{CodegenError, Result, SourceContext};
+use std::{collections::HashMap, path::PathBuf};
 use tracing::debug;
 
 /// Type information after resolution
@@ -231,6 +231,18 @@ impl TypeResolver {
 
     /// Resolve a Python type to a Rust type
     pub fn resolve_type(&self, python_type: &str) -> Result<RustType> {
+        // Create a minimal context for backward compatibility
+        let context = SourceContext::new_class(PathBuf::new(), String::new())
+            .with_python_type(python_type.to_string());
+        self.resolve_type_with_context(python_type, context)
+    }
+
+    /// Resolve a Python type to a Rust type with source context
+    pub fn resolve_type_with_context(
+        &self,
+        python_type: &str,
+        context: SourceContext,
+    ) -> Result<RustType> {
         debug!("Resolving type: {}", python_type);
 
         // Add a check for the problematic type
@@ -416,8 +428,8 @@ impl TypeResolver {
             return Ok(RustType::Custom(format!("crate::{type_name_pascal}")));
         }
 
-        // Default: treat as custom type
-        Err(CodegenError::UnknownType(python_type.to_string()))
+        // Default: return unknown type error with context
+        Err(CodegenError::unknown_type(python_type.to_string(), context))
     }
 
     /// Add a custom type mapping

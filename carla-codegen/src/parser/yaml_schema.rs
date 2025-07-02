@@ -17,6 +17,9 @@ pub struct Module {
     pub doc: Option<String>,
     #[serde(default)]
     pub classes: Vec<Class>,
+    /// Source file path (not serialized, added during parsing)
+    #[serde(skip)]
+    pub source_file: Option<std::path::PathBuf>,
 }
 
 /// Class definition in YAML

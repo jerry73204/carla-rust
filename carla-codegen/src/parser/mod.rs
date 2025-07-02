@@ -36,6 +36,11 @@ impl YamlParser {
             Ok(mut modules) => {
                 debug!("Found {} modules in {}", modules.len(), path.display());
 
+                // Set the source file for each module
+                for module in &mut modules {
+                    module.source_file = Some(path.to_path_buf());
+                }
+
                 // Debug: Print the parsed data before normalization
                 for module in &modules {
                     for class in &module.classes {
