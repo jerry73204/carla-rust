@@ -103,20 +103,43 @@ impl StructBuilder {
             return Ok(vec![]);
         }
 
-        let derive_list = self
+        // Filter out empty strings and collect valid derive names
+        let valid_derives: Vec<&str> = self
             .derives
             .iter()
-            .map(|d| {
-                let ident: Ident = syn::parse_str(d)?;
-                Ok(ident)
-            })
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        if valid_derives.is_empty() {
+            return Ok(vec![]);
+        }
+
+        // Parse each derive name into an Ident
+        let derive_list: Vec<Ident> = valid_derives
+            .iter()
+            .map(|&d| syn::parse_str::<Ident>(d))
             .collect::<SynResult<Vec<_>>>()?;
 
-        Ok(vec![parse_quote!(#[derive(#(#derive_list),*)])])
+        // Generate the derive attribute
+        if derive_list.is_empty() {
+            eprintln!(
+                "WARNING: Empty derive list after filtering for struct {}",
+                self.name
+            );
+            Ok(vec![])
+        } else {
+            Ok(vec![parse_quote!(#[derive(#(#derive_list),*)])])
+        }
     }
 
     /// Generate field definitions
     fn generate_fields(&self) -> SynResult<Fields> {
+        if self.fields.is_empty() {
+            // For empty structs, use unit struct syntax
+            return Ok(Fields::Unit);
+        }
+
         let mut fields = Vec::new();
 
         for field in &self.fields {
@@ -201,7 +224,19 @@ impl StructBuilder {
             }
             RustType::Tuple(types) => {
                 // Generate tuple type like (Type1, Type2, Type3)
-                let type_strings: Vec<String> = types.iter().map(|t| t.to_rust_string()).collect();
+                let type_strings: Vec<String> = types
+                    .iter()
+                    .map(|t| t.to_rust_string())
+                    .filter(|s| !s.trim().is_empty()) // Filter out empty type strings
+                    .collect();
+
+                if type_strings.is_empty() {
+                    return Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Empty tuple type",
+                    ));
+                }
+
                 let tuple_str = format!("({})", type_strings.join(", "));
                 syn::parse_str(&tuple_str)
             }
@@ -224,10 +259,23 @@ impl AstBuilder for StructBuilder {
         // Generate fields
         let fields = self.generate_fields()?;
 
-        Ok(parse_quote! {
-            #(#attrs)*
-            #vis struct #name #fields
-        })
+        // Generate the struct based on field type
+        match &fields {
+            Fields::Unit => {
+                // Unit struct needs a semicolon
+                Ok(parse_quote! {
+                    #(#attrs)*
+                    #vis struct #name;
+                })
+            }
+            _ => {
+                // Named or tuple structs
+                Ok(parse_quote! {
+                    #(#attrs)*
+                    #vis struct #name #fields
+                })
+            }
+        }
     }
 
     fn validate(&self) -> crate::Result<()> {

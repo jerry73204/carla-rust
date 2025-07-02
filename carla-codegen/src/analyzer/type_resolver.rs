@@ -233,6 +233,11 @@ impl TypeResolver {
     pub fn resolve_type(&self, python_type: &str) -> Result<RustType> {
         debug!("Resolving type: {}", python_type);
 
+        // Add a check for the problematic type
+        if python_type == "string" {
+            eprintln!("WARNING: Found 'string' type - this should be 'str'");
+        }
+
         // Check custom mappings first
         if let Some(rust_type) = self.custom_mappings.get(python_type) {
             return Ok(RustType::Custom(rust_type.clone()));
@@ -267,8 +272,15 @@ impl TypeResolver {
             return Ok(RustType::Vec(Box::new(inner_type)));
         }
 
+        // Handle array types (e.g., "array(carla.BoundingBox)")
+        if python_type.starts_with("array(") && python_type.ends_with(")") {
+            let inner = &python_type[6..python_type.len() - 1];
+            let inner_type = self.resolve_type(inner)?;
+            return Ok(RustType::Vec(Box::new(inner_type)));
+        }
+
         // Handle dict types
-        if python_type.starts_with("dict") {
+        if python_type == "dict" || python_type.starts_with("dict(") {
             // Simple dict becomes HashMap<String, String>
             return Ok(RustType::HashMap(
                 Box::new(RustType::Primitive("String".to_string())),
@@ -329,6 +341,26 @@ impl TypeResolver {
             ))));
         }
 
+        // Handle tuple types with parentheses (e.g., "tuple(carla.Waypoint)")
+        if python_type.starts_with("tuple(") && python_type.ends_with(")") {
+            let inner = &python_type[6..python_type.len() - 1];
+
+            // Check if it's a multi-element tuple
+            if inner.contains(',') {
+                // Split by comma and resolve each type
+                let elements: Vec<&str> = inner.split(',').map(|s| s.trim()).collect();
+                let mut tuple_types = Vec::new();
+                for element in elements {
+                    tuple_types.push(self.resolve_type(element)?);
+                }
+                return Ok(RustType::Tuple(tuple_types));
+            } else {
+                // Single element tuple - just use the type directly
+                let inner_type = self.resolve_type(inner)?;
+                return Ok(inner_type);
+            }
+        }
+
         // Handle CARLA types
         if let Some(rust_type) = self.carla_types.get(python_type) {
             return Ok(RustType::Custom(rust_type.clone()));
@@ -369,6 +401,19 @@ impl TypeResolver {
             return Ok(RustType::Vec(Box::new(RustType::Vec(Box::new(
                 RustType::Primitive("f32".to_string()),
             )))));
+        }
+
+        // If nothing else matches, check if it might be a CARLA type without the prefix
+        // (e.g., "WeatherParameters" instead of "carla.WeatherParameters")
+        let type_name_pascal = python_type.to_string();
+        if type_name_pascal
+            .chars()
+            .next()
+            .map(|c| c.is_uppercase())
+            .unwrap_or(false)
+        {
+            // Likely a CARLA type without prefix
+            return Ok(RustType::Custom(format!("crate::{type_name_pascal}")));
         }
 
         // Default: treat as custom type

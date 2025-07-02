@@ -2,7 +2,7 @@
 
 use crate::{
     analyzer::{is_enum_class, SpecialMethodAnalyzer},
-    error::Result,
+    error::{CodegenError, Result},
     generator::{
         context::{GeneratorContext, ImplData, RustField, StructData},
         renderer::TemplateRenderer,
@@ -35,12 +35,46 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
         std::fs::create_dir_all(&module_dir)?;
 
         // Generate module file
-        self.generate_module_file(&module_dir)?;
+        eprintln!(
+            "Generating module file for: {}",
+            self.context.module.module_name
+        );
+        match self.generate_module_file(&module_dir) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Error generating module file: {e}");
+                return Err(e);
+            }
+        }
 
         // Generate class files in the module directory
         for class in &self.context.module.classes {
             if self.context.config.should_generate_class(&class.class_name) {
-                self.generate_class_file(class, &module_dir)?;
+                eprintln!("Generating class file for: {}", class.class_name);
+                match self.generate_class_file(class, &module_dir) {
+                    Ok(()) => {}
+                    Err(e) => {
+                        eprintln!("Error generating class {}: {}", class.class_name, e);
+                        // Print class details for debugging
+                        eprintln!("Failed class details:");
+                        eprintln!("  - Name: {}", class.class_name);
+                        eprintln!(
+                            "  - Instance variables: {} vars",
+                            class.instance_variables.len()
+                        );
+                        eprintln!("  - Methods: {} methods", class.methods.len());
+                        if class.class_name == "World" {
+                            eprintln!("  World class methods:");
+                            for method in &class.methods {
+                                eprintln!(
+                                    "    - {}: return_type={:?}",
+                                    method.def_name, method.return_type
+                                );
+                            }
+                        }
+                        return Err(e);
+                    }
+                }
             }
         }
 
@@ -111,6 +145,14 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
         let is_enum = is_enum_class(class);
         debug!("Class {} is_enum: {}", class.class_name, is_enum);
 
+        // Log class structure for debugging
+        if class.class_name.contains("ColorConverter") {
+            eprintln!("DEBUG: ColorConverter class structure:");
+            eprintln!("  - instance_variables: {:?}", class.instance_variables);
+            eprintln!("  - methods: {} methods", class.methods.len());
+            eprintln!("  - is_enum: {is_enum}");
+        }
+
         if is_enum {
             self.generate_enum_file(class, filepath)?;
         } else {
@@ -152,7 +194,17 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
             }
 
             // Format with rustfmt
-            let formatted = self.format_code(&content)?;
+            let formatted = match self.format_code(&content) {
+                Ok(formatted) => formatted,
+                Err(e) => {
+                    eprintln!("Error formatting class {}: {e}", class.class_name);
+                    eprintln!("Content that failed to format:");
+                    eprintln!("==== START CONTENT ====");
+                    eprintln!("{content}");
+                    eprintln!("==== END CONTENT ====");
+                    return Err(e);
+                }
+            };
 
             // Debug: write unformatted content too
             let debug_path = filepath.with_extension("rs.debug");
@@ -166,6 +218,14 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
 
     /// Generate struct data for templates
     fn generate_struct_data(&self, class: &Class) -> Result<StructData> {
+        // This should not be called for enums
+        if is_enum_class(class) {
+            return Err(CodegenError::InvalidStructure(format!(
+                "generate_struct_data called for enum class: {}",
+                class.class_name
+            )));
+        }
+
         let rust_name = self.context.rust_class_name(&class.class_name);
 
         // Convert instance variables to fields
@@ -177,10 +237,19 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
             };
 
             let rust_type = self.context.type_resolver.resolve_type(var_type)?;
+            let rust_type_string = rust_type.to_rust_string();
+
+            // Add debug output for HashMap issue
+            if var.var_name == "attributes" {
+                eprintln!("DEBUG: Processing 'attributes' field");
+                eprintln!("  Original type: {var_type}");
+                eprintln!("  Resolved RustType: {rust_type:?}");
+                eprintln!("  Type string: {rust_type_string}");
+            }
 
             fields.push(RustField {
                 name: var.var_name.to_case(Case::Snake),
-                rust_type: rust_type.to_rust_string(),
+                rust_type: rust_type_string,
                 doc: var.doc.clone(),
                 units: var.var_units.clone(),
                 warning: var.warning.clone(),
@@ -216,6 +285,9 @@ impl<'a, R: TemplateRenderer> RustCodeGenerator<'a, R> {
         if !has_repr && !derives.contains(&"Debug".to_string()) {
             derives.push("Debug".to_string());
         }
+
+        // Filter out any empty strings from derives
+        derives.retain(|d| !d.trim().is_empty());
 
         Ok(StructData {
             name: rust_name,

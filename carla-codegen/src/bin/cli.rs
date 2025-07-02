@@ -3,7 +3,7 @@
 use anyhow::Result;
 use carla_codegen::{config::Config, Generator};
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use std::{error::Error, path::PathBuf};
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
@@ -193,14 +193,38 @@ fn generate(
     }
 
     // Generate code
-    generator.generate()?;
-    info!("Code generation completed successfully");
-    info!(
-        "Output written to: {}",
-        generator.config.output_dir.display()
-    );
-
-    Ok(())
+    match generator.generate() {
+        Ok(()) => {
+            info!("Code generation completed successfully");
+            info!(
+                "Output written to: {}",
+                generator.config.output_dir.display()
+            );
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("Code generation failed: {e}");
+            if let Some(source) = e.source() {
+                eprintln!("Caused by: {source}");
+            }
+            // Still indicate that files were generated if they were
+            if generator.config.output_dir.exists() {
+                if let Ok(entries) = std::fs::read_dir(&generator.config.output_dir) {
+                    let rust_files: Vec<_> = entries
+                        .filter_map(|e| e.ok())
+                        .filter(|e| e.path().extension().map(|ext| ext == "rs").unwrap_or(false))
+                        .collect();
+                    if !rust_files.is_empty() {
+                        eprintln!(
+                            "Note: {} Rust files were generated before the error occurred",
+                            rust_files.len()
+                        );
+                    }
+                }
+            }
+            Err(e.into())
+        }
+    }
 }
 
 fn validate(input: PathBuf, config_file: Option<PathBuf>) -> Result<()> {

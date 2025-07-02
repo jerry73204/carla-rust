@@ -240,7 +240,13 @@ impl CodeGenerator {
         );
 
         let rust_gen = RustCodeGenerator::new(&context, &self.renderer);
-        rust_gen.generate_module(output_dir)?;
+        match rust_gen.generate_module(output_dir) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Error generating module {}: {}", module.module_name, e);
+                return Err(e);
+            }
+        }
 
         Ok(())
     }

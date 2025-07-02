@@ -88,16 +88,31 @@ pub mod utils {
         let escaped_name = if RUST_KEYWORDS.contains(&clean_name.as_str()) {
             format!("{clean_name}_")
         } else {
-            clean_name
+            clean_name.clone()
         };
 
-        syn::parse_str(&escaped_name).expect("Failed to parse identifier")
+        syn::parse_str(&escaped_name).unwrap_or_else(|e| {
+            eprintln!("=== IDENTIFIER PARSING ERROR ===");
+            eprintln!("Error: {e}");
+            eprintln!("Original name: '{name}'");
+            eprintln!("Clean name: '{clean_name}'");
+            eprintln!("Escaped name: '{escaped_name}'");
+            eprintln!("================================");
+            panic!("Failed to parse identifier: {escaped_name}");
+        })
     }
 
     /// Convert a string to a valid Rust type name (PascalCase)
     pub fn to_rust_type_name(name: &str) -> Ident {
         let clean_name = name.to_case(Case::Pascal);
-        syn::parse_str(&clean_name).expect("Failed to parse type name")
+        syn::parse_str(&clean_name).unwrap_or_else(|e| {
+            eprintln!("=== TYPE NAME PARSING ERROR ===");
+            eprintln!("Error: {e}");
+            eprintln!("Original name: '{name}'");
+            eprintln!("Clean name: '{clean_name}'");
+            eprintln!("===============================");
+            panic!("Failed to parse type name: {clean_name}");
+        })
     }
 
     /// Check if a string is a valid Rust identifier

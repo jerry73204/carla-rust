@@ -87,7 +87,7 @@ max_overloads = 4
 "str" = "String"
 "bytes" = "Vec<u8>"
 "list" = "Vec"
-"dict" = "std::collections::HashMap"
+# "dict" = "std::collections::HashMap"  # Commented out - dict is handled specially to include type parameters
 
 # CARLA geometry types
 "carla.Location" = "crate::geom::Location"

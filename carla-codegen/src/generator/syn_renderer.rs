@@ -12,6 +12,7 @@ use crate::{
         AstBuilder, AstContext,
     },
     config::Config,
+    error::CodegenError,
     generator::{
         context::{GeneratorContext, ImplData, ModuleData, StructData},
         renderer::TemplateRenderer,
@@ -335,9 +336,17 @@ impl TemplateRenderer for SynRenderer {
 
         // Build and format
         let struct_item = builder.build()?;
-        self.formatter
+        let formatted = self
+            .formatter
             .format_item(&Item::Struct(struct_item))
-            .map_err(Into::into)
+            .map_err(|e| CodegenError::FormatterError(e.to_string()))?;
+
+        // Debug: Check if the formatted output is valid
+        if formatted.trim().is_empty() {
+            eprintln!("WARNING: Empty struct generated for: {}", data.name);
+        }
+
+        Ok(formatted)
     }
 
     fn render_impl(&self, data: &ImplData) -> Result<String> {
@@ -417,14 +426,35 @@ impl TemplateRenderer for SynRenderer {
         // Add struct items (converted from rendered strings)
         for struct_info in &data.structs {
             // Parse the rendered struct back into an AST item
-            if let Ok(item) = syn::parse_str::<Item>(&struct_info.rendered) {
-                items.push(item);
+            match syn::parse_str::<Item>(&struct_info.rendered) {
+                Ok(item) => items.push(item),
+                Err(e) => {
+                    eprintln!("=== SYN PARSING ERROR ===");
+                    eprintln!("Error: {e}");
+                    eprintln!("Error span: {:?}", e.span());
+                    eprintln!("Struct content that failed to parse:");
+                    eprintln!("{}", struct_info.rendered);
+                    // Show line numbers for debugging
+                    for (i, line) in struct_info.rendered.lines().enumerate() {
+                        eprintln!("{:3}: {}", i + 1, line);
+                    }
+                    eprintln!("=========================");
+                    return Err(crate::error::CodegenError::SynError(e));
+                }
             }
 
             // Add impl block if present
             if struct_info.has_impl {
-                if let Ok(item) = syn::parse_str::<Item>(&struct_info.impl_rendered) {
-                    items.push(item);
+                match syn::parse_str::<Item>(&struct_info.impl_rendered) {
+                    Ok(item) => items.push(item),
+                    Err(e) => {
+                        eprintln!("=== SYN PARSING ERROR (IMPL) ===");
+                        eprintln!("Error: {e}");
+                        eprintln!("Impl content that failed to parse:");
+                        eprintln!("{}", struct_info.impl_rendered);
+                        eprintln!("================================");
+                        return Err(crate::error::CodegenError::SynError(e));
+                    }
                 }
             }
         }

@@ -322,7 +322,19 @@ impl MethodBuilder {
             }
             RustType::Tuple(types) => {
                 // Generate tuple type like (Type1, Type2, Type3)
-                let type_strings: Vec<String> = types.iter().map(|t| t.to_rust_string()).collect();
+                let type_strings: Vec<String> = types
+                    .iter()
+                    .map(|t| t.to_rust_string())
+                    .filter(|s| !s.trim().is_empty()) // Filter out empty type strings
+                    .collect();
+
+                if type_strings.is_empty() {
+                    return Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Empty tuple type",
+                    ));
+                }
+
                 let tuple_str = format!("({})", type_strings.join(", "));
                 syn::parse_str(&tuple_str)
             }
