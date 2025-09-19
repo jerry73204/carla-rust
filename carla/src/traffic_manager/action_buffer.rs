@@ -39,7 +39,12 @@ impl ActionBuffer {
     }
 
     pub(crate) fn as_slice(&self) -> &[FfiAction] {
-        let ptr = self.inner.as_ptr();
+        // Get a &FfiActionBuffer then call its as_ptr() -> *const FfiAction
+        let ptr = self
+            .inner
+            .as_ref()
+            .expect("ActionBuffer pointer must be non-null")
+            .as_ptr();
         unsafe { slice::from_raw_parts(ptr, self.len()) }
     }
 
