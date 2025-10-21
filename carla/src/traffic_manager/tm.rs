@@ -24,8 +24,6 @@ use std::time::Duration;
 
 /// Manages groups of autopilot vehicles with realistic urban traffic behavior.
 ///
-/// Corresponds to `carla.TrafficManager` in Python API.
-///
 /// The traffic manager coordinates multiple vehicles in autopilot mode, providing
 /// sophisticated control over their driving behavior. It enables:
 /// - Customized speeds and lane behaviors per vehicle or globally
@@ -33,6 +31,8 @@ use std::time::Duration;
 /// - Realistic traffic rule violations (running lights, ignoring pedestrians)
 /// - Custom routes and paths
 /// - Performance optimizations for large fleets
+///
+/// Corresponds to [`carla.TrafficManager`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager) in the Python API.
 ///
 /// # Usage Pattern
 ///

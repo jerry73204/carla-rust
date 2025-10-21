@@ -1,7 +1,7 @@
 use autocxx::prelude::*;
 use carla_sys::carla_rust::rpc::FfiEpisodeSettings;
 
-/// Simulation configuration settings, corresponding to `carla.WorldSettings` in Python API.
+/// Simulation configuration settings, Corresponds to [`carla.WorldSettings`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WorldSettings) in the Python API.
 ///
 /// These settings control how the simulation runs, including timing, rendering,
 /// and physics behavior.

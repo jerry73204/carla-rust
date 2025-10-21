@@ -26,8 +26,7 @@ use std::{ptr, time::Duration};
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
-/// The world contains the map and assets of a simulation,
-/// corresponding to `carla.World` in Python API.
+/// The world contains the map and assets of a simulation.
 ///
 /// [`World`] is the main interface for interacting with the simulation. It provides:
 /// - Access to the simulation [`Map`] and environment
@@ -36,6 +35,8 @@ const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 /// - Simulation settings (synchronous mode, fixed time step, etc.)
 /// - Traffic light management
 /// - World snapshots for state inspection
+///
+/// Corresponds to [`carla.World`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.World) in the Python API
 ///
 /// # Thread Safety
 ///

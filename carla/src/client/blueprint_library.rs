@@ -8,7 +8,7 @@ use cxx::{let_cxx_string, SharedPtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// Provides blueprints used to spawn actors, corresponding to `carla.BlueprintLibrary` in Python API.
+/// Provides blueprints used to spawn actors, Corresponds to [`carla.BlueprintLibrary`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.BlueprintLibrary) in the Python API.
 ///
 /// The blueprint library contains templates for all spawnable actors in CARLA,
 /// including vehicles, pedestrians, sensors, and props. Use blueprints to create

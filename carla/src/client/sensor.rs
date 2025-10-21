@@ -12,7 +12,7 @@ use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
-/// Represents a sensor in the simulation, corresponding to `carla.Sensor` in Python API.
+/// Represents a sensor in the simulation, Corresponds to [`carla.Sensor`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Sensor) in the Python API.
 ///
 /// Sensors collect data from the simulation (cameras, LiDAR, collision detectors, etc.).
 /// Attach sensors to vehicles or place them in the world to gather information.

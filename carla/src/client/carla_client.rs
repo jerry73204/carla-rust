@@ -13,8 +13,7 @@ use derivative::Derivative;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
 
-/// The client maintains the connection to the CARLA simulator server,
-/// corresponding to `carla.Client` in Python API.
+/// The client maintains the connection to the CARLA simulator server.
 ///
 /// The [`Client`] is your entry point for interacting with a CARLA simulation.
 /// It manages the network connection to the server and provides methods to:
@@ -22,6 +21,8 @@ use std::time::Duration;
 /// - Load and manage maps
 /// - Create [`TrafficManager`] instances
 /// - Check version compatibility
+///
+/// Corresponds to [`carla.Client`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Client) in the Python API
 ///
 /// # Thread Safety
 ///

@@ -7,7 +7,7 @@ use static_assertions::assert_impl_all;
 use super::{ActorBase, ActorKind, TrafficLight, TrafficSign};
 
 /// A base actor that represents a movable object in the simulation,
-/// corresponding to `carla.Actor` in Python API.
+/// Corresponds to [`carla.Actor`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor) in the Python API.
 ///
 /// [`Actor`] is the generic type for all entities in the simulation. For type-specific
 /// functionality, convert to specialized types using [`TryFrom`]:

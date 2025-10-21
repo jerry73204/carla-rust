@@ -6,7 +6,7 @@ use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
 /// Provides information for every actor at a certain moment of time,
-/// corresponding to `carla.WorldSnapshot` in Python API.
+/// Corresponds to [`carla.WorldSnapshot`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WorldSnapshot) in the Python API.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

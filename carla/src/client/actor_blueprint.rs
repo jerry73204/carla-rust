@@ -6,7 +6,7 @@ use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// A template used to construct an actor, corresponding to `carla.ActorBlueprint` in Python API.
+/// A template used to construct an actor, Corresponds to [`carla.ActorBlueprint`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.ActorBlueprint) in the Python API.
 ///
 /// Blueprints define the type and configurable parameters of actors that can be spawned
 /// in the simulation. Each blueprint has:

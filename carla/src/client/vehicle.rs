@@ -15,8 +15,7 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// Represents a vehicle in the simulation, corresponding to
-/// `carla.Vehicle` in Python API.
+/// Represents a vehicle in the simulation.
 ///
 /// [`Vehicle`] provides methods for:
 /// - Vehicle control (throttle, steering, braking)
@@ -24,6 +23,8 @@ use static_assertions::assert_impl_all;
 /// - Physics parameter tuning
 /// - Light and door control
 /// - Ackermann steering configuration
+///
+/// Corresponds to [`carla.Vehicle`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Vehicle) in the Python API
 ///
 /// # Examples
 ///

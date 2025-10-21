@@ -15,7 +15,7 @@ use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3};
 use static_assertions::assert_impl_all;
 
-/// Represents the map of the simulation, corresponding to `carla.Map` in Python API.
+/// Represents the map of the simulation, Corresponds to [`carla.Map`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map) in the Python API.
 ///
 /// The [`Map`] provides access to the road network based on the OpenDRIVE standard.
 /// It allows you to query waypoints, spawn points, landmarks, and road topology.
