@@ -67,7 +67,7 @@ namespace carla_rust
                 return inner_.size();
             }
 
-            const FfiAction* as_ptr() const {
+            const FfiAction* data() const {
                 const Action* ptr = inner_.data();
                 return reinterpret_cast<const FfiAction*>(ptr);
             }
