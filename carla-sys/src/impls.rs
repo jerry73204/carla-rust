@@ -60,9 +60,9 @@ impl Debug for crate::carla::geom::Rotation {
 impl Clone for crate::carla::geom::Rotation {
     fn clone(&self) -> Self {
         Self {
-            pitch: self.pitch.clone(),
-            yaw: self.yaw.clone(),
-            roll: self.roll.clone(),
+            pitch: self.pitch,
+            yaw: self.yaw,
+            roll: self.roll,
         }
     }
 }
@@ -124,9 +124,9 @@ impl Debug for crate::carla_rust::geom::FfiLocation {
 impl Clone for crate::carla_rust::geom::FfiLocation {
     fn clone(&self) -> Self {
         Self {
-            x: self.x.clone(),
-            y: self.y.clone(),
-            z: self.z.clone(),
+            x: self.x,
+            y: self.y,
+            z: self.z,
         }
     }
 }
