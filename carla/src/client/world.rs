@@ -179,12 +179,14 @@ impl World {
         }
     }
 
-    pub fn wait_for_tick(&self) -> WorldSnapshot {
-        loop {
-            if let Some(snapshot) = self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT) {
-                return snapshot;
-            }
-        }
+    pub fn wait_for_tick(&self) -> Result<WorldSnapshot> {
+        self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)
+            .ok_or_else(|| {
+                anyhow!(
+                    "Timed out waiting for tick after {:?}",
+                    DEFAULT_TICK_TIMEOUT
+                )
+            })
     }
 
     pub fn actor_builder(&mut self, key: &str) -> Result<ActorBuilder<'_>> {
