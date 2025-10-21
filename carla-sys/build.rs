@@ -3,13 +3,15 @@ use carla_src::libcarla_client;
 use once_cell::sync::Lazy;
 #[allow(unused)]
 use std::path::Path;
-use std::{
-    collections::HashMap,
-    env, fs,
-    fs::File,
-    io::{self, BufReader},
-    path::PathBuf,
-};
+use std::{env, fs, path::PathBuf};
+
+#[cfg(not(feature = "build-lib"))]
+use std::{collections::HashMap, io};
+
+#[cfg(any(not(feature = "build-lib"), feature = "save-lib"))]
+use std::{fs::File, io::BufReader};
+
+#[cfg(not(feature = "build-lib"))]
 use tar::Archive;
 
 static TAG: Lazy<String> = Lazy::new(|| {
@@ -26,6 +28,7 @@ static SAVE_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     GENERATED_DIR.join(file_name)
 });
+#[cfg(not(feature = "build-lib"))]
 static DOWNLOAD_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     OUT_DIR.join(file_name)
@@ -39,45 +42,50 @@ fn main() -> Result<()> {
     println!("cargo:rerun-if-changed=src/bindings.rs");
     println!("cargo:rerun-if-env-changed=CARLA_DIR");
 
-    // Skip build if docs-only feature presents.
-    #[cfg(feature = "docs-only")]
-    return Ok(());
-
     // Configure LLVM/clang for compatibility with newer systems (Ubuntu 22.04+)
     configure_llvm();
 
-    // Prepare CARLA installation
-    let install_dir = load_carla_install_dir()?;
-    let carla_lib_dir = install_dir.join("lib");
-    let carla_include_dir = install_dir.join("include");
-
-    #[cfg(feature = "save-lib")]
-    create_tarball(&install_dir, &*SAVE_PREBUILT_TARBALL)?;
-
-    // return;
-
-    // Add library search paths
-    println!("cargo:rustc-link-search=native={}", carla_lib_dir.display());
-
-    // Link libraries
-    for lib in libcarla_client::LIBS {
-        println!("cargo:rustc-link-lib={lib}");
+    // Skip build if docs-only feature presents.
+    #[cfg(feature = "docs-only")]
+    {
+        return Ok(());
     }
 
-    // Generate bindings
-    let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
-    let include_dirs = [carla_include_dir, csrc_dir];
+    #[cfg(not(feature = "docs-only"))]
+    {
+        // Prepare CARLA installation
+        let install_dir = load_carla_install_dir()?;
+        let carla_lib_dir = install_dir.join("lib");
+        let carla_include_dir = install_dir.join("include");
 
-    autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
-        .build()?
-        .flag_if_supported("-std=c++14")
-        .compile("carla_rust");
+        #[cfg(feature = "save-lib")]
+        create_tarball(&install_dir, &*SAVE_PREBUILT_TARBALL)?;
 
-    // Save generated bindings
-    #[cfg(feature = "save-bindgen")]
-    save_bindings()?;
+        // return;
 
-    Ok(())
+        // Add library search paths
+        println!("cargo:rustc-link-search=native={}", carla_lib_dir.display());
+
+        // Link libraries
+        for lib in libcarla_client::LIBS {
+            println!("cargo:rustc-link-lib={lib}");
+        }
+
+        // Generate bindings
+        let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
+        let include_dirs = [carla_include_dir, csrc_dir];
+
+        autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
+            .build()?
+            .flag_if_supported("-std=c++14")
+            .compile("carla_rust");
+
+        // Save generated bindings
+        #[cfg(feature = "save-bindgen")]
+        save_bindings()?;
+
+        Ok(())
+    }
 }
 
 fn load_carla_install_dir() -> Result<PathBuf> {
