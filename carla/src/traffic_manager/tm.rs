@@ -1,5 +1,11 @@
 // SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
 // to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+//
+// Additionally, actor.cxx_actor().as_ref().unwrap_unchecked() is safe because:
+// - All ActorBase types (Actor, Vehicle, etc.) are constructed via from_cxx()
+// - from_cxx() only returns Some when the SharedPtr is non-null
+// - Therefore, cxx_actor() always returns a non-null SharedPtr
+// - as_ref() on a non-null SharedPtr is guaranteed to succeed
 
 use super::{Action, ActionBuffer, PrivateAction};
 use crate::{
@@ -51,7 +57,7 @@ impl TrafficManager {
         });
 
         self.inner.pin_mut().SetCustomPath(
-            actor.cxx_actor().as_ref().unwrap(),
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
             &path,
             empty_buffer,
         );
@@ -83,7 +89,7 @@ impl TrafficManager {
         });
 
         self.inner.pin_mut().SetImportedRoute(
-            actor.cxx_actor().as_ref().unwrap(),
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
             route,
             empty_buffer,
         );
@@ -152,21 +158,24 @@ impl TrafficManager {
     where
         A: ActorBase,
     {
-        self.inner
-            .pin_mut()
-            .SetPercentageSpeedDifference(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetPercentageSpeedDifference(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_lane_offset<A: ActorBase>(&mut self, actor: &A, offset: f32) {
-        self.inner
-            .pin_mut()
-            .SetLaneOffset(actor.cxx_actor().as_ref().unwrap(), offset);
+        self.inner.pin_mut().SetLaneOffset(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            offset,
+        );
     }
 
     pub fn set_desired_speed<A: ActorBase>(&mut self, actor: &A, value: f32) {
-        self.inner
-            .pin_mut()
-            .SetDesiredSpeed(actor.cxx_actor().as_ref().unwrap(), value);
+        self.inner.pin_mut().SetDesiredSpeed(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            value,
+        );
     }
 
     pub fn set_global_percentage_speed_difference(&mut self, percentage: f32) {
@@ -180,9 +189,10 @@ impl TrafficManager {
     }
 
     pub fn set_update_vehicle_lights<A: ActorBase>(&mut self, actor: &A, do_update: bool) {
-        self.inner
-            .pin_mut()
-            .SetUpdateVehicleLights(actor.cxx_actor().as_ref().unwrap(), do_update);
+        self.inner.pin_mut().SetUpdateVehicleLights(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            do_update,
+        );
     }
 
     pub fn set_collision_detection<A1: ActorBase, A2: ActorBase>(
@@ -192,46 +202,52 @@ impl TrafficManager {
         detect_collision: bool,
     ) {
         self.inner.pin_mut().SetCollisionDetection(
-            reference_actor.cxx_actor().as_ref().unwrap(),
-            other_actor.cxx_actor().as_ref().unwrap(),
+            unsafe { reference_actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { other_actor.cxx_actor().as_ref().unwrap_unchecked() },
             detect_collision,
         );
     }
 
     pub fn set_force_lane_change<A: ActorBase>(&mut self, actor: &A, direction: bool) {
-        self.inner
-            .pin_mut()
-            .SetForceLaneChange(actor.cxx_actor().as_ref().unwrap(), direction);
+        self.inner.pin_mut().SetForceLaneChange(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            direction,
+        );
     }
 
     pub fn set_auto_lane_change<A: ActorBase>(&mut self, actor: &A, enable: bool) {
-        self.inner
-            .pin_mut()
-            .SetAutoLaneChange(actor.cxx_actor().as_ref().unwrap(), enable);
+        self.inner.pin_mut().SetAutoLaneChange(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            enable,
+        );
     }
 
     pub fn set_distance_to_leading_vehicle<A: ActorBase>(&mut self, actor: &A, distance: f32) {
-        self.inner
-            .pin_mut()
-            .SetDistanceToLeadingVehicle(actor.cxx_actor().as_ref().unwrap(), distance);
+        self.inner.pin_mut().SetDistanceToLeadingVehicle(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            distance,
+        );
     }
 
     pub fn set_percentage_ignore_walkers<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
-        self.inner
-            .pin_mut()
-            .SetPercentageIgnoreWalkers(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetPercentageIgnoreWalkers(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_percentage_ignore_vehicles<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
-        self.inner
-            .pin_mut()
-            .SetPercentageIgnoreVehicles(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetPercentageIgnoreVehicles(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_percentage_running_light<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
-        self.inner
-            .pin_mut()
-            .SetPercentageRunningLight(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetPercentageRunningLight(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_synchronous_mode(&mut self, yes: bool) {
@@ -266,9 +282,10 @@ impl TrafficManager {
     }
 
     pub fn set_keep_right_percentage<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
-        self.inner
-            .pin_mut()
-            .SetKeepRightPercentage(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetKeepRightPercentage(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_random_left_lane_change_percentage<A: ActorBase>(
@@ -276,9 +293,10 @@ impl TrafficManager {
         actor: &A,
         percentage: f32,
     ) {
-        self.inner
-            .pin_mut()
-            .SetRandomLeftLaneChangePercentage(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetRandomLeftLaneChangePercentage(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_random_right_lane_change_percentage<A: ActorBase>(
@@ -286,9 +304,10 @@ impl TrafficManager {
         actor: &A,
         percentage: f32,
     ) {
-        self.inner
-            .pin_mut()
-            .SetRandomRightLaneChangePercentage(actor.cxx_actor().as_ref().unwrap(), percentage);
+        self.inner.pin_mut().SetRandomRightLaneChangePercentage(
+            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            percentage,
+        );
     }
 
     pub fn set_random_device_seed(&mut self, seed: u64) {
