@@ -18,10 +18,12 @@ static TAG: Lazy<String> = Lazy::new(|| {
     format!(
         "{}-{}",
         libcarla_client::VERSION,
-        env::var("TARGET").unwrap(),
+        env::var("TARGET").expect("TARGET environment variable not set"),
     )
 });
-static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| PathBuf::from(env::var_os("OUT_DIR").unwrap()));
+static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| {
+    PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR environment variable not set"))
+});
 static PREBUILD_NAME: Lazy<String> = Lazy::new(|| format!("libcarla_client.{}", *TAG));
 #[cfg(feature = "save-lib")]
 static SAVE_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
