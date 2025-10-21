@@ -18,6 +18,10 @@ impl VehicleLightStateList {
         self.inner.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn get(&self, index: usize) -> Option<VehicleLightStateListElement<'_>> {
         if index >= self.len() {
             return None;

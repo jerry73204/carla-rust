@@ -19,6 +19,10 @@ impl LabelledPointList {
         self.inner.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn as_slice(&self) -> &[LabelledPoint] {
         unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
     }

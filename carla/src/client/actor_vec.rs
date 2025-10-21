@@ -17,6 +17,10 @@ impl ActorVec {
         self.inner.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn get(&self, index: usize) -> Option<Actor> {
         if index >= self.len() {
             return None;
