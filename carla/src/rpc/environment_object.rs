@@ -24,7 +24,7 @@ impl<'a> EnvironmentObjectRef<'a> {
 
     pub fn bounding_box(&self) -> BoundingBox<f32> {
         let bbox = self.inner.bounding_box();
-        BoundingBox::from_native(bbox)
+        BoundingBox::from_native(&bbox)
     }
 
     pub(crate) unsafe fn from_cxx(ptr: UniquePtr<FfiEnvironmentObjectRef>) -> Option<Self> {

@@ -22,14 +22,12 @@ namespace carla_rust
                 : inner_(orig)
             {}
 
-            const FfiTransform& transform() const {
-                const Transform& orig = inner_.transform;
-                return static_cast<const FfiTransform&>(orig);
+            FfiTransform transform() const {
+                return FfiTransform(inner_.transform);
             }
 
-            const FfiBoundingBox& bounding_box() const {
-                const BoundingBox& orig = inner_.bounding_box;
-                return static_cast<const FfiBoundingBox&>(orig);
+            FfiBoundingBox bounding_box() const {
+                return FfiBoundingBox(inner_.bounding_box);
             }
 
             uint64_t id() const {
