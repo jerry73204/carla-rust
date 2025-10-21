@@ -217,12 +217,18 @@ impl World {
     }
 
     pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
-        let ptr = self.inner.GetTrafficSign(landmark.inner.as_ref().unwrap());
+        // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
+        let ptr = self
+            .inner
+            .GetTrafficSign(unsafe { landmark.inner.as_ref().unwrap_unchecked() });
         Actor::from_cxx(ptr)
     }
 
     pub fn traffic_light_at(&self, landmark: &Landmark) -> Option<Actor> {
-        let ptr = self.inner.GetTrafficLight(landmark.inner.as_ref().unwrap());
+        // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
+        let ptr = self
+            .inner
+            .GetTrafficLight(unsafe { landmark.inner.as_ref().unwrap_unchecked() });
         Actor::from_cxx(ptr)
     }
 
