@@ -239,9 +239,20 @@ impl TrafficManager {
     }
 
     pub fn set_synchronous_mode_time_out(&mut self, time: Duration) {
+        // Use as_millis() to avoid floating point overflow and precision loss
+        let millis = time.as_millis();
+
+        // Check for overflow - f64 max is ~1.8e308, but practical limit for milliseconds
+        // is much lower. We cap at f64::MAX to avoid overflow in the conversion.
+        let millis_f64 = if millis > f64::MAX as u128 {
+            f64::MAX
+        } else {
+            millis as f64
+        };
+
         self.inner
             .pin_mut()
-            .SetSynchronousModeTimeOutInMiliSecond(time.as_secs_f64() * 1000.0);
+            .SetSynchronousModeTimeOutInMiliSecond(millis_f64);
     }
 
     pub fn synchronous_tick(&mut self) -> bool {
