@@ -36,7 +36,7 @@ static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("gene
 
 fn main() -> Result<()> {
     // Set rerun triggers
-    println!("cargo:rerun-if-changed=src/ffi.rs");
+    println!("cargo:rerun-if-changed=src/bindings.rs");
     println!("cargo:rerun-if-env-changed=CARLA_DIR");
 
     // Skip build if docs-only feature presents.
@@ -68,7 +68,7 @@ fn main() -> Result<()> {
     let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
     let include_dirs = [carla_include_dir, csrc_dir];
 
-    autocxx_build::Builder::new("src/ffi.rs", &include_dirs)
+    autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
         .build()?
         .flag_if_supported("-std=c++14")
         .compile("carla_rust");

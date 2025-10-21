@@ -4,8 +4,8 @@ mod ffi_docs_only;
 pub use ffi_docs_only::*;
 
 #[cfg(not(feature = "docs-only"))]
-mod ffi;
+mod bindings;
 #[cfg(not(feature = "docs-only"))]
-pub use ffi::*;
+pub use bindings::*;
 
 mod impls;
