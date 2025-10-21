@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::rpc::ActorId;
 use carla_sys::carla_rust::client::FfiActorList;
 use cxx::{let_cxx_string, SharedPtr};
@@ -24,7 +27,7 @@ impl ActorList {
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
         let ptr = self.inner.Filter(&pattern);
-        Self::from_cxx(ptr).unwrap()
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn get(&self, index: usize) -> Option<Actor> {

@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::ActorBlueprint;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
@@ -27,7 +30,7 @@ impl BlueprintLibrary {
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);
         let ptr = self.inner.filter(&pattern);
-        Self::from_cxx(ptr).unwrap()
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn find(&self, key: &str) -> Option<ActorBlueprint> {
@@ -35,7 +38,7 @@ impl BlueprintLibrary {
         unsafe {
             let actor_bp = self.inner.find(&key).as_ref()?;
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp).unwrap())
+            Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked())
         }
     }
 
@@ -43,12 +46,13 @@ impl BlueprintLibrary {
         unsafe {
             let actor_bp = self.inner.at(index).as_ref()?;
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp).unwrap())
+            Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked())
         }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> + '_ {
-        (0..self.len()).map(|idx| self.get(idx).unwrap())
+        // SAFETY: Index is bounds-checked by (0..self.len()), so get() always returns Some
+        (0..self.len()).map(|idx| unsafe { self.get(idx).unwrap_unchecked() })
     }
 
     pub fn len(&self) -> usize {

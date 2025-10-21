@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{Junction, LandmarkList, WaypointList};
 use crate::{
     geom::TransformExt,
@@ -70,17 +73,17 @@ impl Waypoint {
 
     pub fn next(&self, distance: f64) -> WaypointList {
         let ptr = self.inner.GetNext(distance).within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn previous(&self, distance: f64) -> WaypointList {
         let ptr = self.inner.GetPrevious(distance).within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn next_until_lane_end(&self, distance: f64) -> WaypointList {
         let ptr = self.inner.GetNextUntilLaneEnd(distance).within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn previous_until_lane_start(&self, distance: f64) -> WaypointList {
@@ -88,17 +91,17 @@ impl Waypoint {
             .inner
             .GetPreviousUntilLaneStart(distance)
             .within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn left(&self) -> Waypoint {
         let ptr = self.inner.GetLeft();
-        Self::from_cxx(ptr).unwrap()
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn right(&self) -> Waypoint {
         let ptr = self.inner.GetRight();
-        Self::from_cxx(ptr).unwrap()
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn right_lane_marking(&self) -> Option<LaneMarking> {
@@ -120,7 +123,7 @@ impl Waypoint {
             .inner
             .GetAllLandmarksInDistance(distance, stop_at_junction)
             .within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn landmarks_of_type_in_distance(
@@ -133,7 +136,7 @@ impl Waypoint {
             .inner
             .GetLandmarksOfTypeInDistance(distance, filter_type, stop_at_junction)
             .within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiWaypoint>) -> Option<Self> {

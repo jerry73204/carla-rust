@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::TrafficLight;
 use carla_sys::carla_rust::client::FfiTrafficLightList;
 use cxx::UniquePtr;
@@ -28,7 +31,7 @@ impl TrafficLightList {
             return None;
         }
         let ptr = self.inner.get(index);
-        Some(TrafficLight::from_cxx(ptr).unwrap())
+        Some(unsafe { TrafficLight::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub fn iter(&self) -> impl Iterator<Item = TrafficLight> + '_ {

@@ -2,9 +2,9 @@ use core::slice;
 
 use crate::rpc::LabelledPoint;
 use carla_sys::carla_rust::client::FfiLabelledPointList;
-use static_assertions::assert_impl_all;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 /// A list of labeled points.
 #[derive(Derivative)]

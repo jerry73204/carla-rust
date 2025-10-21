@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::ActorId;
 use crate::rpc::VehicleLightState;
 use carla_sys::carla_rust::rpc::{FfiVehicleLightStateElementRef, FfiVehicleLightStateList};
@@ -26,10 +29,10 @@ impl VehicleLightStateList {
         if index >= self.len() {
             return None;
         }
-        Some(unsafe {
+        unsafe {
             let ptr = self.inner.get(index);
-            VehicleLightStateListElement::from_cxx(ptr).unwrap()
-        })
+            Some(VehicleLightStateListElement::from_cxx(ptr).unwrap_unchecked())
+        }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiVehicleLightStateList>) -> Option<Self> {

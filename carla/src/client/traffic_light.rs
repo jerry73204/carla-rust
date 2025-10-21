@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{Actor, ActorBase, BoundingBoxList, TrafficLightList, WaypointList};
 use crate::{geom::BoundingBox, road::SignId, rpc::TrafficLightState};
 use autocxx::WithinUniquePtr;
@@ -74,17 +77,17 @@ impl TrafficLight {
 
     pub fn group_traffic_lights(&self) -> TrafficLightList {
         let ptr = self.inner.GetGroupTrafficLights().within_unique_ptr();
-        TrafficLightList::from_cxx(ptr).unwrap()
+        unsafe { TrafficLightList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn affected_lane_waypoints(&self) -> WaypointList {
         let ptr = self.inner.GetAffectedLaneWaypoints().within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn light_boxes(&self) -> BoundingBoxList {
         let ptr = self.inner.GetLightBoxes().within_unique_ptr();
-        BoundingBoxList::from_cxx(ptr).unwrap()
+        unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn opendrive_id(&self) -> SignId {
@@ -93,7 +96,7 @@ impl TrafficLight {
 
     pub fn stop_waypoints(&self) -> WaypointList {
         let ptr = self.inner.GetStopWaypoints().within_unique_ptr();
-        WaypointList::from_cxx(ptr).unwrap()
+        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiTrafficLight>) -> Option<Self> {

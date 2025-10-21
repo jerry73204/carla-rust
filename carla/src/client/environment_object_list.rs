@@ -3,8 +3,8 @@ use carla_sys::carla_rust::client::FfiEnvironmentObjectList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
-use static_assertions::assert_impl_all;
 use crate::rpc::EnvironmentObjectRef;
+use static_assertions::assert_impl_all;
 
 /// A list of environment objects.
 #[derive(Derivative)]

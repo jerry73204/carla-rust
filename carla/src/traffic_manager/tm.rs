@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{Action, ActionBuffer, PrivateAction};
 use crate::{
     client::ActorBase,
@@ -292,7 +295,7 @@ impl TrafficManager {
             .pin_mut()
             .GetNextAction(&actor_id)
             .within_unique_ptr();
-        PrivateAction::from_cxx(action).unwrap().to_pair()
+        unsafe { PrivateAction::from_cxx(action).unwrap_unchecked() }.to_pair()
     }
 
     pub fn action_buffer(&mut self, actor_id: ActorId) -> ActionBuffer {
@@ -301,7 +304,7 @@ impl TrafficManager {
             .pin_mut()
             .GetActionBuffer(&actor_id)
             .within_unique_ptr();
-        ActionBuffer::from_cxx(ptr).unwrap()
+        unsafe { ActionBuffer::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiTrafficManager>) -> Option<Self> {

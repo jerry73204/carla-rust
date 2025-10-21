@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::World;
 use crate::{
     rpc::OpendriveGenerationParameters,
@@ -68,7 +71,7 @@ impl Client {
             .inner
             .LoadWorld(map_name, reset_settings)
             .within_unique_ptr();
-        World::from_cxx(world).unwrap()
+        unsafe { World::from_cxx(world).unwrap_unchecked() }
     }
 
     pub fn reload_world(&self) -> World {
@@ -77,7 +80,7 @@ impl Client {
 
     pub fn reload_world_opt(&self, reset_settings: bool) -> World {
         let world = self.inner.ReloadWorld(reset_settings).within_unique_ptr();
-        World::from_cxx(world).unwrap()
+        unsafe { World::from_cxx(world).unwrap_unchecked() }
     }
 
     pub fn generate_open_drive_world(
@@ -90,12 +93,12 @@ impl Client {
             .inner
             .GenerateOpenDriveWorld(opendrive, params, reset_settings)
             .within_unique_ptr();
-        World::from_cxx(world).unwrap()
+        unsafe { World::from_cxx(world).unwrap_unchecked() }
     }
 
     pub fn world(&self) -> World {
         let world = self.inner.GetWorld().within_unique_ptr();
-        World::from_cxx(world).unwrap()
+        unsafe { World::from_cxx(world).unwrap_unchecked() }
     }
 
     pub fn instance_tm<P>(&self, port: P) -> TrafficManager
@@ -104,7 +107,7 @@ impl Client {
     {
         let port = port.into().unwrap_or(TM_DEFAULT_PORT);
         let ptr = self.inner.GetInstanceTM(port).within_unique_ptr();
-        TrafficManager::from_cxx(ptr).unwrap()
+        unsafe { TrafficManager::from_cxx(ptr).unwrap_unchecked() }
     }
 }
 

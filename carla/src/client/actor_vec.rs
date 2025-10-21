@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::Actor;
 use carla_sys::carla_rust::client::FfiActorVec;
 use cxx::UniquePtr;
@@ -28,7 +31,7 @@ impl ActorVec {
         }
 
         let ptr = self.inner.get(index);
-        Some(Actor::from_cxx(ptr).unwrap())
+        Some(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorVec>) -> Option<Self> {

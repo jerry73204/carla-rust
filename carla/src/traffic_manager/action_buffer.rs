@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::Action;
 use crate::client::Waypoint;
 use carla_sys::carla_rust::traffic_manager::{FfiAction, FfiActionBuffer};
@@ -27,14 +30,14 @@ impl ActionBuffer {
     pub fn get(&self, index: usize) -> Option<Action> {
         let ffi_action = self.as_slice().get(index)?;
         let option = ffi_action.road_option();
-        let waypoint = Waypoint::from_cxx(ffi_action.waypoint()).unwrap();
+        let waypoint = unsafe { Waypoint::from_cxx(ffi_action.waypoint()).unwrap_unchecked() };
         Some((option, waypoint))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = Action> + '_ {
         self.as_slice().iter().map(|ffi_action| {
             let option = ffi_action.road_option();
-            let waypoint = Waypoint::from_cxx(ffi_action.waypoint()).unwrap();
+            let waypoint = unsafe { Waypoint::from_cxx(ffi_action.waypoint()).unwrap_unchecked() };
             (option, waypoint)
         })
     }

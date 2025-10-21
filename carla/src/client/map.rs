@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use core::slice;
 
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
@@ -33,7 +36,7 @@ impl Map {
 
     pub fn recommended_spawn_points(&self) -> RecommendedSpawnPoints {
         let ptr = self.inner.GetRecommendedSpawnPoints().within_unique_ptr();
-        RecommendedSpawnPoints::from_cxx(ptr).unwrap()
+        unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint> {
@@ -65,27 +68,27 @@ impl Map {
 
     pub fn generate_waypoints(&self, distance: f64) -> WaypointList {
         let waypoints = self.inner.GenerateWaypoints(distance);
-        WaypointList::from_cxx(waypoints).unwrap()
+        unsafe { WaypointList::from_cxx(waypoints).unwrap_unchecked() }
     }
 
     pub fn junction(&self, waypoint: &Waypoint) -> Junction {
         let junction = self.inner.GetJunction(&waypoint.inner);
-        Junction::from_cxx(junction).unwrap()
+        unsafe { Junction::from_cxx(junction).unwrap_unchecked() }
     }
 
     pub fn all_landmarks(&self) -> LandmarkList {
         let ptr = self.inner.GetAllLandmarks().within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn landmarks_from_id(&self, id: &str) -> LandmarkList {
         let ptr = self.inner.GetLandmarksFromId(id).within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn all_landmarks_of_type(&self, type_: &str) -> LandmarkList {
         let ptr = self.inner.GetAllLandmarksOfType(type_).within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn landmark_group(&self, landmark: &Landmark) -> LandmarkList {
@@ -93,7 +96,7 @@ impl Map {
             .inner
             .GetLandmarkGroup(&landmark.inner)
             .within_unique_ptr();
-        LandmarkList::from_cxx(ptr).unwrap()
+        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 }
 

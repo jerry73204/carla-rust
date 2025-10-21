@@ -165,4 +165,3 @@ impl From<bool> for ActorAttributeValueKind {
         Self::Bool(v)
     }
 }
-

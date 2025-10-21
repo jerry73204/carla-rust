@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{Actor, ActorBase};
 use crate::rpc::{
     AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
@@ -125,7 +128,7 @@ impl Vehicle {
 
     pub fn into_actor(self) -> Actor {
         let ptr = self.inner.to_actor();
-        Actor::from_cxx(ptr).unwrap()
+        unsafe { Actor::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiVehicle>) -> Option<Self> {

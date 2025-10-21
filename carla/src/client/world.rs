@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{
     Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, ActorVec, BlueprintLibrary,
     BoundingBoxList, EnvironmentObjectList, LabelledPointList, Landmark, LightManager, Map,
@@ -40,11 +43,11 @@ impl World {
 
     pub fn map(&self) -> Map {
         let ptr = self.inner.GetMap();
-        Map::from_cxx(ptr).unwrap()
+        unsafe { Map::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn light_manager(&self) -> LightManager {
-        LightManager::from_cxx(self.inner.GetLightManager()).unwrap()
+        unsafe { LightManager::from_cxx(self.inner.GetLightManager()).unwrap_unchecked() }
     }
 
     pub fn load_level_layer(&self, map_layers: MapLayer) {
@@ -57,12 +60,12 @@ impl World {
 
     pub fn blueprint_library(&self) -> BlueprintLibrary {
         let ptr = self.inner.GetBlueprintLibrary();
-        BlueprintLibrary::from_cxx(ptr).unwrap()
+        unsafe { BlueprintLibrary::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn vehicle_light_states(&self) -> VehicleLightStateList {
         let ptr = self.inner.GetVehiclesLightStates().within_unique_ptr();
-        VehicleLightStateList::from_cxx(ptr).unwrap()
+        unsafe { VehicleLightStateList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn random_location_from_navigation(&self) -> Translation3<f32> {
@@ -73,7 +76,7 @@ impl World {
 
     pub fn spectator(&self) -> Actor {
         let actor = self.inner.GetSpectator();
-        Actor::from_cxx(actor).unwrap()
+        unsafe { Actor::from_cxx(actor).unwrap_unchecked() }
     }
 
     pub fn settings(&self) -> EpisodeSettings {
@@ -83,7 +86,7 @@ impl World {
 
     pub fn snapshot(&self) -> WorldSnapshot {
         let ptr = self.inner.GetSnapshot();
-        WorldSnapshot::from_cxx(ptr).unwrap()
+        unsafe { WorldSnapshot::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn names_of_all_objects(&self) -> Vec<String> {
@@ -101,7 +104,7 @@ impl World {
 
     pub fn actors(&self) -> ActorList {
         let ptr = self.inner.GetActors();
-        ActorList::from_cxx(ptr).unwrap()
+        unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
@@ -111,7 +114,7 @@ impl World {
         });
 
         let ptr = self.inner.GetActorsByIds(&vec);
-        ActorList::from_cxx(ptr).unwrap()
+        unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn traffic_lights_from_waypoint(&self, waypoint: &Waypoint, distance: f64) -> ActorVec {
@@ -119,7 +122,7 @@ impl World {
             .inner
             .GetTrafficLightsFromWaypoint(&waypoint.inner, distance)
             .within_unique_ptr();
-        ActorVec::from_cxx(ptr).unwrap()
+        unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> ActorVec {
@@ -127,7 +130,7 @@ impl World {
             .inner
             .GetTrafficLightsInJunction(junc_id)
             .within_unique_ptr();
-        ActorVec::from_cxx(ptr).unwrap()
+        unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
@@ -159,11 +162,11 @@ impl World {
         let attachment_type = attachment_type.into().unwrap_or(AttachmentType::Rigid);
 
         unsafe {
-            let parent_ptr: *const FfiActor = parent
+            let parent_ptr: *mut FfiActor = parent
                 .as_ref()
                 .and_then(|parent| parent.as_ref())
-                .map(|ref_| ref_ as *const _)
-                .unwrap_or(ptr::null());
+                .map(|ref_| ref_ as *const _ as *mut _)
+                .unwrap_or(ptr::null_mut());
             let ffi_transform = Transform::from_na(transform);
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
@@ -237,7 +240,7 @@ impl World {
 
     pub fn level_bounding_boxes(&self, queried_tag: u8) -> BoundingBoxList {
         let ptr = self.inner.GetLevelBBs(queried_tag);
-        BoundingBoxList::from_cxx(ptr).unwrap()
+        unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn weather(&self) -> WeatherParameters {
@@ -253,7 +256,7 @@ impl World {
             .inner
             .GetEnvironmentObjects(queried_tag)
             .within_unique_ptr();
-        EnvironmentObjectList::from_cxx(ptr).unwrap()
+        unsafe { EnvironmentObjectList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) {
@@ -311,7 +314,7 @@ impl World {
                 Location::from_na_translation(end),
             )
             .within_unique_ptr();
-        LabelledPointList::from_cxx(ptr).unwrap()
+        unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
@@ -325,7 +328,7 @@ impl World {
 
 impl Clone for World {
     fn clone(&self) -> Self {
-        Self::from_cxx(self.inner.clone().within_unique_ptr()).unwrap()
+        unsafe { Self::from_cxx(self.inner.clone().within_unique_ptr()).unwrap_unchecked() }
     }
 }
 

@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::{client::Actor, sensor::SensorData};
 use carla_sys::{carla::geom::Vector3D, carla_rust::sensor::data::FfiCollisionEvent};
 use cxx::SharedPtr;
@@ -14,7 +17,7 @@ pub struct CollisionEvent {
 
 impl CollisionEvent {
     pub fn actor(&self) -> Actor {
-        Actor::from_cxx(self.inner.GetActor()).unwrap()
+        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
     }
 
     pub fn other_actor(&self) -> Option<Actor> {

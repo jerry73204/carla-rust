@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::{client::Actor, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiObstacleDetectionEvent;
 use cxx::SharedPtr;
@@ -14,11 +17,11 @@ pub struct ObstacleDetectionEvent {
 
 impl ObstacleDetectionEvent {
     pub fn actor(&self) -> Actor {
-        Actor::from_cxx(self.inner.GetActor()).unwrap()
+        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
     }
 
     pub fn other_actor(&self) -> Actor {
-        Actor::from_cxx(self.inner.GetOtherActor()).unwrap()
+        unsafe { Actor::from_cxx(self.inner.GetOtherActor()).unwrap_unchecked() }
     }
 
     pub fn distance(&self) -> f32 {

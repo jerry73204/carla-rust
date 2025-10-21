@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::{
     geom::BoundingBox,
     road::{JuncId, LaneType},
@@ -25,7 +28,7 @@ impl Junction {
 
     pub fn waypoints(&self, type_: LaneType) -> WaypointPairList {
         let vec = self.inner.GetWaypoints(type_);
-        WaypointPairList::from_cxx(vec).unwrap()
+        unsafe { WaypointPairList::from_cxx(vec).unwrap_unchecked() }
     }
 
     pub fn bounding_box(&self) -> BoundingBox<f32> {
@@ -77,8 +80,8 @@ impl WaypointPairList {
 }
 
 fn convert_pair(from: &FfiWaypointPair) -> (Waypoint, Waypoint) {
-    let first = Waypoint::from_cxx(from.first()).unwrap();
-    let second = Waypoint::from_cxx(from.second()).unwrap();
+    let first = unsafe { Waypoint::from_cxx(from.first()).unwrap_unchecked() };
+    let second = unsafe { Waypoint::from_cxx(from.second()).unwrap_unchecked() };
     (first, second)
 }
 

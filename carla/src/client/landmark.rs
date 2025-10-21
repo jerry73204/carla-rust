@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::{
     geom::TransformExt,
     road::{RoadId, SignalOrientation},
@@ -22,7 +25,7 @@ pub struct Landmark {
 impl Landmark {
     pub fn waypoint(&self) -> Waypoint {
         let ptr = self.inner.GetWaypoint();
-        Waypoint::from_cxx(ptr).unwrap()
+        unsafe { Waypoint::from_cxx(ptr).unwrap_unchecked() }
     }
 
     pub fn transform(&self) -> Isometry3<f32> {

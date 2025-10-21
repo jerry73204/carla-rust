@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{Actor, ActorAttributeValueList, World};
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
@@ -14,7 +17,8 @@ pub trait ActorBase: Clone {
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
 
     fn into_actor(self) -> Actor {
-        Actor::from_cxx(self.cxx_actor()).unwrap()
+        // SAFETY: cxx_actor() returns a valid SharedPtr for all actor implementations
+        unsafe { Actor::from_cxx(self.cxx_actor()).unwrap_unchecked() }
     }
 
     fn id(&self) -> ActorId {
@@ -43,11 +47,11 @@ pub trait ActorBase: Clone {
 
     fn attributes(&self) -> ActorAttributeValueList<'_> {
         let ptr = self.cxx_actor().GetAttributes().within_unique_ptr();
-        unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap() }
+        unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     fn world(&self) -> World {
-        World::from_cxx(self.cxx_actor().GetWorld()).unwrap()
+        unsafe { World::from_cxx(self.cxx_actor().GetWorld()).unwrap_unchecked() }
     }
 
     fn location(&self) -> Translation3<f32> {

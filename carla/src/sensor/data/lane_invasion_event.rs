@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use crate::{client::Actor, road::element::LaneMarking, sensor::SensorData};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
@@ -15,7 +18,7 @@ pub struct LaneInvasionEvent {
 
 impl LaneInvasionEvent {
     pub fn actor(&self) -> Actor {
-        Actor::from_cxx(self.inner.GetActor()).unwrap()
+        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
     }
 
     pub fn crossed_lane_markings(&self) -> Vec<LaneMarking> {
@@ -23,7 +26,7 @@ impl LaneInvasionEvent {
             .GetCrossedLaneMarkings()
             .iter()
             .map(|mark| (*mark).clone().within_unique_ptr())
-            .map(|ptr| LaneMarking::from_cxx(ptr).unwrap())
+            .map(|ptr| unsafe { LaneMarking::from_cxx(ptr).unwrap_unchecked() })
             .collect()
     }
 

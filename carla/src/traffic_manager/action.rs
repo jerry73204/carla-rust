@@ -1,3 +1,6 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::RoadOption;
 use crate::client::Waypoint;
 use carla_sys::carla_rust::traffic_manager::FfiAction;
@@ -17,7 +20,7 @@ pub(crate) struct PrivateAction {
 impl PrivateAction {
     pub fn to_pair(&self) -> Action {
         let option = self.inner.road_option();
-        let waypoint = Waypoint::from_cxx(self.inner.waypoint()).unwrap();
+        let waypoint = unsafe { Waypoint::from_cxx(self.inner.waypoint()).unwrap_unchecked() };
         (option, waypoint)
     }
 

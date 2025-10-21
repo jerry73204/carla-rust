@@ -1,9 +1,12 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use carla_sys::carla_rust::client::FfiLandmarkList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
-use static_assertions::assert_impl_all;
 use super::Landmark;
+use static_assertions::assert_impl_all;
 
 /// A list of landmarks.
 #[derive(Derivative)]
@@ -29,13 +32,13 @@ impl LandmarkList {
             return None;
         }
         let ptr = self.inner.get(index);
-        Some(Landmark::from_cxx(ptr).unwrap())
+        Some(unsafe { Landmark::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub fn iter(&self) -> impl Iterator<Item = Landmark> + '_ {
         (0..self.len()).map(|index| {
             let ptr = self.inner.get(index);
-            Landmark::from_cxx(ptr).unwrap()
+            unsafe { Landmark::from_cxx(ptr).unwrap_unchecked() }
         })
     }
 

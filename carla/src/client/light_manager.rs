@@ -1,13 +1,16 @@
+// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
+// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
+
 use super::{LightList, LightState};
 use crate::{
     rpc::{LightGroup, LightId},
     sensor::data::Color,
 };
-use static_assertions::assert_impl_all;
 use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiLightManager;
 use cxx::SharedPtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 /// Manages the states of lights in the simulation.
 #[derive(Clone, Derivative)]
@@ -21,7 +24,7 @@ pub struct LightManager {
 impl LightManager {
     pub fn all_lights(&self, group: LightGroup) -> LightList {
         let list = self.inner.GetAllLights(group).within_unique_ptr();
-        LightList::from_cxx(list).unwrap()
+        unsafe { LightList::from_cxx(list).unwrap_unchecked() }
     }
 
     pub fn color(&self, id: LightId) -> Color {
