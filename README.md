@@ -30,17 +30,31 @@ If you prefer to manually build Carla C++ client library. Please read
 
 ### Build failed with clang >= 14 (on Ubuntu 22.04 or newer)
 
-Currently `carla-sys` is unable to build with newer clang version >= 14.
-If you are Ubuntu users, it's recommended to configure
-clang-sys to use clang 12.
+Currently `carla-sys` requires LLVM/clang versions 11-13 due to autocxx compatibility.
+The build system automatically detects and configures a compatible version if available.
 
-```sh
-sudo apt install clang-12 libclang-12-dev
-export LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
-export LIBCLANG_PATH=/usr/lib/llvm-12/lib
-export LIBCLANG_STATIC_PATH=/usr/lib/llvm-12/lib
-export CLANG_PATH=/usr/bin/clang-12
-```
+**Supported LLVM versions:** 11, 12, 13
+**Unsupported LLVM versions:** 14 and newer
+
+**To fix:**
+
+1. Install a compatible LLVM version:
+   ```sh
+   sudo apt install clang-12 libclang-12-dev
+   ```
+
+2. The build script will automatically detect and configure it. If auto-detection
+   doesn't work, manually set these environment variables:
+   ```sh
+   export LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
+   export LIBCLANG_PATH=/usr/lib/llvm-12/lib
+   export LIBCLANG_STATIC_PATH=/usr/lib/llvm-12/lib
+   export CLANG_PATH=/usr/bin/clang-12
+   ```
+
+**Note:** On systems with multiple LLVM versions, autocxx may default to a newer
+incompatible version. The build script automatically overrides this if it detects
+LLVM 11-13.
 
 ## License
 
