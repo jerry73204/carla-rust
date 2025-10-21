@@ -28,7 +28,16 @@ impl LidarMeasurement {
     }
 
     pub fn as_slice(&self) -> &[LidarDetection] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
+        let ptr = self.inner.data();
+        let len = self.len();
+
+        debug_assert!(!ptr.is_null(), "LidarMeasurement data pointer is null");
+        debug_assert!(
+            ptr as usize % std::mem::align_of::<LidarDetection>() == 0,
+            "LidarMeasurement data pointer not properly aligned"
+        );
+
+        unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     pub fn len(&self) -> usize {

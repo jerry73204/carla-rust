@@ -29,7 +29,19 @@ impl SemanticLidarMeasurement {
     }
 
     pub fn as_slice(&self) -> &[SemanticLidarDetection] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
+        let ptr = self.inner.data();
+        let len = self.len();
+
+        debug_assert!(
+            !ptr.is_null(),
+            "SemanticLidarMeasurement data pointer is null"
+        );
+        debug_assert!(
+            ptr as usize % std::mem::align_of::<SemanticLidarDetection>() == 0,
+            "SemanticLidarMeasurement data pointer not properly aligned"
+        );
+
+        unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     pub fn as_array(&self) -> ArrayView2<'_, SemanticLidarDetection> {

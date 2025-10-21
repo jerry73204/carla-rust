@@ -41,13 +41,35 @@ impl Image {
     }
 
     pub fn as_slice(&self) -> &[Color] {
+        let ptr = self.inner.data();
         let len = self.len();
-        let data = self.inner.data();
-        unsafe { slice::from_raw_parts(data, len) }
+
+        debug_assert!(!ptr.is_null(), "Image data pointer is null");
+        debug_assert!(
+            ptr as usize % std::mem::align_of::<Color>() == 0,
+            "Image data pointer not properly aligned"
+        );
+
+        unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     pub fn as_array(&self) -> ArrayView2<'_, Color> {
-        ArrayView2::from_shape((self.width(), self.height()), self.as_slice()).unwrap()
+        let width = self.width();
+        let height = self.height();
+        let len = self.len();
+
+        // Validate dimensions match the actual data length
+        assert!(
+            width * height == len,
+            "Image dimensions mismatch: {}x{} = {} but data length is {}",
+            width,
+            height,
+            width * height,
+            len
+        );
+
+        ArrayView2::from_shape((width, height), self.as_slice())
+            .expect("Failed to create array view with validated dimensions")
     }
 
     pub fn get(&self, index: usize) -> Option<&Color> {

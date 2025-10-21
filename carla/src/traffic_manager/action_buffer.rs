@@ -44,7 +44,15 @@ impl ActionBuffer {
 
     pub(crate) fn as_slice(&self) -> &[FfiAction] {
         let ptr = self.inner.data();
-        unsafe { slice::from_raw_parts(ptr, self.len()) }
+        let len = self.len();
+
+        debug_assert!(!ptr.is_null(), "ActionBuffer data pointer is null");
+        debug_assert!(
+            ptr as usize % std::mem::align_of::<FfiAction>() == 0,
+            "ActionBuffer data pointer not properly aligned"
+        );
+
+        unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiActionBuffer>) -> Option<Self> {

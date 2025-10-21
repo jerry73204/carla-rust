@@ -20,7 +20,16 @@ impl RadarMeasurement {
     }
 
     pub fn as_slice(&self) -> &[RadarDetection] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.inner.size()) }
+        let ptr = self.inner.data();
+        let len = self.inner.size();
+
+        debug_assert!(!ptr.is_null(), "RadarMeasurement data pointer is null");
+        debug_assert!(
+            ptr as usize % std::mem::align_of::<RadarDetection>() == 0,
+            "RadarMeasurement data pointer not properly aligned"
+        );
+
+        unsafe { slice::from_raw_parts(ptr, len) }
     }
 
     pub fn len(&self) -> usize {
