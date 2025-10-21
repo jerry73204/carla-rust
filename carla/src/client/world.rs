@@ -199,12 +199,12 @@ impl World {
         WorldSnapshot::from_cxx(ptr)
     }
 
-    pub fn tick_or_timeuot(&mut self, timeout: Duration) -> u64 {
+    pub fn tick_or_timeout(&mut self, timeout: Duration) -> u64 {
         self.inner.pin_mut().Tick(timeout.as_millis() as usize)
     }
 
     pub fn tick(&mut self) -> u64 {
-        self.tick_or_timeuot(DEFAULT_TICK_TIMEOUT)
+        self.tick_or_timeout(DEFAULT_TICK_TIMEOUT)
     }
 
     pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
