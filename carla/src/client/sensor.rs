@@ -41,9 +41,15 @@ impl Sensor {
                     let data = SensorData::from_cxx(ptr);
                     (callback)(data);
                 };
-                let fn_: Box<Callback> = Box::new(fn_); // Create a trait object ("fat" pointer)
-                let fn_ = Box::new(fn_); // Create a "thin" pointer. The address is aliased
-                let fn_: *mut Callback = Box::into_raw(fn_); // Convert to raw pointer
+                // Double boxing pattern for FFI:
+                // 1. Box<Callback> creates a trait object (fat pointer: data ptr + vtable ptr)
+                // 2. Box<Box<Callback>> boxes the fat pointer itself, giving us a thin pointer
+                //    to a heap location that contains the fat pointer
+                // 3. Box::into_raw converts to *mut Box<Callback>, which is a thin raw pointer
+                //    suitable for passing through C FFI (which cannot handle fat pointers)
+                let fn_: Box<Callback> = Box::new(fn_);
+                let fn_ = Box::new(fn_);
+                let fn_: *mut Box<Callback> = Box::into_raw(fn_);
                 fn_ as *mut c_void
             };
 
@@ -89,6 +95,8 @@ unsafe extern "C" fn caller(fn_: *mut c_void, arg: *mut SharedPtr<FfiSensorData>
         return;
     }
 
+    // Cast back to *mut Box<Callback> (the thin pointer we passed to C++)
+    // We dereference it to get &Box<Callback>, which auto-derefs to &Callback
     let fn_ = fn_ as *mut Box<Callback>;
     let arg = (*arg).clone();
     (*fn_)(arg);
@@ -102,6 +110,10 @@ unsafe extern "C" fn deleter(fn_: *mut c_void) {
         return;
     }
 
+    // Reconstruct the Box<Box<Callback>> to properly drop both layers:
+    // 1. Cast back to *mut Box<Callback> (thin pointer)
+    // 2. Box::from_raw reconstructs Box<Box<Callback>>
+    // 3. Drop cleans up both the outer box and the inner trait object
     let fn_ = fn_ as *mut Box<Callback>;
     let fn_: Box<Box<Callback>> = Box::from_raw(fn_);
     mem::drop(fn_);
