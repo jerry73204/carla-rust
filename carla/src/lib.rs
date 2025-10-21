@@ -3,6 +3,10 @@
 //! This crate provides safe, idiomatic Rust bindings to the CARLA simulator,
 //! allowing you to control vehicles, sensors, and the simulation environment
 //! for autonomous driving research and development.
+
+#![warn(rustdoc::broken_intra_doc_links)]
+#![warn(rustdoc::private_intra_doc_links)]
+#![deny(rustdoc::invalid_codeblock_attributes)]
 //!
 //! # Overview
 //!
@@ -15,8 +19,7 @@
 //! # Quick Start
 //!
 //! ```no_run
-//! use carla::client::Client;
-//! use carla::rpc::VehicleControl;
+//! use carla::{client::Client, rpc::VehicleControl};
 //!
 //! // Connect to the CARLA server
 //! let client = Client::connect("localhost", 2000, None);
@@ -153,8 +156,7 @@
 //! ## Attaching a Camera Sensor
 //!
 //! ```no_run
-//! use carla::client::Client;
-//! use carla::sensor::data::Image;
+//! use carla::{client::Client, sensor::data::Image};
 //! # use nalgebra::Isometry3;
 //!
 //! let client = Client::connect("localhost", 2000, None);
@@ -239,8 +241,7 @@ mod utils;
 /// # Example
 ///
 /// ```
-/// use carla::prelude::*;
-/// use carla::geom::Location;
+/// use carla::{geom::Location, prelude::*};
 /// use nalgebra::Translation3;
 ///
 /// // LocationExt is now in scope
