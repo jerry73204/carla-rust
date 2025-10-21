@@ -2,7 +2,7 @@ use crate::{client::LightState, geom::Location, rpc::LightId, sensor::data::Colo
 use carla_sys::carla_rust::client::FfiLightRef;
 use cxx::UniquePtr;
 use derivative::Derivative;
-use std::{marker::PhantomData, mem};
+use std::marker::PhantomData;
 
 pub use crate::rpc::LightGroup;
 
@@ -34,8 +34,7 @@ impl<'a> LightMut<'a> {
     }
 
     pub fn light_group(&self) -> LightGroup {
-        let group = self.inner.GetLightGroup();
-        unsafe { mem::transmute(group) }
+        self.inner.GetLightGroup()
     }
 
     pub fn light_state(&self) -> LightState {
@@ -74,6 +73,12 @@ impl<'a> LightMut<'a> {
         self.inner.pin_mut().TurnOff();
     }
 
+    /// Constructs a `LightMut` from a raw FFI pointer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the pointer is valid and that the lifetime
+    /// of the returned `LightMut` does not outlive the underlying C++ object.
     pub unsafe fn from_cxx(ptr: UniquePtr<FfiLightRef>) -> Option<Self> {
         if ptr.is_null() {
             return None;
