@@ -31,7 +31,7 @@ impl TrafficLightList {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = TrafficLight> + '_ {
-        (0..self.len()).map(|index| self.get(index).unwrap())
+        (0..self.len()).filter_map(move |index| self.get(index))
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiTrafficLightList>) -> Option<Self> {

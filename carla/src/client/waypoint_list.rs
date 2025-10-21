@@ -32,7 +32,7 @@ impl WaypointList {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = Waypoint> + '_ {
-        (0..self.len()).map(|index| self.get(index).unwrap())
+        (0..self.len()).filter_map(move |index| self.get(index))
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWaypointList>) -> Option<Self> {
