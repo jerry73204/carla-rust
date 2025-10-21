@@ -37,7 +37,7 @@ impl SemanticLidarMeasurement {
             "SemanticLidarMeasurement data pointer is null"
         );
         debug_assert!(
-            ptr as usize % std::mem::align_of::<SemanticLidarDetection>() == 0,
+            (ptr as usize).is_multiple_of(std::mem::align_of::<SemanticLidarDetection>()),
             "SemanticLidarMeasurement data pointer not properly aligned"
         );
 

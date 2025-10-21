@@ -33,7 +33,7 @@ impl LidarMeasurement {
 
         debug_assert!(!ptr.is_null(), "LidarMeasurement data pointer is null");
         debug_assert!(
-            ptr as usize % std::mem::align_of::<LidarDetection>() == 0,
+            (ptr as usize).is_multiple_of(std::mem::align_of::<LidarDetection>()),
             "LidarMeasurement data pointer not properly aligned"
         );
 

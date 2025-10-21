@@ -48,7 +48,7 @@ impl ActionBuffer {
 
         debug_assert!(!ptr.is_null(), "ActionBuffer data pointer is null");
         debug_assert!(
-            ptr as usize % std::mem::align_of::<FfiAction>() == 0,
+            (ptr as usize).is_multiple_of(std::mem::align_of::<FfiAction>()),
             "ActionBuffer data pointer not properly aligned"
         );
 

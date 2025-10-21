@@ -25,7 +25,7 @@ impl RadarMeasurement {
 
         debug_assert!(!ptr.is_null(), "RadarMeasurement data pointer is null");
         debug_assert!(
-            ptr as usize % std::mem::align_of::<RadarDetection>() == 0,
+            (ptr as usize).is_multiple_of(std::mem::align_of::<RadarDetection>()),
             "RadarMeasurement data pointer not properly aligned"
         );
 

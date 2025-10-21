@@ -46,7 +46,7 @@ impl Image {
 
         debug_assert!(!ptr.is_null(), "Image data pointer is null");
         debug_assert!(
-            ptr as usize % std::mem::align_of::<Color>() == 0,
+            (ptr as usize).is_multiple_of(std::mem::align_of::<Color>()),
             "Image data pointer not properly aligned"
         );
 
