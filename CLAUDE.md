@@ -51,15 +51,20 @@ carla-sys supports these features:
 
 ### Environment Requirements
 
-**Ubuntu 22.04+ users must use clang 12** due to compatibility issues:
+**LLVM/clang compatibility**: The build requires LLVM versions 11-13 due to autocxx compatibility issues with LLVM 14+. The build system automatically detects and configures any compatible version found.
+
+**Supported versions:** LLVM 11, 12, 13
+**Unsupported versions:** LLVM 14 and newer
+
+Installation and configuration:
 
 ```bash
 sudo apt install clang-12 libclang-12-dev
-export LLVM_CONFIG_PATH=/usr/bin/llvm-config-12
-export LIBCLANG_PATH=/usr/lib/llvm-12/lib
-export LIBCLANG_STATIC_PATH=/usr/lib/llvm-12/lib
-export CLANG_PATH=/usr/bin/clang-12
 ```
+
+The build script automatically detects versions in this preference order: 13, 12, 11 (newest compatible first).
+
+**Important:** On systems with multiple LLVM versions, autocxx may default to the newest version (e.g., LLVM 14+), which is incompatible. The build script automatically overrides this by setting the appropriate environment variables when it detects LLVM 11-13. You can manually override by setting `LLVM_CONFIG_PATH` before building.
 
 ## Testing
 
