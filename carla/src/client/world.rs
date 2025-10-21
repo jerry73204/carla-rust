@@ -28,6 +28,41 @@ const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// The world contains the map and assets of a simulation,
 /// corresponding to `carla.World` in Python API.
+///
+/// [`World`] is the main interface for interacting with the simulation. It provides:
+/// - Access to the simulation [`Map`] and environment
+/// - Actor spawning and management
+/// - Weather and lighting control
+/// - Simulation settings (synchronous mode, fixed time step, etc.)
+/// - Traffic light management
+/// - World snapshots for state inspection
+///
+/// # Thread Safety
+///
+/// [`World`] implements [`Send`] and [`Sync`] and can be cloned cheaply (internally
+/// reference-counted).
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::client::Client;
+///
+/// let client = Client::default();
+/// let mut world = client.world();
+///
+/// // Get simulation info
+/// println!("World ID: {}", world.id());
+/// let map = world.map();
+/// println!("Map: {}", map.name());
+///
+/// // Spawn an actor
+/// let bp_lib = world.blueprint_library();
+/// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
+/// let spawn_points = map.recommended_spawn_points();
+/// if let Some(spawn_point) = spawn_points.get(0) {
+///     let actor = world.spawn_actor(&vehicle_bp, &spawn_point);
+/// }
+/// ```
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -37,58 +72,100 @@ pub struct World {
 }
 
 impl World {
+    /// Returns the unique ID of this world/episode.
+    ///
+    /// The ID changes whenever the world is reloaded or a new map is loaded.
     pub fn id(&self) -> u64 {
         self.inner.GetId()
     }
 
+    /// Returns the map associated with this world.
+    ///
+    /// The map contains the road network, spawn points, and navigation information.
     pub fn map(&self) -> Map {
         let ptr = self.inner.GetMap();
         unsafe { Map::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns the light manager for controlling street lights and vehicle lights.
     pub fn light_manager(&self) -> LightManager {
         unsafe { LightManager::from_cxx(self.inner.GetLightManager()).unwrap_unchecked() }
     }
 
+    /// Loads a map layer (e.g., buildings, props, roads).
+    ///
+    /// Use this to dynamically load/unload parts of the map for performance.
     pub fn load_level_layer(&self, map_layers: MapLayer) {
         self.inner.LoadLevelLayer(map_layers as u16);
     }
 
+    /// Unloads a map layer.
     pub fn unload_level_layer(&self, map_layers: MapLayer) {
         self.inner.UnloadLevelLayer(map_layers as u16);
     }
 
+    /// Returns the blueprint library containing all available actor blueprints.
+    ///
+    /// Blueprints are templates for spawning actors (vehicles, sensors, pedestrians, etc.).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// let bp_lib = world.blueprint_library();
+    ///
+    /// // Find all vehicle blueprints
+    /// let vehicles = bp_lib.filter("vehicle.*");
+    /// println!("Found {} vehicle types", vehicles.len());
+    /// ```
     pub fn blueprint_library(&self) -> BlueprintLibrary {
         let ptr = self.inner.GetBlueprintLibrary();
         unsafe { BlueprintLibrary::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns the light state of all vehicles in the world.
     pub fn vehicle_light_states(&self) -> VehicleLightStateList {
         let ptr = self.inner.GetVehiclesLightStates().within_unique_ptr();
         unsafe { VehicleLightStateList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns a random navigable location (on roads/sidewalks).
+    ///
+    /// Useful for spawning actors at random valid positions.
     pub fn random_location_from_navigation(&self) -> Translation3<f32> {
         self.inner
             .GetRandomLocationFromNavigation()
             .to_na_translation()
     }
 
+    /// Returns the spectator actor (the free-flying camera).
+    ///
+    /// Move the spectator to change the view in the CARLA window.
     pub fn spectator(&self) -> Actor {
         let actor = self.inner.GetSpectator();
         unsafe { Actor::from_cxx(actor).unwrap_unchecked() }
     }
 
+    /// Returns the current simulation settings.
+    ///
+    /// Settings include synchronous mode, fixed time step, rendering options, etc.
     pub fn settings(&self) -> EpisodeSettings {
         let ptr = self.inner.GetSettings().within_unique_ptr();
         EpisodeSettings::from_cxx(&ptr)
     }
 
+    /// Returns a snapshot of the current world state.
+    ///
+    /// Snapshots contain actor transforms, velocities, and simulation timestamp.
     pub fn snapshot(&self) -> WorldSnapshot {
         let ptr = self.inner.GetSnapshot();
         unsafe { WorldSnapshot::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns names of all environment objects in the world.
     pub fn names_of_all_objects(&self) -> Vec<String> {
         self.inner
             .GetNamesOfAllObjects()
@@ -97,16 +174,32 @@ impl World {
             .collect()
     }
 
+    /// Finds an actor by its ID.
+    ///
+    /// Returns `None` if the actor doesn't exist or has been destroyed.
     pub fn actor(&self, actor_id: ActorId) -> Option<Actor> {
         let ptr = self.inner.GetActor(actor_id);
         Actor::from_cxx(ptr)
     }
 
+    /// Returns a list of all actors currently in the world.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// let actors = world.actors();
+    /// println!("Total actors: {}", actors.len());
+    /// ```
     pub fn actors(&self) -> ActorList {
         let ptr = self.inner.GetActors();
         unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns a list of actors matching the given IDs.
     pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
         let mut vec = CxxVector::new_typed();
         ids.iter().cloned().for_each(|id| {
@@ -133,12 +226,70 @@ impl World {
         unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Applies new simulation settings.
+    ///
+    /// Use this to change synchronous mode, time step, rendering options, etc.
+    ///
+    /// # Arguments
+    ///
+    /// * `settings` - The new settings to apply
+    /// * `timeout` - Maximum time to wait for the operation
+    ///
+    /// # Returns
+    ///
+    /// The frame number when the settings were applied.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    /// use std::time::Duration;
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    ///
+    /// let mut settings = world.settings();
+    /// settings.synchronous_mode = true;
+    /// settings.fixed_delta_seconds = Some(0.05);
+    /// world.apply_settings(&settings, Duration::from_secs(2));
+    /// ```
     pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
         let settings = settings.to_cxx();
         let millis = timeout.as_millis() as usize;
         self.inner.pin_mut().ApplySettings(&settings, millis)
     }
 
+    /// Spawns an actor in the world.
+    ///
+    /// # Arguments
+    ///
+    /// * `blueprint` - The actor blueprint (from [`blueprint_library()`](Self::blueprint_library))
+    /// * `transform` - Initial position and rotation
+    ///
+    /// # Returns
+    ///
+    /// The spawned [`Actor`], or an error if spawning failed (e.g., collision with
+    /// another object).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::{ActorBase, Client};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    ///
+    /// let bp_lib = world.blueprint_library();
+    /// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
+    ///
+    /// let spawn_points = world.map().recommended_spawn_points();
+    /// if let Some(spawn_point) = spawn_points.get(0) {
+    ///     match world.spawn_actor(&vehicle_bp, &spawn_point) {
+    ///         Ok(actor) => println!("Spawned actor {}", actor.id()),
+    ///         Err(e) => eprintln!("Failed to spawn: {}", e),
+    ///     }
+    /// }
+    /// ```
     pub fn spawn_actor(
         &mut self,
         blueprint: &ActorBlueprint,
@@ -147,6 +298,46 @@ impl World {
         self.spawn_actor_opt::<Actor, _>(blueprint, transform, None, None)
     }
 
+    /// Spawns an actor with optional parent attachment.
+    ///
+    /// # Arguments
+    ///
+    /// * `blueprint` - The actor blueprint
+    /// * `transform` - Initial position and rotation (relative to parent if attached)
+    /// * `parent` - Optional parent actor to attach to
+    /// * `attachment_type` - How to attach to parent (Rigid, SpringArm, etc.)
+    ///
+    /// # Examples
+    ///
+    /// Attaching a camera to a vehicle:
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    /// use carla::rpc::AttachmentType;
+    /// use nalgebra::{Isometry3, Translation3, UnitQuaternion};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let vehicle_actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let vehicle: carla::client::Vehicle = vehicle_actor.try_into().unwrap();
+    ///
+    /// // Spawn camera attached to vehicle
+    /// let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+    /// let camera_transform = Isometry3::from_parts(
+    ///     Translation3::new(0.0, 0.0, 2.0),
+    ///     UnitQuaternion::identity()
+    /// );
+    ///
+    /// let camera = world.spawn_actor_opt(
+    ///     &camera_bp,
+    ///     &camera_transform,
+    ///     Some(&vehicle),
+    ///     AttachmentType::Rigid
+    /// ).unwrap();
+    /// ```
     pub fn spawn_actor_opt<A, T>(
         &mut self,
         blueprint: &ActorBlueprint,
@@ -179,6 +370,27 @@ impl World {
         }
     }
 
+    /// Waits for the next simulation tick and returns the world snapshot.
+    ///
+    /// In synchronous mode, the server waits for this call before advancing the simulation.
+    /// In asynchronous mode, this returns when the next tick completes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation times out (default: 60 seconds).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    ///
+    /// // Wait for next tick
+    /// let snapshot = world.wait_for_tick().unwrap();
+    /// println!("Frame: {}", snapshot.frame());
+    /// ```
     pub fn wait_for_tick(&self) -> Result<WorldSnapshot> {
         self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)
             .ok_or_else(|| {
@@ -189,33 +401,60 @@ impl World {
             })
     }
 
+    /// Creates an actor builder for convenient actor spawning with attribute configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - Blueprint ID (e.g., "vehicle.tesla.model3")
     pub fn actor_builder(&mut self, key: &str) -> Result<ActorBuilder<'_>> {
         ActorBuilder::new(self, key)
     }
 
+    /// Waits for the next tick with a custom timeout.
+    ///
+    /// Returns `None` if the timeout expires.
     #[must_use]
     pub fn wait_for_tick_or_timeout(&self, timeout: Duration) -> Option<WorldSnapshot> {
         let ptr = self.inner.WaitForTick(timeout.as_millis() as usize);
         WorldSnapshot::from_cxx(ptr)
     }
 
+    /// Advances the simulation by one tick (synchronous mode only).
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - Maximum time to wait for the tick
+    ///
+    /// # Returns
+    ///
+    /// The frame number after the tick.
     pub fn tick_or_timeout(&mut self, timeout: Duration) -> u64 {
         self.inner.pin_mut().Tick(timeout.as_millis() as usize)
     }
 
+    /// Advances the simulation by one tick (synchronous mode only).
+    ///
+    /// Uses the default timeout of 60 seconds.
     pub fn tick(&mut self) -> u64 {
         self.tick_or_timeout(DEFAULT_TICK_TIMEOUT)
     }
 
+    /// Sets the percentage of pedestrians that will cross roads.
+    ///
+    /// # Arguments
+    ///
+    /// * `percentage` - Value from 0.0 to 1.0 (0% to 100%)
     pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
         self.inner.pin_mut().SetPedestriansCrossFactor(percentage);
     }
 
+    /// Sets the random seed for pedestrian behavior.
     pub fn set_pedestrians_seed(&mut self, seed: usize) {
         let seed = c_uint(seed as std::os::raw::c_uint);
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
 
+    /// Returns the traffic sign actor at the given landmark location.
     pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
         // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
         let ptr = self
@@ -251,10 +490,26 @@ impl World {
         unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns the current weather parameters.
     pub fn weather(&self) -> WeatherParameters {
         self.inner.GetWeather()
     }
 
+    /// Sets the weather parameters (sun, clouds, precipitation, fog, etc.).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::{client::Client, rpc::WeatherParameters};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    ///
+    /// let mut weather = world.weather();
+    /// weather.cloudiness = 80.0;
+    /// weather.precipitation = 50.0;
+    /// world.set_weather(&weather);
+    /// ```
     pub fn set_weather(&mut self, weather: &WeatherParameters) {
         self.inner.pin_mut().SetWeather(weather)
     }
