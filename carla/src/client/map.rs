@@ -147,3 +147,5 @@ impl RecommendedSpawnPoints {
 }
 
 assert_impl_all!(Map: Send, Sync);
+
+assert_impl_all!(RecommendedSpawnPoints: Send, Sync);

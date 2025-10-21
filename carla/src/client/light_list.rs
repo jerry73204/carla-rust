@@ -2,6 +2,7 @@ use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiLightList;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 use super::LightMut;
 
@@ -39,3 +40,5 @@ impl LightList {
         Some(Self { inner: ptr })
     }
 }
+
+assert_impl_all!(LightList: Send, Sync);

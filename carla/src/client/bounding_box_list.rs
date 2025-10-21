@@ -3,6 +3,7 @@ use carla_sys::carla_rust::{client::FfiBoundingBoxList, geom::FfiBoundingBox};
 use core::slice;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 /// A list of bounding boxes.
 #[derive(Derivative)]
@@ -49,3 +50,5 @@ impl BoundingBoxList {
         }
     }
 }
+
+assert_impl_all!(BoundingBoxList: Send, Sync);

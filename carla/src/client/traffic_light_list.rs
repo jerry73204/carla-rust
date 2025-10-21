@@ -2,6 +2,7 @@ use super::TrafficLight;
 use carla_sys::carla_rust::client::FfiTrafficLightList;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 /// A list of traffic lights.
 #[derive(Derivative)]
@@ -42,3 +43,5 @@ impl TrafficLightList {
         }
     }
 }
+
+assert_impl_all!(TrafficLightList: Send, Sync);

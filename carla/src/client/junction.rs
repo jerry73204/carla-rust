@@ -5,6 +5,7 @@ use crate::{
 use carla_sys::carla_rust::client::{FfiJunction, FfiWaypointPair};
 use cxx::{CxxVector, SharedPtr, UniquePtr};
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 use super::Waypoint;
 
@@ -80,3 +81,8 @@ fn convert_pair(from: &FfiWaypointPair) -> (Waypoint, Waypoint) {
     let second = Waypoint::from_cxx(from.second()).unwrap();
     (first, second)
 }
+
+assert_impl_all!(Junction: Send, Sync);
+// Note: WaypointPairList cannot be Send/Sync because it contains CxxVector<FfiWaypointPair>
+// which has PhantomData<*const u8> making it !Send. This is intentional as CxxVector
+// is designed for short-lived borrows from C++.

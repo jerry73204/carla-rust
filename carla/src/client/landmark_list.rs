@@ -2,6 +2,7 @@ use carla_sys::carla_rust::client::FfiLandmarkList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
+use static_assertions::assert_impl_all;
 use super::Landmark;
 
 /// A list of landmarks.
@@ -45,3 +46,5 @@ impl LandmarkList {
         Some(Self { inner: ptr })
     }
 }
+
+assert_impl_all!(LandmarkList: Send, Sync);

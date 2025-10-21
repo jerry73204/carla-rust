@@ -3,6 +3,7 @@ use carla_sys::carla_rust::client::FfiEnvironmentObjectList;
 use cxx::UniquePtr;
 use derivative::Derivative;
 
+use static_assertions::assert_impl_all;
 use crate::rpc::EnvironmentObjectRef;
 
 /// A list of environment objects.
@@ -44,3 +45,5 @@ impl EnvironmentObjectList {
         }
     }
 }
+
+assert_impl_all!(EnvironmentObjectList: Send, Sync);

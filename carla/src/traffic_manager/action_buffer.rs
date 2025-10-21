@@ -3,6 +3,7 @@ use crate::client::Waypoint;
 use carla_sys::carla_rust::traffic_manager::{FfiAction, FfiActionBuffer};
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 use std::slice;
 
 #[derive(Derivative)]
@@ -50,3 +51,5 @@ impl ActionBuffer {
         Some(Self { inner: ptr })
     }
 }
+
+assert_impl_all!(ActionBuffer: Send, Sync);

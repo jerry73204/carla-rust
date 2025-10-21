@@ -2,6 +2,7 @@ use super::Actor;
 use carla_sys::carla_rust::client::FfiActorVec;
 use cxx::UniquePtr;
 use derivative::Derivative;
+use static_assertions::assert_impl_all;
 
 /// A vector containing a list of actors.
 #[derive(Derivative)]
@@ -38,3 +39,5 @@ impl ActorVec {
         }
     }
 }
+
+assert_impl_all!(ActorVec: Send, Sync);

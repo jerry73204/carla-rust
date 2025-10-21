@@ -4,6 +4,9 @@ use crate::sensor::data::Color;
 use carla_sys::{carla::rpc::ActorAttributeType, carla_rust::client::FfiActorAttributeValue};
 use derivative::Derivative;
 
+// Note: ActorAttributeValue cannot be Send/Sync because FfiActorAttributeValue contains
+// PhantomData<*const u8> for FFI safety. This is intentional for FFI types.
+
 /// The untyped value of an attribute on an actor.
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -162,3 +165,4 @@ impl From<bool> for ActorAttributeValueKind {
         Self::Bool(v)
     }
 }
+

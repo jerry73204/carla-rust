@@ -1,49 +1,149 @@
 use std::fmt::{self, Debug, Formatter};
 
 // carla::client
+// SAFETY: ActorBlueprint wraps a SharedPtr which provides thread-safe reference counting.
+// The underlying C++ type is immutable after construction.
 unsafe impl Send for crate::carla::client::ActorBlueprint {}
 unsafe impl Sync for crate::carla::client::ActorBlueprint {}
+
+// SAFETY: WorldSnapshot is a read-only snapshot of world state at a point in time.
+// The underlying C++ object is immutable and can be safely shared across threads.
 unsafe impl Send for crate::carla::client::WorldSnapshot {}
 
 // carla_rust::client
+// SAFETY: All FfiClient operations are thread-safe. The underlying C++ client uses
+// thread-safe SharedPtr for reference counting and synchronizes access to network operations.
 unsafe impl Send for crate::carla_rust::client::FfiClient {}
 unsafe impl Sync for crate::carla_rust::client::FfiClient {}
+
+// SAFETY: FfiWorld is a thread-safe handle to the simulation world. Operations are
+// synchronized by the CARLA server, and the SharedPtr provides thread-safe ownership.
 unsafe impl Send for crate::carla_rust::client::FfiWorld {}
 unsafe impl Sync for crate::carla_rust::client::FfiWorld {}
+
+// SAFETY: FfiActor represents an immutable handle to an actor in the simulation.
+// The underlying SharedPtr provides thread-safe reference counting.
 unsafe impl Send for crate::carla_rust::client::FfiActor {}
 unsafe impl Sync for crate::carla_rust::client::FfiActor {}
+
+// SAFETY: FfiBlueprintLibrary is a read-only collection of actor blueprints.
+// The underlying data is immutable and SharedPtr ensures thread-safe ownership.
 unsafe impl Send for crate::carla_rust::client::FfiBlueprintLibrary {}
 unsafe impl Sync for crate::carla_rust::client::FfiBlueprintLibrary {}
+
+// SAFETY: FfiLandmark represents an immutable map landmark (traffic sign, light, etc.).
+// The underlying SharedPtr provides thread-safe reference counting.
 unsafe impl Send for crate::carla_rust::client::FfiLandmark {}
 unsafe impl Sync for crate::carla_rust::client::FfiLandmark {}
+
+// SAFETY: FfiMap is a read-only representation of the simulation map.
+// The map data is immutable and SharedPtr ensures thread-safe ownership.
 unsafe impl Send for crate::carla_rust::client::FfiMap {}
 unsafe impl Sync for crate::carla_rust::client::FfiMap {}
+
+// SAFETY: FfiSensor wraps a SharedPtr to a sensor actor. While sensors can be configured,
+// the handle itself is thread-safe and sensor operations are synchronized by the server.
 unsafe impl Send for crate::carla_rust::client::FfiSensor {}
 unsafe impl Sync for crate::carla_rust::client::FfiSensor {}
+
+// SAFETY: FfiVehicle wraps a SharedPtr to a vehicle actor. The handle is thread-safe
+// and vehicle control operations are synchronized by the CARLA server.
 unsafe impl Send for crate::carla_rust::client::FfiVehicle {}
 unsafe impl Sync for crate::carla_rust::client::FfiVehicle {}
+
+// SAFETY: FfiTrafficSign wraps a SharedPtr to an immutable traffic sign actor.
+// The underlying data is thread-safe.
 unsafe impl Send for crate::carla_rust::client::FfiTrafficSign {}
 unsafe impl Sync for crate::carla_rust::client::FfiTrafficSign {}
+
+// SAFETY: FfiTrafficLight wraps a SharedPtr to a traffic light actor.
+// Operations are synchronized by the CARLA server.
 unsafe impl Send for crate::carla_rust::client::FfiTrafficLight {}
 unsafe impl Sync for crate::carla_rust::client::FfiTrafficLight {}
+
+// SAFETY: FfiWaypoint represents an immutable point on the road network.
+// The waypoint data is read-only and SharedPtr ensures thread-safe ownership.
 unsafe impl Send for crate::carla_rust::client::FfiWaypoint {}
 unsafe impl Sync for crate::carla_rust::client::FfiWaypoint {}
+
+// SAFETY: FfiActorList is a read-only container of actor SharedPtrs.
+// The list itself is immutable and all contained actors are thread-safe.
 unsafe impl Send for crate::carla_rust::client::FfiActorList {}
 unsafe impl Sync for crate::carla_rust::client::FfiActorList {}
+
+// SAFETY: FfiTransformList is a read-only container of transform data.
+// All data is immutable POD types (position/rotation).
 unsafe impl Send for crate::carla_rust::client::FfiTransformList {}
 unsafe impl Sync for crate::carla_rust::client::FfiTransformList {}
+
+// SAFETY: FfiLandmarkList is a read-only container of landmark SharedPtrs.
+// The list and all landmarks are immutable.
 unsafe impl Send for crate::carla_rust::client::FfiLandmarkList {}
 unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
+
+// SAFETY: FfiWorldSnapshot is an immutable snapshot of world state at a point in time.
+// All data is read-only and can be safely shared across threads.
 unsafe impl Send for crate::carla_rust::client::FfiWorldSnapshot {}
 unsafe impl Sync for crate::carla_rust::client::FfiWorldSnapshot {}
+
+// SAFETY: FfiWaypointList is a read-only container of waypoint pointers.
+// All waypoints are immutable and the list itself is read-only.
 unsafe impl Send for crate::carla_rust::client::FfiWaypointList {}
 unsafe impl Sync for crate::carla_rust::client::FfiWaypointList {}
 
+// SAFETY: FfiJunction represents an immutable junction in the road network.
+// The junction data is read-only and SharedPtr ensures thread-safe ownership.
+unsafe impl Send for crate::carla_rust::client::FfiJunction {}
+unsafe impl Sync for crate::carla_rust::client::FfiJunction {}
+
+// SAFETY: FfiTrafficLightList is a read-only container of traffic light pointers.
+// All traffic lights are thread-safe and the list is immutable.
+unsafe impl Send for crate::carla_rust::client::FfiTrafficLightList {}
+unsafe impl Sync for crate::carla_rust::client::FfiTrafficLightList {}
+
+// SAFETY: FfiBoundingBoxList is a read-only container of bounding box data.
+// All data is POD types (geometry data) and the container is immutable.
+unsafe impl Send for crate::carla_rust::client::FfiBoundingBoxList {}
+unsafe impl Sync for crate::carla_rust::client::FfiBoundingBoxList {}
+
+// SAFETY: FfiLabelledPointList is a read-only container of labelled point data.
+// All data is POD types and the container is immutable.
+unsafe impl Send for crate::carla_rust::client::FfiLabelledPointList {}
+unsafe impl Sync for crate::carla_rust::client::FfiLabelledPointList {}
+
+// SAFETY: FfiEnvironmentObjectList is a read-only container of environment object data.
+// The container and all contained data are immutable.
+unsafe impl Send for crate::carla_rust::client::FfiEnvironmentObjectList {}
+unsafe impl Sync for crate::carla_rust::client::FfiEnvironmentObjectList {}
+
+// SAFETY: FfiActorVec is a read-only vector of actor SharedPtrs.
+// All actors are thread-safe and the vector is immutable.
+unsafe impl Send for crate::carla_rust::client::FfiActorVec {}
+unsafe impl Sync for crate::carla_rust::client::FfiActorVec {}
+
+// SAFETY: FfiLightManager manages global light state and uses SharedPtr for thread-safe ownership.
+// Light operations are synchronized by the CARLA server.
+unsafe impl Send for crate::carla_rust::client::FfiLightManager {}
+unsafe impl Sync for crate::carla_rust::client::FfiLightManager {}
+
+// SAFETY: FfiLightList is a read-only container of light data.
+// The container is immutable after creation.
+unsafe impl Send for crate::carla_rust::client::FfiLightList {}
+unsafe impl Sync for crate::carla_rust::client::FfiLightList {}
+
 // carla::geom
+// SAFETY: Vector2D is a POD type containing only two f32 fields (x, y).
+// It has no interior mutability and is safe to send and share across threads.
 unsafe impl Send for crate::carla::geom::Vector2D {}
 unsafe impl Sync for crate::carla::geom::Vector2D {}
+
+// SAFETY: Vector3D is a POD type containing only three f32 fields (x, y, z).
+// It has no interior mutability and is safe to send and share across threads.
 unsafe impl Send for crate::carla::geom::Vector3D {}
 unsafe impl Sync for crate::carla::geom::Vector3D {}
+
+// SAFETY: Rotation is a POD type containing only three f32 fields (pitch, yaw, roll).
+// It has no interior mutability and is safe to send and share across threads.
 unsafe impl Send for crate::carla::geom::Rotation {}
 unsafe impl Sync for crate::carla::geom::Rotation {}
 
@@ -106,8 +206,13 @@ impl Clone for crate::carla::geom::Vector3D {
 }
 
 // carla_rust::geom
+// SAFETY: FfiLocation is a POD type containing only three f32 fields (x, y, z).
+// It wraps carla::geom::Location which is thread-safe.
 unsafe impl Send for crate::carla_rust::geom::FfiLocation {}
 unsafe impl Sync for crate::carla_rust::geom::FfiLocation {}
+
+// SAFETY: FfiTransform contains only POD types (FfiLocation and Rotation).
+// Both contained types are thread-safe.
 unsafe impl Send for crate::carla_rust::geom::FfiTransform {}
 unsafe impl Sync for crate::carla_rust::geom::FfiTransform {}
 
@@ -152,19 +257,56 @@ impl Clone for crate::carla_rust::geom::FfiTransform {
 // carla::road
 
 // carla_rust::road::element
+// SAFETY: FfiLaneMarking is a read-only wrapper around lane marking data.
+// All data is immutable and can be safely sent across threads.
 unsafe impl Send for crate::carla_rust::road::element::FfiLaneMarking {}
 
 // carla::rpc
+// SAFETY: All carla::rpc types are Plain Old Data (POD) structs used for RPC communication.
+// They contain only primitive types, vectors of primitives, or other POD types.
+// None have interior mutability and all are safe to send across threads.
+
+// EpisodeSettings contains only bool and numeric fields for simulation configuration.
 unsafe impl Send for crate::carla::rpc::EpisodeSettings {}
+unsafe impl Sync for crate::carla::rpc::EpisodeSettings {}
+
+// GearPhysicsControl contains only f32 fields for gear ratios.
 unsafe impl Send for crate::carla::rpc::GearPhysicsControl {}
+unsafe impl Sync for crate::carla::rpc::GearPhysicsControl {}
+
+// LabelledPoint contains geometry data (Location) and an enum label.
 unsafe impl Send for crate::carla::rpc::LabelledPoint {}
+unsafe impl Sync for crate::carla::rpc::LabelledPoint {}
+
+// OpendriveGenerationParameters contains configuration data for map generation.
 unsafe impl Send for crate::carla::rpc::OpendriveGenerationParameters {}
+unsafe impl Sync for crate::carla::rpc::OpendriveGenerationParameters {}
+
+// VehicleLightState is a bitfield enum representing light states.
 unsafe impl Send for crate::carla::rpc::VehicleLightState {}
+unsafe impl Sync for crate::carla::rpc::VehicleLightState {}
+
+// VehiclePhysicsControl contains physics parameters (mass, drag, etc).
 unsafe impl Send for crate::carla::rpc::VehiclePhysicsControl {}
+unsafe impl Sync for crate::carla::rpc::VehiclePhysicsControl {}
+
+// WalkerBoneControlIn contains bone animation input data.
 unsafe impl Send for crate::carla::rpc::WalkerBoneControlIn {}
+unsafe impl Sync for crate::carla::rpc::WalkerBoneControlIn {}
+
+// WalkerBoneControlOut contains bone animation output data.
 unsafe impl Send for crate::carla::rpc::WalkerBoneControlOut {}
+unsafe impl Sync for crate::carla::rpc::WalkerBoneControlOut {}
+
+// WalkerControl contains walker movement control parameters.
 unsafe impl Send for crate::carla::rpc::WalkerControl {}
+unsafe impl Sync for crate::carla::rpc::WalkerControl {}
+
+// WheelPhysicsControl contains wheel physics parameters.
 unsafe impl Send for crate::carla::rpc::WheelPhysicsControl {}
+unsafe impl Sync for crate::carla::rpc::WheelPhysicsControl {}
+
+// CityObjectLabel is a C-style enum for semantic segmentation labels.
 unsafe impl Send for crate::carla::rpc::CityObjectLabel {}
 unsafe impl Sync for crate::carla::rpc::CityObjectLabel {}
 
@@ -206,8 +348,15 @@ impl Debug for crate::carla::rpc::CityObjectLabel {
 }
 
 // carla_rust::rpc
+// SAFETY: FfiLabelledPoint contains only POD types (location and label enum).
+// It is safe to send and share across threads.
 unsafe impl Send for crate::carla_rust::rpc::FfiLabelledPoint {}
+unsafe impl Sync for crate::carla_rust::rpc::FfiLabelledPoint {}
+
+// SAFETY: FfiEpisodeSettings wraps carla::rpc::EpisodeSettings which is POD.
+// It is safe to send and share across threads.
 unsafe impl Send for crate::carla_rust::rpc::FfiEpisodeSettings {}
+unsafe impl Sync for crate::carla_rust::rpc::FfiEpisodeSettings {}
 
 impl Debug for crate::carla_rust::rpc::FfiLabelledPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -282,6 +431,8 @@ impl Clone for crate::carla::rpc::WheelPhysicsControl {
 }
 
 // carla_rust::sensor
+// SAFETY: FfiSensorData is a SharedPtr wrapper to sensor data.
+// The underlying data is immutable after creation and SharedPtr ensures thread-safe ownership.
 unsafe impl Send for crate::carla_rust::sensor::FfiSensorData {}
 unsafe impl Sync for crate::carla_rust::sensor::FfiSensorData {}
 
@@ -298,26 +449,58 @@ impl Clone for crate::carla_rust::sensor::data::FfiColor {
 }
 
 // carla_rust::sensor::data
+// SAFETY: All sensor data types are SharedPtr wrappers to immutable sensor measurements.
+// The data is captured at a point in time and never modified. SharedPtr ensures thread-safe
+// reference counting, making all sensor data types safe to send and share across threads.
+
+// CollisionEvent contains immutable collision data (actor refs, impulse).
 unsafe impl Send for crate::carla_rust::sensor::data::FfiCollisionEvent {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiCollisionEvent {}
+
+// GnssMeasurement contains GPS coordinate data (latitude, longitude, altitude).
 unsafe impl Send for crate::carla_rust::sensor::data::FfiGnssMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiGnssMeasurement {}
+
+// Image contains pixel data that is immutable after capture.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiImage {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiImage {}
+
+// ImuMeasurement contains IMU sensor data (accelerometer, gyroscope, compass).
 unsafe impl Send for crate::carla_rust::sensor::data::FfiImuMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiImuMeasurement {}
+
+// LaneInvasionEvent contains immutable lane invasion data.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiLaneInvasionEvent {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiLaneInvasionEvent {}
+
+// LidarMeasurement contains immutable point cloud data.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiLidarMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiLidarMeasurement {}
+
+// ObstacleDetectionEvent contains immutable obstacle detection data.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiObstacleDetectionEvent {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiObstacleDetectionEvent {}
+
+// RadarMeasurement contains immutable radar detection data.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiRadarMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiRadarMeasurement {}
+
+// SemanticLidarMeasurement contains immutable semantic point cloud data.
 unsafe impl Send for crate::carla_rust::sensor::data::FfiSemanticLidarMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiSemanticLidarMeasurement {}
 
 // carla_rust::traffic_manager
+// SAFETY: FfiTrafficManager is a thread-safe handle to the traffic manager.
+// Operations are synchronized internally by the CARLA server.
 unsafe impl Send for crate::carla_rust::traffic_manager::FfiTrafficManager {}
+unsafe impl Sync for crate::carla_rust::traffic_manager::FfiTrafficManager {}
+
+// SAFETY: FfiAction contains immutable traffic action data.
+// It is safe to send and share across threads.
 unsafe impl Send for crate::carla_rust::traffic_manager::FfiAction {}
+unsafe impl Sync for crate::carla_rust::traffic_manager::FfiAction {}
+
+// SAFETY: FfiActionBuffer is a read-only buffer of traffic actions.
+// The buffer is immutable after creation and can be safely shared.
 unsafe impl Send for crate::carla_rust::traffic_manager::FfiActionBuffer {}
+unsafe impl Sync for crate::carla_rust::traffic_manager::FfiActionBuffer {}

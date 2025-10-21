@@ -3,6 +3,7 @@ use crate::{
     rpc::{LightGroup, LightId},
     sensor::data::Color,
 };
+use static_assertions::assert_impl_all;
 use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiLightManager;
 use cxx::SharedPtr;
@@ -71,3 +72,5 @@ impl LightManager {
         Some(Self { inner: ptr })
     }
 }
+
+assert_impl_all!(LightManager: Send, Sync);
