@@ -1,19 +1,61 @@
 use autocxx::prelude::*;
 use carla_sys::carla_rust::rpc::FfiEpisodeSettings;
 
-/// A collection of configuration options, corresponding to
-/// `carla.WorldSettings` in Python API.
+/// Simulation configuration settings, corresponding to `carla.WorldSettings` in Python API.
+///
+/// These settings control how the simulation runs, including timing, rendering,
+/// and physics behavior.
+///
+/// # Examples
+///
+/// ```
+/// use carla::rpc::EpisodeSettings;
+///
+/// let mut settings = EpisodeSettings::default();
+///
+/// // Enable synchronous mode (client controls simulation ticks)
+/// settings.synchronous_mode = true;
+///
+/// // Set fixed time step (20 FPS = 0.05 seconds per frame)
+/// settings.fixed_delta_seconds = Some(0.05);
+///
+/// // Enable physics substepping for stability
+/// settings.substepping = true;
+/// settings.max_substeps = 10;
+/// settings.max_substep_delta_time = 0.01;
+/// ```
 #[derive(Debug, Clone)]
 pub struct EpisodeSettings {
+    /// If true, the server waits for client tick commands (synchronous mode).
+    /// If false, the simulation runs freely (asynchronous mode).
     pub synchronous_mode: bool,
+
+    /// If true, disables rendering for performance (sensors still work).
     pub no_rendering_mode: bool,
+
+    /// Fixed time step in seconds. `None` means variable time step.
+    /// Common values: 0.05 (20 FPS), 0.033 (30 FPS), 0.0167 (60 FPS).
     pub fixed_delta_seconds: Option<f64>,
+
+    /// Enable physics substepping for more accurate simulation.
     pub substepping: bool,
+
+    /// Maximum time per physics substep (seconds).
     pub max_substep_delta_time: f64,
+
+    /// Maximum number of physics substeps per frame.
     pub max_substeps: u64,
+
+    /// Maximum distance for object culling (meters, 0.0 = disabled).
     pub max_culling_distance: f32,
+
+    /// Enable deterministic ragdoll physics (reproducible simulations).
     pub deterministic_ragdolls: bool,
+
+    /// Distance for tile streaming in large maps (meters).
     pub tile_stream_distance: f32,
+
+    /// Distance at which actors become active (meters).
     pub actor_active_distance: f32,
 }
 
