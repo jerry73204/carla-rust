@@ -35,9 +35,16 @@ impl SemanticLidarMeasurement {
     pub fn as_array(&self) -> ArrayView2<'_, SemanticLidarDetection> {
         let len = self.len();
         let ih = self.channel_count();
+        assert!(ih > 0, "Channel count is zero, cannot create array");
         let iw = len / ih;
-        assert!(ih * iw == len);
-        ArrayView2::from_shape((iw, ih), self.as_slice()).unwrap()
+        assert!(
+            ih * iw == len,
+            "Invalid dimensions: length {} not evenly divisible by channel count {}",
+            len,
+            ih
+        );
+        ArrayView2::from_shape((iw, ih), self.as_slice())
+            .expect("Failed to create array view with valid dimensions")
     }
 
     pub fn len(&self) -> usize {

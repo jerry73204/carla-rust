@@ -111,13 +111,17 @@ namespace carla_rust
 
             std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
                                                     const FfiTransform &transform,
-                                                    FfiActor *parent = nullptr,
+                                                    const FfiActor *parent = nullptr,
                                                     AttachmentType attachment_type = AttachmentType::Rigid) noexcept
             {
                 Actor *parent_arg = nullptr;
                 if (parent != nullptr) {
                     const SharedPtr<Actor> &ptr = parent->inner();
-                    parent_arg = ptr.get();
+                    // SAFETY: The underlying CARLA C++ API takes a non-const Actor* but does not
+                    // actually mutate the parent actor during spawning - it's a design issue in
+                    // the upstream CARLA library. We accept const here to provide a safer FFI
+                    // interface, but must cast to non-const to call the underlying API.
+                    parent_arg = const_cast<Actor*>(ptr.get());
                 }
 
                 const Transform& transform_arg = transform.as_native();

@@ -24,14 +24,14 @@ impl EnvironmentObjectList {
     }
 
     pub fn get(&self, index: usize) -> Option<EnvironmentObjectRef<'_>> {
-        if self.len() >= index {
+        if index >= self.len() {
             return None;
         }
 
-        Some(unsafe {
+        unsafe {
             let ptr = self.inner.get(index).within_unique_ptr();
-            EnvironmentObjectRef::from_cxx(ptr).unwrap()
-        })
+            EnvironmentObjectRef::from_cxx(ptr)
+        }
     }
 }
 

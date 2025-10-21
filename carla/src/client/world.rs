@@ -168,7 +168,7 @@ impl World {
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
                 &ffi_transform,
-                parent_ptr as *mut _,
+                parent_ptr,
                 attachment_type,
             );
             Actor::from_cxx(actor)

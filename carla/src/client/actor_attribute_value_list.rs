@@ -1,5 +1,5 @@
 use core::slice;
-use std::{marker::PhantomData, mem};
+use std::marker::PhantomData;
 
 use carla_sys::carla_rust::client::FfiActorAttributeValueList;
 use cxx::UniquePtr;
@@ -29,8 +29,9 @@ impl<'a> ActorAttributeValueList<'a> {
 
     pub fn as_slice(&self) -> &[ActorAttributeValue] {
         unsafe {
-            let slice = slice::from_raw_parts(self.inner.data(), self.len());
-            mem::transmute(slice)
+            // SAFETY: ActorAttributeValue is repr(transparent) and has the same layout
+            // as the underlying C++ type. This is guaranteed by the FFI bindings.
+            slice::from_raw_parts(self.inner.data() as *const ActorAttributeValue, self.len())
         }
     }
 

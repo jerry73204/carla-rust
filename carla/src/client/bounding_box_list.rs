@@ -3,7 +3,6 @@ use carla_sys::carla_rust::{client::FfiBoundingBoxList, geom::FfiBoundingBox};
 use core::slice;
 use cxx::UniquePtr;
 use derivative::Derivative;
-use std::mem;
 
 /// A list of bounding boxes.
 #[derive(Derivative)]
@@ -35,8 +34,10 @@ impl BoundingBoxList {
 
     fn as_slice(&self) -> &[FfiBoundingBox] {
         unsafe {
-            let slice = slice::from_raw_parts(self.inner.data(), self.len());
-            mem::transmute(slice)
+            // SAFETY: FfiBoundingBox is repr(C) and has the same layout as the underlying
+            // C++ type. This is guaranteed by the FFI bindings. The data() method already
+            // returns the correct pointer type.
+            slice::from_raw_parts(self.inner.data(), self.len())
         }
     }
 

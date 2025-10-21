@@ -79,12 +79,29 @@ impl TryFrom<Actor> for Sensor {
 }
 
 unsafe extern "C" fn caller(fn_: *mut c_void, arg: *mut SharedPtr<FfiSensorData>) {
+    // SAFETY: These pointers are provided by the C++ CARLA library through the Listen callback.
+    // We validate they are non-null before dereferencing to prevent UB.
+    if fn_.is_null() || arg.is_null() {
+        eprintln!(
+            "ERROR: Null pointer in sensor callback - fn_: {:p}, arg: {:p}",
+            fn_, arg
+        );
+        return;
+    }
+
     let fn_ = fn_ as *mut Box<Callback>;
     let arg = (*arg).clone();
     (*fn_)(arg);
 }
 
 unsafe extern "C" fn deleter(fn_: *mut c_void) {
+    // SAFETY: This pointer was created by Box::into_raw in the listen() method.
+    // We validate it's non-null before attempting to reconstruct and drop the Box.
+    if fn_.is_null() {
+        eprintln!("ERROR: Null pointer in sensor deleter");
+        return;
+    }
+
     let fn_ = fn_ as *mut Box<Callback>;
     let fn_: Box<Box<Callback>> = Box::from_raw(fn_);
     mem::drop(fn_);
