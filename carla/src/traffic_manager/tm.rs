@@ -22,8 +22,29 @@ use nalgebra::Point3;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
 
-/// Handle groups of autopilot vehicles with realistic urban traffic
-/// conditions, corresponding to `carla.TrafficManager` in Python API.
+/// Manages groups of autopilot vehicles with realistic urban traffic behavior.
+///
+/// Corresponds to `carla.TrafficManager` in Python API.
+///
+/// The traffic manager coordinates multiple vehicles in autopilot mode, providing
+/// sophisticated control over their driving behavior. It enables:
+/// - Customized speeds and lane behaviors per vehicle or globally
+/// - Collision avoidance and safe following distances
+/// - Realistic traffic rule violations (running lights, ignoring pedestrians)
+/// - Custom routes and paths
+/// - Performance optimizations for large fleets
+///
+/// # Usage Pattern
+///
+/// 1. Get a TrafficManager instance from [`Client::instance_tm()`](crate::client::Client::instance_tm)
+/// 2. Spawn vehicles using [`World::spawn_actor()`](crate::client::World::spawn_actor)
+/// 3. Register vehicles with [`register_vehicles()`](Self::register_vehicles)
+/// 4. Configure behavior using setter methods
+/// 5. Enable autopilot on vehicles with [`Vehicle::set_autopilot()`](crate::client::Vehicle::set_autopilot)
+///
+/// # Examples
+///
+/// See [module-level documentation](crate::traffic_manager) for examples.
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]

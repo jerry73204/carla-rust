@@ -12,8 +12,46 @@ use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
-/// Represents a sensor in the simulation, corresponding to
-/// `carla.Sensor` in Python API.
+/// Represents a sensor in the simulation, corresponding to `carla.Sensor` in Python API.
+///
+/// Sensors collect data from the simulation (cameras, LiDAR, collision detectors, etc.).
+/// Attach sensors to vehicles or place them in the world to gather information.
+///
+/// # Sensor Types
+///
+/// Common sensor blueprints:
+/// - `sensor.camera.rgb` - RGB camera
+/// - `sensor.camera.depth` - Depth camera
+/// - `sensor.camera.semantic_segmentation` - Semantic segmentation camera
+/// - `sensor.lidar.ray_cast` - LiDAR sensor
+/// - `sensor.other.collision` - Collision detector
+/// - `sensor.other.lane_invasion` - Lane invasion detector
+/// - `sensor.other.gnss` - GPS sensor
+/// - `sensor.other.imu` - IMU (accelerometer + gyroscope)
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{client::Client, sensor::data::Image};
+/// use nalgebra::Isometry3;
+///
+/// let client = Client::default();
+/// let mut world = client.world();
+///
+/// // Spawn a camera sensor
+/// let bp_lib = world.blueprint_library();
+/// let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+/// let transform = Isometry3::identity();
+/// let camera = world.spawn_actor(&camera_bp, &transform).unwrap();
+/// let sensor: carla::client::Sensor = camera.try_into().unwrap();
+///
+/// // Listen for data
+/// sensor.listen(|data| {
+///     if let Ok(image) = Image::try_from(data) {
+///         println!("Received {}x{} image", image.width(), image.height());
+///     }
+/// });
+/// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -23,14 +61,30 @@ pub struct Sensor {
 }
 
 impl Sensor {
+    /// Stops the sensor from generating data.
+    ///
+    /// The sensor can be restarted with [`listen()`](Self::listen).
     pub fn stop(&self) {
         self.inner.Stop();
     }
 
+    /// Returns whether the sensor is currently listening (generating data).
     pub fn is_listening(&self) -> bool {
         self.inner.IsListening()
     }
 
+    /// Registers a callback to receive sensor data.
+    ///
+    /// The callback is invoked each time the sensor generates new data. It runs on
+    /// a separate thread, so use appropriate synchronization if sharing state.
+    ///
+    /// # Arguments
+    ///
+    /// * `callback` - Function called with each [`SensorData`] produced
+    ///
+    /// # Examples
+    ///
+    /// See struct-level documentation for a complete example.
     pub fn listen<F>(&self, mut callback: F)
     where
         F: FnMut(SensorData) + Send + 'static,

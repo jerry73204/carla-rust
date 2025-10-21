@@ -13,8 +13,8 @@ use nalgebra::{Isometry3, Translation3, Vector3};
 
 /// This trait defines a basic actor in the simulation.
 ///
-/// [`ActorBase`] is implemented by all actor types ([`Actor`], [`Vehicle`],
-/// [`Sensor`], [`TrafficLight`], [`TrafficSign`]) and provides common functionality:
+/// `ActorBase` is implemented by all actor types ([`Actor`], [`super::Vehicle`],
+/// [`super::Sensor`], `TrafficLight`, `TrafficSign`) and provides common functionality:
 /// - Position, velocity, and physics queries
 /// - Transform manipulation
 /// - Physics simulation control (forces, impulses, gravity)

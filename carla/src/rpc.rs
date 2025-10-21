@@ -18,7 +18,7 @@
 //! - [`LightState`] / [`LightGroup`] - Street light control
 //!
 //! # Environment
-//! - [`EnvironmentObject`] - Static world objects
+//! - `EnvironmentObject` - Static world objects
 //! - [`MapLayer`] - Map layer flags (buildings, props, etc.)
 //!
 //! # Miscellaneous
