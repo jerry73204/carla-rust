@@ -31,6 +31,7 @@ static DOWNLOAD_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     OUT_DIR.join(file_name)
 });
 static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANIFEST_DIR")));
+#[cfg(feature = "save-lib")]
 static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("generated"));
 
 fn main() -> Result<()> {
@@ -41,6 +42,9 @@ fn main() -> Result<()> {
     // Skip build if docs-only feature presents.
     #[cfg(feature = "docs-only")]
     return Ok(());
+
+    // Configure LLVM/clang for compatibility with newer systems (Ubuntu 22.04+)
+    configure_llvm();
 
     // Prepare CARLA installation
     let install_dir = load_carla_install_dir()?;
@@ -203,4 +207,62 @@ fn download_tarball() -> Result<Option<PathBuf>> {
     writer.flush()?;
 
     Ok(Some(DOWNLOAD_PREBUILT_TARBALL.to_path_buf()))
+}
+
+/// Configure LLVM/clang environment variables for compatibility with newer systems.
+///
+/// On Ubuntu 22.04+ and similar systems with clang >= 14, carla-sys fails to build
+/// due to autocxx compatibility issues. This function automatically detects and
+/// configures a compatible LLVM version (11, 12, or 13) if available.
+///
+/// Supported LLVM versions: 11, 12, 13
+/// Unsupported LLVM versions: >= 14
+fn configure_llvm() {
+    // Only configure if user hasn't already set these variables
+    if env::var_os("LLVM_CONFIG_PATH").is_some() {
+        return;
+    }
+
+    // Try versions in order of preference: 13, 12, 11 (newest compatible first)
+    for version in [13, 12, 11] {
+        let clang_path = PathBuf::from(format!("/usr/bin/clang-{}", version));
+        let llvm_lib = PathBuf::from(format!("/usr/lib/llvm-{}/lib", version));
+        let llvm_config = PathBuf::from(format!("/usr/bin/llvm-config-{}", version));
+
+        if clang_path.exists() && llvm_lib.exists() && llvm_config.exists() {
+            eprintln!(
+                "carla-sys: Detected and configured LLVM {} for compatibility (versions 11-13 supported)",
+                version
+            );
+
+            env::set_var("LLVM_CONFIG_PATH", llvm_config);
+            env::set_var("LIBCLANG_PATH", &llvm_lib);
+            env::set_var("LIBCLANG_STATIC_PATH", &llvm_lib);
+            env::set_var("CLANG_PATH", clang_path);
+            return;
+        }
+    }
+
+    // No compatible LLVM version found - print warning with instructions
+    // Using cargo:warning to ensure the message is visible
+    println!("cargo:warning=");
+    println!("cargo:warning==============================================================================");
+    println!("cargo:warning=WARNING: No compatible LLVM version (11-13) detected!");
+    println!("cargo:warning==============================================================================");
+    println!("cargo:warning=The build requires LLVM/clang versions 11, 12, or 13.");
+    println!("cargo:warning=LLVM 14+ is not supported due to autocxx compatibility issues.");
+    println!("cargo:warning=");
+    println!("cargo:warning=To fix this issue:");
+    println!("cargo:warning=  1. Install a compatible LLVM version:");
+    println!("cargo:warning=     sudo apt install clang-13 libclang-13-dev");
+    println!("cargo:warning=");
+    println!("cargo:warning=  2. Set environment variables to use it:");
+    println!("cargo:warning=     export LLVM_CONFIG_PATH=/usr/bin/llvm-config-13");
+    println!("cargo:warning=     export LIBCLANG_PATH=/usr/lib/llvm-13/lib");
+    println!("cargo:warning=     export LIBCLANG_STATIC_PATH=/usr/lib/llvm-13/lib");
+    println!("cargo:warning=     export CLANG_PATH=/usr/bin/clang-13");
+    println!("cargo:warning=");
+    println!("cargo:warning=The build will now continue and may fail if LLVM >= 14 is used.");
+    println!("cargo:warning==============================================================================");
+    println!("cargo:warning=");
 }
