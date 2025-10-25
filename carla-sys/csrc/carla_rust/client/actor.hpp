@@ -8,6 +8,7 @@
 #include "carla/client/TrafficSign.h"
 #include "carla/client/TrafficLight.h"
 #include "carla/client/ActorAttribute.h"
+#include "carla/geom/BoundingBox.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc/actor_id.hpp"
 #include "carla_rust/client/actor_attribute.hpp"
@@ -166,6 +167,56 @@ namespace carla_rust
             void SetEnableGravity(bool enabled) const {
                 return inner_->SetEnableGravity(enabled);
             }
+
+#ifdef CARLA_VERSION_0916
+            geom::BoundingBox GetBoundingBox() const {
+                return inner_->GetBoundingBox();
+            }
+
+            geom::Transform GetComponentWorldTransform(const std::string& component_name) const {
+                return inner_->GetComponentWorldTransform(component_name);
+            }
+
+            geom::Transform GetComponentRelativeTransform(const std::string& component_name) const {
+                return inner_->GetComponentRelativeTransform(component_name);
+            }
+
+            std::vector<geom::Transform> GetBoneWorldTransforms() const {
+                return inner_->GetBoneWorldTransforms();
+            }
+
+            std::vector<geom::Transform> GetBoneRelativeTransforms() const {
+                return inner_->GetBoneRelativeTransforms();
+            }
+
+            std::vector<std::string> GetComponentNames() const {
+                return inner_->GetComponentNames();
+            }
+
+            std::vector<std::string> GetBoneNames() const {
+                return inner_->GetBoneNames();
+            }
+
+            std::vector<geom::Transform> GetSocketWorldTransforms() const {
+                return inner_->GetSocketWorldTransforms();
+            }
+
+            std::vector<geom::Transform> GetSocketRelativeTransforms() const {
+                return inner_->GetSocketRelativeTransforms();
+            }
+
+            std::vector<std::string> GetSocketNames() const {
+                return inner_->GetSocketNames();
+            }
+
+            void SetCollisions(bool enabled = true) const {
+                return inner_->SetCollisions(enabled);
+            }
+
+            void SetActorDead() const {
+                return inner_->SetActorDead();
+            }
+#endif
 
             bool IsAlive() const {
                 return inner_->IsAlive();

@@ -1,47 +1,64 @@
-use anyhow::{anyhow, Result};
+#[cfg(not(feature = "docs-only"))]
+use anyhow::anyhow;
+use anyhow::Result;
+#[cfg(not(feature = "docs-only"))]
 use carla_src::libcarla_client;
+#[cfg(not(feature = "docs-only"))]
 use once_cell::sync::Lazy;
+#[cfg(not(feature = "docs-only"))]
+use std::fs;
 #[allow(unused)]
 use std::path::Path;
-use std::{env, fs, path::PathBuf};
+use std::{env, path::PathBuf};
 
 #[cfg(not(feature = "build-prebuilt"))]
 use std::{collections::HashMap, io};
 
+#[cfg(not(feature = "docs-only"))]
 use std::{fs::File, io::BufReader};
 
 #[cfg(not(feature = "build-prebuilt"))]
 use tar::Archive;
 
+#[cfg(not(feature = "docs-only"))]
 static TAG: Lazy<String> = Lazy::new(|| {
     format!(
         "{}-{}",
-        libcarla_client::VERSION,
+        libcarla_client::version(),
         env::var("TARGET").expect("TARGET environment variable not set"),
     )
 });
+#[cfg(not(feature = "docs-only"))]
 static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| {
     PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR environment variable not set"))
 });
+#[cfg(not(feature = "docs-only"))]
 static PREBUILD_NAME: Lazy<String> = Lazy::new(|| format!("libcarla_client.{}", *TAG));
-#[cfg(feature = "build-prebuilt")]
+#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 static SAVE_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     GENERATED_DIR.join(file_name)
 });
-#[cfg(not(feature = "build-prebuilt"))]
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 static DOWNLOAD_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     OUT_DIR.join(file_name)
 });
+#[cfg(not(feature = "docs-only"))]
 static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANIFEST_DIR")));
-#[cfg(feature = "build-prebuilt")]
+#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("generated"));
 
 fn main() -> Result<()> {
     // Set rerun triggers
     println!("cargo:rerun-if-changed=src/bindings.rs");
     println!("cargo:rerun-if-env-changed=CARLA_DIR");
+    println!("cargo:rerun-if-env-changed=CARLA_VERSION");
+
+    // Pass CARLA_VERSION to compiler
+    if let Ok(version) = env::var("CARLA_VERSION") {
+        println!("cargo:rustc-env=CARLA_VERSION={}", version);
+    }
 
     // Configure LLVM/clang for compatibility with newer systems (Ubuntu 22.04+)
     configure_llvm();
@@ -49,7 +66,7 @@ fn main() -> Result<()> {
     // Skip build if docs-only feature presents.
     #[cfg(feature = "docs-only")]
     {
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(not(feature = "docs-only"))]
@@ -74,12 +91,38 @@ fn main() -> Result<()> {
 
         // Generate bindings
         let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
-        let include_dirs = [carla_include_dir, csrc_dir];
 
-        autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
-            .build()?
-            .flag_if_supported("-std=c++14")
-            .compile("carla_rust");
+        // Determine which headers to use
+        let header_include_dir = {
+            #[cfg(feature = "build-prebuilt")]
+            {
+                // When building prebuilt, use headers from CARLA installation
+                carla_include_dir.clone()
+            }
+            #[cfg(not(feature = "build-prebuilt"))]
+            {
+                // When using prebuilt libraries, use vendored headers for the target version
+                let version = env::var("CARLA_VERSION")
+                    .unwrap_or_else(|_| libcarla_client::version().to_string());
+                CARGO_MANIFEST_DIR.join("headers").join(&version)
+            }
+        };
+
+        let include_dirs = [header_include_dir, csrc_dir];
+
+        let version =
+            env::var("CARLA_VERSION").unwrap_or_else(|_| libcarla_client::version().to_string());
+
+        let mut builder = autocxx_build::Builder::new("src/bindings.rs", &include_dirs).build()?;
+
+        builder.flag_if_supported("-std=c++14");
+
+        // Define version macro for conditional compilation in csrc
+        if version == "0.9.16" {
+            builder.define("CARLA_VERSION_0916", None);
+        }
+
+        builder.compile("carla_rust");
 
         // Save generated bindings
         #[cfg(feature = "build-prebuilt")]
@@ -89,6 +132,7 @@ fn main() -> Result<()> {
     }
 }
 
+#[cfg(not(feature = "docs-only"))]
 fn load_carla_install_dir() -> Result<PathBuf> {
     #[cfg(feature = "build-prebuilt")]
     let install_dir = {
@@ -114,7 +158,7 @@ fn load_carla_install_dir() -> Result<PathBuf> {
     Ok(install_dir)
 }
 
-#[cfg(not(feature = "build-prebuilt"))]
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 fn extract_prebuilt_libcarla_client() -> Result<Option<PathBuf>> {
     let Some(tarball) = download_tarball()? else {
         return Ok(None);
@@ -126,13 +170,14 @@ fn extract_prebuilt_libcarla_client() -> Result<Option<PathBuf>> {
     Ok(Some(install_dir))
 }
 
-#[cfg(feature = "build-prebuilt")]
+#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 fn build_libcarla_client(src_dir: impl AsRef<Path>) -> Result<()> {
     libcarla_client::clean(&src_dir)?;
     libcarla_client::build(&src_dir)?;
     Ok(())
 }
 
+#[cfg(not(feature = "docs-only"))]
 fn install_libcarla_client(src_dir: impl AsRef<Path>) -> Result<PathBuf> {
     let install_dir = CARGO_MANIFEST_DIR.join("generated").join(&*PREBUILD_NAME);
     fs::create_dir_all(&install_dir)?;
@@ -140,7 +185,7 @@ fn install_libcarla_client(src_dir: impl AsRef<Path>) -> Result<PathBuf> {
     Ok(install_dir)
 }
 
-#[cfg(not(feature = "build-prebuilt"))]
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     let reader = BufReader::new(File::open(tarball)?);
     let dec = zstd::Decoder::new(reader)?;
@@ -149,7 +194,7 @@ fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "build-prebuilt")]
+#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 fn save_bindings() -> Result<()> {
     let src_file = OUT_DIR.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
     let tgt_dir = CARGO_MANIFEST_DIR.join("generated");
@@ -159,7 +204,7 @@ fn save_bindings() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "build-prebuilt")]
+#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
     use std::io::BufWriter;
 
@@ -198,16 +243,26 @@ fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "build-prebuilt"))]
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 fn download_tarball() -> Result<Option<PathBuf>> {
     use std::io::{prelude::*, BufWriter};
 
     let index_file = CARGO_MANIFEST_DIR.join("index.json5");
 
     let text = fs::read_to_string(index_file)?;
-    let index: HashMap<String, String> = json5::from_str(&text)?;
-    let Some(url) = index.get(&*TAG) else {
-        return Ok(None);
+    let index: HashMap<String, Option<String>> = json5::from_str(&text)?;
+
+    // Check if entry exists in index
+    let url = match index.get(&*TAG) {
+        Some(Some(url)) => url,
+        Some(None) => {
+            // Entry exists but URL is null (prebuilt not available yet)
+            return Ok(None);
+        }
+        None => {
+            // Entry doesn't exist in index
+            return Ok(None);
+        }
     };
 
     let mut reader = ureq::get(url).call()?.into_reader();

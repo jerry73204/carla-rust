@@ -112,7 +112,11 @@ namespace carla_rust
             std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint &blueprint,
                                                     const FfiTransform &transform,
                                                     const FfiActor *parent = nullptr,
-                                                    AttachmentType attachment_type = AttachmentType::Rigid) noexcept
+                                                    AttachmentType attachment_type = AttachmentType::Rigid
+#ifdef CARLA_VERSION_0916
+                                                    , const std::string& socket_name = ""
+#endif
+                                                    ) noexcept
             {
                 Actor *parent_arg = nullptr;
                 if (parent != nullptr) {
@@ -126,7 +130,11 @@ namespace carla_rust
 
                 const Transform& transform_arg = transform.as_native();
 
+#ifdef CARLA_VERSION_0916
+                auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type, socket_name);
+#else
                 auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
+#endif
                 if (actor == nullptr) {
                     return nullptr;
                 } else {
@@ -304,6 +312,20 @@ namespace carla_rust
             void SetWeather(const WeatherParameters &weather) {
                 inner_.SetWeather(weather);
             }
+
+#ifdef CARLA_VERSION_0916
+            float GetIMUISensorGravity() const {
+                return inner_.GetIMUISensorGravity();
+            }
+
+            void SetIMUISensorGravity(float gravity) {
+                inner_.SetIMUISensorGravity(gravity);
+            }
+
+            void SetAnnotationsTraverseTranslucency(bool enable) {
+                inner_.SetAnnotationsTraverseTranslucency(enable);
+            }
+#endif
 
             // size_t OnTick(std::function<void(WorldSnapshot)> callback);
 

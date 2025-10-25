@@ -3,7 +3,11 @@ use anyhow::{bail, Context, Result};
 use fs_extra::dir::CopyOptions;
 use std::{fs, path::Path, process::Command};
 
-pub const VERSION: &str = "0.9.14";
+/// Get the CARLA version from environment variable or use default
+pub fn version() -> &'static str {
+    // This is evaluated at compile time via build script
+    option_env!("CARLA_VERSION").unwrap_or("0.9.16")
+}
 
 pub const LIBS: &[&str] = &[
     "static=carla_client",

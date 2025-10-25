@@ -86,6 +86,17 @@ where
     let carla_third_party_dir = carla_source_dir.join("third-party");
     let build_dir = carla_src_dir.join("Build");
 
+    // Detect CARLA version to use appropriate boost version
+    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.9.16".to_string());
+    let boost_pattern = match carla_version.as_str() {
+        "0.9.14" => "boost-1.80.0-c*-install",
+        "0.9.16" => "boost-1.84.0-c*-install",
+        _ => bail!(
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.16",
+            carla_version
+        ),
+    };
+
     let recast_dir = find_match(build_dir.join("recast-0b13b0-c*-install").to_str().unwrap())?;
     let rpclib_dir = find_match(
         build_dir
@@ -93,7 +104,7 @@ where
             .to_str()
             .unwrap(),
     )?;
-    let boost_dir = find_match(build_dir.join("boost-1.80.0-c*-install").to_str().unwrap())?;
+    let boost_dir = find_match(build_dir.join(boost_pattern).to_str().unwrap())?;
 
     let libpng_dir = build_dir.join("libpng-1.6.37-install");
     ensure!(

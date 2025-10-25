@@ -11,6 +11,9 @@
 #include "carla/rpc/VehicleWheels.h"
 #include "carla/rpc/VehicleAckermannControl.h"
 #include "carla/rpc/TrafficLightState.h"
+#ifdef CARLA_VERSION_0916
+#include "carla/rpc/VehicleTelemetryData.h"
+#endif
 #include "carla_rust/rpc/vehicle_physics_control.hpp"
 
 namespace carla_rust
@@ -110,6 +113,28 @@ namespace carla_rust
             }
 
             // SharedPtr<TrafficLight> GetTrafficLight() const {}
+
+#ifdef CARLA_VERSION_0916
+            carla::rpc::VehicleTelemetryData GetTelemetryData() const {
+                return inner_->GetTelemetryData();
+            }
+
+            void SetWheelPitchAngle(VehicleWheelLocation wheel_location, float angle_in_deg) const {
+                inner_->SetWheelPitchAngle(wheel_location, angle_in_deg);
+            }
+
+            float GetWheelPitchAngle(VehicleWheelLocation wheel_location) const {
+                return inner_->GetWheelPitchAngle(wheel_location);
+            }
+
+            std::vector<carla::geom::Transform> GetVehicleBoneWorldTransforms() const {
+                return inner_->GetVehicleBoneWorldTransforms();
+            }
+
+            void RestorePhysXPhysics() const {
+                inner_->RestorePhysXPhysics();
+            }
+#endif
 
             void EnableCarSim(std::string simfile_path) const {
                 inner_->EnableCarSim(simfile_path);
