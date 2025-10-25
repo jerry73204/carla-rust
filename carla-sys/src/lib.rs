@@ -41,9 +41,7 @@
 //!
 //! ## Features
 //!
-//! - `build-lib` - Build CARLA C++ library from source (requires CARLA source)
-//! - `save-lib` - Save built library as tarball for distribution
-//! - `save-bindgen` - Save generated bindings (for debugging)
+//! - `build-prebuilt` - Build CARLA C++ library from source and save as prebuilt tarball with bindings for distribution
 //! - `docs-only` - Generate documentation without C++ library (for docs.rs)
 //!
 //! # C++ Version Compatibility

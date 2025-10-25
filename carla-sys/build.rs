@@ -5,13 +5,12 @@ use once_cell::sync::Lazy;
 use std::path::Path;
 use std::{env, fs, path::PathBuf};
 
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 use std::{collections::HashMap, io};
 
-#[cfg(any(not(feature = "build-lib"), feature = "save-lib"))]
 use std::{fs::File, io::BufReader};
 
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 use tar::Archive;
 
 static TAG: Lazy<String> = Lazy::new(|| {
@@ -25,18 +24,18 @@ static OUT_DIR: Lazy<PathBuf> = Lazy::new(|| {
     PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR environment variable not set"))
 });
 static PREBUILD_NAME: Lazy<String> = Lazy::new(|| format!("libcarla_client.{}", *TAG));
-#[cfg(feature = "save-lib")]
+#[cfg(feature = "build-prebuilt")]
 static SAVE_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     GENERATED_DIR.join(file_name)
 });
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 static DOWNLOAD_PREBUILT_TARBALL: Lazy<PathBuf> = Lazy::new(|| {
     let file_name = format!("{}.tar.zstd", *PREBUILD_NAME);
     OUT_DIR.join(file_name)
 });
 static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANIFEST_DIR")));
-#[cfg(feature = "save-lib")]
+#[cfg(feature = "build-prebuilt")]
 static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("generated"));
 
 fn main() -> Result<()> {
@@ -60,7 +59,7 @@ fn main() -> Result<()> {
         let carla_lib_dir = install_dir.join("lib");
         let carla_include_dir = install_dir.join("include");
 
-        #[cfg(feature = "save-lib")]
+        #[cfg(feature = "build-prebuilt")]
         create_tarball(&install_dir, &*SAVE_PREBUILT_TARBALL)?;
 
         // return;
@@ -83,7 +82,7 @@ fn main() -> Result<()> {
             .compile("carla_rust");
 
         // Save generated bindings
-        #[cfg(feature = "save-bindgen")]
+        #[cfg(feature = "build-prebuilt")]
         save_bindings()?;
 
         Ok(())
@@ -91,7 +90,7 @@ fn main() -> Result<()> {
 }
 
 fn load_carla_install_dir() -> Result<PathBuf> {
-    #[cfg(feature = "build-lib")]
+    #[cfg(feature = "build-prebuilt")]
     let install_dir = {
         let src_dir = env::var_os("CARLA_DIR")
             .map(PathBuf::from)
@@ -100,14 +99,14 @@ fn load_carla_install_dir() -> Result<PathBuf> {
         install_libcarla_client(&src_dir)?
     };
 
-    #[cfg(not(feature = "build-lib"))]
+    #[cfg(not(feature = "build-prebuilt"))]
     let install_dir = {
         match env::var_os("CARLA_DIR") {
             Some(src_dir) => install_libcarla_client(src_dir)?,
             None => {
                 extract_prebuilt_libcarla_client()?
                     .ok_or_else(|| anyhow!("No prebuild binaries for profile {}. \
-                                            Please use 'build-lib' feature to compile from source code", *TAG))?
+                                            Please use 'build-prebuilt' feature to compile from source code", *TAG))?
             }
         }
     };
@@ -115,7 +114,7 @@ fn load_carla_install_dir() -> Result<PathBuf> {
     Ok(install_dir)
 }
 
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 fn extract_prebuilt_libcarla_client() -> Result<Option<PathBuf>> {
     let Some(tarball) = download_tarball()? else {
         return Ok(None);
@@ -127,7 +126,7 @@ fn extract_prebuilt_libcarla_client() -> Result<Option<PathBuf>> {
     Ok(Some(install_dir))
 }
 
-#[cfg(feature = "build-lib")]
+#[cfg(feature = "build-prebuilt")]
 fn build_libcarla_client(src_dir: impl AsRef<Path>) -> Result<()> {
     libcarla_client::clean(&src_dir)?;
     libcarla_client::build(&src_dir)?;
@@ -141,7 +140,7 @@ fn install_libcarla_client(src_dir: impl AsRef<Path>) -> Result<PathBuf> {
     Ok(install_dir)
 }
 
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     let reader = BufReader::new(File::open(tarball)?);
     let dec = zstd::Decoder::new(reader)?;
@@ -150,7 +149,7 @@ fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "save-bindgen")]
+#[cfg(feature = "build-prebuilt")]
 fn save_bindings() -> Result<()> {
     let src_file = OUT_DIR.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
     let tgt_dir = CARGO_MANIFEST_DIR.join("generated");
@@ -160,7 +159,7 @@ fn save_bindings() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "save-lib")]
+#[cfg(feature = "build-prebuilt")]
 fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
     use std::io::BufWriter;
 
@@ -199,7 +198,7 @@ fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "build-lib"))]
+#[cfg(not(feature = "build-prebuilt"))]
 fn download_tarball() -> Result<Option<PathBuf>> {
     use std::io::{prelude::*, BufWriter};
 
