@@ -244,9 +244,11 @@ namespace carla_rust
                 inner_.SetGlobalDistanceToLeadingVehicle(distance);
             }
 
+#ifndef CARLA_VERSION_0916
             void SetKeepRightPercentage(const FfiActor &actor, const float percentage) {
                 inner_.SetKeepRightPercentage(actor.as_builtin(), percentage);
             }
+#endif
 
             void SetRandomLeftLaneChangePercentage(const FfiActor &actor, const float percentage) {
                 inner_.SetRandomLeftLaneChangePercentage(actor.as_builtin(), percentage);

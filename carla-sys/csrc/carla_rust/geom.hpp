@@ -69,12 +69,18 @@ namespace carla_rust
             FfiLocation location;
             Vector3D extent;
             Rotation rotation;
+#ifdef CARLA_VERSION_0916
+            uint32_t actor_id;
+#endif
 
             FfiBoundingBox(BoundingBox &&base)
                 :
                 location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
                 extent(reinterpret_cast<Vector3D&&>(std::move(base.extent))),
                 rotation(std::move(base.rotation))
+#ifdef CARLA_VERSION_0916
+                , actor_id(base.actor_id)
+#endif
             {}
 
             FfiBoundingBox(const BoundingBox &base)
@@ -82,6 +88,9 @@ namespace carla_rust
                 location(reinterpret_cast<const FfiLocation&>(base.location)),
                 extent(reinterpret_cast<const Vector3D&>(base.extent)),
                 rotation(reinterpret_cast<const Rotation&>(base.rotation))
+#ifdef CARLA_VERSION_0916
+                , actor_id(base.actor_id)
+#endif
             {}
 
             bool Contains(const FfiLocation &in_world_point,

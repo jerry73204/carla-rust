@@ -228,11 +228,21 @@ impl BoundingBox<f32> {
             location: Location::from_na_translation(&transform.translation),
             rotation: Rotation::from_na(&transform.rotation),
             extent: Vector3D::from_na(extent),
+            #[cfg(carla_0916)]
+            actor_id: 0,
         }
     }
 
     /// Creates from CARLA's native C++ bounding box type.
     pub fn from_native(bbox: &NativeBoundingBox) -> Self {
+        #[cfg(carla_0916)]
+        let NativeBoundingBox {
+            location,
+            extent,
+            rotation,
+            actor_id: _,
+        } = bbox;
+        #[cfg(not(carla_0916))]
         let NativeBoundingBox {
             location,
             extent,

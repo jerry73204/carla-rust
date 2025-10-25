@@ -302,6 +302,7 @@ impl TrafficManager {
             .SetGlobalDistanceToLeadingVehicle(distance);
     }
 
+    #[cfg(not(carla_0916))]
     pub fn set_keep_right_percentage<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         self.inner.pin_mut().SetKeepRightPercentage(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },

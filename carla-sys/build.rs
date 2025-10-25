@@ -15,7 +15,9 @@ use std::{env, path::PathBuf};
 use std::{collections::HashMap, io};
 
 #[cfg(not(feature = "docs-only"))]
-use std::{fs::File, io::BufReader};
+use std::fs::File;
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
+use std::io::BufReader;
 
 #[cfg(not(feature = "build-prebuilt"))]
 use tar::Archive;
@@ -79,8 +81,6 @@ fn main() -> Result<()> {
         #[cfg(feature = "build-prebuilt")]
         create_tarball(&install_dir, &*SAVE_PREBUILT_TARBALL)?;
 
-        // return;
-
         // Add library search paths
         println!("cargo:rustc-link-search=native={}", carla_lib_dir.display());
 
@@ -92,32 +92,29 @@ fn main() -> Result<()> {
         // Generate bindings
         let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
 
-        // Determine which headers to use
-        let header_include_dir = {
-            #[cfg(feature = "build-prebuilt")]
-            {
-                // When building prebuilt, use headers from CARLA installation
-                carla_include_dir.clone()
-            }
-            #[cfg(not(feature = "build-prebuilt"))]
-            {
-                // When using prebuilt libraries, use vendored headers for the target version
-                let version = env::var("CARLA_VERSION")
-                    .unwrap_or_else(|_| libcarla_client::version().to_string());
-                CARGO_MANIFEST_DIR.join("headers").join(&version)
-            }
-        };
-
-        let include_dirs = [header_include_dir, csrc_dir];
+        // Use headers from install directory (either from CARLA build or extracted tarball)
+        let include_dirs = [carla_include_dir, csrc_dir];
 
         let version =
             env::var("CARLA_VERSION").unwrap_or_else(|_| libcarla_client::version().to_string());
 
-        let mut builder = autocxx_build::Builder::new("src/bindings.rs", &include_dirs).build()?;
+        // Export version for dependent crates (will be available as DEP_CARLA_SYS_CARLA_VERSION)
+        println!("cargo:carla_version={}", version);
+
+        // Set version-specific compiler flags before autocxx processes headers
+        let extra_clang_args = if version == "0.9.16" {
+            vec!["-DCARLA_VERSION_0916"]
+        } else {
+            vec![]
+        };
+
+        let mut builder = autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
+            .extra_clang_args(&extra_clang_args)
+            .build()?;
 
         builder.flag_if_supported("-std=c++14");
 
-        // Define version macro for conditional compilation in csrc
+        // Also define for the final compilation
         if version == "0.9.16" {
             builder.define("CARLA_VERSION_0916", None);
         }

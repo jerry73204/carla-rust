@@ -154,6 +154,14 @@ include_cpp! {
 
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")
+    block!("carla::geom::CubicPolynomial")  // Contains std::array<double, 4> which autocxx doesn't support
+    block!("carla::road::element::RoadInfoLaneWidth")  // Uses CubicPolynomial
+    block!("carla::road::element::RoadInfoLaneHeight")  // Uses CubicPolynomial
+    block!("carla::road::element::RoadInfoLaneBorder")  // Uses CubicPolynomial
+    block!("carla::road::element::RoadInfoElevation")  // Uses CubicPolynomial
+    block!("carla::road::element::Geometry")  // Uses CubicPolynomial
+    block!("carla::road::element::RoadInfoLaneOffset")  // Uses CubicPolynomial
+    block!("carla::road::LaneSection")  // Uses CubicPolynomial
 
     // bad types
     // generate!("carla::client::Sensor")

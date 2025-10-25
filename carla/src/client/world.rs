@@ -360,6 +360,19 @@ impl World {
                 .map(|ref_| ref_ as *const _ as *mut _)
                 .unwrap_or(ptr::null_mut());
             let ffi_transform = Transform::from_na(transform);
+            #[cfg(carla_0916)]
+            let actor = {
+                use cxx::let_cxx_string;
+                let_cxx_string!(socket_name = "");
+                self.inner.pin_mut().TrySpawnActor(
+                    &blueprint.inner,
+                    &ffi_transform,
+                    parent_ptr,
+                    attachment_type,
+                    &socket_name,
+                )
+            };
+            #[cfg(not(carla_0916))]
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
                 &ffi_transform,
