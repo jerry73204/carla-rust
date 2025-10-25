@@ -81,6 +81,29 @@ let mut generator = Generator::new(config);
 generator.generate()?;
 ```
 
+### Error Module Requirements
+
+Generated code expects the target crate to provide an error module at `crate::error`:
+
+```rust
+// Required in your crate (carla-sys or carla)
+pub mod error {
+    use thiserror::Error;
+    
+    #[derive(Debug, Error)]
+    pub enum CarlaError {
+        // Your error variants
+        #[error("Not implemented: {0}")]
+        NotImplemented(String),
+        // ... other variants
+    }
+    
+    pub type Result<T> = std::result::Result<T, CarlaError>;
+}
+```
+
+All generated methods will use `crate::error::Result<T>` as their return type.
+
 ### Configuration
 
 Create a `carla-codegen.toml` file for detailed configuration:

@@ -1,10 +1,14 @@
 //! Code generation module
 
 pub mod context;
+pub mod error_module;
 pub mod ffi_generator;
+pub mod import_collector;
+pub mod missing_types;
 pub mod renderer;
 pub mod rust_code;
 pub mod syn_renderer;
+pub mod type_fixer;
 
 use crate::{
     analyzer::{DependencyGraph, InheritanceResolver, TypeResolver},
@@ -62,6 +66,9 @@ impl CodeGenerator {
 
         // Create output directory
         std::fs::create_dir_all(output_dir)?;
+
+        // Generate error module first (if enabled)
+        self.generate_error_module(output_dir)?;
 
         // Generate code based on configuration
         if self.config.generate_ffi
@@ -221,6 +228,39 @@ impl CodeGenerator {
         Ok(())
     }
 
+    /// Generate error module
+    fn generate_error_module(&self, output_dir: &Path) -> Result<()> {
+        use error_module::{ErrorModuleGenerator, TargetCrate};
+
+        // Check if error module generation is enabled (default: true)
+        let generate_error = self.config.error_generation.enabled;
+        if !generate_error {
+            info!("Skipping error module generation (disabled in config)");
+            return Ok(());
+        }
+
+        info!("Generating error module");
+
+        // Determine target crate type
+        let target_crate =
+            if self.config.generate_ffi || output_dir.to_string_lossy().contains("carla-sys") {
+                TargetCrate::CarlaSys
+            } else if output_dir.to_string_lossy().contains("carla") {
+                TargetCrate::Carla
+            } else {
+                TargetCrate::Generic
+            };
+
+        let generator = ErrorModuleGenerator::new(target_crate)
+            .with_thiserror(self.config.error_generation.use_thiserror)
+            .with_error_type_name(self.config.error_generation.error_type_name.clone());
+
+        generator.generate_file(output_dir)?;
+        info!("Generated error.rs");
+
+        Ok(())
+    }
+
     /// Generate code for a single module
     fn generate_module(&self, module: &Module, output_dir: &Path) -> Result<()> {
         // Check if module should be generated
@@ -285,6 +325,12 @@ impl CodeGenerator {
 
         // Generate root mod.rs
         let mut root_content = String::from("//! Generated CARLA API bindings\n\n");
+
+        // Include error module if it exists
+        if output_dir.join("error.rs").exists() {
+            root_content.push_str("pub mod error;\n\n");
+        }
+
         let mut sorted_roots: Vec<_> = root_modules.into_iter().collect();
         sorted_roots.sort();
 

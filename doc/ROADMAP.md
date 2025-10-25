@@ -48,22 +48,269 @@ The project has transitioned to a fully code-generated architecture:
 ### Remaining Tasks
 - [x] ~~Fix type resolution for complex nested types (e.g., `list([name,world, actor, relative])`)~~ ✅ **COMPLETED**
 - [ ] Handle circular dependencies between types
-- [ ] **Enhanced Error Reporting** (High Priority):
-  - [ ] Add source context tracking (YAML file → class → method → parameter)
-  - [ ] Show generated code snippets in AST parsing errors
-  - [ ] Add `--continue-on-error` CLI flag for batch processing
-  - [ ] Improve error messages with actionable suggestions
-  - [ ] Add stage tracking (type resolution, AST generation, formatting)
+- [x] **Enhanced Error Reporting** (High Priority): ✅ **COMPLETED**
+  - [x] Add source context tracking (YAML file → class → method → parameter)
+  - [x] Show generated code snippets in AST parsing errors
+  - [x] Add `--continue-on-error` CLI flag for batch processing
+  - [x] Improve error messages with actionable suggestions
+  - [x] Add stage tracking (type resolution, AST generation, formatting)
+- [ ] **Generate Error Module** (🔥 Critical - Blocking compilation)
+  - [ ] Generate `error.rs` with basic error types and Result alias
+  - [ ] Include error module in root `mod.rs`
+  - [ ] Make generation configurable for different target crates
+- [ ] **Fix Final Type Resolution Issues** (High Priority - 7 remaining errors)
+  - [ ] Fix unqualified types in Result return values
+  - [ ] Fix missing HashMap imports
+  - [ ] Fix parameter type paths in special methods
+  - [ ] Fix nested generic type qualification
 - [ ] Add missing type mappings (e.g., `callback` types)
 - [ ] Add validation for generated code
 - [ ] Performance optimization for large YAML files
+
+### Code Generation Fixes (🆕 High Priority)
+Based on `make test-codegen` analysis, the following fixes are needed:
+
+#### Step 1: Core Type System Fixes ✅
+- [x] **Remove Type Remapping Feature**:
+  - [x] Remove complex type mapping configuration
+  - [x] Use direct `carla.X` → `crate::carla::X` mapping
+  - [x] Update configuration files
+- [x] **Fix Type References**:
+  - [x] Replace all `crate::road::*` with `crate::carla::*`
+  - [x] Replace all `crate::geom::*` with `crate::carla::*`
+  - [x] Replace all `crate::client::*` with `crate::carla::*`
+- [x] **Fix Generic Type Parameters**:
+  - [x] Parse `list(T)` → `Vec<T>` with proper type
+  - [x] Parse `dict[K,V]` → `HashMap<K,V>` with types
+  - [x] Handle nested generics correctly
+- [x] **Fix Recursive Types**:
+  - [x] Detect self-referential types (e.g., `Actor.parent`)
+  - [x] Wrap recursive references in `Box<T>`
+  - [x] Handle optional recursive types with `Option<Box<T>>`
+
+#### Step 2: Code Quality Fixes ✅
+- [x] **Fix Naming Conventions**:
+  - [x] Convert enum variants to UpperCamelCase
+  - [x] Handle special cases (e.g., `FL_Wheel` → `FlWheel`)
+  - [x] Preserve numbers in names
+- [x] **Fix Invalid Trait Derivations**:
+  - [x] Check field types before deriving `Copy`
+  - [x] Only derive `Copy` for types with all Copy fields
+  - [x] Always derive `Debug` and `Clone`
+- [x] **Add Missing Imports**:
+  - [x] Detect HashMap usage and add `use std::collections::HashMap`
+  - [x] Track all standard library types used
+  - [x] Generate import statements at file top
+
+#### Step 3: Complete the System ✅
+- [x] **Add Missing Type Definitions**:
+  - [x] Generate all referenced enums (e.g., `ActorState`, `TrafficLightState`)
+  - [x] Create type aliases for common patterns
+  - [x] Ensure no unresolved type references
+- [x] **Update Test Generation**:
+  - [x] Include proper dependencies in generated Cargo.toml
+  - [x] Add serde/serde_json when needed
+  - [x] Fix rustc syntax check command
+
+### Type Resolution System Revision (🆕 Next Priority)
+
+A comprehensive revision to address the remaining compilation errors and provide a robust foundation:
+
+#### Step 1: Implement Two-Phase Type Resolution
+- [ ] **Phase 1: AST-Level Resolution**:
+  - [ ] Keep types as `RustType` enum throughout pipeline
+  - [ ] Avoid early string conversion
+  - [ ] Enable context-aware transformations
+- [ ] **Phase 2: Context-Aware String Generation**:
+  - [ ] Create `TypeContext` with location info (parameter/return/field)
+  - [ ] Include containing class/module information
+  - [ ] Track import requirements
+  - [ ] Handle generic nesting properly
+
+#### Step 2: Create Centralized Type Registry
+- [ ] **Build TypeRegistry**:
+  - [ ] Catalog all known CARLA types with correct paths
+  - [ ] List standard Rust types (String, Vec, etc.)
+  - [ ] Map type aliases to their expansions
+  - [ ] Track import requirements per type
+- [ ] **Registry Features**:
+  - [ ] Type validation during resolution
+  - [ ] Path lookup for any type
+  - [ ] Import generation helpers
+
+#### Step 3: Implement Smart Type Inference
+- [ ] **Context-Aware Defaults**:
+  - [ ] `other` in eq/ne methods → same type as self
+  - [ ] `actor_ids` → `Vec<i32>`
+  - [ ] `callback` → appropriate function signature
+  - [ ] Collection parameters → infer from context
+- [ ] **Pattern Matching**:
+  - [ ] Build parameter name patterns database
+  - [ ] Use method name context for inference
+  - [ ] Apply CARLA API conventions
+
+#### Step 4: Build Type Resolution Pipeline
+- [ ] **Unified TypeResolver Trait**:
+  - [ ] Single entry point for all type resolution
+  - [ ] Context-aware resolution
+  - [ ] Consistent error handling
+- [ ] **Pipeline Stages**:
+  - [ ] Parser: String → RustType AST
+  - [ ] Validator: Check against registry
+  - [ ] Enhancer: Add module paths
+  - [ ] Optimizer: Handle special cases
+
+#### Step 5: Improve Import Collection
+- [ ] **AST-Based Collection**:
+  - [ ] Extract imports from RustType nodes
+  - [ ] Recursive handling for nested types
+  - [ ] Automatic deduplication
+- [ ] **Smart Import Generation**:
+  - [ ] Only import what's needed
+  - [ ] Group imports logically
+  - [ ] Handle re-exports properly
+
+#### Step 6: Add Type Validation Layer
+- [ ] **Pre-Generation Validation**:
+  - [ ] No bare generic types (Vec without <T>)
+  - [ ] All module paths exist
+  - [ ] No circular dependencies
+  - [ ] Valid trait implementations
+- [ ] **Error Reporting**:
+  - [ ] Clear messages for type errors
+  - [ ] Suggest fixes when possible
+  - [ ] Source location tracking
+
+#### Step 7: Migration and Testing
+- [ ] **Migration Plan**:
+  - [ ] Keep old system during transition
+  - [ ] Migrate one module at a time
+  - [ ] Validate each migration step
+- [ ] **Comprehensive Testing**:
+  - [ ] Unit tests for each resolver component
+  - [ ] Integration tests for full pipeline
+  - [ ] Regression tests for fixed issues
+
+### Error Handling Implementation (🆕 High Priority)
+
+Based on test failures showing missing `crate::error` module, implement comprehensive error handling:
+
+**Current Status**: The generated code expects `crate::error::Result` but no error module is generated, causing compilation failures. This is the primary blocker for successful code generation.
+
+**Remaining Issues** (7 compilation errors, down from 141):
+1. Missing error module in generated output
+2. Unqualified types in return values (`Result<Actor>`, `Result<Vec<Actor>>`)
+3. Missing imports (`HashMap`)
+4. Wrong module paths (`crate::WeatherParameters` instead of `crate::carla::WeatherParameters`)
+5. Over-qualified standard types (`Vec<crate::carla::Vec<f32>>`)
+
+#### Step 1: Fix Generated Code Error Module Usage ✅
+- [x] **Update Import Generation**:
+  - [x] Ensure generated files use correct error module path
+  - [x] Handle both `carla-sys` and `carla` crate contexts
+  - [x] Add conditional imports based on target crate
+- [x] **Fix Test Harness**:
+  - [x] Ensure error module is available at correct path
+  - [x] Update test crate structure to match expectations
+  - [x] Add proper module re-exports
+- [ ] **Generate Error Module in Output**:
+  - [ ] Create `error.rs` in output root directory
+  - [ ] Generate basic `CarlaError` enum with common variants:
+    - `NotImplemented(String)` - For todo! placeholders
+    - `FfiError(String)` - For FFI boundary errors
+    - `InvalidParameter(String)` - For validation errors
+    - `ConversionError(String)` - For type conversions
+  - [ ] Add `Result<T>` type alias
+  - [ ] Include proper derives (Debug, Error, Clone)
+  - [ ] Add documentation explaining usage
+  - [ ] Update root `mod.rs` to include error module
+- [ ] **Make Error Generation Configurable**:
+  - [ ] Add config option to enable/disable error generation
+  - [ ] Allow customizing error type name
+  - [ ] Choose error handling crate (thiserror vs manual)
+  - [ ] Target-specific generation (minimal for carla-sys, rich for carla)
+- [ ] **Fix Remaining Type Resolution Issues**:
+  - [ ] Fix unqualified `Actor` in return types (e.g., `Result<Actor>`)
+    - Issue: Return type wrapping happens after type qualification
+    - Solution: Ensure qualification happens before Result wrapping
+  - [ ] Fix `HashMap` missing import
+    - Issue: HashMap usage not detected in type string parsing
+    - Solution: Improve import collection from resolved types
+  - [ ] Fix `crate::WeatherParameters` should be `crate::carla::WeatherParameters`
+    - Issue: Special handling for `other` parameter in __eq__/__ne__ methods
+    - Solution: Ensure parameter type resolution uses correct module path
+  - [ ] Fix `Vec<crate::carla::Vec<f32>>` incorrect qualification
+    - Issue: Nested generics wrongly qualifying standard types
+    - Solution: Fix recursive generic type processing to not qualify std types
+
+#### Step 2: Implement Layer-Specific Error Types
+- [ ] **carla-codegen Errors**:
+  - [ ] Create `CodegenError` enum with variants:
+    - `YamlParse(String)` - YAML parsing failures
+    - `TypeResolution(String)` - Type resolution issues
+    - `SynGeneration(String)` - AST generation errors
+    - `IoError(std::io::Error)` - File I/O errors
+  - [ ] Add source location tracking to all errors
+  - [ ] Implement error context propagation
+- [ ] **carla-sys FFI Errors**:
+  - [ ] Create `FfiError` enum with variants:
+    - `CxxException(String)` - C++ exceptions
+    - `NullPointer` - Null pointer from C++
+    - `InvalidUtf8` - String conversion errors
+    - `ConversionError(String)` - Type conversion failures
+  - [ ] Add FFI boundary error handling
+- [ ] **carla High-Level Errors**:
+  - [ ] Create `CarlaError` enum with variants:
+    - `ConnectionFailed(String)` - Server connection issues
+    - `ActorNotFound(ActorId)` - Missing actors
+    - `InvalidBlueprint(String)` - Blueprint errors
+    - `SimulationError(String)` - Runtime errors
+    - `Ffi(carla_sys::FfiError)` - Wrapped FFI errors
+  - [ ] Implement error downcasting
+
+#### Step 3: Error Module Convention
+- [ ] **Standardize Error Module Structure**:
+  - [ ] Document required error module exports
+  - [ ] Create error module template
+  - [ ] Add validation in code generator
+- [ ] **Generated Method Signatures**:
+  - [ ] All fallible operations return `Result<T>`
+  - [ ] Use `todo!()` with descriptive messages for unimplemented
+  - [ ] Add `#[doc]` comments about missing FFI functions
+
+#### Step 4: Error Propagation Flow
+- [ ] **Implement Error Chain**:
+  - [ ] C++ exceptions → CXX bridge → FfiError
+  - [ ] FfiError → CarlaError with context
+  - [ ] Add backtrace support for debugging
+- [ ] **Rich Error Messages**:
+  - [ ] Include operation context
+  - [ ] Add suggestions for common issues
+  - [ ] Format errors for CLI display
+
+#### Step 5: Testing Error Conditions
+- [ ] **Error Test Suite**:
+  - [ ] Test each error variant
+  - [ ] Verify error propagation
+  - [ ] Check error message quality
+- [ ] **Integration Tests**:
+  - [ ] Test error handling with CARLA server
+  - [ ] Verify graceful degradation
+  - [ ] Test recovery scenarios
 
 ### Known Issues
 - Some YAML files have duplicate fields causing warnings
 - ~~Complex tuple-like types fail to parse~~ ✅ **FIXED**
 - CXX limitations with opaque C++ types
+- 12 remaining type resolution errors after initial fixes
 - Missing type mappings for some Python types (e.g., `callback`)
-- Generic error messages make debugging difficult (addressed by error reporting enhancement)
+- ~~Generic error messages make debugging difficult~~ ✅ **FIXED** (enhanced error reporting implemented)
+- **Code Generation Issues** (see [BUGS.md](../carla-codegen/doc/BUGS.md) for details):
+  - Type remapping causes module path mismatches (141 compilation errors)
+  - Recursive types cause infinite size errors
+  - Invalid Copy trait derivations
+  - Missing generic type parameters
+  - Incorrect enum variant naming
 
 ## Phase 2: carla-sys Integration (⏳ Next)
 **Goal**: Re-enable carla-sys and integrate code generation
@@ -211,7 +458,8 @@ To contribute to the current phase:
 ## References
 
 - [Architecture Document](ARCH.md) - Overall system design
-- [Code Generation Design](DESIGN_CODEGEN.md) - Detailed codegen architecture
+- [Code Generation Design](../carla-codegen/doc/DESIGN_CODEGEN.md) - Simplified codegen architecture
+- [Code Generation Bugs](../carla-codegen/doc/BUGS.md) - Current issues and fixes
 - [Error Reporting Design](DESIGN_ERROR_REPORTING.md) - Enhanced error reporting system
 - [Rust API Design](DESIGN_RUST_API.md) - API design principles (still applicable)
 - [CLAUDE.md](../CLAUDE.md) - Development guidelines

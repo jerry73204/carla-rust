@@ -55,9 +55,9 @@ pub enum CodegenError {
     #[error("Syn parsing error: {message}")]
     SynError {
         message: String,
-        context: Box<SourceContext>, // Box large context
+        context: Box<SourceContext>,              // Box large context
         generated_code: Option<Box<CodeContext>>, // Box large context
-        syn_error: Option<String>, // Store error as String for Clone
+        syn_error: Option<String>,                // Store error as String for Clone
     },
 
     /// Formatter error

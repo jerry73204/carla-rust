@@ -1,0 +1,9 @@
+# Test configuration for carla-sys FFI generation
+
+output_dir = "test_temp_ffi"
+generate_ffi = true
+
+[error_generation]
+enabled = true
+use_thiserror = true
+error_type_name = "CarlaError"

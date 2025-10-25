@@ -7,13 +7,20 @@
 - `.config/nextest.toml` configuration for proper test isolation
 - `test_verify_nextest_configuration` test to validate nextest setup
 - Comprehensive documentation for nextest migration in `NEXTEST.md`
+- Sensor callback foundation with true event-driven architecture
+- `SensorCallbackManager` for managing sensor callbacks
+- FFI-safe callback types and per-sensor storage design
+- Defensive actor operations with atomic state tracking
 
 ### Changed
 - **BREAKING**: Migrated from file-based locking to nextest test groups for CARLA test coordination
+- **BREAKING**: Merged SafeActor functionality into base Actor implementation
 - `make test` now runs only library and unit tests (no CARLA server required)
 - Test infrastructure simplified by removing file locking complexity
 - Updated documentation to reflect nextest requirements and usage
 - Improved Makefile help text for clarity
+- Actor now includes defensive methods (try_transform, try_velocity) for crash protection
+- Sensor callbacks redesigned from polling to true event-driven architecture
 
 ### Removed
 - File-based locking infrastructure (`coordination.rs` and related code)
@@ -21,6 +28,8 @@
 - `ServerResource` wrapper in test server management
 - `libc` dependency from `carla-test-server` crate
 - Concurrency tracking atomics from sequential execution tests
+- Separate SafeActor module (functionality merged into base Actor)
+- Global sensor data storage variables (replaced with per-sensor design)
 
 ### Fixed
 - Test execution reliability by eliminating stale lock file issues
@@ -48,6 +57,15 @@
 - `carla-test-server/src/server.rs` - Removed ServerResource wrapper
 - `carla-test-server/src/config.rs` - Removed coordination configuration
 - `carla-test-server/src/helpers.rs` - Fixed timeout handling
+
+#### Sensor Callback Implementation
+- **Design**: True callbacks with FFI-safe function pointers
+- **Storage**: Per-sensor callback map replacing global variables
+- **Safety**: Thread-safe with Arc<Mutex<>> and handle system
+- **API**: `SensorCallbackManager` for lifecycle management
+- **Status**: Foundation complete, C++ bridge implementation pending
+
+#### Additional Files Modified
 - `carla-test-server/Cargo.toml` - Removed libc dependency
 - `carla/.config/nextest.toml` - Added nextest configuration
 - `carla/tests/test_sequential_execution.rs` - Simplified and updated

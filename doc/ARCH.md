@@ -248,6 +248,119 @@ impl ActorCollection {
 }
 ```
 
+## Error Handling Architecture
+
+### Error Types
+
+Each crate defines its own error types appropriate to its layer:
+
+#### carla-codegen Errors
+```rust
+// Code generation errors
+pub enum CodegenError {
+    YamlParse(String),
+    TypeResolution(String),
+    SynGeneration(String),
+    IoError(std::io::Error),
+}
+```
+
+#### carla-sys Errors
+```rust
+// FFI layer errors
+pub enum FfiError {
+    CxxException(String),
+    NullPointer,
+    InvalidUtf8,
+    ConversionError(String),
+}
+```
+
+#### carla Errors (User-facing)
+```rust
+// High-level API errors
+pub enum CarlaError {
+    ConnectionFailed(String),
+    ActorNotFound(ActorId),
+    InvalidBlueprint(String),
+    SimulationError(String),
+    // Wrap lower-level errors
+    Ffi(carla_sys::FfiError),
+}
+```
+
+### Error Module Convention
+
+Generated code expects a standardized error module:
+
+```rust
+// In carla-sys/src/error.rs or carla/src/error.rs
+pub mod error {
+    use thiserror::Error;
+    
+    #[derive(Debug, Error)]
+    pub enum CarlaError {
+        // Crate-specific variants
+    }
+    
+    pub type Result<T> = std::result::Result<T, CarlaError>;
+}
+```
+
+### Error Propagation
+
+Errors flow upward through the layers:
+
+1. **C++ Exception** → Caught by CXX bridge
+2. **FfiError** → Created in carla-sys
+3. **CarlaError** → Wrapped in carla crate
+4. **User Code** → Receives high-level error
+
+Example flow:
+```rust
+// In carla-sys (generated)
+pub fn spawn_actor_ffi() -> Result<SharedPtr<ffi::Actor>> {
+    // CXX bridge catches C++ exceptions
+    match ffi::World_spawn_actor() {
+        Ok(ptr) if !ptr.is_null() => Ok(ptr),
+        Ok(_) => Err(FfiError::NullPointer),
+        Err(e) => Err(FfiError::CxxException(e.to_string())),
+    }
+}
+
+// In carla (high-level)
+pub fn spawn_actor() -> Result<Actor> {
+    carla_sys::spawn_actor_ffi()
+        .map(|ptr| Actor::from_ffi(ptr))
+        .map_err(|e| CarlaError::Ffi(e))
+}
+```
+
+### Error Context
+
+Rich error messages with context:
+
+```rust
+// Bad
+Err(CarlaError::InvalidParameter)
+
+// Good  
+Err(CarlaError::InvalidBlueprint(
+    format!("Blueprint '{}' not found in library", blueprint_id)
+))
+```
+
+### Testing Error Conditions
+
+Generated test harness includes minimal error module:
+
+```rust
+// In test crate
+pub mod error {
+    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+}
+```
+
 ## Future Evolution
 
 ### Short Term

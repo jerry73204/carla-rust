@@ -103,7 +103,7 @@ fn test_type_resolver() {
             .resolve_type("carla.Vector3D")
             .unwrap()
             .to_rust_string(),
-        "crate::geom::Vector3D"
+        "crate::carla::Vector3D"
     );
 }
 

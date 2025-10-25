@@ -149,11 +149,11 @@ impl TypeResolver {
         // Texture types
         self.type_mappings.insert(
             "TextureColor".to_string(),
-            RustType::Custom("crate::sensor::TextureColor".to_string()),
+            RustType::Custom("crate::carla::TextureColor".to_string()),
         );
         self.type_mappings.insert(
             "TextureFloatColor".to_string(),
-            RustType::Custom("crate::sensor::TextureFloatColor".to_string()),
+            RustType::Custom("crate::carla::TextureFloatColor".to_string()),
         );
 
         // Other special types
@@ -166,67 +166,9 @@ impl TypeResolver {
             RustType::Vec(Box::new(RustType::Primitive("i32".to_string()))), // Set as Vec for simplicity
         );
 
-        // CARLA types
-        self.carla_types.insert(
-            "carla.Vector2D".to_string(),
-            "crate::geom::Vector2D".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Vector3D".to_string(),
-            "crate::geom::Vector3D".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Location".to_string(),
-            "crate::geom::Location".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Rotation".to_string(),
-            "crate::geom::Rotation".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Transform".to_string(),
-            "crate::geom::Transform".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.BoundingBox".to_string(),
-            "crate::geom::BoundingBox".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.GeoLocation".to_string(),
-            "crate::geom::GeoLocation".to_string(),
-        );
-
-        self.carla_types
-            .insert("carla.Actor".to_string(), "crate::actor::Actor".to_string());
-        self.carla_types.insert(
-            "carla.Vehicle".to_string(),
-            "crate::actor::Vehicle".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Walker".to_string(),
-            "crate::actor::Walker".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.TrafficLight".to_string(),
-            "crate::actor::TrafficLight".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.TrafficSign".to_string(),
-            "crate::actor::TrafficSign".to_string(),
-        );
-
-        self.carla_types.insert(
-            "carla.World".to_string(),
-            "crate::client::World".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.Client".to_string(),
-            "crate::client::Client".to_string(),
-        );
-        self.carla_types.insert(
-            "carla.TrafficManager".to_string(),
-            "crate::traffic_manager::TrafficManager".to_string(),
-        );
+        // Remove all hardcoded CARLA type mappings
+        // We'll use the simple rule: carla.X -> crate::carla::X
+        // This is handled in the resolve_type_with_context method
     }
 
     /// Resolve a Python type to a Rust type
@@ -309,7 +251,7 @@ impl TypeResolver {
 
         // Handle "carla.Actor or int" type as special case for backwards compatibility
         if python_type == "carla.Actor or int" {
-            return Ok(RustType::Custom("crate::actor::ActorOrId".to_string()));
+            return Ok(RustType::Custom("crate::carla::ActorOrId".to_string()));
         }
 
         // Handle union types with " or " separator
@@ -373,15 +315,10 @@ impl TypeResolver {
             }
         }
 
-        // Handle CARLA types
-        if let Some(rust_type) = self.carla_types.get(python_type) {
-            return Ok(RustType::Custom(rust_type.clone()));
-        }
-
         // Handle any type starting with "carla."
         if python_type.starts_with("carla.") {
             let type_name = python_type.strip_prefix("carla.").unwrap_or(python_type);
-            return Ok(RustType::Custom(format!("crate::{type_name}")));
+            return Ok(RustType::Custom(format!("crate::carla::{type_name}")));
         }
 
         // Handle module.Type pattern (e.g., "command.Response")
@@ -402,9 +339,10 @@ impl TypeResolver {
 
         // Handle bare 'list' type (without inner type)
         if python_type == "list" {
-            // Default to list of dynamic type
+            // For ActorList.filter, it should return list of actors
+            // This is a common pattern in CARLA API
             return Ok(RustType::Vec(Box::new(RustType::Custom(
-                "Box<dyn std::any::Any>".to_string(),
+                "crate::carla::Actor".to_string(),
             ))));
         }
 
@@ -459,9 +397,9 @@ impl TypeResolver {
             // This represents a bone transform tuple
             return Ok(RustType::Tuple(vec![
                 RustType::Primitive("String".to_string()), // name
-                RustType::Custom("crate::geom::Transform".to_string()), // world transform
-                RustType::Custom("crate::geom::Transform".to_string()), // actor transform
-                RustType::Custom("crate::geom::Transform".to_string()), // relative transform
+                RustType::Custom("crate::carla::Transform".to_string()), // world transform
+                RustType::Custom("crate::carla::Transform".to_string()), // actor transform
+                RustType::Custom("crate::carla::Transform".to_string()), // relative transform
             ]));
         }
 
@@ -548,11 +486,11 @@ mod tests {
 
         assert_eq!(
             resolver.resolve_type("carla.Vector3D").unwrap(),
-            RustType::Custom("crate::geom::Vector3D".to_string())
+            RustType::Custom("crate::carla::Vector3D".to_string())
         );
         assert_eq!(
             resolver.resolve_type("carla.Actor").unwrap(),
-            RustType::Custom("crate::actor::Actor".to_string())
+            RustType::Custom("crate::carla::Actor".to_string())
         );
     }
 
@@ -581,7 +519,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             tuple_type.to_rust_string(),
-            "(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)"
+            "(String, crate::carla::Transform, crate::carla::Transform, crate::carla::Transform)"
         );
 
         // Test list of tuples
@@ -590,7 +528,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             list_tuple.to_rust_string(),
-            "Vec<(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)>"
+            "Vec<(String, crate::carla::Transform, crate::carla::Transform, crate::carla::Transform)>"
         );
     }
 
@@ -604,7 +542,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             bone_type.to_rust_string(),
-            "Vec<(String, crate::geom::Transform, crate::geom::Transform, crate::geom::Transform)>"
+            "Vec<(String, crate::carla::Transform, crate::carla::Transform, crate::carla::Transform)>"
         );
 
         // Test other CARLA types we added
@@ -632,6 +570,6 @@ mod tests {
 
         // Test list with union types
         let union_list = resolver.resolve_type("list(carla.Actor or int)").unwrap();
-        assert_eq!(union_list.to_rust_string(), "Vec<crate::actor::ActorOrId>");
+        assert_eq!(union_list.to_rust_string(), "Vec<crate::carla::ActorOrId>");
     }
 }

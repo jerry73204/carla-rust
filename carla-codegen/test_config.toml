@@ -1,0 +1,33 @@
+# Test configuration for carla-codegen
+
+output_dir = "test_temp_custom"
+builder_threshold = 3
+module_structure = "nested"
+
+[error_generation]
+enabled = true
+use_thiserror = false
+error_type_name = "CustomError"
+
+[type_mapping]
+[type_mapping.mappings]
+
+[filters]
+exclude_classes = []
+include_classes = []
+exclude_methods = []
+include_methods = []
+skip_modules = []
+
+[naming]
+method_case = "snake_case"
+type_case = "PascalCase"
+module_case = "snake_case"
+remove_prefix = ["get_", "set_"]
+actor_suffix = "Actor"
+
+[documentation]
+include_warnings = true
+include_notes = true
+include_python_examples = false
+generate_doc_tests = true

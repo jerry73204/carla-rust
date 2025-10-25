@@ -6,3 +6,15 @@
 # rust
 target/
 Cargo.lock
+
+# logs
+logs/
+
+# Generated test crate for code generation
+# Keep the directory structure but ignore generated code
+carla-test-codegen/src/carla/
+carla-test-codegen/src/command/
+carla-test-codegen/src/lib.rs
+carla-test-codegen/src/error.rs
+carla-test-codegen/target/
+carla-test-codegen/Cargo.lock

@@ -1,0 +1,52 @@
+# Testing artifacts
+test_temp/
+test_crate/
+test_generated_carla/
+debug_generated/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Debug output
+*.debug
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache (if any Python scripts are used)
+__pycache__/
+*.pyc
+
+# Rust build artifacts (in case of local builds)
+target/
+Cargo.lock
+
+# Log files (local testing)
+*.log
+
+# Generated documentation
+/doc/
+/docs/
+
+# Benchmark results
+/benches/*.txt
+/benches/results/
+
+# Coverage reports
+*.profraw
+*.profdata
+/coverage/
+
+# Any local configuration overrides
+*.local.toml
+*.local.yaml
+*.local.yml

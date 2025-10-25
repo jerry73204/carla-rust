@@ -1,0 +1,14 @@
+# This directory contains generated code for testing
+# Only Cargo.toml and README.md should be committed
+
+# Generated source files
+/src/
+
+# Build artifacts
+/target/
+Cargo.lock
+
+# Backup files
+*.bak
+*.tmp
+*~

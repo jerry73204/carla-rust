@@ -55,8 +55,13 @@ impl<'a> GeneratorContext<'a> {
             _ => {}
         }
 
-        // Remove prefixes based on config
+        // Remove prefixes based on config, but be smart about setters
+        // Don't remove "set_" prefix to avoid naming conflicts with getters
         for prefix in &self.config.naming.remove_prefix {
+            if prefix == "set_" {
+                // Keep set_ prefix to distinguish from getters
+                continue;
+            }
             if name.starts_with(prefix) {
                 name = name.strip_prefix(prefix).unwrap().to_string();
             }
@@ -77,12 +82,22 @@ impl<'a> GeneratorContext<'a> {
         let rust_type = if param.param_name == "self" {
             "&self".to_string()
         } else if let Some(param_type) = &param.param_type {
-            self.type_resolver
-                .resolve_type(param_type)?
-                .to_rust_string()
+            let resolved = self.type_resolver.resolve_type(param_type)?;
+            let mut type_string = resolved.to_rust_string();
+
+            // Fix bare Vec
+            if type_string == "Vec" {
+                type_string = "Vec<crate::carla::Actor>".to_string();
+            }
+
+            // Fix types inside generics like Vec<Actor> -> Vec<crate::carla::Actor>
+            self.fix_unqualified_types_in_generics(&type_string)
         } else {
-            // Default to String if no type specified
-            "String".to_string()
+            // Special defaults for common parameter names
+            match param.param_name.as_str() {
+                "actor_ids" => "Vec<i32>".to_string(),
+                _ => "String".to_string(),
+            }
         };
 
         // Convert default value to string representation
@@ -130,7 +145,33 @@ impl<'a> GeneratorContext<'a> {
             if param.param_name == "self" {
                 continue;
             }
-            rust_params.push(self.rust_parameter(param)?);
+
+            // Special handling for comparison methods with untyped 'other' parameter
+            if (method.def_name == "__eq__"
+                || method.def_name == "__ne__"
+                || method.def_name == "eq"
+                || method.def_name == "ne")
+                && param.param_name == "other"
+                && param.param_type.is_none()
+            {
+                // For comparison methods, default to comparing with same type
+                // Use the fully qualified type name
+                let full_class_name = if class_name.starts_with("carla.") {
+                    class_name.to_string()
+                } else {
+                    format!("carla.{class_name}")
+                };
+                let resolved_type = self.type_resolver.resolve_type(&full_class_name)?;
+                rust_params.push(RustParameter {
+                    name: "other".to_string(),
+                    rust_type: resolved_type.to_rust_string(),
+                    doc: param.doc.clone(),
+                    default: None,
+                    units: None,
+                });
+            } else {
+                rust_params.push(self.rust_parameter(param)?);
+            }
         }
 
         // Determine self type
@@ -160,7 +201,16 @@ impl<'a> GeneratorContext<'a> {
             } else {
                 match self.type_resolver.resolve_type(ret) {
                     Ok(rust_type) => {
-                        let resolved_type = rust_type.to_rust_string();
+                        let mut resolved_type = rust_type.to_rust_string();
+
+                        // Fix bare Vec without generic parameter
+                        if resolved_type == "Vec" {
+                            resolved_type = "Vec<crate::carla::Actor>".to_string();
+                        }
+
+                        // Fix types inside generics like Vec<Actor> -> Vec<crate::carla::Actor>
+                        resolved_type = self.fix_unqualified_types_in_generics(&resolved_type);
+
                         if self.config.method_signatures.use_result_return_types {
                             format!("Result<{resolved_type}>")
                         } else {
@@ -213,6 +263,71 @@ impl<'a> GeneratorContext<'a> {
             .count();
 
         optional_params >= self.config.builder_threshold
+    }
+
+    /// Fix unqualified CARLA types inside generics
+    fn fix_unqualified_types_in_generics(&self, type_str: &str) -> String {
+        // Handle common generic patterns
+        if let Some(start) = type_str.find('<') {
+            if let Some(end) = type_str.rfind('>') {
+                let prefix = &type_str[..start];
+                let inner = &type_str[start + 1..end];
+                let suffix = &type_str[end + 1..];
+
+                // Process inner types
+                let fixed_inner = if inner.contains(',') {
+                    // Handle multiple type parameters like HashMap<K, V>
+                    inner
+                        .split(',')
+                        .map(|t| {
+                            let trimmed = t.trim();
+                            // Recursively handle nested generics
+                            self.fix_unqualified_types_in_generics(trimmed)
+                        })
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                } else {
+                    // Single type parameter - recursively handle nested generics
+                    self.fix_unqualified_types_in_generics(inner.trim())
+                };
+
+                return format!("{prefix}<{fixed_inner}>{suffix}");
+            }
+        }
+
+        // No generics, check if the type itself needs qualification
+        self.maybe_qualify_type(type_str)
+    }
+
+    /// Add crate::carla:: prefix if needed
+    fn maybe_qualify_type(&self, type_name: &str) -> String {
+        // Already qualified
+        if type_name.contains("::") {
+            return type_name.to_string();
+        }
+
+        // Standard types that don't need qualification
+        const STANDARD_TYPES: &[&str] = &[
+            "String", "str", "bool", "char", "i8", "i16", "i32", "i64", "i128", "isize", "u8",
+            "u16", "u32", "u64", "u128", "usize", "f32", "f64", "Vec", "Option", "Result",
+            "HashMap", "HashSet", "Box", "Rc", "Arc", "RefCell", "Mutex", "RwLock",
+        ];
+
+        if STANDARD_TYPES.contains(&type_name) {
+            return type_name.to_string();
+        }
+
+        // Check if it's likely a CARLA type (starts with uppercase)
+        if type_name
+            .chars()
+            .next()
+            .map(|c| c.is_uppercase())
+            .unwrap_or(false)
+        {
+            format!("crate::carla::{type_name}")
+        } else {
+            type_name.to_string()
+        }
     }
 }
 

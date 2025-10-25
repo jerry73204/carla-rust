@@ -69,6 +69,10 @@ pub struct Config {
     /// Per-method configuration overrides
     #[serde(default)]
     pub method_overrides: std::collections::HashMap<String, MethodConfig>,
+
+    /// Error module generation configuration
+    #[serde(default)]
+    pub error_generation: ErrorGenerationConfig,
 }
 
 /// Type mapping configuration
@@ -277,6 +281,32 @@ pub struct ClassConfig {
     /// Custom documentation for the class
     #[serde(default)]
     pub custom_doc: Option<String>,
+}
+
+/// Error module generation configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorGenerationConfig {
+    /// Whether to generate error module
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+
+    /// Whether to use thiserror crate
+    #[serde(default = "default_true")]
+    pub use_thiserror: bool,
+
+    /// Error type name
+    #[serde(default = "default_error_type_name")]
+    pub error_type_name: String,
+}
+
+impl Default for ErrorGenerationConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            use_thiserror: true,
+            error_type_name: "CarlaError".to_string(),
+        }
+    }
 }
 
 /// Per-method configuration
@@ -520,6 +550,7 @@ impl Default for Config {
             argument_handling: ArgumentHandlingConfig::default(),
             class_overrides: std::collections::HashMap::new(),
             method_overrides: std::collections::HashMap::new(),
+            error_generation: ErrorGenerationConfig::default(),
         }
     }
 }
@@ -530,7 +561,7 @@ impl Default for NamingConfig {
             method_case: default_method_case(),
             type_case: default_type_case(),
             module_case: default_module_case(),
-            remove_prefix: vec!["get_".to_string(), "set_".to_string()],
+            remove_prefix: vec!["carla.".to_string()],
             actor_suffix: default_actor_suffix(),
         }
     }
@@ -752,6 +783,10 @@ fn default_kwargs_style() -> String {
 
 fn default_max_overloads() -> usize {
     5
+}
+
+fn default_error_type_name() -> String {
+    "CarlaError".to_string()
 }
 
 #[cfg(test)]

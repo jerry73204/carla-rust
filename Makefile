@@ -97,31 +97,16 @@ test-codegen:
 	@mkdir -p $(LOG_DIR)
 	@echo "Testing CARLA code generation... (output in $(LOG_DIR)/test-codegen_$(LOG_SUFFIX).log)"
 	@echo "================================"
-	@(cd carla-codegen && \
-	if [ -d ../carla-simulator/PythonAPI/docs ]; then \
-		cargo run --release -- generate \
-			--input ../carla-simulator/PythonAPI/docs \
-			--config configs/carla_full_generation.toml \
-			--output test_temp \
-			--verbose || true; \
-		if [ -d test_temp ]; then \
-			echo "📁 Generated files in: carla-codegen/test_temp"; \
-			find test_temp -name "*.rs" | wc -l | xargs echo "📊 Total Rust files generated:"; \
-			echo "⚠️  Note: Some files may have syntax errors due to complex type mappings"; \
-		else \
-			echo "❌ No output directory created"; \
-		fi; \
-	else \
-		echo "❌ CARLA YAML files not found at carla-simulator/PythonAPI/docs/"; \
-		echo "Please ensure the CARLA submodule is initialized:"; \
-		echo "  git submodule update --init --recursive"; \
-		exit 1; \
-	fi) 2>&1 | tee $(LOG_DIR)/test-codegen_$(LOG_SUFFIX).log
+	@(cd carla-codegen && ../scripts/test-codegen.sh) 2>&1 | tee $(LOG_DIR)/test-codegen_$(LOG_SUFFIX).log
 
 # Clean generated test files
 clean-codegen:
 	@echo "Cleaning code generation test output..."
-	@rm -rf carla-codegen/test_temp carla-codegen/test_generated_carla
+	@rm -rf carla-test-codegen/src
+	@rm -rf carla-test-codegen/target
+	@rm -f carla-test-codegen/Cargo.lock
+	@rm -rf carla-codegen/test_temp carla-codegen/test_crate carla-codegen/test_generated_carla
+	@rm -rf carla-codegen/debug_generated carla-codegen/debug_temp
 	@echo "✅ Cleaned code generation test directories"
 
 # Show recent logs
@@ -148,7 +133,7 @@ help:
 	@echo "  test-examples - Check that all examples compile"
 	@echo "  lint          - Run clippy and format check"
 	@echo "  format        - Format code with cargo +nightly fmt"
-	@echo "  test-codegen  - Test code generation on CARLA YAML files"
+	@echo "  test-codegen  - Test code generation on CARLA YAML files (logs saved)"
 	@echo "  clean-codegen - Clean code generation test output"
 	@echo "  clean         - Clean up build artifacts"
 	@echo "  clean-logs    - Clean logs older than 7 days"

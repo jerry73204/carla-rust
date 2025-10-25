@@ -1,8 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
-    "carla",
-    "carla-sys",
-    "carla-src",
+    # "carla",
+    # "carla-sys",
+    # "carla-src",
     "carla-codegen",
+]
+exclude = [
+    "carla-test-codegen",
 ]
