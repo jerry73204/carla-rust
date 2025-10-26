@@ -6,3 +6,6 @@
 # rust
 target/
 Cargo.lock
+
+# CARLA simulator symlinks
+simulators/carla-*
