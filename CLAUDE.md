@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Rust client library for the CARLA simulator (version 0.9.14). The project uses FFI bindings to interface with the CARLA C++ client library and provides a safe, idiomatic Rust API.
+This is a Rust client library for the CARLA simulator. The project uses FFI bindings to interface with the CARLA C++ client library and provides a safe, idiomatic Rust API.
+
+**Supported CARLA Versions:** 0.9.14, 0.9.16 (default: 0.9.16)
 
 ## Crate Architecture
 
@@ -38,16 +40,37 @@ git checkout 0.9.14
 
 # Build with custom source
 export CARLA_DIR=/path/to/carla
-cargo build --features build-lib
+cargo build --features build-prebuilt
 ```
 
 ### Build Features
 
 carla-sys supports these features:
-- `build-lib`: Compile `libcarla_client` from source (requires CARLA_DIR)
-- `save-lib`: Save compiled library as tarball for distribution
-- `save-bindgen`: Save generated FFI bindings
+- `build-prebuilt`: Build from CARLA source and save prebuilt libraries and bindings for distribution (requires CARLA_DIR)
 - `docs-only`: Skip native library linking (for docs.rs)
+
+### CARLA Version Selection
+
+The CARLA version can be selected using the `CARLA_VERSION` environment variable:
+
+```bash
+# Build for CARLA 0.9.16 (default)
+cargo build
+
+# Build for CARLA 0.9.14
+CARLA_VERSION=0.9.14 cargo build
+
+# Build for CARLA 0.9.16 explicitly
+CARLA_VERSION=0.9.16 cargo build
+```
+
+When `build-prebuilt` feature is enabled, the version determines:
+- Which boost library version to link against (1.80.0 for 0.9.14, 1.84.0 for 0.9.16)
+- Which header files to use from CARLA_DIR
+
+When using prebuilt libraries, the version determines:
+- Which prebuilt tarball to download from index.json5
+- Which vendored headers to use from `carla-sys/headers/{VERSION}/`
 
 ### Environment Requirements
 
@@ -127,10 +150,96 @@ All commonly used traits are re-exported in `carla::prelude`.
 The `carla-sys/build.rs` handles multiple build scenarios:
 1. Download prebuilt binaries from URL index (default)
 2. Use prebuilt library from `CARLA_DIR`
-3. Build from source with `build-lib` feature
+3. Build from source with `build-prebuilt` feature
 4. Generate docs without native library (docs-only feature)
 
 Prebuilt binaries are indexed in `carla-sys/index.json5` by target triple and version.
+
+### Prebuilt Library System
+
+#### Index Structure
+
+The `carla-sys/index.json5` file maps version-target combinations to download URLs and SHA256 checksums:
+
+```json5
+{
+    "0.9.14-x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/.../libcarla_client.0.9.14-x86_64-unknown-linux-gnu.tar.zstd",
+        "sha256": "94064aee24500d4c3f0fa4c4720ab20803dc0c8ae28ba65a49b4912285ec17e0"
+    },
+    "0.9.16-x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/.../libcarla_client.0.9.16-x86_64-unknown-linux-gnu.tar.zstd",
+        "sha256": "1dc1e69d824f545931ff746e4507ee62478569812dcf2cb1a0b261e20703c15b"
+    }
+}
+```
+
+#### Security: SHA256 Verification
+
+All downloaded prebuilt libraries are verified using SHA256 checksums:
+- The build script calculates the hash of downloaded tarballs
+- Compares against expected hash from `index.json5`
+- Build fails with clear error if verification fails
+- Successful verification shows: `cargo:warning=SHA256 verification passed for {version}`
+
+**Implementation:** See `download_tarball()` in `carla-sys/build.rs:275-320`
+
+#### Build Artifact Storage
+
+When building with different CARLA versions, artifacts are stored efficiently:
+
+**Native libraries (C++ code):** NOT overwritten
+- Downloaded tarballs: `target/debug/build/carla-sys-*/out/libcarla_client.{VERSION}-{TARGET}.tar.zstd`
+- Extracted libraries: `target/debug/build/carla-sys-*/out/libcarla_client/libcarla_client.{VERSION}-{TARGET}/`
+- Multiple versions coexist in the same `OUT_DIR`
+
+**Rust compiled artifacts:** Overwritten when switching versions
+- `target/debug/libcarla_sys.rlib` - recompiled for the new version (~30-40 seconds)
+
+**Storage requirements:**
+- CARLA 0.9.14: ~49M tarball + ~350M extracted = ~400M
+- CARLA 0.9.16: ~76M tarball + ~850M extracted = ~925M
+- Total with both versions: ~1.2G in `OUT_DIR`
+
+**Switching versions:**
+```bash
+# Build 0.9.14 (downloads and caches)
+CARLA_VERSION=0.9.14 cargo build
+
+# Switch to 0.9.16 (downloads and caches, 0.9.14 artifacts remain)
+CARLA_VERSION=0.9.16 cargo build
+
+# Back to 0.9.14 (uses cached artifacts, only recompiles Rust code)
+CARLA_VERSION=0.9.14 cargo build
+```
+
+#### Creating Prebuilt Libraries
+
+To create new prebuilt library distributions:
+
+1. Build from CARLA source with `build-prebuilt` feature:
+```bash
+export CARLA_DIR=/path/to/carla
+CARLA_VERSION=0.9.16 cargo build -p carla-sys --features build-prebuilt
+```
+
+2. This generates tarball in `carla-sys/generated/`:
+```
+libcarla_client.{VERSION}-{TARGET}.tar.zstd
+```
+
+3. Calculate SHA256 and upload to GitHub releases:
+```bash
+sha256sum carla-sys/generated/*.tar.zstd
+```
+
+4. Update `carla-sys/index.json5` with URL and SHA256 hash
+
+**Build time comparison:**
+- From source with `build-prebuilt`: 15-20 minutes (CARLA 0.9.16)
+- Download prebuilt: 30-40 seconds
+
+**See also:** `PREBUILT_COMPARISON.md` for build reproducibility verification
 
 ## Development Commands
 
