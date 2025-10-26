@@ -27,6 +27,16 @@ use tar::Archive;
 #[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 use std::io::BufReader;
 
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
+use sha2::{Digest, Sha256};
+
+#[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
+#[derive(Debug, serde::Deserialize)]
+struct PrebuiltEntry {
+    url: String,
+    sha256: String,
+}
+
 #[cfg(not(feature = "docs-only"))]
 static TAG: Lazy<String> = Lazy::new(|| {
     format!(
@@ -268,13 +278,13 @@ fn download_tarball() -> Result<Option<PathBuf>> {
     let index_file = CARGO_MANIFEST_DIR.join("index.json5");
 
     let text = fs::read_to_string(index_file)?;
-    let index: HashMap<String, Option<String>> = json5::from_str(&text)?;
+    let index: HashMap<String, Option<PrebuiltEntry>> = json5::from_str(&text)?;
 
     // Check if entry exists in index
-    let url = match index.get(&*TAG) {
-        Some(Some(url)) => url,
+    let entry = match index.get(&*TAG) {
+        Some(Some(entry)) => entry,
         Some(None) => {
-            // Entry exists but URL is null (prebuilt not available yet)
+            // Entry exists but is null (prebuilt not available yet)
             return Ok(None);
         }
         None => {
@@ -283,10 +293,31 @@ fn download_tarball() -> Result<Option<PathBuf>> {
         }
     };
 
-    let mut reader = ureq::get(url).call()?.into_reader();
+    // Download the tarball
+    let mut reader = ureq::get(&entry.url).call()?.into_reader();
     let mut writer = BufWriter::new(File::create(&*DOWNLOAD_PREBUILT_TARBALL)?);
     io::copy(&mut reader, &mut writer)?;
     writer.flush()?;
+    drop(writer);
+
+    // Verify SHA256 checksum
+    let mut file = File::open(&*DOWNLOAD_PREBUILT_TARBALL)?;
+    let mut hasher = Sha256::new();
+    io::copy(&mut file, &mut hasher)?;
+    let hash = format!("{:x}", hasher.finalize());
+
+    if hash != entry.sha256 {
+        bail!(
+            "SHA256 verification failed for downloaded tarball.\nExpected: {}\nGot:      {}",
+            entry.sha256,
+            hash
+        );
+    }
+
+    println!(
+        "cargo:warning=SHA256 verification passed for {}",
+        TAG.as_str()
+    );
 
     Ok(Some(DOWNLOAD_PREBUILT_TARBALL.to_path_buf()))
 }
