@@ -1,6 +1,8 @@
 include!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/generated/bindings.rs"
+    "/generated/bindings.",
+    env!("CARLA_VERSION"),
+    ".rs"
 ));
 
 pub use ffi::*;
