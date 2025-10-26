@@ -1,7 +1,17 @@
 # Carla Simulator Client Library in Rust
 
-Rust client library for Carla simulator. It is compatible with
-simulator version 0.9.14.
+Rust client library for Carla simulator.
+
+**Supported Versions:** CARLA 0.9.14, 0.9.16 (default: 0.9.16)
+
+To select a specific version, set the `CARLA_VERSION` environment variable:
+```bash
+# Use CARLA 0.9.16 (default)
+cargo build
+
+# Use CARLA 0.9.14
+CARLA_VERSION=0.9.14 cargo build
+```
 
 It is recommended to fix the clang version to 12 on newer systems such
 as Ubuntu 22.04. See the [Troubleshooting](#troubleshooting) section
@@ -55,6 +65,16 @@ The build system automatically detects and configures a compatible version if av
 **Note:** On systems with multiple LLVM versions, autocxx may default to a newer
 incompatible version. The build script automatically overrides this if it detects
 LLVM 11-13.
+
+## For Maintainers: Building Prebuilt Libraries
+
+If you need to build prebuilt `libcarla_client` libraries for distribution:
+
+```bash
+./scripts/build_prebuilt.sh /path/to/carla
+```
+
+This automated script builds and packages the library for distribution. For detailed documentation, see [carla-sys/README.md](carla-sys/README.md#building-prebuilt-libcarla_client-libraries).
 
 ## License
 
