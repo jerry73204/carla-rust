@@ -9,11 +9,12 @@ Build prebuilt libcarla_client libraries for distribution.
 
 Arguments:
   CARLA_PATH    Path to CARLA source directory (required)
-  VERSION       CARLA version: 0.9.14 or 0.9.16 (default: 0.9.16)
+  VERSION       CARLA version: 0.9.14, 0.9.15, or 0.9.16 (default: 0.9.16)
 
 Examples:
   $0 /path/to/carla
   $0 /path/to/carla 0.9.14
+  $0 /path/to/carla 0.9.15
   $0 /path/to/carla 0.9.16
 
 Output:
@@ -38,9 +39,9 @@ CARLA_DIR="$1"
 CARLA_VERSION="${2:-0.9.16}"
 
 # Validate version
-if [ "$CARLA_VERSION" != "0.9.14" ] && [ "$CARLA_VERSION" != "0.9.16" ]; then
+if [ "$CARLA_VERSION" != "0.9.14" ] && [ "$CARLA_VERSION" != "0.9.15" ] && [ "$CARLA_VERSION" != "0.9.16" ]; then
     echo "Error: Unsupported CARLA version: $CARLA_VERSION"
-    echo "Supported versions: 0.9.14, 0.9.16"
+    echo "Supported versions: 0.9.14, 0.9.15, 0.9.16"
     exit 1
 fi
 

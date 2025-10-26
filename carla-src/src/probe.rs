@@ -94,13 +94,18 @@ where
             "recast-0b13b0-c*-install",
             "rpclib-v2.2.1_c5-c*-libstdcxx-install",
         ),
+        "0.9.15" => (
+            "boost-1.80.0-c*-install",
+            "recast-c*-install",
+            "rpclib-v2.2.1_c5-c*-libstdcxx-install",
+        ),
         "0.9.16" => (
             "boost-1.84.0-c*-install",
             "recast-c*-install",
             "rpclib-v2.2.1_c5-c*-libstdcxx-install",
         ),
         _ => bail!(
-            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.16",
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16",
             carla_version
         ),
     };

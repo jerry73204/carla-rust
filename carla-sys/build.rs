@@ -130,6 +130,7 @@ fn main() -> Result<()> {
         // Set version-specific compiler flags before autocxx processes headers
         let extra_clang_args = match version {
             CarlaVersion::V0_9_16 => vec!["-DCARLA_VERSION_0916"],
+            CarlaVersion::V0_9_15 => vec![],
             CarlaVersion::V0_9_14 => vec![],
         };
 
@@ -384,6 +385,7 @@ fn configure_llvm() {
 enum CarlaVersion {
     #[default]
     V0_9_16,
+    V0_9_15,
     V0_9_14,
 }
 
@@ -393,9 +395,10 @@ impl FromStr for CarlaVersion {
     fn from_str(ver_text: &str) -> Result<Self, Self::Err> {
         let ver = match ver_text {
             "0.9.16" => Self::V0_9_16,
+            "0.9.15" => Self::V0_9_15,
             "0.9.14" => Self::V0_9_14,
             _ => bail!(
-                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.16",
+                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16",
                 ver_text
             ),
         };
@@ -407,6 +410,7 @@ impl CarlaVersion {
     fn as_str(&self) -> &str {
         match self {
             CarlaVersion::V0_9_16 => "0.9.16",
+            CarlaVersion::V0_9_15 => "0.9.15",
             CarlaVersion::V0_9_14 => "0.9.14",
         }
     }
