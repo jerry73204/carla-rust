@@ -104,6 +104,50 @@ cargo test -p carla-src
 cargo test <test_name>
 ```
 
+### CARLA Simulator Setup for Integration Tests
+
+Some tests require a running CARLA simulator. The `simulators/` directory contains symlinks to CARLA simulator binaries.
+
+**Setup:**
+
+The repository includes placeholder symlinks that need to be replaced with your actual CARLA installations:
+
+```bash
+# Remove placeholder symlinks
+rm simulators/carla-0.9.14
+rm simulators/carla-0.9.15
+rm simulators/carla-0.9.16
+
+# Create symlinks to your CARLA installations
+ln -s /path/to/your/CARLA_0.9.14 simulators/carla-0.9.14
+ln -s /path/to/your/CARLA_0.9.15 simulators/carla-0.9.15
+ln -s /path/to/your/CARLA_0.9.16 simulators/carla-0.9.16
+```
+
+See `simulators/README.md` for detailed setup instructions.
+
+**Important Testing Constraints:**
+
+- CARLA simulator can only run one scenario at a time
+- Tests that connect to the simulator **must use exclusive access**
+- Use the `serial_test` crate with `#[serial]` attribute for simulator tests
+- Mark simulator tests with `#[ignore]` to skip when simulator is unavailable
+
+**Example:**
+
+```rust
+use serial_test::serial;
+
+#[test]
+#[serial]  // Ensures exclusive access to simulator
+#[ignore]  // Run only when simulator is available
+fn test_vehicle_spawn() {
+    // Test implementation
+}
+```
+
+See `docs/roadmap.md` Phase 0 for detailed test infrastructure planning.
+
 ## Code Organization
 
 ### carla crate
