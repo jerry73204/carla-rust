@@ -116,7 +116,8 @@ public:
 
     FfiLandmarkList GetLandmarksOfTypeInDistance(double distance, std::string filter_type,
                                                  bool stop_at_junction) const {
-        auto orig = inner_->GetLandmarksOfTypeInDistance(distance, filter_type, stop_at_junction);
+        auto orig = inner_->GetLandmarksOfTypeInDistance(distance, std::move(filter_type),
+                                                         stop_at_junction);
         return FfiLandmarkList(std::move(orig));
     }
 

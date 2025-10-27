@@ -39,14 +39,14 @@ public:
 
     FfiWorld LoadWorld(std::string map_name, bool reset_settings = true) const {
         auto map_layers = MapLayer::All;
-        auto world = inner_.LoadWorld(map_name, reset_settings, map_layers);
+        auto world = inner_.LoadWorld(std::move(map_name), reset_settings, map_layers);
         return FfiWorld(std::move(world));
     }
 
     FfiWorld GenerateOpenDriveWorld(std::string opendrive,
                                     const OpendriveGenerationParameters& params,
                                     bool reset_settings = true) const {
-        auto world = inner_.GenerateOpenDriveWorld(opendrive, params, reset_settings);
+        auto world = inner_.GenerateOpenDriveWorld(std::move(opendrive), params, reset_settings);
         return FfiWorld(std::move(world));
     }
 

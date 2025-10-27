@@ -110,15 +110,18 @@ public:
     void RestorePhysXPhysics() const { inner_->RestorePhysXPhysics(); }
 #endif
 
-    void EnableCarSim(std::string simfile_path) const { inner_->EnableCarSim(simfile_path); }
+    void EnableCarSim(std::string simfile_path) const {
+        inner_->EnableCarSim(std::move(simfile_path));
+    }
 
     void UseCarSimRoad(bool enabled) const { inner_->UseCarSimRoad(enabled); }
 
     void EnableChronoPhysics(uint64_t MaxSubsteps, float MaxSubstepDeltaTime,
                              std::string VehicleJSON = "", std::string PowertrainJSON = "",
                              std::string TireJSON = "", std::string BaseJSONPath = "") const {
-        inner_->EnableChronoPhysics(MaxSubsteps, MaxSubstepDeltaTime, VehicleJSON, PowertrainJSON,
-                                    TireJSON, BaseJSONPath);
+        inner_->EnableChronoPhysics(MaxSubsteps, MaxSubstepDeltaTime, std::move(VehicleJSON),
+                                    std::move(PowertrainJSON), std::move(TireJSON),
+                                    std::move(BaseJSONPath));
     }
 
     std::shared_ptr<FfiActor> to_actor() const {

@@ -104,7 +104,7 @@ public:
         inner_.UpdateUploadPath(actor_id, casted_path);
     }
 
-    void SetImportedRoute(const FfiActor& actor, const FfiRoute route, const bool empty_buffer) {
+    void SetImportedRoute(const FfiActor& actor, const FfiRoute& route, const bool empty_buffer) {
         inner_.SetImportedRoute(actor.as_builtin(), route, empty_buffer);
     }
 
@@ -112,7 +112,7 @@ public:
         inner_.RemoveImportedRoute(actor_id, remove_path);
     }
 
-    void UpdateImportedRoute(const FfiActorId& actor_id, const FfiRoute route) {
+    void UpdateImportedRoute(const FfiActorId& actor_id, const FfiRoute& route) {
         inner_.UpdateImportedRoute(actor_id, route);
     }
 

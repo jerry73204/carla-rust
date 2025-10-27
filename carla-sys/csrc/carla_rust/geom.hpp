@@ -116,6 +116,7 @@ public:
     const BoundingBox& as_native() const { return reinterpret_cast<const BoundingBox&>(*this); }
 };
 
+// NOLINTNEXTLINE(clang-diagnostic-error)
 static_assert(sizeof(FfiBoundingBox) == sizeof(BoundingBox),
               "FfiBoundingBox and BoundingBox size mismatch");
 }  // namespace geom

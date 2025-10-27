@@ -68,7 +68,7 @@ public:
     // std::vector<geom::Location> GetAllCrosswalkZones() const;
 
     std::shared_ptr<FfiJunction> GetJunction(const FfiWaypoint& waypoint) const {
-        auto wp = waypoint.inner();
+        const auto& wp = waypoint.inner();
         auto junction = inner_->GetJunction(*wp.get());
         return std::make_shared<FfiJunction>(std::move(junction));
     }
@@ -82,12 +82,12 @@ public:
     }
 
     FfiLandmarkList GetLandmarksFromId(std::string id) const {
-        auto orig = inner_->GetLandmarksFromId(id);
+        auto orig = inner_->GetLandmarksFromId(std::move(id));
         return FfiLandmarkList(std::move(orig));
     }
 
     FfiLandmarkList GetAllLandmarksOfType(std::string type) const {
-        auto orig = inner_->GetAllLandmarksOfType(type);
+        auto orig = inner_->GetAllLandmarksOfType(std::move(type));
         return FfiLandmarkList(std::move(orig));
     }
 
