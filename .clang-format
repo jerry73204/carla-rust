@@ -1,0 +1,38 @@
+---
+# clang-format configuration for carla-rust C++ code
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+
+# Braces
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Namespaces
+NamespaceIndentation: None
+CompactNamespaces: false
+
+# Pointers and references
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Includes
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+# Comments
+ReflowComments: true
+
+# Access modifiers
+AccessModifierOffset: -4
+
+# Templates
+AlwaysBreakTemplateDeclarations: Yes
