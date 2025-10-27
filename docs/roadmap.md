@@ -21,7 +21,7 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
 
 ---
 
-## Phase 0: Development Environment Setup
+## Phase 0: Cargo Examples for Demonstration
 
 **Priority:** Critical
 **Estimated Effort:** 1 week
@@ -35,80 +35,66 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
   - Document system requirements and dependencies
   - Create helper scripts for version switching
 
-- [x] **Test Infrastructure for Exclusive Simulator Access**
-  - File: `carla/tests/test_utils/simulator_lock.rs`
-  - Implement test synchronization using file locks or mutex
-  - Ensure only one integration test runs against simulator at a time
-  - Add `#[serial]` attribute support using `serial_test` crate
-  - Create test harness that manages simulator connection lifecycle
+- [x] **Basic Examples**
+  - Files: `carla/examples/*.rs`
+  - Create self-contained examples demonstrating core functionality
+  - Examples do not require shared test utilities
+  - Each example includes clear documentation and minimal error handling
 
-- [x] **Simulator Test Utilities**
-  - File: `carla/tests/test_utils/mod.rs`
-  - Helper functions:
-    - `with_simulator<F>(test_fn: F)` - Run test with exclusive simulator access
-    - `connect_to_simulator()` - Connect with retry logic
-    - `cleanup_all_actors()` - Clean up test artifacts
-    - `wait_for_simulator_ready()` - Wait for simulator initialization
-
-- [x] **CI/CD Configuration**
-  - Configure GitHub Actions or CI system
-  - Set up simulator environment for integration tests
-  - Add test matrix for all CARLA versions (0.9.14, 0.9.15, 0.9.16)
-  - Configure test timeout and retry policies
+- [x] **Example Categories**
+  - **Basic**: Connection, world info, blueprints
+  - **Vehicles**: Spawn, control, transforms, attributes
+  - **Walkers**: Spawn, control, movement directions
 
 - [x] **Documentation**
-  - File: `docs/testing.md`
-  - Document how to run integration tests
+  - File: `carla/examples/README.md`
+  - Document how to run examples
   - Explain simulator setup requirements
   - Provide troubleshooting guide
-  - Add examples of exclusive test patterns
+  - List all available examples with descriptions
 
-### Test Cases
+### Examples Created
 
-#### Unit Tests
-- ✅ `test_simulator_lock_acquisition` - Verify lock prevents concurrent access
-- ✅ `test_simulator_lock_release` - Verify lock is released after test
-- ✅ `test_simulator_lock_timeout` - Handle stuck lock scenarios
-- ✅ `test_simulator_lock_retry_success` - Successful retry after lock release
+#### Basic Examples
+- ✅ `connect.rs` - Connect to CARLA and get server version
+- ✅ `world_info.rs` - Get world information (map, spawn points, actors)
+- ✅ `blueprints.rs` - Query and filter blueprint library
 
-#### Integration Tests
-- ✅ `test_exclusive_simulator_access` - Verify only one test runs at a time
-- ✅ `test_simulator_connection` - Connect to running simulator
-- ✅ `test_simulator_reconnection` - Reconnect after disconnection
-- ✅ `test_cleanup_between_tests` - Verify clean state between tests
-- ✅ `test_simulator_ready_detection` - Detect when simulator is ready
-- ✅ `test_with_simulator_helper` - Test with_simulator helper
-- ✅ `test_with_simulator_client_helper` - Test with_simulator_client helper
-- ✅ `test_vehicle_spawn` - Spawn single vehicle
-- ✅ `test_multiple_vehicle_spawn` - Spawn multiple vehicles
-- ✅ `test_vehicle_transform` - Get vehicle transform
-- ✅ `test_vehicle_attributes` - Access vehicle attributes
-- ✅ `test_blueprint_filtering` - Filter blueprints
+#### Vehicle Examples
+- ✅ `spawn_vehicle.rs` - Spawn single vehicle
+- ✅ `multiple_vehicles.rs` - Spawn multiple vehicles
+- ✅ `vehicle_transform.rs` - Get vehicle transforms and location
+- ✅ `vehicle_attributes.rs` - Access vehicle attributes
 
-### Example Test Pattern
+### Example Usage Pattern
 
 ```rust
-use serial_test::serial;
-use carla_test_utils::with_simulator;
+// Example: carla/examples/spawn_vehicle.rs
+use carla::client::{ActorBase, Client};
 
-#[test]
-#[serial]  // Ensures exclusive access to simulator
-#[ignore]  // Run only when simulator is available
-fn test_vehicle_spawn() {
-    with_simulator(|world| {
-        // Test runs with exclusive simulator access
-        let blueprint = world.get_blueprint_library()
-            .find("vehicle.tesla.model3")
-            .unwrap();
-        let spawn_point = world.get_map().get_spawn_points()[0];
-        let vehicle = world.spawn_actor(&blueprint, &spawn_point).unwrap();
+fn main() {
+    let client = Client::connect("localhost", 2000, None)
+        .expect("Failed to connect to CARLA simulator");
 
-        assert!(vehicle.is_alive());
+    let world = client.world();
+    let blueprint_library = world.blueprint_library();
 
-        // Cleanup handled automatically by with_simulator
-    });
+    let vehicle_bp = blueprint_library
+        .find("vehicle.tesla.model3")
+        .expect("Failed to find Tesla Model 3 blueprint");
+
+    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_point = spawn_points.get(0).expect("No spawn points available");
+
+    let vehicle = world
+        .spawn_actor(&vehicle_bp, &spawn_point)
+        .expect("Failed to spawn vehicle");
+
+    println!("Vehicle spawned: ID {}", vehicle.id());
 }
 ```
+
+Run with: `cargo run --example spawn_vehicle`
 
 ---
 
@@ -116,17 +102,17 @@ fn test_vehicle_spawn() {
 
 **Priority:** High
 **Estimated Effort:** 2-3 weeks
-**Status:** Not Started
+**Status:** ✅ **PARTIALLY COMPLETE** (Core functionality implemented)
 
 ### Work Items
 
-- [ ] **Walker Actor Type**
+- [x] **Walker Actor Type**
   - File: `carla/src/client/walker.rs`
   - Implement `Walker` struct wrapping `carla::client::Walker`
   - Add Walker-specific control methods
-  - Add bone and animation control
+  - ~~Add bone and animation control~~ (Deferred - requires additional C++ bindings)
 
-- [ ] **WalkerAIController**
+- [ ] **WalkerAIController** (Deferred)
   - File: `carla/src/client/walker_ai_controller.rs`
   - Implement `WalkerAIController` wrapping C++ class
   - Methods:
@@ -134,35 +120,32 @@ fn test_vehicle_spawn() {
     - `stop()` - Stop AI control
     - `go_to_location(location)` - Navigate to target
     - `set_max_speed(speed)` - Set walking speed
+  - **Note:** Requires additional FFI work - planned for future iteration
 
-- [ ] **WalkerControl RPC Type**
-  - File: `carla/src/rpc/walker_control.rs`
+- [x] **WalkerControl RPC Type**
+  - Re-exported from `carla-sys`
   - `WalkerControl` struct with:
     - `direction: Vector3D` - Walking direction
     - `speed: f32` - Walking speed
     - `jump: bool` - Jump flag
 
-- [ ] **WalkerBoneControl** (0.9.13+)
+- [ ] **WalkerBoneControl** (0.9.13+) (Deferred)
   - File: `carla/src/rpc/walker_bone_control.rs`
   - Bone manipulation for custom animations
   - Integration with `Walker::set_bones()` and `Walker::blend_pose()`
+  - **Note:** Advanced feature - requires additional C++ bindings
 
-### Test Cases
+### Examples Created
 
-#### Unit Tests
-- `test_walker_control_creation` - Create WalkerControl with valid parameters
-- `test_walker_control_default` - Default WalkerControl values
-- `test_walker_bone_control_serialization` - Serialize/deserialize bone data
+#### Walker Examples
+- ✅ `spawn_walker.rs` - Spawn single walker/pedestrian
+- ✅ `walker_control.rs` - Apply walker movement control (direction, speed)
+- ✅ `walker_directions.rs` - Demonstrate different movement directions
+- ✅ `multiple_walkers.rs` - Spawn multiple walkers
 
-#### Integration Tests
-- `test_spawn_walker` - Spawn walker actor in simulation
-- `test_walker_movement` - Apply walker control and verify movement
-- `test_walker_ai_controller_spawn` - Spawn AI controller for walker
-- `test_walker_ai_navigation` - Navigate walker to target location
-- `test_walker_speed_control` - Set and verify walker speed
-- `test_walker_bone_manipulation` - Set custom bone poses
-- `test_walker_animation_blend` - Blend custom pose with animation
-- `test_multiple_walkers_no_collision` - Spawn multiple walkers, verify navigation
+#### Deferred Features
+- ⏸️ WalkerAIController examples - (Deferred with WalkerAIController implementation)
+- ⏸️ WalkerBoneControl examples - (Deferred with WalkerBoneControl implementation)
 
 ---
 
