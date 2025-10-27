@@ -9,6 +9,9 @@
 //! - [`VehiclePhysicsControl`] - Physics parameters (mass, drag, wheels)
 //! - [`AckermannControllerSettings`] - Ackermann controller configuration
 //!
+//! # Walker Control
+//! - [`WalkerControl`] - Walker/pedestrian movement control (direction, speed, jump)
+//!
 //! # Simulation Settings
 //! - [`EpisodeSettings`] - Simulation settings (synchronous mode, time step, etc.)
 //! - [`WeatherParameters`] - Weather conditions (clouds, rain, fog, sun)
@@ -40,7 +43,7 @@ pub use carla_sys::{
         AckermannControllerSettings, AttachmentType, GearPhysicsControl,
         OpendriveGenerationParameters, TrafficLightState, VehicleAckermannControl, VehicleControl,
         VehicleDoor, VehicleLightState_LightState as VehicleLightState, VehicleWheelLocation,
-        WeatherParameters, WheelPhysicsControl,
+        WalkerControl, WeatherParameters, WheelPhysicsControl,
     },
     carla_rust::rpc::{
         FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint, FfiRpcLightGroup as LightGroup,

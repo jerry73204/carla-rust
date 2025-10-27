@@ -51,6 +51,11 @@ unsafe impl Sync for crate::carla_rust::client::FfiSensor {}
 unsafe impl Send for crate::carla_rust::client::FfiVehicle {}
 unsafe impl Sync for crate::carla_rust::client::FfiVehicle {}
 
+// SAFETY: FfiWalker wraps a SharedPtr to a walker (pedestrian) actor. The handle is thread-safe
+// and walker control operations are synchronized by the CARLA server.
+unsafe impl Send for crate::carla_rust::client::FfiWalker {}
+unsafe impl Sync for crate::carla_rust::client::FfiWalker {}
+
 // SAFETY: FfiTrafficSign wraps a SharedPtr to an immutable traffic sign actor.
 // The underlying data is thread-safe.
 unsafe impl Send for crate::carla_rust::client::FfiTrafficSign {}
