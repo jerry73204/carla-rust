@@ -25,24 +25,24 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
 
 **Priority:** Critical
 **Estimated Effort:** 1 week
-**Status:** Not Started
+**Status:** ✅ **COMPLETE**
 
 ### Work Items
 
-- [ ] **CARLA Simulator Setup**
+- [x] **CARLA Simulator Setup**
   - Download and install CARLA simulator (0.9.14, 0.9.15, 0.9.16)
   - Configure simulator launch scripts
   - Document system requirements and dependencies
   - Create helper scripts for version switching
 
-- [ ] **Test Infrastructure for Exclusive Simulator Access**
+- [x] **Test Infrastructure for Exclusive Simulator Access**
   - File: `carla/tests/test_utils/simulator_lock.rs`
   - Implement test synchronization using file locks or mutex
   - Ensure only one integration test runs against simulator at a time
   - Add `#[serial]` attribute support using `serial_test` crate
   - Create test harness that manages simulator connection lifecycle
 
-- [ ] **Simulator Test Utilities**
+- [x] **Simulator Test Utilities**
   - File: `carla/tests/test_utils/mod.rs`
   - Helper functions:
     - `with_simulator<F>(test_fn: F)` - Run test with exclusive simulator access
@@ -50,13 +50,13 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
     - `cleanup_all_actors()` - Clean up test artifacts
     - `wait_for_simulator_ready()` - Wait for simulator initialization
 
-- [ ] **CI/CD Configuration**
+- [x] **CI/CD Configuration**
   - Configure GitHub Actions or CI system
   - Set up simulator environment for integration tests
   - Add test matrix for all CARLA versions (0.9.14, 0.9.15, 0.9.16)
   - Configure test timeout and retry policies
 
-- [ ] **Documentation**
+- [x] **Documentation**
   - File: `docs/testing.md`
   - Document how to run integration tests
   - Explain simulator setup requirements
@@ -66,16 +66,24 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
 ### Test Cases
 
 #### Unit Tests
-- `test_simulator_lock_acquisition` - Verify lock prevents concurrent access
-- `test_simulator_lock_release` - Verify lock is released after test
-- `test_simulator_lock_timeout` - Handle stuck lock scenarios
+- ✅ `test_simulator_lock_acquisition` - Verify lock prevents concurrent access
+- ✅ `test_simulator_lock_release` - Verify lock is released after test
+- ✅ `test_simulator_lock_timeout` - Handle stuck lock scenarios
+- ✅ `test_simulator_lock_retry_success` - Successful retry after lock release
 
 #### Integration Tests
-- `test_exclusive_simulator_access` - Verify only one test runs at a time
-- `test_simulator_connection` - Connect to running simulator
-- `test_simulator_reconnection` - Reconnect after disconnection
-- `test_cleanup_between_tests` - Verify clean state between tests
-- `test_simulator_ready_detection` - Detect when simulator is ready
+- ✅ `test_exclusive_simulator_access` - Verify only one test runs at a time
+- ✅ `test_simulator_connection` - Connect to running simulator
+- ✅ `test_simulator_reconnection` - Reconnect after disconnection
+- ✅ `test_cleanup_between_tests` - Verify clean state between tests
+- ✅ `test_simulator_ready_detection` - Detect when simulator is ready
+- ✅ `test_with_simulator_helper` - Test with_simulator helper
+- ✅ `test_with_simulator_client_helper` - Test with_simulator_client helper
+- ✅ `test_vehicle_spawn` - Spawn single vehicle
+- ✅ `test_multiple_vehicle_spawn` - Spawn multiple vehicles
+- ✅ `test_vehicle_transform` - Get vehicle transform
+- ✅ `test_vehicle_attributes` - Access vehicle attributes
+- ✅ `test_blueprint_filtering` - Filter blueprints
 
 ### Example Test Pattern
 
