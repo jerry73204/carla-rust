@@ -6,44 +6,31 @@
 #include "carla/geom/Transform.h"
 #include "carla_rust/geom.hpp"
 
-namespace carla_rust
-{
-    namespace rpc {
-        using carla::rpc::EnvironmentObject;
-        using carla::rpc::CityObjectLabel;
-        using carla::geom::Transform;
-        using carla::geom::BoundingBox;
-        using carla_rust::geom::FfiTransform;
-        using carla_rust::geom::FfiBoundingBox;
+namespace carla_rust {
+namespace rpc {
+using carla::geom::BoundingBox;
+using carla::geom::Transform;
+using carla::rpc::CityObjectLabel;
+using carla::rpc::EnvironmentObject;
+using carla_rust::geom::FfiBoundingBox;
+using carla_rust::geom::FfiTransform;
 
-        struct FfiEnvironmentObjectRef {
-        public:
-            FfiEnvironmentObjectRef(const EnvironmentObject &orig)
-                : inner_(orig)
-            {}
+struct FfiEnvironmentObjectRef {
+public:
+    FfiEnvironmentObjectRef(const EnvironmentObject& orig) : inner_(orig) {}
 
-            FfiTransform transform() const {
-                return FfiTransform(inner_.transform);
-            }
+    FfiTransform transform() const { return FfiTransform(inner_.transform); }
 
-            FfiBoundingBox bounding_box() const {
-                return FfiBoundingBox(inner_.bounding_box);
-            }
+    FfiBoundingBox bounding_box() const { return FfiBoundingBox(inner_.bounding_box); }
 
-            uint64_t id() const {
-                return inner_.id;
-            }
+    uint64_t id() const { return inner_.id; }
 
-            const std::string& name() const {
-                return inner_.name;
-            }
+    const std::string& name() const { return inner_.name; }
 
-            CityObjectLabel type() const {
-                return inner_.type;
-            }
+    CityObjectLabel type() const { return inner_.type; }
 
-        private:
-            const EnvironmentObject& inner_;
-        };
-    }
-}
+private:
+    const EnvironmentObject& inner_;
+};
+}  // namespace rpc
+}  // namespace carla_rust

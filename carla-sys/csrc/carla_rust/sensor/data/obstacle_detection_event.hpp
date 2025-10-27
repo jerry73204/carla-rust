@@ -48,54 +48,48 @@
 #include "carla/sensor/data/LaneInvasionEvent.h"
 #include "carla_rust/road.hpp"
 
-namespace carla_rust
-{
-    namespace sensor {
-        namespace data {
-            using carla::SharedPtr;
-            using carla::client::detail::WeakEpisodeProxy;
-            using carla::geom::Vector2D;
-            using carla::geom::Vector3D;
-            using carla::sensor::data::Image;
-            using carla::sensor::data::Color;
-            using carla::sensor::data::LidarDetection;
-            using carla::sensor::data::SemanticLidarDetection;
-            using carla::sensor::data::SemanticLidarData;
-            using carla::sensor::data::IMUMeasurement;
-            using carla::sensor::data::GnssMeasurement;
-            using carla::sensor::data::CollisionEvent;
-            using carla::sensor::data::LaneInvasionEvent;
-            using carla::sensor::data::ObstacleDetectionEvent;
-            using carla::road::element::LaneMarking;
-            using carla_rust::client::FfiActor;
-            using carla_rust::geom::FfiLocation;
-            using carla_rust::geom::FfiTransform;
-            using carla_rust::road::element::FfiLaneMarking;
+namespace carla_rust {
+namespace sensor {
+namespace data {
+using carla::SharedPtr;
+using carla::client::detail::WeakEpisodeProxy;
+using carla::geom::Vector2D;
+using carla::geom::Vector3D;
+using carla::road::element::LaneMarking;
+using carla::sensor::data::CollisionEvent;
+using carla::sensor::data::Color;
+using carla::sensor::data::GnssMeasurement;
+using carla::sensor::data::Image;
+using carla::sensor::data::IMUMeasurement;
+using carla::sensor::data::LaneInvasionEvent;
+using carla::sensor::data::LidarDetection;
+using carla::sensor::data::ObstacleDetectionEvent;
+using carla::sensor::data::SemanticLidarData;
+using carla::sensor::data::SemanticLidarDetection;
+using carla_rust::client::FfiActor;
+using carla_rust::geom::FfiLocation;
+using carla_rust::geom::FfiTransform;
+using carla_rust::road::element::FfiLaneMarking;
 
-            // ObstacleDetectionEvent
-            class FfiObstacleDetectionEvent {
-            public:
-                FfiObstacleDetectionEvent(SharedPtr<ObstacleDetectionEvent> &&base)
-                    : inner_(std::move(base))
-                {}
+// ObstacleDetectionEvent
+class FfiObstacleDetectionEvent {
+public:
+    FfiObstacleDetectionEvent(SharedPtr<ObstacleDetectionEvent>&& base) : inner_(std::move(base)) {}
 
-                std::shared_ptr<FfiActor> GetActor() const {
-                    return std::make_shared<FfiActor>(std::move(inner_->GetActor()));
-                }
-
-                std::shared_ptr<FfiActor> GetOtherActor() const {
-                    return std::make_shared<FfiActor>(std::move(inner_->GetOtherActor()));
-                }
-
-                float GetDistance() const {
-                    return inner_->GetDistance();
-                }
-
-
-            private:
-                SharedPtr<ObstacleDetectionEvent> inner_;
-            };
-
-       }
+    std::shared_ptr<FfiActor> GetActor() const {
+        return std::make_shared<FfiActor>(std::move(inner_->GetActor()));
     }
-}
+
+    std::shared_ptr<FfiActor> GetOtherActor() const {
+        return std::make_shared<FfiActor>(std::move(inner_->GetOtherActor()));
+    }
+
+    float GetDistance() const { return inner_->GetDistance(); }
+
+private:
+    SharedPtr<ObstacleDetectionEvent> inner_;
+};
+
+}  // namespace data
+}  // namespace sensor
+}  // namespace carla_rust

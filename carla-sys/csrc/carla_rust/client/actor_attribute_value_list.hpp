@@ -5,29 +5,24 @@
 #include "carla_rust/utils.hpp"
 #include "carla_rust/client/actor_attribute.hpp"
 
-namespace carla_rust
-{
-    namespace client {
-        using carla::client::ActorAttributeValue;
-        using carla_rust::utils::VectorRef;
-        using carla_rust::client::FfiActorAttributeValue;
+namespace carla_rust {
+namespace client {
+using carla::client::ActorAttributeValue;
+using carla_rust::client::FfiActorAttributeValue;
+using carla_rust::utils::VectorRef;
 
-        class FfiActorAttributeValueList {
-        public:
-            FfiActorAttributeValueList(const std::vector<ActorAttributeValue> &ref)
-                : inner_(ref)
-            {}
+class FfiActorAttributeValueList {
+public:
+    FfiActorAttributeValueList(const std::vector<ActorAttributeValue>& ref) : inner_(ref) {}
 
-            size_t len() const {
-                return inner_.len();
-            }
+    size_t len() const { return inner_.len(); }
 
-            const FfiActorAttributeValue* data() const {
-                return reinterpret_cast<const FfiActorAttributeValue*>(inner_.data());
-            }
-
-        private:
-            const VectorRef<ActorAttributeValue> inner_;
-        };
+    const FfiActorAttributeValue* data() const {
+        return reinterpret_cast<const FfiActorAttributeValue*>(inner_.data());
     }
-}
+
+private:
+    const VectorRef<ActorAttributeValue> inner_;
+};
+}  // namespace client
+}  // namespace carla_rust

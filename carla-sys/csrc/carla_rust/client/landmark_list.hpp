@@ -6,31 +6,26 @@
 #include "carla/Memory.h"
 #include "carla/client/Landmark.h"
 
-namespace carla_rust
-{
-    namespace client {
-        using carla::SharedPtr;
-        using carla::client::Landmark;
+namespace carla_rust {
+namespace client {
+using carla::SharedPtr;
+using carla::client::Landmark;
 
-        class FfiLandmark;
+class FfiLandmark;
 
-        class FfiLandmarkList {
-        public:
-            FfiLandmarkList(std::vector<SharedPtr<Landmark>> &&vec)
-                : inner_(std::move(vec))
-            {}
+class FfiLandmarkList {
+public:
+    FfiLandmarkList(std::vector<SharedPtr<Landmark>>&& vec) : inner_(std::move(vec)) {}
 
-            size_t len() const {
-                return inner_.size();
-            }
+    size_t len() const { return inner_.size(); }
 
-            std::shared_ptr<FfiLandmark> get(size_t index) const {
-                auto orig = inner_.at(index);
-                return std::make_shared<FfiLandmark>(std::move(orig));
-            }
-
-        private:
-            std::vector<SharedPtr<Landmark>> inner_;
-        };
+    std::shared_ptr<FfiLandmark> get(size_t index) const {
+        auto orig = inner_.at(index);
+        return std::make_shared<FfiLandmark>(std::move(orig));
     }
-}
+
+private:
+    std::vector<SharedPtr<Landmark>> inner_;
+};
+}  // namespace client
+}  // namespace carla_rust

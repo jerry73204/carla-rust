@@ -48,66 +48,57 @@
 #include "carla/sensor/data/LaneInvasionEvent.h"
 #include "carla_rust/road.hpp"
 
-namespace carla_rust
-{
-    namespace sensor {
-        namespace data {
-            using carla::SharedPtr;
-            using carla::client::detail::WeakEpisodeProxy;
-            using carla::geom::Vector2D;
-            using carla::geom::Vector3D;
-            using carla::sensor::data::Image;
-            using carla::sensor::data::Color;
-            using carla::sensor::data::LidarDetection;
-            using carla::sensor::data::SemanticLidarDetection;
-            using carla::sensor::data::SemanticLidarData;
-            using carla::sensor::data::IMUMeasurement;
-            using carla::sensor::data::GnssMeasurement;
-            using carla::sensor::data::CollisionEvent;
-            using carla::sensor::data::LaneInvasionEvent;
-            using carla::sensor::data::ObstacleDetectionEvent;
-            using carla::road::element::LaneMarking;
-            using carla_rust::client::FfiActor;
-            using carla_rust::geom::FfiLocation;
-            using carla_rust::geom::FfiTransform;
-            using carla_rust::road::element::FfiLaneMarking;
+namespace carla_rust {
+namespace sensor {
+namespace data {
+using carla::SharedPtr;
+using carla::client::detail::WeakEpisodeProxy;
+using carla::geom::Vector2D;
+using carla::geom::Vector3D;
+using carla::road::element::LaneMarking;
+using carla::sensor::data::CollisionEvent;
+using carla::sensor::data::Color;
+using carla::sensor::data::GnssMeasurement;
+using carla::sensor::data::Image;
+using carla::sensor::data::IMUMeasurement;
+using carla::sensor::data::LaneInvasionEvent;
+using carla::sensor::data::LidarDetection;
+using carla::sensor::data::ObstacleDetectionEvent;
+using carla::sensor::data::SemanticLidarData;
+using carla::sensor::data::SemanticLidarDetection;
+using carla_rust::client::FfiActor;
+using carla_rust::geom::FfiLocation;
+using carla_rust::geom::FfiTransform;
+using carla_rust::road::element::FfiLaneMarking;
 
-            // Image
-            class FfiImage {
-            public:
-                FfiImage(SharedPtr<Image> &&base) : inner_(std::move(base)) {}
+// Image
+class FfiImage {
+public:
+    FfiImage(SharedPtr<Image>&& base) : inner_(std::move(base)) {}
 
-                size_t GetWidth() const {
-                    return inner_->GetWidth();
-                }
+    size_t GetWidth() const { return inner_->GetWidth(); }
 
-                size_t GetHeight() const {
-                    return inner_->GetHeight();
-                }
+    size_t GetHeight() const { return inner_->GetHeight(); }
 
-                float GetFOVAngle() const {
-                    return inner_->GetFOVAngle();
-                }
+    float GetFOVAngle() const { return inner_->GetFOVAngle(); }
 
-                size_t size() const {
-                    return inner_->size();
-                }
+    size_t size() const { return inner_->size(); }
 
-                const FfiColor* data() const {
-                    auto orig = inner_->data();
-                    auto new_ = reinterpret_cast<FfiColor*>(orig);
-                    return new_;
-                }
-
-                const FfiColor& at(size_t pos) const {
-                    const Color& orig = inner_->at(pos);
-                    const FfiColor& new_ = reinterpret_cast<const FfiColor&>(orig);
-                    return new_;
-                }
-
-            private:
-                SharedPtr<Image> inner_;
-            };
-       }
+    const FfiColor* data() const {
+        auto orig = inner_->data();
+        auto new_ = reinterpret_cast<FfiColor*>(orig);
+        return new_;
     }
-}
+
+    const FfiColor& at(size_t pos) const {
+        const Color& orig = inner_->at(pos);
+        const FfiColor& new_ = reinterpret_cast<const FfiColor&>(orig);
+        return new_;
+    }
+
+private:
+    SharedPtr<Image> inner_;
+};
+}  // namespace data
+}  // namespace sensor
+}  // namespace carla_rust

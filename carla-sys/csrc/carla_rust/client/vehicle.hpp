@@ -16,155 +16,118 @@
 #endif
 #include "carla_rust/rpc/vehicle_physics_control.hpp"
 
-namespace carla_rust
-{
-    namespace client {
-        using carla::SharedPtr;
-        using carla::client::Vehicle;
-        using carla::rpc::AckermannControllerSettings;
-        using carla::rpc::VehicleControl;
-        using carla::rpc::VehiclePhysicsControl;
-        using carla::rpc::VehicleDoor;
-        using carla::rpc::VehicleLightState;
-        using carla::rpc::VehicleWheelLocation;
-        using carla::rpc::TrafficLightState;
-        using carla::rpc::VehicleAckermannControl;
-        using carla_rust::rpc::FfiVehiclePhysicsControl;
+namespace carla_rust {
+namespace client {
+using carla::SharedPtr;
+using carla::client::Vehicle;
+using carla::rpc::AckermannControllerSettings;
+using carla::rpc::TrafficLightState;
+using carla::rpc::VehicleAckermannControl;
+using carla::rpc::VehicleControl;
+using carla::rpc::VehicleDoor;
+using carla::rpc::VehicleLightState;
+using carla::rpc::VehiclePhysicsControl;
+using carla::rpc::VehicleWheelLocation;
+using carla_rust::rpc::FfiVehiclePhysicsControl;
 
-        // Vehicle
-        class FfiVehicle {
-        public:
-            FfiVehicle(SharedPtr<Vehicle> &&base)
-                : inner_(std::move(base))
-            {}
+// Vehicle
+class FfiVehicle {
+public:
+    FfiVehicle(SharedPtr<Vehicle>&& base) : inner_(std::move(base)) {}
 
+    void SetAutopilot(bool enabled = true, uint16_t tm_port = TM_DEFAULT_PORT) const {
+        inner_->SetAutopilot(enabled, tm_port);
+    }
 
-            void SetAutopilot(bool enabled = true, uint16_t tm_port = TM_DEFAULT_PORT) const {
-                inner_->SetAutopilot(enabled, tm_port);
-            }
+    void ShowDebugTelemetry(bool enabled = true) const { inner_->ShowDebugTelemetry(enabled); }
 
-            void ShowDebugTelemetry(bool enabled = true) const {
-                inner_->ShowDebugTelemetry(enabled);
-            }
+    void ApplyControl(const VehicleControl& control) const { inner_->ApplyControl(control); }
 
-            void ApplyControl(const VehicleControl &control) const {
-                inner_->ApplyControl(control);
-            }
+    void ApplyAckermannControl(const VehicleAckermannControl& control) const {
+        inner_->ApplyAckermannControl(control);
+    }
 
-            void ApplyAckermannControl(const VehicleAckermannControl &control) const {
-                inner_->ApplyAckermannControl(control);
-            }
+    void ApplyPhysicsControl(const FfiVehiclePhysicsControl& physics_control) const {
+        inner_->ApplyPhysicsControl(physics_control.inner());
+    }
 
-            void ApplyPhysicsControl(const FfiVehiclePhysicsControl &physics_control) const {
-                inner_->ApplyPhysicsControl(physics_control.inner());
-            }
+    AckermannControllerSettings GetAckermannControllerSettings() const {
+        return inner_->GetAckermannControllerSettings();
+    }
 
-            AckermannControllerSettings GetAckermannControllerSettings() const {
-                return inner_->GetAckermannControllerSettings();
-            }
+    void ApplyAckermannControllerSettings(const AckermannControllerSettings& settings) const {
+        inner_->ApplyAckermannControllerSettings(settings);
+    }
 
-            void ApplyAckermannControllerSettings(const AckermannControllerSettings &settings) const {
-                inner_->ApplyAckermannControllerSettings(settings);
-            }
+    void OpenDoor(const VehicleDoor door_idx) const { inner_->OpenDoor(door_idx); }
 
-            void OpenDoor(const VehicleDoor door_idx) const {
-                inner_->OpenDoor(door_idx);
-            }
+    void CloseDoor(const VehicleDoor door_idx) const { inner_->CloseDoor(door_idx); }
 
-            void CloseDoor(const VehicleDoor door_idx) const {
-                inner_->CloseDoor(door_idx);
-            }
+    void SetLightState(const VehicleLightState::LightState& light_state) const {
+        inner_->SetLightState(light_state);
+    }
 
-            void SetLightState(const VehicleLightState::LightState &light_state) const {
-                inner_->SetLightState(light_state);
-            }
+    void SetWheelSteerDirection(VehicleWheelLocation wheel_location, float angle_in_deg) const {
+        inner_->SetWheelSteerDirection(wheel_location, angle_in_deg);
+    }
 
-            void SetWheelSteerDirection(VehicleWheelLocation wheel_location, float angle_in_deg) const {
-                inner_->SetWheelSteerDirection(wheel_location, angle_in_deg);
-            }
+    float GetWheelSteerAngle(VehicleWheelLocation wheel_location) const {
+        return inner_->GetWheelSteerAngle(wheel_location);
+    }
 
-            float GetWheelSteerAngle(VehicleWheelLocation wheel_location) const {
-                return inner_->GetWheelSteerAngle(wheel_location);
-            }
+    VehicleControl GetControl() const { return inner_->GetControl(); }
 
-            VehicleControl GetControl() const {
-                return inner_->GetControl();
-            }
+    FfiVehiclePhysicsControl GetPhysicsControl() const {
+        auto orig = inner_->GetPhysicsControl();
+        return FfiVehiclePhysicsControl(std::move(orig));
+    }
 
-            FfiVehiclePhysicsControl GetPhysicsControl() const {
-                auto orig = inner_->GetPhysicsControl();
-                return FfiVehiclePhysicsControl(std::move(orig));
-            }
+    VehicleLightState::LightState GetLightState() const { return inner_->GetLightState(); }
 
-            VehicleLightState::LightState GetLightState() const {
-                return inner_->GetLightState();
-            }
+    float GetSpeedLimit() const { return inner_->GetSpeedLimit(); }
 
-            float GetSpeedLimit() const {
-                return inner_->GetSpeedLimit();
-            }
+    TrafficLightState GetTrafficLightState() const { return inner_->GetTrafficLightState(); }
 
-            TrafficLightState GetTrafficLightState() const {
-                return inner_->GetTrafficLightState();
-            }
+    bool IsAtTrafficLight() const { return inner_->IsAtTrafficLight(); }
 
-            bool IsAtTrafficLight() const {
-                return inner_->IsAtTrafficLight();
-            }
-
-            // SharedPtr<TrafficLight> GetTrafficLight() const {}
+    // SharedPtr<TrafficLight> GetTrafficLight() const {}
 
 #ifdef CARLA_VERSION_0916
-            carla::rpc::VehicleTelemetryData GetTelemetryData() const {
-                return inner_->GetTelemetryData();
-            }
+    carla::rpc::VehicleTelemetryData GetTelemetryData() const { return inner_->GetTelemetryData(); }
 
-            void SetWheelPitchAngle(VehicleWheelLocation wheel_location, float angle_in_deg) const {
-                inner_->SetWheelPitchAngle(wheel_location, angle_in_deg);
-            }
+    void SetWheelPitchAngle(VehicleWheelLocation wheel_location, float angle_in_deg) const {
+        inner_->SetWheelPitchAngle(wheel_location, angle_in_deg);
+    }
 
-            float GetWheelPitchAngle(VehicleWheelLocation wheel_location) const {
-                return inner_->GetWheelPitchAngle(wheel_location);
-            }
+    float GetWheelPitchAngle(VehicleWheelLocation wheel_location) const {
+        return inner_->GetWheelPitchAngle(wheel_location);
+    }
 
-            std::vector<carla::geom::Transform> GetVehicleBoneWorldTransforms() const {
-                return inner_->GetVehicleBoneWorldTransforms();
-            }
+    std::vector<carla::geom::Transform> GetVehicleBoneWorldTransforms() const {
+        return inner_->GetVehicleBoneWorldTransforms();
+    }
 
-            void RestorePhysXPhysics() const {
-                inner_->RestorePhysXPhysics();
-            }
+    void RestorePhysXPhysics() const { inner_->RestorePhysXPhysics(); }
 #endif
 
-            void EnableCarSim(std::string simfile_path) const {
-                inner_->EnableCarSim(simfile_path);
-            }
+    void EnableCarSim(std::string simfile_path) const { inner_->EnableCarSim(simfile_path); }
 
-            void UseCarSimRoad(bool enabled) const {
-                inner_->UseCarSimRoad(enabled);
-            }
+    void UseCarSimRoad(bool enabled) const { inner_->UseCarSimRoad(enabled); }
 
-            void EnableChronoPhysics(uint64_t MaxSubsteps,
-                                     float MaxSubstepDeltaTime,
-                                     std::string VehicleJSON = "",
-                                     std::string PowertrainJSON = "",
-                                     std::string TireJSON = "",
-                                     std::string BaseJSONPath = "") const {
-                inner_->EnableChronoPhysics(MaxSubsteps,
-                                           MaxSubstepDeltaTime,
-                                           VehicleJSON,
-                                           PowertrainJSON,
-                                           TireJSON,
-                                           BaseJSONPath);
-            }
-
-            std::shared_ptr<FfiActor> to_actor() const {
-                SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
-                return std::make_shared<FfiActor>(std::move(ptr));
-            }
-
-        private:
-            SharedPtr<Vehicle> inner_;
-        };
+    void EnableChronoPhysics(uint64_t MaxSubsteps, float MaxSubstepDeltaTime,
+                             std::string VehicleJSON = "", std::string PowertrainJSON = "",
+                             std::string TireJSON = "", std::string BaseJSONPath = "") const {
+        inner_->EnableChronoPhysics(MaxSubsteps, MaxSubstepDeltaTime, VehicleJSON, PowertrainJSON,
+                                    TireJSON, BaseJSONPath);
     }
-} // namespace carla_rust
+
+    std::shared_ptr<FfiActor> to_actor() const {
+        SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
+        return std::make_shared<FfiActor>(std::move(ptr));
+    }
+
+private:
+    SharedPtr<Vehicle> inner_;
+};
+}  // namespace client
+}  // namespace carla_rust

@@ -6,49 +6,38 @@
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc/color.hpp"
 
-namespace carla_rust
-{
-    namespace rpc {
-        using carla::rpc::Color;
-        using carla::rpc::LightId;
-        using carla::rpc::LightState;
-        using carla_rust::geom::FfiLocation;
-        using carla_rust::rpc::FfiRpcColor;
+namespace carla_rust {
+namespace rpc {
+using carla::rpc::Color;
+using carla::rpc::LightId;
+using carla::rpc::LightState;
+using carla_rust::geom::FfiLocation;
+using carla_rust::rpc::FfiRpcColor;
 
+using FfiLightId = uint32_t;
 
-        using FfiLightId = uint32_t;
+enum class FfiRpcLightGroup : uint8_t { None = 0, Vehicle, Street, Building, Other };
 
-        enum class FfiRpcLightGroup : uint8_t {
-            None = 0,
-            Vehicle,
-            Street,
-            Building,
-            Other
-        };
+class FfiRpcLightState {
+public:
+    FfiLocation location;
+    float intensity;
+    FfiLightId id;
+    FfiRpcLightGroup group;
+    FfiRpcColor color;
+    bool active;
 
-        class FfiRpcLightState {
-        public:
-            FfiLocation location;
-            float intensity;
-            FfiLightId id;
-            FfiRpcLightGroup group;
-            FfiRpcColor color;
-            bool active;
+    FfiRpcLightState(LightState&& base)
+        : location(std::move(base._location)),
+          intensity(std::move(base._intensity)),
+          id(std::move(base._id)),
+          group(static_cast<FfiRpcLightGroup>(base._group)),
+          color(std::move(base._color)),
+          active(std::move(base._active)) {}
 
-            FfiRpcLightState(LightState &&base) :
-                location(std::move(base._location)),
-                intensity(std::move(base._intensity)),
-                id(std::move(base._id)),
-                group(static_cast<FfiRpcLightGroup>(base._group)),
-                color(std::move(base._color)),
-                active(std::move(base._active))
-            {}
+    const LightState& as_native() const { return reinterpret_cast<const LightState&>(*this); }
+};
 
-            const LightState& as_native() const {
-                return reinterpret_cast<const LightState&>(*this);
-            }
-        };
-
-        static_assert(sizeof(FfiRpcLightState) == sizeof(LightState), "FfiRpcLightState size is incorrect");
-    }
-}
+static_assert(sizeof(FfiRpcLightState) == sizeof(LightState), "FfiRpcLightState size is incorrect");
+}  // namespace rpc
+}  // namespace carla_rust

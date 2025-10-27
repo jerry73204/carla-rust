@@ -7,29 +7,24 @@
 #include "carla/rpc/EnvironmentObject.h"
 #include "carla_rust/rpc/environment_object.hpp"
 
-namespace carla_rust
-{
-    namespace client {
-        using carla::rpc::EnvironmentObject;
-        using carla_rust::rpc::FfiEnvironmentObjectRef;
+namespace carla_rust {
+namespace client {
+using carla::rpc::EnvironmentObject;
+using carla_rust::rpc::FfiEnvironmentObjectRef;
 
-        class FfiEnvironmentObjectList {
-        public:
-            FfiEnvironmentObjectList(std::vector<EnvironmentObject> &&vec)
-                : inner_(std::move(vec))
-            {}
+class FfiEnvironmentObjectList {
+public:
+    FfiEnvironmentObjectList(std::vector<EnvironmentObject>&& vec) : inner_(std::move(vec)) {}
 
-            size_t len() const {
-                return inner_.size();
-            }
+    size_t len() const { return inner_.size(); }
 
-            FfiEnvironmentObjectRef get(size_t index) const {
-                auto& orig = inner_.at(index);
-                return FfiEnvironmentObjectRef(orig);
-            }
-
-        private:
-            std::vector<EnvironmentObject> inner_;
-        };
+    FfiEnvironmentObjectRef get(size_t index) const {
+        auto& orig = inner_.at(index);
+        return FfiEnvironmentObjectRef(orig);
     }
-}
+
+private:
+    std::vector<EnvironmentObject> inner_;
+};
+}  // namespace client
+}  // namespace carla_rust
