@@ -93,6 +93,7 @@ impl Walker {
         self.inner.GetWalkerControl()
     }
 
+    #[allow(dead_code)]
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiWalker>) -> Option<Self> {
         if ptr.is_null() {
             None
@@ -101,6 +102,7 @@ impl Walker {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn cxx_walker(&self) -> SharedPtr<FfiWalker> {
         self.inner.clone()
     }

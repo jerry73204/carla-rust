@@ -1,6 +1,13 @@
-use autocxx::prelude::*;
+// Suppress clippy lints for autocxx-generated FFI bindings
+#![allow(clippy::new_ret_no_self)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::excessive_precision)]
+#![allow(clippy::missing_safety_doc)]
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::should_implement_trait)]
+#![allow(clippy::len_without_is_empty)]
 
-pub use ffi::*;
+use autocxx::prelude::*;
 
 include_cpp! {
     #include "carla_rust.hpp"
@@ -176,3 +183,5 @@ include_cpp! {
     // generate!("carla::sensor::data::Color")
     // generate!("carla::rpc::LightState")
 }
+
+pub use ffi::*;
