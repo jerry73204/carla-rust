@@ -9,6 +9,7 @@ Checks: >
   performance-*,
   -bugprone-easily-swappable-parameters,
   -cert-err58-cpp,
+  -performance-move-const-arg,
 
 CheckOptions:
   - key: readability-identifier-naming.NamespaceCase
