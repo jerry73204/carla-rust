@@ -5,3 +5,8 @@ members = [
     "carla-sys",
     "carla-src",
 ]
+
+[profile.dev-release]
+inherits = "release"
+debug-assertions = true
+debug = true
