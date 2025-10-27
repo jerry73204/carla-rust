@@ -1,0 +1,25 @@
+---
+# clang-tidy configuration for carla-rust C++ FFI code
+# Conservative checks: focus on bugs, security, and performance
+
+Checks: >
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  performance-*,
+  -bugprone-easily-swappable-parameters,
+  -cert-err58-cpp,
+
+CheckOptions:
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'carla-sys/csrc/.*'
+FormatStyle: file
