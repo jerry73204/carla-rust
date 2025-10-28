@@ -32,6 +32,8 @@
 //! Most types are re-exported from the C++ library via FFI.
 
 mod color;
+mod command;
+mod command_response;
 mod environment_object;
 mod episode_settings;
 mod light_id;
@@ -56,6 +58,8 @@ pub use carla_sys::{
     },
 };
 pub use color::*;
+pub use command::*;
+pub use command_response::*;
 pub use environment_object::*;
 pub use episode_settings::*;
 pub use light_id::*;

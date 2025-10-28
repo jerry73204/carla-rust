@@ -6,6 +6,7 @@
 #include "carla/rpc/OpendriveGenerationParameters.h"
 #include "carla/rpc/MapLayer.h"
 #include "carla_rust/traffic_manager/traffic_manager.hpp"
+#include "command_batch.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -102,6 +103,24 @@ public:
 
     void SetReplayerIgnoreSpectator(bool ignore_spectator) {
         inner_.SetReplayerIgnoreSpectator(ignore_spectator);
+    }
+
+    // Batch operations
+    void ApplyBatch(FfiCommandBatch& batch, bool do_tick_cue) {
+        auto commands = batch.TakeCommands();
+        inner_.ApplyBatch(std::move(commands), do_tick_cue);
+    }
+
+    std::vector<FfiCommandResponse> ApplyBatchSync(FfiCommandBatch& batch, bool do_tick_cue) {
+        auto commands = batch.TakeCommands();
+        auto responses = inner_.ApplyBatchSync(std::move(commands), do_tick_cue);
+
+        std::vector<FfiCommandResponse> ffi_responses;
+        ffi_responses.reserve(responses.size());
+        for (const auto& response : responses) {
+            ffi_responses.push_back(FfiCommandResponse::FromNative(response));
+        }
+        return ffi_responses;
     }
 
 private:

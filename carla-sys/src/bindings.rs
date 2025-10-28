@@ -90,6 +90,8 @@ include_cpp! {
     generate!("carla_rust::client::FfiDebugHelper_DrawArrow")
     generate!("carla_rust::client::FfiDebugHelper_DrawBox")
     generate!("carla_rust::client::FfiDebugHelper_DrawString")
+    generate!("carla_rust::client::FfiCommandBatch")
+    generate!("carla_rust::client::FfiCommandResponse")
     generate_pod!("carla_rust::client::FfiClientLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")

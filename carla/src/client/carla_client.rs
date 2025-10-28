@@ -3,11 +3,11 @@
 
 use super::World;
 use crate::{
-    rpc::OpendriveGenerationParameters,
+    rpc::{Command, CommandResponse, OpendriveGenerationParameters},
     traffic_manager::{constants::Networking::TM_DEFAULT_PORT, TrafficManager},
 };
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::FfiClient;
+use carla_sys::carla_rust::client::{FfiClient, FfiCommandBatch};
 use cxx::{let_cxx_string, UniquePtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
@@ -558,6 +558,122 @@ impl Client {
         self.inner
             .pin_mut()
             .SetReplayerIgnoreSpectator(ignore_spectator);
+    }
+
+    // ========================================================================
+    // Batch Operations
+    // ========================================================================
+
+    /// Executes a batch of commands without waiting for responses.
+    ///
+    /// This is the fire-and-forget version of batch execution. Commands are sent
+    /// to the server but no results are returned. Use this when you don't need
+    /// to check if commands succeeded.
+    ///
+    /// All commands in the batch are executed atomically in a single simulation step,
+    /// which is significantly more efficient than individual calls.
+    ///
+    /// # Arguments
+    ///
+    /// * `commands` - Vector of commands to execute
+    /// * `do_tick_cue` - If true, sends a tick cue after executing the batch
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::{client::Client, rpc::Command};
+    ///
+    /// let mut client = Client::default();
+    /// let world = client.world();
+    ///
+    /// let commands = vec![
+    ///     Command::console_command("weather.sun_altitude 45.0".to_string()),
+    ///     Command::console_command("weather.cloudiness 50.0".to_string()),
+    /// ];
+    ///
+    /// client.apply_batch(commands, false);
+    /// ```
+    pub fn apply_batch(&mut self, commands: Vec<Command>, do_tick_cue: bool) {
+        let mut batch = FfiCommandBatch::new().within_unique_ptr();
+
+        for command in &commands {
+            command.add(&mut batch);
+        }
+
+        self.inner
+            .pin_mut()
+            .ApplyBatch(batch.pin_mut(), do_tick_cue);
+    }
+
+    /// Executes a batch of commands and returns responses for each.
+    ///
+    /// This is the synchronous version that waits for all commands to complete
+    /// and returns their results. Use this when you need to check command success
+    /// or retrieve actor IDs from spawn commands.
+    ///
+    /// All commands in the batch are executed atomically in a single simulation step,
+    /// which is significantly more efficient than individual calls.
+    ///
+    /// # Arguments
+    ///
+    /// * `commands` - Vector of commands to execute
+    /// * `do_tick_cue` - If true, sends a tick cue after executing the batch
+    ///
+    /// # Returns
+    ///
+    /// Vector of [`CommandResponse`] with results for each command
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::{client::Client, rpc::Command};
+    ///
+    /// let mut client = Client::default();
+    /// let world = client.world();
+    /// let blueprint_library = world.blueprint_library();
+    ///
+    /// // Spawn multiple vehicles at once
+    /// let vehicle_bp = blueprint_library.find("vehicle.tesla.model3").unwrap();
+    /// let spawn_points = world.map().recommended_spawn_points();
+    ///
+    /// let mut commands = Vec::new();
+    /// for spawn_point in spawn_points.iter().take(10) {
+    ///     commands.push(Command::spawn_actor(
+    ///         vehicle_bp.clone(),
+    ///         spawn_point.clone(),
+    ///         None,
+    ///     ));
+    /// }
+    ///
+    /// let responses = client.apply_batch_sync(commands, true);
+    /// for (i, response) in responses.iter().enumerate() {
+    ///     if let Some(actor_id) = response.actor_id() {
+    ///         println!("Spawned vehicle {}: actor ID {}", i, actor_id);
+    ///     } else if let Some(error) = response.error() {
+    ///         eprintln!("Failed to spawn vehicle {}: {}", i, error);
+    ///     }
+    /// }
+    /// ```
+    pub fn apply_batch_sync(
+        &mut self,
+        commands: Vec<Command>,
+        do_tick_cue: bool,
+    ) -> Vec<CommandResponse> {
+        let mut batch = FfiCommandBatch::new().within_unique_ptr();
+
+        for command in &commands {
+            command.add(&mut batch);
+        }
+
+        let ffi_responses = self
+            .inner
+            .pin_mut()
+            .ApplyBatchSync(batch.pin_mut(), do_tick_cue);
+
+        ffi_responses
+            .iter()
+            .map(CommandResponse::from_ffi)
+            .collect()
     }
 }
 

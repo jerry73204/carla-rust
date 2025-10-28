@@ -80,6 +80,8 @@ public:
 
     const VehiclePhysicsControl& inner() const { return inner_; }
 
+    const VehiclePhysicsControl& as_native() const { return inner_; }
+
 private:
     VehiclePhysicsControl inner_;
 };
