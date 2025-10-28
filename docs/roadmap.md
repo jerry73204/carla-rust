@@ -467,11 +467,11 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Low
 **Estimated Effort:** 2-3 weeks (includes FFI work + version handling)
-**Status:** Not Started
+**Status:** ✅ Complete
 
 ### Work Items
 
-- [ ] **Ackermann Control** (0.9.14+)
+- [x] **Ackermann Control** (0.9.14+)
   - **FFI Work (carla-sys):**
     - File: `carla-sys/src/ffi.rs`
     - Verify `carla::rpc::AckermannControl` is exposed (should already exist)
@@ -490,67 +490,61 @@ Run with: `cargo run --example spawn_vehicle`
   - **Tests:**
     - Integration tests: Apply Ackermann control and verify steering
 
-- [ ] **Vehicle Failure State** (0.9.14+)
-  - **FFI Work (carla-sys):**
+- [x] **Vehicle Failure State** (0.9.14+)
+  - **FFI Work (carla-sys):** ✅ Complete
     - File: `carla-sys/src/ffi.rs`
     - Add `#include "carla/rpc/VehicleFailureState.h"` to includes
     - Add to `generate!` block: `carla::rpc::VehicleFailureState`
     - Add Vehicle method to `safety!` block: `GetFailureState()` → returns VehicleFailureState
-  - **Rust API (carla):**
+  - **Rust API (carla):** ✅ Complete
     - File: `carla/src/rpc/vehicle_failure_state.rs`
-    - Enum `VehicleFailureState`: None, Rollover, Engine, TirePuncture, etc.
-    - File: `carla/src/client/vehicle.rs` - Add method:
-      - `get_failure_state(&self) -> VehicleFailureState`
-  - **Tests:**
-    - Integration tests: Trigger rollover and detect failure state
+    - Re-export C++ enum `VehicleFailureState`: None, Rollover, Engine, TirePuncture
+    - File: `carla/src/client/vehicle.rs` - Added method:
+      - `failure_state(&self) -> VehicleFailureState`
+  - **Tests:** N/A (requires simulator)
 
-- [ ] **Vehicle Telemetry** (0.9.16+ only)
-  - **FFI Work (carla-sys):**
-    - File: `carla-sys/src/ffi.rs`
-    - Add `#[cfg(carla_0916)]` gated includes:
+- [x] **Vehicle Telemetry** (0.9.16+ only)
+  - **FFI Work (carla-sys):** ✅ Complete
+    - File: `carla-sys/src/bindings.rs`
+    - Added `#[cfg(carla_0916)]` gated includes:
       - `#include "carla/rpc/VehicleTelemetryData.h"`
-    - Add to `generate!` block with `#[cfg(carla_0916)]`:
-      - `carla::rpc::VehicleTelemetryData`
-    - Add Vehicle method to `safety!` block: `GetTelemetryData()` → returns VehicleTelemetryData
-  - **Rust API (carla):**
+      - `#include "carla/rpc/WheelTelemetryData.h"`
+    - Created FFI wrapper `FfiVehicleTelemetryData` for opaque type handling
+    - Added to `generate!` block: `carla_rust::rpc::FfiVehicleTelemetryData`
+    - Added Vehicle method: `GetTelemetryData()` → returns FfiVehicleTelemetryData
+  - **Rust API (carla):** ✅ Complete
     - File: `carla/src/rpc/vehicle_telemetry_data.rs`
-    - `#[cfg(carla_0916)]` gated struct with detailed physics data
-    - File: `carla/src/client/vehicle.rs` - Add method:
-      - `#[cfg(carla_0916)] get_telemetry_data(&self) -> VehicleTelemetryData`
-  - **Tests:**
-    - Integration tests: Get telemetry (0.9.16 only)
+    - `#[cfg(carla_0916)]` gated structs: `VehicleTelemetryData`, `WheelTelemetryData`
+    - File: `carla/src/client/vehicle.rs` - Added method:
+      - `#[cfg(carla_0916)] telemetry_data(&self) -> VehicleTelemetryData`
+  - **Tests:** N/A (requires simulator)
+  - **Example:** `carla/examples/vehicle_advanced_features.rs`
 
-- [ ] **Wheel Pitch Control** (0.9.16+ only)
-  - **FFI Work (carla-sys):**
-    - File: `carla-sys/src/ffi.rs`
-    - Add to `safety!` block with `#[cfg(carla_0916)]`:
-      - `SetWheelSteerDirection(WheelLocation, float)`
-      - `GetWheelSteerAngle(WheelLocation)` → returns float
-      - `GetVehicleBoneWorldTransforms()` → returns vector of transforms
-      - `RestorePhysXPhysics()`
-  - **Rust API (carla):**
-    - File: `carla/src/client/vehicle.rs` - Add methods:
-      - `#[cfg(carla_0916)] set_wheel_pitch_angle(&mut self, wheel: WheelLocation, angle: f32)`
-      - `#[cfg(carla_0916)] get_wheel_pitch_angle(&self, wheel: WheelLocation) -> f32`
-      - `#[cfg(carla_0916)] get_vehicle_bone_world_transforms(&self) -> Vec<Transform>`
-      - `#[cfg(carla_0916)] restore_phys_x_physics(&mut self)`
-  - **Tests:**
-    - Integration tests: Control wheel pitch (0.9.16 only)
+- [x] **Wheel Pitch Control** (0.9.16+ only)
+  - **FFI Work (carla-sys):** ✅ Complete (methods already exposed)
+    - File: `carla-sys/csrc/carla_rust/client/vehicle.hpp`
+    - Methods: `SetWheelPitchAngle()`, `GetWheelPitchAngle()`, `RestorePhysXPhysics()`
+  - **Rust API (carla):** ✅ Complete
+    - File: `carla/src/client/vehicle.rs` - Added methods:
+      - `#[cfg(carla_0916)] set_wheel_pitch_angle(&self, wheel: VehicleWheelLocation, degrees: f32)`
+      - `#[cfg(carla_0916)] wheel_pitch_angle(&self, wheel: VehicleWheelLocation) -> f32`
+      - `#[cfg(carla_0916)] restore_phys_x_physics(&self)`
+  - **Tests:** N/A (requires simulator)
+  - **Example:** `carla/examples/vehicle_advanced_features.rs`
+  - **Note:** `GetVehicleBoneWorldTransforms()` deferred - requires autocxx support for `std::vector<Transform>`
 
-- [ ] **Vehicle Doors** (0.9.13+)
-  - **FFI Work (carla-sys):**
-    - File: `carla-sys/src/ffi.rs`
-    - Verify `carla::rpc::VehicleDoor` enum is exposed (should already exist)
-    - Add Vehicle methods to `safety!` block:
-      - `OpenDoor(VehicleDoor)`
-      - `CloseDoor(VehicleDoor)`
-  - **Rust API (carla):**
-    - File: `carla/src/rpc/vehicle_door.rs` - Verify existing VehicleDoor enum
-    - File: `carla/src/client/vehicle.rs` - Add methods:
-      - `open_door(&mut self, door: VehicleDoor)`
-      - `close_door(&mut self, door: VehicleDoor)`
-  - **Tests:**
-    - Integration tests: Open/close doors and verify physics
+- [x] **Vehicle Doors** (0.9.13+)
+  - **FFI Work (carla-sys):** ✅ Complete (methods already exposed)
+    - File: `carla-sys/csrc/carla_rust/client/vehicle.hpp`
+    - `carla::rpc::VehicleDoor` enum already exposed
+    - Methods: `OpenDoor()`, `CloseDoor()`
+  - **Rust API (carla):** ✅ Complete
+    - File: `carla/src/rpc.rs` - Re-export VehicleDoor enum
+    - File: `carla/src/client/vehicle.rs` - Added methods:
+      - `open_door(&self, door: VehicleDoor)`
+      - `close_door(&self, door: VehicleDoor)`
+  - **Tests:** N/A (requires simulator)
+  - **Example:** `carla/examples/vehicle_advanced_features.rs`
 
 ### Test Cases
 
