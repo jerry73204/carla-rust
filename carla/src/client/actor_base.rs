@@ -206,4 +206,28 @@ pub trait ActorBase: Clone {
     fn is_active(&self) -> bool {
         self.cxx_actor().IsActive()
     }
+
+    /// Destroys this actor and removes it from the simulation.
+    ///
+    /// Returns `true` if the actor was successfully destroyed, `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::{ActorBase, Client};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    ///
+    /// // Destroy the actor when done
+    /// let success = actor.destroy();
+    /// println!("Actor destroyed: {}", success);
+    /// ```
+    fn destroy(&self) -> bool {
+        self.cxx_actor().Destroy()
+    }
 }

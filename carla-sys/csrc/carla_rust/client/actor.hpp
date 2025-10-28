@@ -177,6 +177,8 @@ public:
 
     bool IsActive() const { return inner_->IsActive(); }
 
+    bool Destroy() const { return inner_->Destroy(); }
+
     const SharedPtr<Actor>& as_builtin() const { return inner_; }
 
     std::shared_ptr<FfiVehicle> to_vehicle() const {
