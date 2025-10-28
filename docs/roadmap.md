@@ -581,44 +581,71 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Medium
 **Estimated Effort:** 3 weeks
-**Status:** Not Started
+**Status:** ✅ **COMPLETE** (Oct 28, 2025)
 
 ### Work Items
 
-- [ ] **Command System**
-  - File: `carla/src/rpc/command.rs`
-  - Enum `Command` with variants:
-    - `SpawnActor` - Spawn actor with blueprint
-    - `DestroyActor` - Remove actor
-    - `ApplyVehicleControl` - Apply vehicle control
-    - `ApplyWalkerControl` - Apply walker control
-    - `ApplyTransform` - Set actor transform
-    - `ApplyWalkerState` - Set walker state
-    - `ApplyTargetVelocity` - Set target velocity
-    - `ApplyTargetAngularVelocity` - Set angular velocity
-    - `ApplyImpulse` - Apply impulse
-    - `ApplyForce` - Apply force
-    - `ApplyAngularImpulse` - Apply angular impulse
-    - `ApplyTorque` - Apply torque
-    - `SetSimulatePhysics` - Enable/disable physics
-    - `SetEnableGravity` - Enable/disable gravity
-    - `SetAutopilot` - Enable/disable autopilot
-    - `ShowDebugTelemetry` - Enable/disable telemetry
-    - `SetVehicleLightState` - Set vehicle lights
-    - `ApplyLocation` - Set location (0.9.14+)
-    - `ApplyVehiclePhysicsControl` - Set physics control (0.9.12+)
-    - `SetTrafficLightState` - Set traffic light state (0.9.14+)
-    - `ConsoleCommand` - Execute console command (0.9.14+)
+- [x] **Command System**
+  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+    - File: `carla-sys/csrc/carla_rust/client/command_batch.hpp` - Created FfiCommandBatch wrapper
+    - File: `carla-sys/csrc/carla_rust/rpc/vehicle_physics_control.hpp` - Added `as_native()` method
+    - File: `carla-sys/src/bindings.rs` - Added FFI bindings
+    - Implemented 22 Add* methods using autocxx-compatible primitive types (`uint32_t`, `uint8_t`)
+    - Used associated function calling convention for autocxx-generated bindings
+    - Verified compilation on CARLA 0.9.16
+  - **Rust API (carla):** ✅ **COMPLETE**
+    - File: `carla/src/rpc/command.rs` (362 lines)
+    - Enum `Command` with 22 variants:
+      - ✅ `SpawnActor` - Spawn actor with blueprint
+      - ✅ `DestroyActor` - Remove actor
+      - ✅ `ApplyVehicleControl` - Apply vehicle control
+      - ✅ `ApplyVehicleAckermannControl` - Apply Ackermann control
+      - ✅ `ApplyWalkerControl` - Apply walker control
+      - ✅ `ApplyVehiclePhysicsControl` - Set physics control
+      - ✅ `ApplyTransform` - Set actor transform
+      - ✅ `ApplyLocation` - Set location
+      - ✅ `ApplyWalkerState` - Set walker state
+      - ✅ `ApplyTargetVelocity` - Set target velocity
+      - ✅ `ApplyTargetAngularVelocity` - Set angular velocity
+      - ✅ `ApplyImpulse` - Apply impulse
+      - ✅ `ApplyForce` - Apply force
+      - ✅ `ApplyAngularImpulse` - Apply angular impulse
+      - ✅ `ApplyTorque` - Apply torque
+      - ✅ `SetSimulatePhysics` - Enable/disable physics
+      - ✅ `SetEnableGravity` - Enable/disable gravity
+      - ✅ `SetAutopilot` - Enable/disable autopilot
+      - ✅ `ShowDebugTelemetry` - Enable/disable telemetry
+      - ✅ `SetVehicleLightState` - Set vehicle lights
+      - ✅ `ConsoleCommand` - Execute console command
+      - ✅ `SetTrafficLightState` - Set traffic light state
+    - Helper methods: `spawn_actor()`, `destroy_actor()`, `apply_vehicle_control()`, etc.
+    - Comprehensive documentation with examples for each variant
 
-- [ ] **Batch Processing**
-  - File: `carla/src/client/carla_client.rs`
-  - Methods:
-    - `apply_batch(commands)` - Apply commands in batch
-    - `apply_batch_sync(commands, due_tick_cputime)` - Apply batch synchronously
+- [x] **Batch Processing**
+  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+    - File: `carla-sys/csrc/carla_rust/client/client.hpp` - Added ApplyBatch/ApplyBatchSync methods
+    - Methods use FfiCommandBatch to accumulate commands
+    - Return FfiCommandResponse for sync variant
+  - **Rust API (carla):** ✅ **COMPLETE**
+    - File: `carla/src/client/carla_client.rs:596-677`
+    - Implemented methods:
+      - `apply_batch(&mut self, commands: Vec<Command>, do_tick_cue: bool)` - Fire-and-forget batch
+      - `apply_batch_sync(&mut self, commands: Vec<Command>, do_tick_cue: bool) -> Vec<CommandResponse>` - Synchronous with responses
+    - Zero-copy command building directly in C++
+    - Comprehensive documentation with batch spawn example
 
-- [ ] **Command Response**
-  - File: `carla/src/rpc/command_response.rs`
-  - Response type indicating success/failure and actor ID for spawns
+- [x] **Command Response**
+  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+    - File: `carla-sys/csrc/carla_rust/client/command_batch.hpp` - FfiCommandResponse struct
+    - Opaque type with accessor methods (HasError, GetErrorMessage, GetActorId)
+    - Uses primitive types (`uint32_t`) for autocxx compatibility
+  - **Rust API (carla):** ✅ **COMPLETE**
+    - File: `carla/src/rpc/command_response.rs` (76 lines)
+    - Response type with methods:
+      - `is_success()` / `has_error()` - Check command result
+      - `error()` - Get error message if failed
+      - `actor_id()` - Get spawned actor ID
+    - Conversion from FFI using associated function syntax
 
 ### Test Cases
 
