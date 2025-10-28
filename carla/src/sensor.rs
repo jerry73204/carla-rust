@@ -4,6 +4,7 @@
 //! - [`SensorData`] - Base type for all sensor data
 //! - [`SensorDataBase`] - Trait providing common sensor data methods
 //! - [`data`] - Specific sensor data types (images, LiDAR, collision, etc.)
+//! - [`camera`] - Camera projection and coordinate transformation utilities
 //!
 //! # Sensor Data Types
 //!
@@ -14,6 +15,13 @@
 //! - **GNSS**: [`data::GnssMeasurement`] - GPS coordinates
 //! - **IMU**: [`data::ImuMeasurement`] - Accelerometer and gyroscope
 //! - **Lane Invasion**: [`data::LaneInvasionEvent`] - Lane crossing detection
+//!
+//! # Camera Utilities
+//!
+//! The [`camera`] module provides utilities for camera projection and sensor fusion:
+//! - [`camera::build_projection_matrix`] - Build camera intrinsic matrix
+//! - [`camera::world_to_camera`] - Transform world coordinates to camera space
+//! - [`camera::project_to_2d`] - Project 3D points to 2D image coordinates
 //!
 //! # Examples
 //!
@@ -46,4 +54,5 @@
 mod sensor_data;
 pub use sensor_data::*;
 
+pub mod camera;
 pub mod data;
