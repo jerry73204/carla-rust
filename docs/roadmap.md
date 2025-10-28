@@ -15,8 +15,8 @@ The carla-rust library currently provides core functionality for:
 
 This roadmap focuses on filling gaps to achieve feature parity with the C++ client library.
 
-**Total Phases:** 10 (Phase 0 - Phase 9)
-**Estimated Total Effort:** ~18-21 weeks
+**Total Phases:** 14 (Phase 0 - Phase 13)
+**Estimated Total Effort:** ~27-35 weeks
 **Note:** All work items are tracked with checkboxes for easy progress monitoring.
 
 ---
@@ -575,6 +575,321 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
+## Phase 10: Simple Example Implementations
+
+**Priority:** High
+**Estimated Effort:** 2-3 weeks
+**Status:** Not Started
+
+### Overview
+
+Implement Rust equivalents of simple Python examples that demonstrate single features or basic combinations. These examples serve as introductory material and test basic API functionality.
+
+### Prerequisites
+
+- Phase 3: Recording and Playback APIs
+- Phase 4: Advanced Vehicle Features (physics control)
+- Weather API implementation
+- Spectator camera access
+
+### Work Items
+
+- [ ] **Core Example Infrastructure**
+  - File: `carla/examples/README.md`
+  - Update with new examples
+  - Document dependencies and run instructions
+  - Add troubleshooting section
+
+- [ ] **Tutorial Example** (`tutorial.rs`)
+  - Spawn vehicle with autopilot
+  - Attach camera sensor
+  - Save sensor data to disk
+  - Demonstrates: Basic workflow, sensors, autopilot
+
+- [ ] **Vehicle Gallery** (`vehicle_gallery.rs`)
+  - Iterate through all vehicle blueprints
+  - Spawn each vehicle temporarily
+  - Rotate spectator camera around vehicle
+  - Demonstrates: Blueprint iteration, spectator control
+
+- [ ] **Dynamic Weather** (`dynamic_weather.rs`)
+  - Implement weather parameter control
+  - Animate sun position over time
+  - Simulate storm cycles
+  - Demonstrates: Weather system, world tick
+
+- [ ] **Vehicle Physics** (`vehicle_physics.rs`)
+  - Apply impulse and force to vehicles
+  - Compare physics effects
+  - Use synchronous mode for precision
+  - Demonstrates: Physics control, synchronous mode
+
+- [ ] **Recording Examples** (3 files)
+  - `start_recording.rs` - Start/stop recorder
+  - `start_replaying.rs` - Replay recordings
+  - `show_recorder_info.rs` - Query recording metadata
+  - Demonstrates: Recording API, metadata queries
+
+### Test Cases
+
+#### Integration Tests
+- `test_tutorial_example` - Run tutorial example end-to-end
+- `test_weather_animation` - Verify weather parameter changes
+- `test_physics_impulse` - Apply impulse and measure effect
+- `test_recording_playback` - Record and replay scenario
+- `test_recorder_queries` - Query collision and blocked actor data
+
+### Dependencies
+
+**New APIs Needed**:
+```rust
+// Weather control
+impl World {
+    pub fn get_weather(&self) -> WeatherParameters;
+    pub fn set_weather(&mut self, weather: &WeatherParameters);
+}
+
+// Spectator access
+impl World {
+    pub fn get_spectator(&self) -> Actor;
+}
+```
+
+**See**: `docs/example_implementation_plan.md` for detailed specifications
+
+---
+
+## Phase 11: Intermediate Example Implementations
+
+**Priority:** High
+**Estimated Effort:** 3-4 weeks
+**Status:** Not Started
+
+### Overview
+
+Implement examples that combine multiple features and demonstrate more complex scenarios. These examples are essential for understanding real-world usage patterns.
+
+### Prerequisites
+
+- Phase 5: Batch Operations and Commands
+- Phase 6: Advanced Sensor Features
+- Traffic Manager enhancements
+- Walker AI Controller implementation
+- Synchronous mode utilities
+
+### Work Items
+
+- [ ] **Generate Traffic** (`generate_traffic.rs`)
+  - Batch spawn vehicles and walkers
+  - Configure Traffic Manager
+  - Spawn walker AI controllers
+  - Demonstrates: Batch commands, Traffic Manager, walker AI
+
+- [ ] **Sensor Synchronization** (`sensor_synchronization.rs`)
+  - Spawn multiple sensors (cameras, lidar, radar)
+  - Synchronize data collection
+  - Use queue-based collection pattern
+  - Demonstrates: Multi-sensor setup, synchronization
+
+- [ ] **Synchronous Mode** (`synchronous_mode.rs`)
+  - Create sync mode context manager
+  - Spawn vehicle with RGB and semantic cameras
+  - Display camera feeds (simple renderer)
+  - Demonstrates: Synchronous simulation, sensor sync
+
+- [ ] **Automatic Control** (`automatic_control.rs`)
+  - Enable autopilot on vehicle
+  - Display HUD with vehicle info
+  - Simple keyboard controls for camera
+  - Demonstrates: Autopilot, basic UI
+
+- [ ] **Sensor Coordination** (2 examples)
+  - `lidar_to_camera.rs` - Transform lidar points to camera view
+  - `visualize_multiple_sensors.rs` - Multi-sensor display
+  - Demonstrates: Coordinate transformations, sensor fusion
+
+- [ ] **GBuffer Access** (`tutorial_gbuffer.rs`)
+  - Access GBuffer textures
+  - Save scene depth, normals, etc.
+  - Demonstrates: Advanced rendering features
+
+### Test Cases
+
+#### Integration Tests
+- `test_batch_traffic_spawn` - Spawn 50 vehicles + 20 walkers
+- `test_sensor_synchronization` - Verify all sensors tick together
+- `test_sync_mode_context` - Context manager lifecycle
+- `test_autopilot_navigation` - Vehicle navigates autonomously
+- `test_lidar_camera_transform` - Coordinate transformation accuracy
+
+### Dependencies
+
+**New APIs Needed**:
+```rust
+// Walker AI Controller (from deferred Phase 1)
+impl WalkerAIController {
+    pub fn start(&mut self);
+    pub fn stop(&mut self);
+    pub fn go_to_location(&mut self, location: Location);
+    pub fn set_max_speed(&mut self, speed: f32);
+}
+
+// Random navigation
+impl World {
+    pub fn get_random_location_from_navigation(&self) -> Option<Location>;
+    pub fn set_pedestrians_cross_factor(&mut self, percentage: f32);
+}
+```
+
+**External Crates**:
+- `winit` - Window creation and events (for UI examples)
+- `pixels` - Simple pixel buffer rendering
+
+**See**: `docs/example_implementation_plan.md` for implementation patterns
+
+---
+
+## Phase 12: Advanced Example Implementations
+
+**Priority:** Medium
+**Estimated Effort:** 4-5 weeks
+**Status:** Not Started
+
+### Overview
+
+Implement complex examples with advanced features, external dependencies, and sophisticated interactions. These demonstrate professional-grade CARLA applications.
+
+### Prerequisites
+
+- Phase 2: Debug and Visualization Utilities
+- All sensor APIs complete
+- UI framework integration (winit + pixels)
+- Math library integration (nalgebra)
+- Image processing utilities
+
+### Work Items
+
+- [ ] **Manual Control** (`manual_control.rs`)
+  - Full interactive vehicle control (WASD keys)
+  - Real-time HUD display
+  - Camera switching and controls
+  - Demonstrates: Complete interactive demo, UI integration
+
+- [ ] **Bounding Boxes** (2 examples)
+  - `bounding_boxes.rs` - 2D/3D bbox generation and display
+  - `client_bounding_boxes.rs` - Client-side bbox computation
+  - Camera projection matrix implementation
+  - Instance segmentation decoding
+  - Demonstrates: Computer vision, projection math
+
+- [ ] **Advanced Visualization** (3 examples)
+  - `draw_skeleton.rs` - Walker skeleton visualization
+  - `no_rendering_mode.rs` - Large-scale simulation (100+ vehicles)
+  - `open3d_lidar.rs` - Lidar point cloud visualization (optional)
+  - Demonstrates: Debug drawing, scalability, 3D viz
+
+- [ ] **Hardware Input** (`manual_control_steeringwheel.rs`)
+  - Steering wheel and pedal support
+  - Force feedback (if available)
+  - Demonstrates: Hardware integration
+
+### Test Cases
+
+#### Manual Testing Required
+- Most examples in this phase require human interaction
+- Create test checklist for manual verification
+- Document expected behavior and controls
+
+#### Automated Tests (Where Possible)
+- `test_projection_matrix` - Verify camera projection math
+- `test_bbox_computation` - 2D bbox from 3D coordinates
+- `test_instance_segmentation_decode` - Decode actor IDs
+- `test_large_scale_spawn` - 100 vehicles spawn successfully
+
+### Dependencies
+
+**External Crates**:
+- **winit** (v0.29+) - Window and event handling
+- **pixels** (v0.13+) - 2D rendering
+- **nalgebra** (v0.32+) - Matrix and vector math
+- **image** (v0.24+) - Image encoding/decoding
+- **gilrs** (v0.10+) - Game controller/wheel input
+
+**New Utilities**:
+```rust
+// Camera projection (new module)
+pub mod camera_projection {
+    pub fn build_projection_matrix(width: u32, height: u32, fov: f32) -> Matrix3<f32>;
+    pub fn world_to_camera(point: Location, camera_transform: &Transform) -> Vector3<f32>;
+    pub fn project_to_2d(point_3d: Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32);
+}
+
+// Instance segmentation utilities
+impl SemanticSegmentationImage {
+    pub fn decode_instance_ids(&self) -> (Vec<u8>, Vec<u16>);
+}
+```
+
+**See**: `docs/example_implementation_plan.md` for UI patterns and design guidelines
+
+---
+
+## Phase 13: Specialized Examples (Reference/Future)
+
+**Priority:** Low/Deferred
+**Estimated Effort:** Varies by integration
+**Status:** Documentation Only
+
+### Overview
+
+Document external integration examples from the Python repository. Most are deferred as they require external systems, proprietary SDKs, or are better served by separate integration crates.
+
+### Examples (Reference Only)
+
+- **InvertedAI Traffic** (`invertedai_traffic.py`)
+  - Status: Deferred - requires InvertedAI API subscription
+  - Integration point: Traffic generation via external AI
+
+- **NVIDIA Cosmos Generation** (`carla_cosmos_gen.py`)
+  - Status: Deferred - requires NVIDIA Cosmos SDK
+  - Integration point: Synthetic data generation
+
+- **V2X Communication** (`V2XDemo.py`, `test_addsecondvx.py`)
+  - Status: Deferred - requires V2X protocol implementation
+  - Integration point: Vehicle-to-vehicle/infrastructure communication
+
+- **ROS2 Bridge** (`ros2/*`)
+  - Status: Future - recommend separate `carla-ros2` crate
+  - Integration point: ROS2 message conversion and topics
+
+- **RSS Safety** (`rss/*`)
+  - Status: Deferred - requires Intel RSS library bindings
+  - Integration point: Safety validation and constraint checking
+
+### Work Items
+
+- [ ] **Integration Documentation**
+  - Document FFI requirements for each integration
+  - Identify Rust crate alternatives where available
+  - Create integration guide for common patterns
+
+- [ ] **External Crate Recommendations**
+  - ROS2: `rclrs` (existing ROS2 Rust bindings)
+  - V2X: Protocol-specific crates (when available)
+  - RSS: Custom FFI bindings (complex undertaking)
+
+### Rationale
+
+These integrations are deferred because they:
+1. Require external paid services (InvertedAI)
+2. Require proprietary SDKs (NVIDIA Cosmos)
+3. Are better served by dedicated integration crates (ROS2)
+4. Require extensive additional FFI work (RSS)
+
+**Recommendation**: Document integration patterns but don't implement unless there's specific user demand.
+
+---
+
 ## Cross-Phase Testing
 
 ### Integration Test Scenarios
@@ -699,6 +1014,8 @@ Each phase is considered complete when:
 ## References
 
 - [CARLA Python API Documentation](https://carla.readthedocs.io/en/latest/python_api/)
+- [CARLA Python Examples](https://github.com/carla-simulator/carla/tree/master/PythonAPI/examples)
 - [CARLA C++ Client LibCarla Source](https://github.com/carla-simulator/carla/tree/master/LibCarla/source/carla/client)
 - [CARLA CHANGELOG](https://github.com/carla-simulator/carla/blob/master/CHANGELOG.md)
 - [carla-rust API Differences](./carla_api_differences.md)
+- [Example Implementation Plan](./example_implementation_plan.md)
