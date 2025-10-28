@@ -80,6 +80,14 @@ impl TrafficLight {
         unsafe { TrafficLightList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Resets the state of the entire traffic light group.
+    ///
+    /// This affects all traffic lights in the synchronized group,
+    /// resetting their timing and state.
+    pub fn reset_group(&self) {
+        self.inner.ResetGroup();
+    }
+
     pub fn affected_lane_waypoints(&self) -> WaypointList {
         let ptr = self.inner.GetAffectedLaneWaypoints().within_unique_ptr();
         unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
