@@ -25,10 +25,17 @@ pub use lidar_measurement::*;
 mod semantic_lidar_measurement;
 pub use semantic_lidar_measurement::*;
 
+mod dvs_event_array;
+pub use dvs_event_array::*;
+
+mod optical_flow_image;
+pub use optical_flow_image::*;
+
 pub use carla_sys::{
-    carla::sensor::data::RadarDetection,
+    carla::sensor::data::{DVSEvent, RadarDetection},
     carla_rust::sensor::data::{
         FfiColor as Color, FfiLidarDetection as LidarDetection,
+        FfiOpticalFlowPixel as OpticalFlowPixel,
         FfiSemanticLidarDetection as SemanticLidarDetection,
     },
 };

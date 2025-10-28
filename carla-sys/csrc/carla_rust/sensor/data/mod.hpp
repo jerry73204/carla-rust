@@ -2,10 +2,12 @@
 
 #include "collision_event.hpp"
 #include "color.hpp"
+#include "dvs_event_array.hpp"
 #include "image.hpp"
 #include "lane_invasion_event.hpp"
 #include "lidar_detection.hpp"
 #include "obstacle_detection_event.hpp"
+#include "optical_flow_image.hpp"
 #include "semantic_lidar_detection.hpp"
 #include "lidar_measurement.hpp"
 #include "semantic_lidar_measurement.hpp"

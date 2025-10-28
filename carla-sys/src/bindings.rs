@@ -99,6 +99,9 @@ include_cpp! {
     generate_pod!("carla_rust::sensor::data::FfiColor")
     generate_pod!("carla_rust::sensor::data::FfiLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
+    generate_pod!("carla_rust::sensor::data::FfiOpticalFlowPixel")
+    generate!("carla_rust::sensor::data::FfiDVSEventArray")
+    generate!("carla_rust::sensor::data::FfiOpticalFlowImage")
     generate_pod!("carla_rust::rpc::FfiLabelledPoint")
     generate_pod!("carla_rust::rpc::FfiRpcColor")
     generate_pod!("carla_rust::rpc::FfiRpcLightState")
@@ -187,6 +190,9 @@ include_cpp! {
     generate!("carla::sensor::data::SemanticLidarData")
     generate!("carla::sensor::data::IMUMeasurement")
     generate!("carla::sensor::data::GnssMeasurement")
+    generate!("carla::sensor::data::DVSEvent")
+    generate!("carla::sensor::data::DVSEventArray")
+    generate!("carla::sensor::data::OpticalFlowImage")
 
     // carla::traffic_manager
     generate!("carla::traffic_manager::RoadOption")

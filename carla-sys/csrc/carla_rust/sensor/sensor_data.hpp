@@ -8,22 +8,26 @@ using carla::SharedPtr;
 using carla::geom::Transform;
 using carla::sensor::SensorData;
 using carla::sensor::data::CollisionEvent;
+using carla::sensor::data::DVSEventArray;
 using carla::sensor::data::GnssMeasurement;
 using carla::sensor::data::Image;
 using carla::sensor::data::IMUMeasurement;
 using carla::sensor::data::LaneInvasionEvent;
 using carla::sensor::data::LidarMeasurement;
 using carla::sensor::data::ObstacleDetectionEvent;
+using carla::sensor::data::OpticalFlowImage;
 using carla::sensor::data::RadarMeasurement;
 using carla::sensor::data::SemanticLidarMeasurement;
 using carla_rust::geom::FfiTransform;
 using carla_rust::sensor::data::FfiCollisionEvent;
+using carla_rust::sensor::data::FfiDVSEventArray;
 using carla_rust::sensor::data::FfiGnssMeasurement;
 using carla_rust::sensor::data::FfiImage;
 using carla_rust::sensor::data::FfiImuMeasurement;
 using carla_rust::sensor::data::FfiLaneInvasionEvent;
 using carla_rust::sensor::data::FfiLidarMeasurement;
 using carla_rust::sensor::data::FfiObstacleDetectionEvent;
+using carla_rust::sensor::data::FfiOpticalFlowImage;
 using carla_rust::sensor::data::FfiRadarMeasurement;
 using carla_rust::sensor::data::FfiSemanticLidarMeasurement;
 
@@ -120,6 +124,24 @@ public:
             return nullptr;
         } else {
             return std::make_shared<FfiRadarMeasurement>(std::move(ptr));
+        }
+    }
+
+    std::shared_ptr<FfiDVSEventArray> to_dvs_event_array() const {
+        auto ptr = boost::dynamic_pointer_cast<DVSEventArray>(inner_);
+        if (ptr == nullptr) {
+            return nullptr;
+        } else {
+            return std::make_shared<FfiDVSEventArray>(std::move(ptr));
+        }
+    }
+
+    std::shared_ptr<FfiOpticalFlowImage> to_optical_flow_image() const {
+        auto ptr = boost::dynamic_pointer_cast<OpticalFlowImage>(inner_);
+        if (ptr == nullptr) {
+            return nullptr;
+        } else {
+            return std::make_shared<FfiOpticalFlowImage>(std::move(ptr));
         }
     }
 
