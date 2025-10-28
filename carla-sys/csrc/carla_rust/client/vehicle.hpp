@@ -11,10 +11,12 @@
 #include "carla/rpc/VehicleWheels.h"
 #include "carla/rpc/VehicleAckermannControl.h"
 #include "carla/rpc/TrafficLightState.h"
+#include "carla/rpc/VehicleFailureState.h"
 #ifdef CARLA_VERSION_0916
 #include "carla/rpc/VehicleTelemetryData.h"
 #endif
 #include "carla_rust/rpc/vehicle_physics_control.hpp"
+#include "carla_rust/rpc/vehicle_telemetry_data.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -90,10 +92,14 @@ public:
 
     bool IsAtTrafficLight() const { return inner_->IsAtTrafficLight(); }
 
+    carla::rpc::VehicleFailureState GetFailureState() const { return inner_->GetFailureState(); }
+
     // SharedPtr<TrafficLight> GetTrafficLight() const {}
 
 #ifdef CARLA_VERSION_0916
-    carla::rpc::VehicleTelemetryData GetTelemetryData() const { return inner_->GetTelemetryData(); }
+    carla_rust::rpc::FfiVehicleTelemetryData GetTelemetryData() const {
+        return carla_rust::rpc::FfiVehicleTelemetryData(inner_->GetTelemetryData());
+    }
 
     void SetWheelPitchAngle(VehicleWheelLocation wheel_location, float angle_in_deg) const {
         inner_->SetWheelPitchAngle(wheel_location, angle_in_deg);

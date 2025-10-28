@@ -37,6 +37,9 @@ include_cpp! {
     #include "carla/rpc/GearPhysicsControl.h"
     #include "carla/rpc/WeatherParameters.h"
     #include "carla/rpc/ObjectLabel.h"
+    #include "carla/rpc/VehicleFailureState.h"
+    #include "carla/rpc/VehicleTelemetryData.h"
+    #include "carla/rpc/WheelTelemetryData.h"
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
@@ -96,6 +99,7 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiBoneTransformDataOut")
     generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
     generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
+    generate!("carla_rust::rpc::FfiVehicleTelemetryData")
 
     // carla
     generate!("carla::SharedPtr")
@@ -140,6 +144,8 @@ include_cpp! {
     generate_pod!("carla::rpc::CityObjectLabel")
     generate_pod!("carla::rpc::ActorState")
     generate_pod!("carla::rpc::LightId")
+    generate_pod!("carla::rpc::VehicleFailureState")
+    generate_pod!("carla::rpc::WheelTelemetryData")
 
     // carla::client
     generate!("carla::client::Vehicle")

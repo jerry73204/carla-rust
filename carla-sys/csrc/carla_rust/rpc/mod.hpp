@@ -7,4 +7,5 @@
 #include "light_state.hpp"
 #include "vehicle_light_state_list.hpp"
 #include "vehicle_physics_control.hpp"
+#include "vehicle_telemetry_data.hpp"
 #include "walker_bone_control.hpp"

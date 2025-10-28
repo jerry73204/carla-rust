@@ -2,9 +2,12 @@
 // to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
 
 use super::{Actor, ActorBase};
+#[cfg(carla_0916)]
+use crate::rpc::VehicleTelemetryData;
 use crate::rpc::{
     AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
-    VehicleDoor, VehicleLightState, VehiclePhysicsControl, VehicleWheelLocation,
+    VehicleDoor, VehicleFailureState, VehicleLightState, VehiclePhysicsControl,
+    VehicleWheelLocation,
 };
 use autocxx::prelude::*;
 use carla_sys::{
@@ -181,6 +184,109 @@ impl Vehicle {
     /// Returns whether the vehicle is currently at a traffic light.
     pub fn is_at_traffic_light(&self) -> bool {
         self.inner.IsAtTrafficLight()
+    }
+
+    /// Returns the vehicle's current failure state.
+    ///
+    /// Available since CARLA 0.9.14+
+    ///
+    /// # Returns
+    ///
+    /// The failure state (None, Rollover, Engine, or TirePuncture)
+    pub fn failure_state(&self) -> VehicleFailureState {
+        self.inner.GetFailureState()
+    }
+
+    /// Returns detailed vehicle telemetry data including wheel physics.
+    ///
+    /// **Available only in CARLA 0.9.16+**
+    ///
+    /// Provides comprehensive physics data including speed, steering, engine RPM,
+    /// gear, drag, and per-wheel telemetry (friction, slip, forces, torque).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
+    /// let telemetry = vehicle.telemetry_data();
+    /// println!("Speed: {} m/s", telemetry.speed);
+    /// println!("Engine RPM: {}", telemetry.engine_rpm);
+    /// println!("Gear: {}", telemetry.gear);
+    /// for (i, wheel) in telemetry.wheels.iter().enumerate() {
+    ///     println!(
+    ///         "Wheel {}: friction={}, slip={}",
+    ///         i, wheel.tire_friction, wheel.lat_slip
+    ///     );
+    /// }
+    /// ```
+    #[cfg(carla_0916)]
+    pub fn telemetry_data(&self) -> VehicleTelemetryData {
+        (&*self.inner.GetTelemetryData().within_unique_ptr()).into()
+    }
+
+    /// Sets the pitch angle for a specific wheel (in degrees).
+    ///
+    /// **Available only in CARLA 0.9.16+**
+    #[cfg(carla_0916)]
+    pub fn set_wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
+        self.inner.SetWheelPitchAngle(wheel_location, degrees);
+    }
+
+    /// Returns the pitch angle for a specific wheel (in degrees).
+    ///
+    /// **Available only in CARLA 0.9.16+**
+    #[cfg(carla_0916)]
+    pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
+        self.inner.GetWheelPitchAngle(wheel_location)
+    }
+
+    // TODO: Implement vehicle_bone_world_transforms() when autocxx can handle std::vector<Transform>
+    // /// Returns world transforms for all vehicle bones.
+    // ///
+    // /// **Available only in CARLA 0.9.16+**
+    // ///
+    // /// Useful for advanced vehicle visualization and skeleton tracking.
+    // #[cfg(carla_0916)]
+    // pub fn vehicle_bone_world_transforms(&self) -> Vec<crate::geom::Transform> {
+    //     use crate::geom::{Location, Rotation, Transform};
+    //
+    //     let transforms_vec = self.inner.GetVehicleBoneWorldTransforms();
+    //     let mut result = Vec::new();
+    //
+    //     unsafe {
+    //         for i in 0..transforms_vec.size() {
+    //             let t = transforms_vec.index(i);
+    //             result.push(Transform {
+    //                 location: Location {
+    //                     x: t.location.x,
+    //                     y: t.location.y,
+    //                     z: t.location.z,
+    //                 },
+    //                 rotation: Rotation {
+    //                     pitch: t.rotation.pitch,
+    //                     yaw: t.rotation.yaw,
+    //                     roll: t.rotation.roll,
+    //                 },
+    //             });
+    //         }
+    //     }
+    //
+    //     result
+    // }
+
+    /// Restores PhysX physics simulation (after using Chrono or CarSim).
+    ///
+    /// **Available only in CARLA 0.9.16+**
+    #[cfg(carla_0916)]
+    pub fn restore_phys_x_physics(&self) {
+        self.inner.RestorePhysXPhysics();
     }
 
     /// Enables CarSim physics simulation with the given configuration file.
