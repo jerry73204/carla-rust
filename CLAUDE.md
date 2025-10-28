@@ -6,7 +6,78 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Rust client library for the CARLA simulator. The project uses FFI bindings to interface with the CARLA C++ client library and provides a safe, idiomatic Rust API.
 
-**Supported CARLA Versions:** 0.9.14, 0.9.16 (default: 0.9.16)
+**Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
+
+## Best Practices
+
+### Testing Strategy
+
+**❌ DO NOT create tests in `carla/tests/`**
+
+This project does NOT use the `tests/` directory for integration tests. Instead:
+
+**✅ DO create examples in `carla/examples/`**
+
+Examples serve dual purposes:
+1. **Documentation** - Users can see working code
+2. **Validation** - Automated testing via `scripts/run-examples.sh`
+
+**Testing workflow:**
+```bash
+# 1. Create example (not test) in carla/examples/
+vim carla/examples/my_feature_demo.rs
+
+# 2. Build with dev-release profile
+make build
+
+# 3. Test manually
+cargo run --example my_feature_demo --profile dev-release
+
+# 4. Test with automation (requires CARLA simulator)
+./scripts/run-examples.sh my_feature_demo
+```
+
+**Why this approach?**
+- Examples are more useful to users than hidden test code
+- Examples are easier to run manually for debugging
+- Automated test infrastructure via `scripts/run-examples.sh`
+- CARLA requires exclusive access, so serial testing is needed anyway
+
+**What about unit tests?**
+Unit tests stay in source files using `#[cfg(test)]`:
+```rust
+// src/rpc/some_type.rs
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_data_structure() {
+        // Test implementation
+    }
+}
+```
+
+### Build Commands
+
+**❌ DO NOT use `cargo build` directly**
+
+**✅ DO use `make build` or add `--profile dev-release`**
+
+```bash
+# Recommended
+make build
+
+# If using cargo directly, always add --profile dev-release
+cargo build --all-targets --profile dev-release
+cargo test --profile dev-release
+cargo run --example my_example --profile dev-release
+```
+
+Why? The `dev-release` profile is required for:
+- Examples to be placed in correct directory for test automation
+- Adequate performance for CARLA simulations
+- Debug symbols for troubleshooting
 
 ## Crate Architecture
 
@@ -60,12 +131,15 @@ cargo build
 # Build for CARLA 0.9.14
 CARLA_VERSION=0.9.14 cargo build
 
+# Build for CARLA 0.9.15
+CARLA_VERSION=0.9.15 cargo build
+
 # Build for CARLA 0.9.16 explicitly
 CARLA_VERSION=0.9.16 cargo build
 ```
 
 When `build-prebuilt` feature is enabled, the version determines:
-- Which boost library version to link against (1.80.0 for 0.9.14, 1.84.0 for 0.9.16)
+- Which boost library version to link against (1.80.0 for 0.9.14, 1.82.0 for 0.9.15, 1.84.0 for 0.9.16)
 - Which header files to use from CARLA_DIR
 
 When using prebuilt libraries, the version determines:
@@ -91,62 +165,126 @@ The build script automatically detects versions in this preference order: 13, 12
 
 ## Testing
 
+### Testing Philosophy: Examples as Tests
+
+**IMPORTANT:** This project does NOT use `carla/tests/` for integration tests. Instead, we use **examples as executable tests**.
+
+**Why?**
+- Examples serve dual purposes: documentation AND validation
+- Users can see working code that actually runs against CARLA
+- Examples are easier to discover and run manually
+- The `scripts/run-examples.sh` script provides automated test infrastructure
+
+**What goes where:**
+
+1. **Unit tests** (`#[cfg(test)]` in source files):
+   - Data structure creation and validation
+   - Type conversions
+   - Pure functions with no I/O
+   - No CARLA simulator required
+
+2. **Examples** (`carla/examples/*.rs`):
+   - Integration tests requiring CARLA simulator
+   - Demonstrations of API usage
+   - Feature validation
+   - Both simple demos and complex scenarios
+
+**Testing examples:**
+
 ```bash
-# Run all tests
-cargo test
+# Run all examples with automatic CARLA management
+./scripts/run-examples.sh
 
-# Run tests for specific crate
-cargo test -p carla
-cargo test -p carla-sys
-cargo test -p carla-src
+# Run specific examples
+./scripts/run-examples.sh spawn_vehicle walker_control
 
-# Run specific test
-cargo test <test_name>
+# Run with specific CARLA version
+./scripts/run-examples.sh --version 0.9.14
+
+# Run with custom timeout (default: 60s)
+./scripts/run-examples.sh --timeout 120
 ```
 
-### CARLA Simulator Setup for Integration Tests
+The `run-examples.sh` script:
+- Automatically starts/stops CARLA for each example
+- Restarts CARLA between examples for isolation
+- Captures logs for debugging
+- Generates a summary report with pass/fail status
+- Detects CARLA crashes during example execution
 
-Some tests require a running CARLA simulator. The `simulators/` directory contains symlinks to CARLA simulator binaries.
+### CARLA Simulator Setup
+
+The `simulators/` directory contains symlinks to CARLA simulator binaries.
 
 **Setup:**
 
-The repository includes placeholder symlinks that need to be replaced with your actual CARLA installations:
-
 ```bash
 # Remove placeholder symlinks
-rm simulators/carla-0.9.14
-rm simulators/carla-0.9.15
-rm simulators/carla-0.9.16
+rm scripts/simulators/carla-0.9.14
+rm scripts/simulators/carla-0.9.15
+rm scripts/simulators/carla-0.9.16
 
 # Create symlinks to your CARLA installations
-ln -s /path/to/your/CARLA_0.9.14 simulators/carla-0.9.14
-ln -s /path/to/your/CARLA_0.9.15 simulators/carla-0.9.15
-ln -s /path/to/your/CARLA_0.9.16 simulators/carla-0.9.16
+ln -s /path/to/your/CARLA_0.9.14 scripts/simulators/carla-0.9.14
+ln -s /path/to/your/CARLA_0.9.15 scripts/simulators/carla-0.9.15
+ln -s /path/to/your/CARLA_0.9.16 scripts/simulators/carla-0.9.16
 ```
 
-See `simulators/README.md` for detailed setup instructions.
+See `scripts/simulators/README.md` for detailed setup instructions.
 
-**Important Testing Constraints:**
+### Writing Examples
 
-- CARLA simulator can only run one scenario at a time
-- Tests that connect to the simulator **must use exclusive access**
-- Use the `serial_test` crate with `#[serial]` attribute for simulator tests
-- Mark simulator tests with `#[ignore]` to skip when simulator is unavailable
+When creating new examples:
 
-**Example:**
+1. **Name examples descriptively:**
+   - `spawn_vehicle.rs` - Clear what it demonstrates
+   - `walker_control.rs` - Shows walker movement
+   - `vehicle_physics_demo.rs` - Complex physics interactions
+
+2. **Include documentation:**
+   ```rust
+   //! Brief description of what this example demonstrates.
+   //!
+   //! This example shows how to:
+   //! - Item 1
+   //! - Item 2
+   //!
+   //! Run with: `cargo run --example example_name`
+   ```
+
+3. **Make examples robust:**
+   - Handle connection failures gracefully
+   - Print helpful messages about what's happening
+   - Clean up resources when possible (note: actor cleanup is manual)
+   - Exit with meaningful status codes (0 = success)
+
+4. **Examples should demonstrate, not test:**
+   - Focus on showing how to use the API
+   - Print output so users can see what's happening
+   - Avoid complex assertions (those go in unit tests)
+
+### Unit Test Pattern
+
+Unit tests stay in source files using `#[cfg(test)]`:
 
 ```rust
-use serial_test::serial;
+// src/rpc/walker_bone_control.rs
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-#[serial]  // Ensures exclusive access to simulator
-#[ignore]  // Run only when simulator is available
-fn test_vehicle_spawn() {
-    // Test implementation
+    #[test]
+    fn test_bone_transform_creation() {
+        let bone = BoneTransformDataIn {
+            bone_name: "crl_arm__L".to_string(),
+            transform: Transform::default(),
+        };
+        assert_eq!(bone.bone_name, "crl_arm__L");
+    }
 }
 ```
 
-See `docs/roadmap.md` Phase 0 for detailed test infrastructure planning.
+Run with: `cargo test`
 
 ## Code Organization
 
@@ -211,6 +349,10 @@ The `carla-sys/index.json5` file maps version-target combinations to download UR
         "url": "https://github.com/.../libcarla_client.0.9.14-x86_64-unknown-linux-gnu.tar.zstd",
         "sha256": "94064aee24500d4c3f0fa4c4720ab20803dc0c8ae28ba65a49b4912285ec17e0"
     },
+    "0.9.15-x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/.../libcarla_client.0.9.15-x86_64-unknown-linux-gnu.tar.zstd",
+        "sha256": "..."
+    },
     "0.9.16-x86_64-unknown-linux-gnu": {
         "url": "https://github.com/.../libcarla_client.0.9.16-x86_64-unknown-linux-gnu.tar.zstd",
         "sha256": "1dc1e69d824f545931ff746e4507ee62478569812dcf2cb1a0b261e20703c15b"
@@ -242,15 +384,19 @@ When building with different CARLA versions, artifacts are stored efficiently:
 
 **Storage requirements:**
 - CARLA 0.9.14: ~49M tarball + ~350M extracted = ~400M
+- CARLA 0.9.15: ~65M tarball + ~650M extracted = ~715M
 - CARLA 0.9.16: ~76M tarball + ~850M extracted = ~925M
-- Total with both versions: ~1.2G in `OUT_DIR`
+- Total with all versions: ~2G in `OUT_DIR`
 
 **Switching versions:**
 ```bash
 # Build 0.9.14 (downloads and caches)
 CARLA_VERSION=0.9.14 cargo build
 
-# Switch to 0.9.16 (downloads and caches, 0.9.14 artifacts remain)
+# Switch to 0.9.15 (downloads and caches, 0.9.14 artifacts remain)
+CARLA_VERSION=0.9.15 cargo build
+
+# Switch to 0.9.16 (downloads and caches, previous artifacts remain)
 CARLA_VERSION=0.9.16 cargo build
 
 # Back to 0.9.14 (uses cached artifacts, only recompiles Rust code)
@@ -280,20 +426,44 @@ sha256sum carla-sys/generated/*.tar.zstd
 4. Update `carla-sys/index.json5` with URL and SHA256 hash
 
 **Build time comparison:**
-- From source with `build-prebuilt`: 15-20 minutes (CARLA 0.9.16)
+- From source with `build-prebuilt`: 15-20 minutes
 - Download prebuilt: 30-40 seconds
+
+**Supported versions:** 0.9.14, 0.9.15, 0.9.16
 
 **See also:** `PREBUILT_COMPARISON.md` for build reproducibility verification
 
 ## Development Commands
 
+### Build System
+
+**IMPORTANT:** Use `make build` for development builds, or add `--profile dev-release` when using cargo directly.
+
+The Makefile provides consistent build configuration:
+
 ```bash
-# Build all crates
-cargo build
+# Build all crates, tests, and examples (RECOMMENDED)
+make build
 
-# Build with all features
-cargo build --all-features
+# Equivalent cargo command (if not using make):
+cargo build --all-targets --profile dev-release
+```
 
+**Why `--profile dev-release`?**
+- Uses the `dev-release` profile (optimized but with debug info)
+- Optimization level 2 makes the code fast enough for debugging
+- Includes debug symbols for debugging with gdb/lldb
+- Faster than `dev` profile, debug-able unlike `release` profile
+- **Required for examples** - the `scripts/run-examples.sh` script expects binaries in `target/dev-release/examples/`
+
+**Profile details:**
+- `dev-release` profile is defined in `Cargo.toml`
+- Binaries are placed in `target/dev-release/` (not `target/debug/` or `target/release/`)
+- Examples must be built with this profile to work with test automation
+
+### Other Commands
+
+```bash
 # Check without building
 cargo check
 
@@ -308,7 +478,21 @@ cargo doc --no-deps --open
 
 # Clean build artifacts
 cargo clean
+
+# Run unit tests (use dev-release for consistency)
+cargo test --profile dev-release
+
+# Run specific example manually
+cargo run --example spawn_vehicle --profile dev-release
+
+# Run examples with automatic CARLA management
+./scripts/run-examples.sh
 ```
+
+**Why not use standard profiles?**
+- `dev` profile: Too slow for testing, especially with large simulations
+- `release` profile: No debug symbols, hard to debug issues
+- `dev-release` profile: Best of both worlds for development
 
 ## Common Development Patterns
 
