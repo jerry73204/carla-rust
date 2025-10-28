@@ -80,6 +80,72 @@ impl Image {
         }
     }
 
+    /// Saves the image to disk at the specified path.
+    ///
+    /// The file format is determined by the file extension (e.g., ".png", ".jpg").
+    /// CARLA images are in BGRA format and are converted to RGBA before saving.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::{Client, Sensor};
+    /// use carla::sensor::data::Image;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let camera_bp = bp_lib.find("sensor.camera.rgb").unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let camera_actor = world.spawn_actor(&camera_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let camera = Sensor::try_from(camera_actor).unwrap();
+    ///
+    /// camera.listen(|sensor_data| {
+    ///     if let Ok(image) = Image::try_from(sensor_data) {
+    ///         if let Err(e) = image.save_to_disk("output/frame_001.png") {
+    ///             eprintln!("Failed to save image: {}", e);
+    ///         }
+    ///     }
+    /// });
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The file cannot be created or written
+    /// - The path is invalid
+    /// - The image format is not supported
+    pub fn save_to_disk(&self, path: &str) -> std::io::Result<()> {
+        use image::{ImageBuffer, Rgba};
+
+        let width = self.width() as u32;
+        let height = self.height() as u32;
+        let pixels = self.as_slice();
+
+        // Convert BGRA to RGBA
+        let rgba_data: Vec<u8> = pixels
+            .iter()
+            .flat_map(|color| {
+                // CARLA uses BGRA, convert to RGBA
+                [color.r, color.g, color.b, color.a]
+            })
+            .collect();
+
+        let img_buffer = ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(width, height, rgba_data)
+            .ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Failed to create image buffer from pixel data",
+                )
+            })?;
+
+        img_buffer.save(path).map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to save image: {}", e),
+            )
+        })
+    }
+
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiImage>) -> Option<Self> {
         if ptr.is_null() {
             None
