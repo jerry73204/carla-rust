@@ -6,11 +6,12 @@ REPO_PATH="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 usage() {
     echo "Usage:" >&2
-    echo "  carlactl (start|stop|status|logs) VERSION" >&2
+    echo "  carlactl (start|stop|restart|status|logs) VERSION" >&2
     echo "  carlactl (install|uninstall)" >&2
     echo "" >&2
     echo "Examples:" >&2
     echo "  carlactl start 0.9.16" >&2
+    echo "  carlactl restart 0.9.16" >&2
     echo "  carlactl status 0.9.16" >&2
     echo "  carlactl install" >&2
     exit 1
@@ -74,7 +75,7 @@ VERSION="$2"
 
 # Validate command
 case "$COMMAND" in
-    start|stop|status|logs) ;;
+    start|stop|restart|status|logs) ;;
     *)
         echo "Error: Invalid command '$COMMAND'" >&2
         usage
@@ -113,6 +114,12 @@ case "$COMMAND" in
     stop)
         systemctl --user stop "$SERVICE"
         echo "Stopped CARLA $VERSION"
+        ;;
+    restart)
+        systemctl --user restart "$SERVICE"
+        echo "Restarted CARLA $VERSION"
+        echo "Check status: carlactl status $VERSION"
+        echo "View logs: carlactl logs $VERSION"
         ;;
     status)
         systemctl --user status "$SERVICE"
