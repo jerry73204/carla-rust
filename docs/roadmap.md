@@ -189,7 +189,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** High
 **Estimated Effort:** 3-4 weeks (includes FFI work)
-**Status:** ✅ **PARTIALLY COMPLETE** (Core functionality implemented)
+**Status:** 🟡 **IN PROGRESS** (3/4 work items complete - Oct 28, 2025)
 
 ### Work Items
 
@@ -198,29 +198,29 @@ Run with: `cargo run --example spawn_vehicle`
   - Implement `Walker` struct wrapping `carla::client::Walker`
   - Add Walker-specific control methods
 
-- [ ] **WalkerAIController**
-  - **FFI Work (carla-sys):**
-    - File: `carla-sys/src/ffi.rs`
-    - Add `#include "carla/client/WalkerAIController.h"` to includes
-    - Add to `generate!` block: `carla::client::WalkerAIController`
-    - Add methods to `safety!` block:
-      - `Start()`
-      - `Stop()`
-      - `GoToLocation(carla::geom::Location)`
-      - `SetMaxSpeed(float)`
-    - Test FFI bindings compile for all CARLA versions (0.9.14, 0.9.15, 0.9.16)
-  - **Rust API (carla):**
-    - File: `carla/src/client/walker_ai_controller.rs`
-    - Create `WalkerAIController` struct wrapping FFI type
-    - Implement methods:
-      - `start(&mut self)` - Start AI control
-      - `stop(&mut self)` - Stop AI control
-      - `go_to_location(&mut self, location: &Location)` - Navigate to target
-      - `set_max_speed(&mut self, speed: f32)` - Set walking speed (m/s)
-    - Add to `carla/src/client/mod.rs` exports
-  - **Tests:**
+- [x] **WalkerAIController** (Partial - 3/5 methods implemented)
+  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+    - File: `carla-sys/src/bindings.rs` - Added WalkerAIController header
+    - File: `carla-sys/csrc/carla_rust/client/walker_ai_controller.hpp` - Created FFI wrapper
+    - Generated autocxx bindings for `FfiWalkerAIController`
+    - Verified compilation on CARLA 0.9.16
+  - **Rust API (carla):** 🟡 **PARTIAL** (60% complete)
+    - File: `carla/src/client/walker_ai_controller.rs` - Created ✅
+    - Struct `WalkerAIController` wrapping FFI type ✅
+    - Implemented methods:
+      - `start(&self)` - Start AI control ✅
+      - `stop(&self)` - Stop AI control ✅
+      - `set_max_speed(&self, speed: f32)` - Set walking speed (m/s) ✅
+      - `go_to_location()` - Deferred (autocxx const reference parameter issues)
+      - `get_random_location()` - Deferred (boost::optional FFI wrapper needed)
+    - Added to `carla/src/client.rs` exports ✅
+    - Module exported in `carla/src/client.rs` ✅
+  - **Tests:** ⏳ **TODO**
     - Unit tests: Method parameter validation
     - Integration tests: AI navigation behavior
+  - **Notes:**
+    - 2 methods deferred due to FFI limitations (can be addressed in future iteration)
+    - Core functionality (start/stop/speed control) is fully operational
 
 - [x] **WalkerControl RPC Type**
   - Re-exported from `carla-sys`

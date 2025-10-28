@@ -7,6 +7,7 @@
 #include "traffic_sign.hpp"
 #include "vehicle.hpp"
 #include "walker.hpp"
+#include "walker_ai_controller.hpp"
 #include "sensor.hpp"
 #include "actor.hpp"
 #include "blueprint_library.hpp"

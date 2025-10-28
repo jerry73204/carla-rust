@@ -28,6 +28,10 @@ include_cpp! {
     #include "carla/rpc/VehicleWheels.h"
     #include "carla/rpc/VehicleAckermannControl.h"
     #include "carla/rpc/WalkerControl.h"
+    #include "carla/rpc/WalkerBoneControlIn.h"
+    #include "carla/rpc/WalkerBoneControlOut.h"
+    #include "carla/rpc/BoneTransformDataIn.h"
+    #include "carla/rpc/BoneTransformDataOut.h"
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
     #include "carla/rpc/GearPhysicsControl.h"
@@ -42,6 +46,7 @@ include_cpp! {
     #include "carla/client/Sensor.h"
     #include "carla/client/Vehicle.h"
     #include "carla/client/Walker.h"
+    #include "carla/client/WalkerAIController.h"
     #include "carla/client/TrafficLight.h"
     #include "carla/client/TrafficSign.h"
     #include "carla/client/Junction.h"
@@ -74,6 +79,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate!("carla_rust::client::FfiWalkerAIController")
     generate_pod!("carla_rust::client::FfiClientLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
@@ -112,6 +118,10 @@ include_cpp! {
     generate_pod!("carla::rpc::VehicleAckermannControl")
     generate_pod!("carla::rpc::AckermannControllerSettings")
     generate_pod!("carla::rpc::WalkerControl")
+    generate!("carla::rpc::WalkerBoneControlIn")
+    generate!("carla::rpc::WalkerBoneControlOut")
+    generate!("carla::rpc::BoneTransformDataIn")
+    generate!("carla::rpc::BoneTransformDataOut")
     generate!("carla::rpc::VehicleLightState")
     generate_pod!("carla::rpc::VehicleDoor")
     generate_pod!("carla::rpc::VehicleWheelLocation")
@@ -129,6 +139,7 @@ include_cpp! {
     // carla::client
     generate!("carla::client::Vehicle")
     generate!("carla::client::Walker")
+    generate!("carla::client::WalkerAIController")
     generate!("carla::client::TrafficLight")
     generate!("carla::client::TrafficSign")
     generate!("carla::client::Junction")
