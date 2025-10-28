@@ -44,6 +44,16 @@ public:
         return FfiWorld(std::move(world));
     }
 
+#if defined(CARLA_VERSION_0915) || defined(CARLA_VERSION_0916)
+    FfiWorld LoadWorldIfDifferent(std::string map_name, bool reset_settings = true) const {
+        auto map_layers = MapLayer::All;
+        inner_.LoadWorldIfDifferent(std::move(map_name), reset_settings, map_layers);
+        // LoadWorldIfDifferent returns void, so get the world after the operation
+        auto world = inner_.GetWorld();
+        return FfiWorld(std::move(world));
+    }
+#endif
+
     FfiWorld GenerateOpenDriveWorld(std::string opendrive,
                                     const OpendriveGenerationParameters& params,
                                     bool reset_settings = true) const {

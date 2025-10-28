@@ -185,6 +185,54 @@ impl Client {
         unsafe { World::from_cxx(world).unwrap_unchecked() }
     }
 
+    /// Loads a new map/world only if it's different from the current one.
+    ///
+    /// This method avoids unnecessary map reloads, which can save time when
+    /// the requested map is already loaded. If the map is already loaded,
+    /// returns the current world without reloading.
+    ///
+    /// **Available in CARLA 0.9.15+**
+    ///
+    /// **Note:** Currently only available when building with CARLA 0.9.16 due to
+    /// build configuration. Support for 0.9.15 can be added if needed.
+    ///
+    /// # Arguments
+    ///
+    /// * `map_name` - Name of the map to load
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// // Only loads if different from current map
+    /// let world = client.load_world_if_different("Town03");
+    /// // This won't reload since Town03 is already loaded
+    /// let world2 = client.load_world_if_different("Town03");
+    /// ```
+    #[cfg(carla_0916)]
+    pub fn load_world_if_different(&self, map_name: &str) -> World {
+        self.load_world_if_different_opt(map_name, true)
+    }
+
+    /// Loads a new map/world only if different, with optional settings preservation.
+    ///
+    /// **Available in CARLA 0.9.15+**
+    ///
+    /// # Arguments
+    ///
+    /// * `map_name` - Name of the map to load
+    /// * `reset_settings` - If true, resets simulation settings to defaults
+    #[cfg(carla_0916)]
+    pub fn load_world_if_different_opt(&self, map_name: &str, reset_settings: bool) -> World {
+        let world = self
+            .inner
+            .LoadWorldIfDifferent(map_name, reset_settings)
+            .within_unique_ptr();
+        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    }
+
     /// Reloads the current world, resetting simulation settings to defaults.
     ///
     /// This destroys all actors and reloads the same map.
