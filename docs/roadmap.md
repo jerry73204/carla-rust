@@ -19,6 +19,93 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
 **Estimated Total Effort:** ~27-35 weeks
 **Note:** All work items are tracked with checkboxes for easy progress monitoring.
 
+## Implementation Priority
+
+**⚠️ IMPORTANT: API Implementation First, Examples Second**
+
+Development must follow this priority order:
+
+### Core API Development (Phases 1-9) - **HIGH PRIORITY**
+Focus on implementing missing Rust APIs before creating examples:
+- **Phase 1-9**: Core APIs, sensors, recording, batch operations, etc.
+- These phases provide the foundation for all examples
+- Must achieve substantial progress before Phase 10+
+
+## Development Approach
+
+**FFI and Rust API Work Are Done Together**
+
+Each API feature requires work in both `carla-sys` (FFI bindings) and `carla` (Rust API). These are NOT separate tasks to be deferred - they must be completed together to expose each API:
+
+### Implementation Pattern
+
+Every API work item follows this structure:
+
+1. **FFI Work (carla-sys):**
+   - Add C++ header includes to `carla-sys/src/ffi.rs`
+   - Add types to autocxx `generate!` block
+   - Add methods to autocxx `safety!` block
+   - Test FFI bindings compile for all supported CARLA versions (0.9.14, 0.9.15, 0.9.16)
+   - Handle version-specific features with `#[cfg(carla_09XX)]` attributes
+
+2. **Rust API (carla):**
+   - Create safe Rust wrapper types
+   - Implement idiomatic methods with proper error handling
+   - Add extension traits where appropriate
+   - Export new types through module hierarchy
+   - Document public API with examples
+
+3. **Tests:**
+   - Unit tests for data structures and conversions
+   - Integration tests with running simulator (marked with `#[serial]` and `#[ignore]`)
+   - Version-specific tests with appropriate `#[cfg]` attributes
+
+### Work Items in Phases
+
+All work items in Phases 1-9 now include explicit FFI and Rust API breakdowns. This makes it clear that:
+- FFI work is NOT deferred - it's part of completing the feature
+- Both layers must be implemented to consider the API "complete"
+- Version compatibility is handled during FFI work
+
+### What IS Deferred
+
+Only features that require **external dependencies** (not just FFI work) are deferred:
+- RSS Sensor (requires Intel RSS library integration)
+- Phase 13 Specialized Examples (require external services/SDKs)
+
+### Example Implementation (Phases 10-13) - **DEPENDENT ON APIs**
+Examples can only be implemented after their required APIs are available:
+- **Phase 10**: Requires APIs from Phases 3, 4 (Recording, Physics, Weather)
+- **Phase 11**: Requires APIs from Phases 5, 6 (Batch, Sensors, Walker AI)
+- **Phase 12**: Requires APIs from Phase 2 (Debug utilities)
+- **Phase 13**: Deferred/documentation only
+
+**Recommended Approach:**
+1. Complete Phases 1-6 (core APIs) before starting Phase 10 examples
+2. Implement high-priority APIs from each phase first
+3. Create examples as APIs become available to validate functionality
+4. Use Phase 0 examples (already complete) as templates
+
+### Phase Dependency Matrix
+
+| Example Phase              | Required API Phases                                                             | Minimum Progress Needed      |
+|----------------------------|---------------------------------------------------------------------------------|------------------------------|
+| Phase 10 (Simple Examples) | Phase 3 (Recording)<br>Phase 4 (Vehicle Physics)<br>Weather API                 | 80% completion               |
+| Phase 11 (Intermediate)    | Phase 5 (Batch Operations)<br>Phase 6 (Sensor Features)<br>Walker AI Controller | 80% completion               |
+| Phase 12 (Advanced)        | Phase 2 (Debug Utilities)<br>All sensor APIs<br>UI framework integration        | 90% completion               |
+| Phase 13 (Specialized)     | N/A                                                                             | Deferred - no implementation |
+
+**Critical Path for Basic Examples (Phase 10):**
+1. Phase 3: Recording and Playback → Enables recording examples
+2. Phase 4: Advanced Vehicle Features → Enables physics examples
+3. Weather API (simple) → Enables weather example
+4. Spectator API → Enables vehicle gallery
+
+**Critical Path for Traffic Generation (Phase 11):**
+1. Phase 5: Batch Operations → Enables multi-actor spawning
+2. Walker AI Controller (Phase 1 continuation) → Enables walker AI
+3. Traffic Manager enhancements → Enables traffic scenarios
+
 ---
 
 ## Phase 0: Cargo Examples for Demonstration
@@ -101,7 +188,7 @@ Run with: `cargo run --example spawn_vehicle`
 ## Phase 1: Walker/Pedestrian Control
 
 **Priority:** High
-**Estimated Effort:** 2-3 weeks
+**Estimated Effort:** 3-4 weeks (includes FFI work)
 **Status:** ✅ **PARTIALLY COMPLETE** (Core functionality implemented)
 
 ### Work Items
@@ -110,17 +197,30 @@ Run with: `cargo run --example spawn_vehicle`
   - File: `carla/src/client/walker.rs`
   - Implement `Walker` struct wrapping `carla::client::Walker`
   - Add Walker-specific control methods
-  - ~~Add bone and animation control~~ (Deferred - requires additional C++ bindings)
 
-- [ ] **WalkerAIController** (Deferred)
-  - File: `carla/src/client/walker_ai_controller.rs`
-  - Implement `WalkerAIController` wrapping C++ class
-  - Methods:
-    - `start()` - Start AI control
-    - `stop()` - Stop AI control
-    - `go_to_location(location)` - Navigate to target
-    - `set_max_speed(speed)` - Set walking speed
-  - **Note:** Requires additional FFI work - planned for future iteration
+- [ ] **WalkerAIController**
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#include "carla/client/WalkerAIController.h"` to includes
+    - Add to `generate!` block: `carla::client::WalkerAIController`
+    - Add methods to `safety!` block:
+      - `Start()`
+      - `Stop()`
+      - `GoToLocation(carla::geom::Location)`
+      - `SetMaxSpeed(float)`
+    - Test FFI bindings compile for all CARLA versions (0.9.14, 0.9.15, 0.9.16)
+  - **Rust API (carla):**
+    - File: `carla/src/client/walker_ai_controller.rs`
+    - Create `WalkerAIController` struct wrapping FFI type
+    - Implement methods:
+      - `start(&mut self)` - Start AI control
+      - `stop(&mut self)` - Stop AI control
+      - `go_to_location(&mut self, location: &Location)` - Navigate to target
+      - `set_max_speed(&mut self, speed: f32)` - Set walking speed (m/s)
+    - Add to `carla/src/client/mod.rs` exports
+  - **Tests:**
+    - Unit tests: Method parameter validation
+    - Integration tests: AI navigation behavior
 
 - [x] **WalkerControl RPC Type**
   - Re-exported from `carla-sys`
@@ -129,11 +229,36 @@ Run with: `cargo run --example spawn_vehicle`
     - `speed: f32` - Walking speed
     - `jump: bool` - Jump flag
 
-- [ ] **WalkerBoneControl** (0.9.13+) (Deferred)
-  - File: `carla/src/rpc/walker_bone_control.rs`
-  - Bone manipulation for custom animations
-  - Integration with `Walker::set_bones()` and `Walker::blend_pose()`
-  - **Note:** Advanced feature - requires additional C++ bindings
+- [ ] **WalkerBoneControl** (0.9.13+)
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#include "carla/rpc/WalkerBoneControlIn.h"` to includes
+    - Add `#include "carla/rpc/WalkerBoneControlOut.h"` to includes
+    - Add to `generate!` block:
+      - `carla::rpc::WalkerBoneControlIn`
+      - `carla::rpc::WalkerBoneControlOut`
+      - `carla::rpc::BoneTransformDataIn`
+      - `carla::rpc::BoneTransformDataOut`
+    - Add Walker bone methods to `safety!` block:
+      - `SetBones(carla::rpc::WalkerBoneControlIn)`
+      - `BlendPose(float)`
+      - `GetBonesTransform()` → returns WalkerBoneControlOut
+      - `ShowBones()` → returns WalkerBoneControlOut
+      - `HideBones()`
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/walker_bone_control.rs`
+    - `WalkerBoneControlIn` - Input bone transforms
+    - `WalkerBoneControlOut` - Output bone data
+    - `BoneTransformData` - Individual bone transform
+    - File: `carla/src/client/walker.rs` - Add methods:
+      - `set_bones(&mut self, bones: &WalkerBoneControlIn)` - Set bone transforms
+      - `blend_pose(&mut self, blend: f32)` - Blend animation pose (0.0-1.0)
+      - `get_bones_transform(&self) -> WalkerBoneControlOut` - Get current bones
+      - `show_bones(&self) -> WalkerBoneControlOut` - Visualize skeleton
+      - `hide_bones(&mut self)` - Hide skeleton visualization
+  - **Tests:**
+    - Unit tests: Bone data structure creation
+    - Integration tests: Set bones and verify transform
 
 ### Examples Created
 
@@ -143,38 +268,67 @@ Run with: `cargo run --example spawn_vehicle`
 - ✅ `walker_directions.rs` - Demonstrate different movement directions
 - ✅ `multiple_walkers.rs` - Spawn multiple walkers
 
-#### Deferred Features
-- ⏸️ WalkerAIController examples - (Deferred with WalkerAIController implementation)
-- ⏸️ WalkerBoneControl examples - (Deferred with WalkerBoneControl implementation)
+#### Planned Examples (when APIs complete)
+- 📋 Walker AI navigation example - Requires WalkerAIController implementation
+- 📋 Walker skeleton control example - Requires WalkerBoneControl implementation
 
 ---
 
 ## Phase 2: Debug and Visualization Utilities
 
 **Priority:** Medium
-**Estimated Effort:** 2 weeks
+**Estimated Effort:** 2-3 weeks (includes FFI work)
 **Status:** Not Started
 
 ### Work Items
 
 - [ ] **DebugHelper**
-  - File: `carla/src/client/debug_helper.rs`
-  - Implement `DebugHelper` wrapping `carla::client::DebugHelper`
-  - Drawing methods:
-    - `draw_point(location, size, color, life_time)`
-    - `draw_line(begin, end, thickness, color, life_time)`
-    - `draw_arrow(begin, end, thickness, arrow_size, color, life_time)`
-    - `draw_box(box, rotation, thickness, color, life_time)`
-    - `draw_string(location, text, draw_shadow, color, life_time)`
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#include "carla/client/DebugHelper.h"` to includes
+    - Add to `generate!` block: `carla::client::DebugHelper`
+    - Add drawing methods to `safety!` block:
+      - `DrawPoint(Location, float, Color, float, bool)`
+      - `DrawLine(Location, Location, float, Color, float, bool)`
+      - `DrawArrow(Location, Location, float, float, Color, float, bool)`
+      - `DrawBox(BoundingBox, Rotation, float, Color, float, bool)`
+      - `DrawString(Location, std::string, bool, Color, float, bool)`
+    - Verify methods work across CARLA versions
+  - **Rust API (carla):**
+    - File: `carla/src/client/debug_helper.rs`
+    - Create `DebugHelper` struct wrapping FFI type
+    - Implement drawing methods:
+      - `draw_point(&self, location: &Location, size: f32, color: Color, life_time: f32)`
+      - `draw_line(&self, begin: &Location, end: &Location, thickness: f32, color: Color, life_time: f32)`
+      - `draw_arrow(&self, begin: &Location, end: &Location, thickness: f32, arrow_size: f32, color: Color, life_time: f32)`
+      - `draw_box(&self, bbox: &BoundingBox, rotation: &Rotation, thickness: f32, color: Color, life_time: f32)`
+      - `draw_string(&self, location: &Location, text: &str, draw_shadow: bool, color: Color, life_time: f32)`
+  - **Tests:**
+    - Unit tests: Parameter validation
+    - Integration tests: Verify shapes appear in simulation
 
 - [ ] **Color Type**
-  - File: `carla/src/rpc/color.rs`
-  - `Color` struct with `r, g, b, a` fields
-  - Predefined color constants (RED, GREEN, BLUE, WHITE, etc.)
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#include "carla/sensor/data/Color.h"` to includes
+    - Add to `generate!` block: `carla::sensor::data::Color`
+    - Verify color struct matches across versions
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/color.rs`
+    - `Color` struct with `r, g, b, a` fields (u8 values)
+    - Implement `From<(u8, u8, u8)>` and `From<(u8, u8, u8, u8)>` conversions
+    - Predefined color constants (RED, GREEN, BLUE, WHITE, BLACK, YELLOW, etc.)
+    - Conversion to/from FFI color type
+  - **Tests:**
+    - Unit tests: Color creation and conversions
 
 - [ ] **World Debug Access**
-  - Add `World::debug()` method returning `DebugHelper`
-  - Integration with existing World API
+  - **Rust API (carla):**
+    - File: `carla/src/client/world.rs`
+    - Add `debug(&self) -> DebugHelper` method
+    - Integration with existing World API
+  - **Tests:**
+    - Integration tests: Access debug helper from world
 
 ### Test Cases
 
@@ -198,31 +352,69 @@ Run with: `cargo run --example spawn_vehicle`
 ## Phase 3: Recording and Playback
 
 **Priority:** Medium
-**Estimated Effort:** 2-3 weeks
+**Estimated Effort:** 2-3 weeks (includes FFI work)
 **Status:** Not Started
 
 ### Work Items
 
 - [ ] **Client Recording Methods**
-  - File: `carla/src/client/carla_client.rs`
-  - Methods:
-    - `start_recorder(filename, additional_data)` - Start recording
-    - `stop_recorder()` - Stop recording
-    - `show_recorder_file_info(filename, show_all)` - Get recording info
-    - `show_recorder_collisions(filename, category1, category2)` - Query collisions
-    - `show_recorder_actors_blocked(filename, min_time, min_distance)` - Find blocked actors
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Verify `carla::client::Client` recording methods are exposed:
+      - `StartRecorder(std::string, bool)`
+      - `StopRecorder()`
+      - `ShowRecorderFileInfo(std::string, bool)` → returns std::string
+      - `ShowRecorderCollisions(std::string, char, char)` → returns std::string
+      - `ShowRecorderActorsBlocked(std::string, float, float)` → returns std::string
+    - Add to `safety!` block if not already present
+    - Test across all CARLA versions
+  - **Rust API (carla):**
+    - File: `carla/src/client/carla_client.rs`
+    - Implement recording methods:
+      - `start_recorder(&self, filename: &str, additional_data: bool)` - Start recording
+      - `stop_recorder(&self)` - Stop recording
+      - `show_recorder_file_info(&self, filename: &str, show_all: bool) -> String` - Get recording info
+      - `show_recorder_collisions(&self, filename: &str, category1: char, category2: char) -> String` - Query collisions
+      - `show_recorder_actors_blocked(&self, filename: &str, min_time: f32, min_distance: f32) -> String` - Find blocked actors
+  - **Tests:**
+    - Integration tests: Record and verify file creation
+    - Integration tests: Query collision and blocking data
 
 - [ ] **Replay Methods**
-  - Methods:
-    - `replay_file(filename, start_time, duration, follow_id, replay_sensors)` - Replay recording
-    - `stop_replayer(keep_actors)` - Stop replay
-    - `set_replayer_time_factor(time_factor)` - Control replay speed
-    - `set_replayer_ignore_hero(ignore_hero)` - Ignore hero vehicle in replay
-    - `set_replayer_ignore_spectator(ignore)` - Ignore spectator (0.9.15+)
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Verify `carla::client::Client` replay methods are exposed:
+      - `ReplayFile(std::string, float, float, uint32_t, bool)`
+      - `StopReplayer(bool)`
+      - `SetReplayerTimeFactor(float)`
+      - `SetReplayerIgnoreHero(bool)`
+      - `SetReplayerIgnoreSpectator(bool)` (0.9.15+ only)
+    - Add to `safety!` block if not already present
+    - Use `#[cfg(carla_0915)]` for SetReplayerIgnoreSpectator
+  - **Rust API (carla):**
+    - File: `carla/src/client/carla_client.rs`
+    - Implement replay methods:
+      - `replay_file(&self, filename: &str, start_time: f32, duration: f32, follow_id: u32, replay_sensors: bool)` - Replay recording
+      - `stop_replayer(&self, keep_actors: bool)` - Stop replay
+      - `set_replayer_time_factor(&self, time_factor: f32)` - Control replay speed
+      - `set_replayer_ignore_hero(&self, ignore_hero: bool)` - Ignore hero vehicle in replay
+      - `#[cfg(carla_0915)] set_replayer_ignore_spectator(&self, ignore: bool)` - Ignore spectator (0.9.15+)
+  - **Tests:**
+    - Integration tests: Replay and verify actor positions
+    - Integration tests: Time factor affects replay speed
 
 - [ ] **Recorder Info Types**
-  - File: `carla/src/rpc/recorder_info.rs`
-  - Structs for recording metadata
+  - **FFI Work (carla-sys):**
+    - Recording info is returned as strings from C++ API
+    - No additional FFI types needed (parsed from string in Rust)
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/recorder_info.rs`
+    - Parse recorder info strings into structured types
+    - `RecorderFileInfo` - Parsed file metadata
+    - `RecorderCollision` - Collision event data
+    - `RecorderActorBlocked` - Blocked actor data
+  - **Tests:**
+    - Unit tests: Parse recorder info strings
 
 ### Test Cases
 
@@ -247,42 +439,91 @@ Run with: `cargo run --example spawn_vehicle`
 ## Phase 4: Advanced Vehicle Features (0.9.14+)
 
 **Priority:** Low
-**Estimated Effort:** 2 weeks
+**Estimated Effort:** 2-3 weeks (includes FFI work + version handling)
 **Status:** Not Started
 
 ### Work Items
 
 - [ ] **Ackermann Control** (0.9.14+)
-  - File: `carla/src/rpc/ackermann_control.rs`
-  - Already exists but needs verification
-  - Vehicle methods:
-    - `apply_ackermann_control(control)` - Apply Ackermann steering
-    - `get_ackermann_controller_settings()` - Get controller settings
-    - `apply_ackermann_controller_settings(settings)` - Update settings
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Verify `carla::rpc::AckermannControl` is exposed (should already exist)
+    - Verify `carla::rpc::AckermannControllerSettings` is exposed
+    - Add Vehicle methods to `safety!` block:
+      - `ApplyAckermannControl(AckermannControl)`
+      - `GetAckermannControllerSettings()` → returns AckermannControllerSettings
+      - `ApplyAckermannControllerSettings(AckermannControllerSettings)`
+    - Test on 0.9.14, 0.9.15, 0.9.16
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/ackermann_control.rs` - Verify existing implementation
+    - File: `carla/src/client/vehicle.rs` - Add methods:
+      - `apply_ackermann_control(&mut self, control: &AckermannControl)`
+      - `get_ackermann_controller_settings(&self) -> AckermannControllerSettings`
+      - `apply_ackermann_controller_settings(&mut self, settings: &AckermannControllerSettings)`
+  - **Tests:**
+    - Integration tests: Apply Ackermann control and verify steering
 
 - [ ] **Vehicle Failure State** (0.9.14+)
-  - File: `carla/src/rpc/vehicle_failure_state.rs`
-  - Enum for failure types (Rollover, Engine, Brake, TirePuncture, etc.)
-  - Method: `Vehicle::get_failure_state()`
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#include "carla/rpc/VehicleFailureState.h"` to includes
+    - Add to `generate!` block: `carla::rpc::VehicleFailureState`
+    - Add Vehicle method to `safety!` block: `GetFailureState()` → returns VehicleFailureState
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/vehicle_failure_state.rs`
+    - Enum `VehicleFailureState`: None, Rollover, Engine, TirePuncture, etc.
+    - File: `carla/src/client/vehicle.rs` - Add method:
+      - `get_failure_state(&self) -> VehicleFailureState`
+  - **Tests:**
+    - Integration tests: Trigger rollover and detect failure state
 
 - [ ] **Vehicle Telemetry** (0.9.16+ only)
-  - File: `carla/src/rpc/vehicle_telemetry_data.rs`
-  - Feature-gated with `#[cfg(carla_0916)]`
-  - Method: `Vehicle::get_telemetry_data()`
-  - Detailed physics data (suspension, wheels, etc.)
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add `#[cfg(carla_0916)]` gated includes:
+      - `#include "carla/rpc/VehicleTelemetryData.h"`
+    - Add to `generate!` block with `#[cfg(carla_0916)]`:
+      - `carla::rpc::VehicleTelemetryData`
+    - Add Vehicle method to `safety!` block: `GetTelemetryData()` → returns VehicleTelemetryData
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/vehicle_telemetry_data.rs`
+    - `#[cfg(carla_0916)]` gated struct with detailed physics data
+    - File: `carla/src/client/vehicle.rs` - Add method:
+      - `#[cfg(carla_0916)] get_telemetry_data(&self) -> VehicleTelemetryData`
+  - **Tests:**
+    - Integration tests: Get telemetry (0.9.16 only)
 
 - [ ] **Wheel Pitch Control** (0.9.16+ only)
-  - Feature-gated methods:
-    - `Vehicle::set_wheel_pitch_angle(wheel_location, angle)`
-    - `Vehicle::get_wheel_pitch_angle(wheel_location)`
-    - `Vehicle::get_vehicle_bone_world_transforms()`
-    - `Vehicle::restore_phys_x_physics()`
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Add to `safety!` block with `#[cfg(carla_0916)]`:
+      - `SetWheelSteerDirection(WheelLocation, float)`
+      - `GetWheelSteerAngle(WheelLocation)` → returns float
+      - `GetVehicleBoneWorldTransforms()` → returns vector of transforms
+      - `RestorePhysXPhysics()`
+  - **Rust API (carla):**
+    - File: `carla/src/client/vehicle.rs` - Add methods:
+      - `#[cfg(carla_0916)] set_wheel_pitch_angle(&mut self, wheel: WheelLocation, angle: f32)`
+      - `#[cfg(carla_0916)] get_wheel_pitch_angle(&self, wheel: WheelLocation) -> f32`
+      - `#[cfg(carla_0916)] get_vehicle_bone_world_transforms(&self) -> Vec<Transform>`
+      - `#[cfg(carla_0916)] restore_phys_x_physics(&mut self)`
+  - **Tests:**
+    - Integration tests: Control wheel pitch (0.9.16 only)
 
 - [ ] **Vehicle Doors** (0.9.13+)
-  - Methods:
-    - `Vehicle::open_door(door_type)` - Open specific door
-    - `Vehicle::close_door(door_type)` - Close specific door
-  - Already has `VehicleDoor` enum in RPC
+  - **FFI Work (carla-sys):**
+    - File: `carla-sys/src/ffi.rs`
+    - Verify `carla::rpc::VehicleDoor` enum is exposed (should already exist)
+    - Add Vehicle methods to `safety!` block:
+      - `OpenDoor(VehicleDoor)`
+      - `CloseDoor(VehicleDoor)`
+  - **Rust API (carla):**
+    - File: `carla/src/rpc/vehicle_door.rs` - Verify existing VehicleDoor enum
+    - File: `carla/src/client/vehicle.rs` - Add methods:
+      - `open_door(&mut self, door: VehicleDoor)`
+      - `close_door(&mut self, door: VehicleDoor)`
+  - **Tests:**
+    - Integration tests: Open/close doors and verify physics
 
 ### Test Cases
 
@@ -389,11 +630,15 @@ Run with: `cargo run --example spawn_vehicle`
   - Already exists as camera sensor with normals view mode
   - Verify functionality
 
-- [ ] **RSS Sensor** (0.9.7+)
+- [ ] **RSS Sensor** (0.9.7+) - **DEFERRED**
   - File: `carla/src/sensor/data/rss_response.rs`
   - Responsibility-Sensitive Safety sensor
-  - Complex integration with Intel RSS library
-  - May be deferred due to external dependencies
+  - **Deferred Reason:** Requires Intel RSS library integration (external dependency, not just FFI work)
+  - Complex integration requiring:
+    - Intel ad-rss-lib C++ library
+    - Additional build dependencies
+    - Extensive RSS-specific domain knowledge
+  - **Note:** Unlike other items in this phase, this is legitimately deferred due to external dependencies, not FFI complexity
 
 - [ ] **GBuffer Access** (0.9.14+)
   - Methods:
@@ -577,13 +822,16 @@ Run with: `cargo run --example spawn_vehicle`
 
 ## Phase 10: Simple Example Implementations
 
-**Priority:** High
+**Priority:** Medium (Dependent on Phases 3-4)
 **Estimated Effort:** 2-3 weeks
 **Status:** Not Started
+**⚠️ Prerequisites:** Must complete Phase 3 (Recording) and Phase 4 (Vehicle Physics) APIs first
 
 ### Overview
 
 Implement Rust equivalents of simple Python examples that demonstrate single features or basic combinations. These examples serve as introductory material and test basic API functionality.
+
+**Note**: These examples cannot be implemented until their prerequisite APIs are available. See "Implementation Priority" section above.
 
 ### Prerequisites
 
@@ -661,13 +909,16 @@ impl World {
 
 ## Phase 11: Intermediate Example Implementations
 
-**Priority:** High
+**Priority:** Medium (Dependent on Phases 5-6)
 **Estimated Effort:** 3-4 weeks
 **Status:** Not Started
+**⚠️ Prerequisites:** Must complete Phase 5 (Batch Operations) and Phase 6 (Sensor Features) APIs first
 
 ### Overview
 
 Implement examples that combine multiple features and demonstrate more complex scenarios. These examples are essential for understanding real-world usage patterns.
+
+**Note**: These examples cannot be implemented until their prerequisite APIs are available. See "Implementation Priority" section above.
 
 ### Prerequisites
 
@@ -726,11 +977,11 @@ Implement examples that combine multiple features and demonstrate more complex s
 
 **New APIs Needed**:
 ```rust
-// Walker AI Controller (from deferred Phase 1)
+// Walker AI Controller (Phase 1)
 impl WalkerAIController {
     pub fn start(&mut self);
     pub fn stop(&mut self);
-    pub fn go_to_location(&mut self, location: Location);
+    pub fn go_to_location(&mut self, location: &Location);
     pub fn set_max_speed(&mut self, speed: f32);
 }
 
@@ -751,13 +1002,16 @@ impl World {
 
 ## Phase 12: Advanced Example Implementations
 
-**Priority:** Medium
+**Priority:** Low (Dependent on Phase 2 + UI frameworks)
 **Estimated Effort:** 4-5 weeks
 **Status:** Not Started
+**⚠️ Prerequisites:** Must complete Phase 2 (Debug utilities) and integrate UI frameworks first
 
 ### Overview
 
 Implement complex examples with advanced features, external dependencies, and sophisticated interactions. These demonstrate professional-grade CARLA applications.
+
+**Note**: These examples cannot be implemented until their prerequisite APIs are available. See "Implementation Priority" section above.
 
 ### Prerequisites
 
@@ -836,13 +1090,16 @@ impl SemanticSegmentationImage {
 
 ## Phase 13: Specialized Examples (Reference/Future)
 
-**Priority:** Low/Deferred
+**Priority:** Very Low (Deferred)
 **Estimated Effort:** Varies by integration
 **Status:** Documentation Only
+**⚠️ Note:** No implementation planned - documentation reference only
 
 ### Overview
 
 Document external integration examples from the Python repository. Most are deferred as they require external systems, proprietary SDKs, or are better served by separate integration crates.
+
+**Note**: These examples are explicitly deferred. Implementation is not planned unless there is specific user demand.
 
 ### Examples (Reference Only)
 

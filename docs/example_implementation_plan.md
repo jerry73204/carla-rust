@@ -19,9 +19,18 @@ This document provides a comprehensive analysis of Python examples from the CARL
 
 The CARLA Python repository contains 36+ example scripts demonstrating various features. This plan categorizes them by complexity and provides a roadmap for Rust implementation.
 
+**⚠️ IMPORTANT: This is a Planning Document**
+
+Examples in Phases 10-13 **cannot be implemented** until their required APIs are available. Focus on API implementation (Phases 1-9 in roadmap.md) before starting example development.
+
 **Current Status:**
 - ✅ **11 examples** already implemented in Rust (Phase 0)
 - 📋 **25 examples** planned for implementation (Phases 10-13)
+- ⚠️ **Blocked**: Examples depend on APIs from Phases 1-9
+
+**Implementation Order:**
+1. **First**: Complete API phases (roadmap.md Phases 1-9)
+2. **Then**: Implement examples (Phases 10-13 described here)
 
 **Goals:**
 - Provide idiomatic Rust examples for all core CARLA features
@@ -35,19 +44,19 @@ The CARLA Python repository contains 36+ example scripts demonstrating various f
 
 ### Already Implemented (Phase 0) ✅
 
-| Example Name | Rust File | Description |
-|-------------|-----------|-------------|
-| Connect | `connect.rs` | Basic connection to simulator |
-| Blueprints | `blueprints.rs` | Query and filter blueprint library |
-| World Info | `world_info.rs` | Get map, spawn points, actors |
-| Spawn Vehicle | `spawn_vehicle.rs` | Spawn single vehicle |
-| Multiple Vehicles | `multiple_vehicles.rs` | Spawn multiple vehicles |
-| Spawn Walker | `spawn_walker.rs` | Spawn single pedestrian |
-| Multiple Walkers | `multiple_walkers.rs` | Spawn multiple pedestrians |
-| Vehicle Transform | `vehicle_transform.rs` | Get/set vehicle transforms |
-| Vehicle Attributes | `vehicle_attributes.rs` | Query vehicle attributes |
-| Walker Control | `walker_control.rs` | Apply walker movement |
-| Walker Directions | `walker_directions.rs` | Test different movement vectors |
+| Example Name       | Rust File               | Description                        |
+|--------------------|-------------------------|------------------------------------|
+| Connect            | `connect.rs`            | Basic connection to simulator      |
+| Blueprints         | `blueprints.rs`         | Query and filter blueprint library |
+| World Info         | `world_info.rs`         | Get map, spawn points, actors      |
+| Spawn Vehicle      | `spawn_vehicle.rs`      | Spawn single vehicle               |
+| Multiple Vehicles  | `multiple_vehicles.rs`  | Spawn multiple vehicles            |
+| Spawn Walker       | `spawn_walker.rs`       | Spawn single pedestrian            |
+| Multiple Walkers   | `multiple_walkers.rs`   | Spawn multiple pedestrians         |
+| Vehicle Transform  | `vehicle_transform.rs`  | Get/set vehicle transforms         |
+| Vehicle Attributes | `vehicle_attributes.rs` | Query vehicle attributes           |
+| Walker Control     | `walker_control.rs`     | Apply walker movement              |
+| Walker Directions  | `walker_directions.rs`  | Test different movement vectors    |
 
 **Coverage**: Core actor management, basic vehicle and walker operations.
 
@@ -62,30 +71,34 @@ Examples grouped into implementation phases based on:
 
 ## Implementation Phases
 
-### Phase 10: Simple Examples (Priority: High)
+**⚠️ REMINDER**: These phases are blocked until their prerequisite APIs are implemented. See `roadmap.md` for API implementation phases (1-9).
+
+### Phase 10: Simple Examples (Priority: Medium)
 
 **Target**: 9 examples demonstrating single features or simple combinations
 
 **Estimated Effort**: 2-3 weeks
 
+**⚠️ BLOCKED UNTIL**: Phase 3, 4 APIs are 80%+ complete
+
 **Prerequisites**:
-- Phase 3: Recording and Playback APIs
-- Phase 4: Advanced Vehicle Features (physics control)
-- Weather API (simple wrapper needed)
+- Phase 3: Recording and Playback APIs (must implement first)
+- Phase 4: Advanced Vehicle Features (must implement first)
+- Weather API (simple wrapper needed - must implement first)
 
 #### Examples to Implement
 
-| # | Example | Python File | Complexity | Priority |
-|---|---------|-------------|-----------|----------|
-| 1 | Tutorial | `tutorial.py` | ⭐ Simple | High |
-| 2 | Vehicle Gallery | `vehicle_gallery.py` | ⭐ Simple | Medium |
-| 3 | Dynamic Weather | `dynamic_weather.py` | ⭐ Simple | High |
-| 4 | Vehicle Physics | `vehicle_physics.py` | ⭐ Simple | Medium |
-| 5 | Start Recording | `start_recording.py` | ⭐ Simple | High |
-| 6 | Start Replaying | `start_replaying.py` | ⭐ Simple | High |
-| 7 | Show Recorder File Info | `show_recorder_file_info.py` | ⭐ Simple | Medium |
-| 8 | Show Recorder Collisions | `show_recorder_collisions.py` | ⭐ Simple | Medium |
-| 9 | Show Recorder Blocked Actors | `show_recorder_actors_blocked.py` | ⭐ Simple | Medium |
+| # | Example                      | Python File                       | Complexity | Priority |
+|---|------------------------------|-----------------------------------|------------|----------|
+| 1 | Tutorial                     | `tutorial.py`                     | ⭐ Simple  | High     |
+| 2 | Vehicle Gallery              | `vehicle_gallery.py`              | ⭐ Simple  | Medium   |
+| 3 | Dynamic Weather              | `dynamic_weather.py`              | ⭐ Simple  | High     |
+| 4 | Vehicle Physics              | `vehicle_physics.py`              | ⭐ Simple  | Medium   |
+| 5 | Start Recording              | `start_recording.py`              | ⭐ Simple  | High     |
+| 6 | Start Replaying              | `start_replaying.py`              | ⭐ Simple  | High     |
+| 7 | Show Recorder File Info      | `show_recorder_file_info.py`      | ⭐ Simple  | Medium   |
+| 8 | Show Recorder Collisions     | `show_recorder_collisions.py`     | ⭐ Simple  | Medium   |
+| 9 | Show Recorder Blocked Actors | `show_recorder_actors_blocked.py` | ⭐ Simple  | Medium   |
 
 **Key Features Demonstrated**:
 - Camera sensor attachment and callbacks
@@ -96,30 +109,32 @@ Examples grouped into implementation phases based on:
 
 ---
 
-### Phase 11: Intermediate Examples (Priority: High)
+### Phase 11: Intermediate Examples (Priority: Medium)
 
 **Target**: 8 examples combining multiple features
 
 **Estimated Effort**: 3-4 weeks
 
+**⚠️ BLOCKED UNTIL**: Phase 5, 6 APIs are 80%+ complete
+
 **Prerequisites**:
-- Phase 5: Batch Operations and Commands
-- Phase 6: Advanced Sensor Features
-- Traffic Manager enhancements
-- Synchronous mode support
+- Phase 5: Batch Operations and Commands (must implement first)
+- Phase 6: Advanced Sensor Features (must implement first)
+- Traffic Manager enhancements (must implement first)
+- Synchronous mode support (must implement first)
 
 #### Examples to Implement
 
-| # | Example | Python File | Complexity | Priority |
-|---|---------|-------------|-----------|----------|
-| 1 | Generate Traffic | `generate_traffic.py` | ⭐⭐ Moderate | High |
-| 2 | Sensor Synchronization | `sensor_synchronization.py` | ⭐⭐ Moderate | High |
-| 3 | Synchronous Mode | `synchronous_mode.py` | ⭐⭐ Moderate | High |
-| 4 | Automatic Control | `automatic_control.py` | ⭐⭐ Moderate | Medium |
-| 5 | Lidar to Camera | `lidar_to_camera.py` | ⭐⭐ Moderate | Medium |
-| 6 | Visualize Multiple Sensors | `visualize_multiple_sensors.py` | ⭐⭐ Moderate | Medium |
-| 7 | Get Component Test | `get_component_test.py` | ⭐ Simple | Low |
-| 8 | Tutorial GBuffer | `tutorial_gbuffer.py` | ⭐⭐ Moderate | Low |
+| # | Example                    | Python File                     | Complexity    | Priority |
+|---|----------------------------|---------------------------------|---------------|----------|
+| 1 | Generate Traffic           | `generate_traffic.py`           | ⭐⭐ Moderate | High     |
+| 2 | Sensor Synchronization     | `sensor_synchronization.py`     | ⭐⭐ Moderate | High     |
+| 3 | Synchronous Mode           | `synchronous_mode.py`           | ⭐⭐ Moderate | High     |
+| 4 | Automatic Control          | `automatic_control.py`          | ⭐⭐ Moderate | Medium   |
+| 5 | Lidar to Camera            | `lidar_to_camera.py`            | ⭐⭐ Moderate | Medium   |
+| 6 | Visualize Multiple Sensors | `visualize_multiple_sensors.py` | ⭐⭐ Moderate | Medium   |
+| 7 | Get Component Test         | `get_component_test.py`         | ⭐ Simple     | Low      |
+| 8 | Tutorial GBuffer           | `tutorial_gbuffer.py`           | ⭐⭐ Moderate | Low      |
 
 **Key Features Demonstrated**:
 - Batch actor spawning with Traffic Manager
@@ -145,16 +160,16 @@ Examples grouped into implementation phases based on:
 
 #### Examples to Implement
 
-| # | Example | Python File | Complexity | Priority |
-|---|---------|-------------|-----------|----------|
-| 1 | Manual Control | `manual_control.py` | ⭐⭐⭐ Complex | High |
-| 2 | Manual Control Steering Wheel | `manual_control_steeringwheel.py` | ⭐⭐⭐ Complex | Low |
-| 3 | Bounding Boxes | `bounding_boxes.py` | ⭐⭐⭐ Complex | Medium |
-| 4 | Client Bounding Boxes | `client_bounding_boxes.py` | ⭐⭐⭐ Complex | Medium |
-| 5 | Draw Skeleton | `draw_skeleton.py` | ⭐⭐⭐ Complex | Low |
-| 6 | No Rendering Mode | `no_rendering_mode.py` | ⭐⭐⭐ Complex | Medium |
-| 7 | Open3D Lidar | `open3d_lidar.py` | ⭐⭐⭐ Complex | Low |
-| 8 | Manual Control CarSim/Chrono | `manual_control_*.py` | ⭐⭐⭐ Complex | Low |
+| # | Example                       | Python File                       | Complexity     | Priority |
+|---|-------------------------------|-----------------------------------|----------------|----------|
+| 1 | Manual Control                | `manual_control.py`               | ⭐⭐⭐ Complex | High     |
+| 2 | Manual Control Steering Wheel | `manual_control_steeringwheel.py` | ⭐⭐⭐ Complex | Low      |
+| 3 | Bounding Boxes                | `bounding_boxes.py`               | ⭐⭐⭐ Complex | Medium   |
+| 4 | Client Bounding Boxes         | `client_bounding_boxes.py`        | ⭐⭐⭐ Complex | Medium   |
+| 5 | Draw Skeleton                 | `draw_skeleton.py`                | ⭐⭐⭐ Complex | Low      |
+| 6 | No Rendering Mode             | `no_rendering_mode.py`            | ⭐⭐⭐ Complex | Medium   |
+| 7 | Open3D Lidar                  | `open3d_lidar.py`                 | ⭐⭐⭐ Complex | Low      |
+| 8 | Manual Control CarSim/Chrono  | `manual_control_*.py`             | ⭐⭐⭐ Complex | Low      |
 
 **Key Features Demonstrated**:
 - Interactive keyboard/mouse control
@@ -186,15 +201,15 @@ Examples grouped into implementation phases based on:
 
 #### Examples (Reference Only)
 
-| # | Example | Python File | Integration | Status |
-|---|---------|-------------|-------------|--------|
+| # | Example            | Python File             | Integration    | Status   |
+|---|--------------------|-------------------------|----------------|----------|
 | 1 | InvertedAI Traffic | `invertedai_traffic.py` | InvertedAI API | Deferred |
-| 2 | CARLA Cosmos Gen | `carla_cosmos_gen.py` | NVIDIA Cosmos | Deferred |
-| 3 | V2X Demo | `V2XDemo.py` | V2X Protocol | Deferred |
-| 4 | Test Add Second VX | `test_addsecondvx.py` | V2X Testing | Deferred |
-| 5 | NVIDIA Integration | `nvidia/*` | NVIDIA Tools | Deferred |
-| 6 | ROS2 Bridge | `ros2/*` | ROS2 | Future |
-| 7 | RSS Safety | `rss/*` | Intel RSS | Deferred |
+| 2 | CARLA Cosmos Gen   | `carla_cosmos_gen.py`   | NVIDIA Cosmos  | Deferred |
+| 3 | V2X Demo           | `V2XDemo.py`            | V2X Protocol   | Deferred |
+| 4 | Test Add Second VX | `test_addsecondvx.py`   | V2X Testing    | Deferred |
+| 5 | NVIDIA Integration | `nvidia/*`              | NVIDIA Tools   | Deferred |
+| 6 | ROS2 Bridge        | `ros2/*`                | ROS2           | Future   |
+| 7 | RSS Safety         | `rss/*`                 | Intel RSS      | Deferred |
 
 **Rationale for Deferral**:
 - Require external service APIs (InvertedAI)
@@ -219,56 +234,56 @@ Examples grouped into implementation phases based on:
 
 ### Complete Matrix
 
-| Example Name | Python File | Phase | Complexity | Priority | Required APIs | External Deps | Status |
-|-------------|-------------|-------|-----------|----------|---------------|---------------|--------|
-| **Already Implemented** |
-| Connect | `connect.rs` | 0 | ⭐ | High | Client | - | ✅ |
-| Blueprints | `blueprints.rs` | 0 | ⭐ | High | World, BlueprintLibrary | - | ✅ |
-| World Info | `world_info.rs` | 0 | ⭐ | High | World, Map | - | ✅ |
-| Spawn Vehicle | `spawn_vehicle.rs` | 0 | ⭐ | High | World, Actor | - | ✅ |
-| Multiple Vehicles | `multiple_vehicles.rs` | 0 | ⭐ | High | World, Actor | - | ✅ |
-| Spawn Walker | `spawn_walker.rs` | 0 | ⭐ | High | World, Walker | - | ✅ |
-| Multiple Walkers | `multiple_walkers.rs` | 0 | ⭐ | High | World, Walker | - | ✅ |
-| Vehicle Transform | `vehicle_transform.rs` | 0 | ⭐ | High | Actor, Transform | - | ✅ |
-| Vehicle Attributes | `vehicle_attributes.rs` | 0 | ⭐ | High | Actor, Attributes | - | ✅ |
-| Walker Control | `walker_control.rs` | 0 | ⭐ | High | Walker, WalkerControl | - | ✅ |
-| Walker Directions | `walker_directions.rs` | 0 | ⭐ | High | Walker, WalkerControl | - | ✅ |
-| **Phase 10: Simple Examples** |
-| Tutorial | `tutorial.py` | 10 | ⭐ | High | Actor, Camera, Autopilot | - | 📋 |
-| Vehicle Gallery | `vehicle_gallery.py` | 10 | ⭐ | Medium | Blueprints, Spectator | - | 📋 |
-| Dynamic Weather | `dynamic_weather.py` | 10 | ⭐ | High | Weather, WorldSettings | - | 📋 |
-| Vehicle Physics | `vehicle_physics.py` | 10 | ⭐ | Medium | Vehicle, Physics, Impulse | - | 📋 |
-| Start Recording | `start_recording.py` | 10 | ⭐ | High | Recorder, Batch | - | 📋 |
-| Start Replaying | `start_replaying.py` | 10 | ⭐ | High | Recorder | - | 📋 |
-| Show File Info | `show_recorder_file_info.py` | 10 | ⭐ | Medium | Recorder queries | - | 📋 |
-| Show Collisions | `show_recorder_collisions.py` | 10 | ⭐ | Medium | Recorder queries | - | 📋 |
-| Show Blocked | `show_recorder_actors_blocked.py` | 10 | ⭐ | Medium | Recorder queries | - | 📋 |
-| **Phase 11: Intermediate Examples** |
-| Generate Traffic | `generate_traffic.py` | 11 | ⭐⭐ | High | Batch, TrafficManager, WalkerAI | - | 📋 |
-| Sensor Sync | `sensor_synchronization.py` | 11 | ⭐⭐ | High | Sensors, SyncMode, Queue | - | 📋 |
-| Synchronous Mode | `synchronous_mode.py` | 11 | ⭐⭐ | High | SyncMode, Sensor, Camera | - | 📋 |
-| Automatic Control | `automatic_control.py` | 11 | ⭐⭐ | Medium | Autopilot, HUD display | UI framework | 📋 |
-| Lidar to Camera | `lidar_to_camera.py` | 11 | ⭐⭐ | Medium | Lidar, Camera, Transform | - | 📋 |
-| Multi-Sensor Viz | `visualize_multiple_sensors.py` | 11 | ⭐⭐ | Medium | Multiple sensors | UI framework | 📋 |
-| Component Test | `get_component_test.py` | 11 | ⭐ | Low | Component API | - | 📋 |
-| Tutorial GBuffer | `tutorial_gbuffer.py` | 11 | ⭐⭐ | Low | GBuffer, Camera | - | 📋 |
-| **Phase 12: Advanced Examples** |
-| Manual Control | `manual_control.py` | 12 | ⭐⭐⭐ | High | All vehicle APIs, HUD | winit, pixels | 📋 |
-| Steering Wheel | `manual_control_steeringwheel.py` | 12 | ⭐⭐⭐ | Low | Vehicle control, Input | gilrs, winit | 📋 |
-| Bounding Boxes | `bounding_boxes.py` | 12 | ⭐⭐⭐ | Medium | Camera, Projection, Instance Seg | nalgebra, image | 📋 |
-| Client BB | `client_bounding_boxes.py` | 12 | ⭐⭐⭐ | Medium | Advanced BB, Debug draw | nalgebra | 📋 |
-| Draw Skeleton | `draw_skeleton.py` | 12 | ⭐⭐⭐ | Low | Walker bones, Debug draw | - | 📋 |
-| No Rendering | `no_rendering_mode.py` | 12 | ⭐⭐⭐ | Medium | Large scale, No render mode | - | 📋 |
-| Open3D Lidar | `open3d_lidar.py` | 12 | ⭐⭐⭐ | Low | Lidar, Point cloud | bevy/3D viz | 📋 |
-| CarSim/Chrono | `manual_control_carsim.py` | 12 | ⭐⭐⭐ | Low | External physics | Physics libs | 📋 |
-| **Phase 13: Specialized/Deferred** |
-| InvertedAI | `invertedai_traffic.py` | 13 | ⭐⭐⭐ | - | External API | InvertedAI SDK | ⏸️ |
-| Cosmos Gen | `carla_cosmos_gen.py` | 13 | ⭐⭐⭐ | - | External API | NVIDIA Cosmos | ⏸️ |
-| V2X Demo | `V2XDemo.py` | 13 | ⭐⭐⭐ | - | V2X protocol | V2X libs | ⏸️ |
-| V2X Test | `test_addsecondvx.py` | 13 | ⭐⭐ | - | V2X protocol | V2X libs | ⏸️ |
-| NVIDIA | `nvidia/*` | 13 | ⭐⭐⭐ | - | NVIDIA tools | NVIDIA SDK | ⏸️ |
-| ROS2 | `ros2/*` | 13 | ⭐⭐⭐ | - | ROS2 messages | ROS2, rclrs | ⏸️ |
-| RSS | `rss/*` | 13 | ⭐⭐⭐ | - | RSS library | Intel RSS | ⏸️ |
+| Example Name                        | Python File                       | Phase | Complexity | Priority | Required APIs                    | External Deps   | Status |
+|-------------------------------------|-----------------------------------|-------|------------|----------|----------------------------------|-----------------|--------|
+| **Already Implemented**             |                                   |       |            |          |                                  |                 |        |
+| Connect                             | `connect.rs`                      | 0     | ⭐         | High     | Client                           | -               | ✅     |
+| Blueprints                          | `blueprints.rs`                   | 0     | ⭐         | High     | World, BlueprintLibrary          | -               | ✅     |
+| World Info                          | `world_info.rs`                   | 0     | ⭐         | High     | World, Map                       | -               | ✅     |
+| Spawn Vehicle                       | `spawn_vehicle.rs`                | 0     | ⭐         | High     | World, Actor                     | -               | ✅     |
+| Multiple Vehicles                   | `multiple_vehicles.rs`            | 0     | ⭐         | High     | World, Actor                     | -               | ✅     |
+| Spawn Walker                        | `spawn_walker.rs`                 | 0     | ⭐         | High     | World, Walker                    | -               | ✅     |
+| Multiple Walkers                    | `multiple_walkers.rs`             | 0     | ⭐         | High     | World, Walker                    | -               | ✅     |
+| Vehicle Transform                   | `vehicle_transform.rs`            | 0     | ⭐         | High     | Actor, Transform                 | -               | ✅     |
+| Vehicle Attributes                  | `vehicle_attributes.rs`           | 0     | ⭐         | High     | Actor, Attributes                | -               | ✅     |
+| Walker Control                      | `walker_control.rs`               | 0     | ⭐         | High     | Walker, WalkerControl            | -               | ✅     |
+| Walker Directions                   | `walker_directions.rs`            | 0     | ⭐         | High     | Walker, WalkerControl            | -               | ✅     |
+| **Phase 10: Simple Examples**       |                                   |       |            |          |                                  |                 |        |
+| Tutorial                            | `tutorial.py`                     | 10    | ⭐         | High     | Actor, Camera, Autopilot         | -               | 📋     |
+| Vehicle Gallery                     | `vehicle_gallery.py`              | 10    | ⭐         | Medium   | Blueprints, Spectator            | -               | 📋     |
+| Dynamic Weather                     | `dynamic_weather.py`              | 10    | ⭐         | High     | Weather, WorldSettings           | -               | 📋     |
+| Vehicle Physics                     | `vehicle_physics.py`              | 10    | ⭐         | Medium   | Vehicle, Physics, Impulse        | -               | 📋     |
+| Start Recording                     | `start_recording.py`              | 10    | ⭐         | High     | Recorder, Batch                  | -               | 📋     |
+| Start Replaying                     | `start_replaying.py`              | 10    | ⭐         | High     | Recorder                         | -               | 📋     |
+| Show File Info                      | `show_recorder_file_info.py`      | 10    | ⭐         | Medium   | Recorder queries                 | -               | 📋     |
+| Show Collisions                     | `show_recorder_collisions.py`     | 10    | ⭐         | Medium   | Recorder queries                 | -               | 📋     |
+| Show Blocked                        | `show_recorder_actors_blocked.py` | 10    | ⭐         | Medium   | Recorder queries                 | -               | 📋     |
+| **Phase 11: Intermediate Examples** |                                   |       |            |          |                                  |                 |        |
+| Generate Traffic                    | `generate_traffic.py`             | 11    | ⭐⭐       | High     | Batch, TrafficManager, WalkerAI  | -               | 📋     |
+| Sensor Sync                         | `sensor_synchronization.py`       | 11    | ⭐⭐       | High     | Sensors, SyncMode, Queue         | -               | 📋     |
+| Synchronous Mode                    | `synchronous_mode.py`             | 11    | ⭐⭐       | High     | SyncMode, Sensor, Camera         | -               | 📋     |
+| Automatic Control                   | `automatic_control.py`            | 11    | ⭐⭐       | Medium   | Autopilot, HUD display           | UI framework    | 📋     |
+| Lidar to Camera                     | `lidar_to_camera.py`              | 11    | ⭐⭐       | Medium   | Lidar, Camera, Transform         | -               | 📋     |
+| Multi-Sensor Viz                    | `visualize_multiple_sensors.py`   | 11    | ⭐⭐       | Medium   | Multiple sensors                 | UI framework    | 📋     |
+| Component Test                      | `get_component_test.py`           | 11    | ⭐         | Low      | Component API                    | -               | 📋     |
+| Tutorial GBuffer                    | `tutorial_gbuffer.py`             | 11    | ⭐⭐       | Low      | GBuffer, Camera                  | -               | 📋     |
+| **Phase 12: Advanced Examples**     |                                   |       |            |          |                                  |                 |        |
+| Manual Control                      | `manual_control.py`               | 12    | ⭐⭐⭐     | High     | All vehicle APIs, HUD            | winit, pixels   | 📋     |
+| Steering Wheel                      | `manual_control_steeringwheel.py` | 12    | ⭐⭐⭐     | Low      | Vehicle control, Input           | gilrs, winit    | 📋     |
+| Bounding Boxes                      | `bounding_boxes.py`               | 12    | ⭐⭐⭐     | Medium   | Camera, Projection, Instance Seg | nalgebra, image | 📋     |
+| Client BB                           | `client_bounding_boxes.py`        | 12    | ⭐⭐⭐     | Medium   | Advanced BB, Debug draw          | nalgebra        | 📋     |
+| Draw Skeleton                       | `draw_skeleton.py`                | 12    | ⭐⭐⭐     | Low      | Walker bones, Debug draw         | -               | 📋     |
+| No Rendering                        | `no_rendering_mode.py`            | 12    | ⭐⭐⭐     | Medium   | Large scale, No render mode      | -               | 📋     |
+| Open3D Lidar                        | `open3d_lidar.py`                 | 12    | ⭐⭐⭐     | Low      | Lidar, Point cloud               | bevy/3D viz     | 📋     |
+| CarSim/Chrono                       | `manual_control_carsim.py`        | 12    | ⭐⭐⭐     | Low      | External physics                 | Physics libs    | 📋     |
+| **Phase 13: Specialized/Deferred**  |                                   |       |            |          |                                  |                 |        |
+| InvertedAI                          | `invertedai_traffic.py`           | 13    | ⭐⭐⭐     | -        | External API                     | InvertedAI SDK  | ⏸️      |
+| Cosmos Gen                          | `carla_cosmos_gen.py`             | 13    | ⭐⭐⭐     | -        | External API                     | NVIDIA Cosmos   | ⏸️      |
+| V2X Demo                            | `V2XDemo.py`                      | 13    | ⭐⭐⭐     | -        | V2X protocol                     | V2X libs        | ⏸️      |
+| V2X Test                            | `test_addsecondvx.py`             | 13    | ⭐⭐       | -        | V2X protocol                     | V2X libs        | ⏸️      |
+| NVIDIA                              | `nvidia/*`                        | 13    | ⭐⭐⭐     | -        | NVIDIA tools                     | NVIDIA SDK      | ⏸️      |
+| ROS2                                | `ros2/*`                          | 13    | ⭐⭐⭐     | -        | ROS2 messages                    | ROS2, rclrs     | ⏸️      |
+| RSS                                 | `rss/*`                           | 13    | ⭐⭐⭐     | -        | RSS library                      | Intel RSS       | ⏸️      |
 
 ---
 
