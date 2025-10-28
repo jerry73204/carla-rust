@@ -267,6 +267,298 @@ impl Client {
         let ptr = self.inner.GetInstanceTM(port).within_unique_ptr();
         unsafe { TrafficManager::from_cxx(ptr).unwrap_unchecked() }
     }
+
+    // ========================================================================
+    // Recording Methods
+    // ========================================================================
+
+    /// Starts recording simulation data to a file.
+    ///
+    /// Recording captures actor movements, physics, and events for later replay.
+    /// The recording file is saved in the CARLA server's directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - Name of the recording file (e.g., "my_recording.log")
+    /// * `additional_data` - If true, records non-essential data like sensor data
+    ///
+    /// # Returns
+    ///
+    /// A message string indicating success or failure
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// let result = client.start_recorder("test_recording.log", false);
+    /// println!("Recording started: {}", result);
+    /// ```
+    pub fn start_recorder(&mut self, filename: &str, additional_data: bool) -> String {
+        self.inner
+            .pin_mut()
+            .StartRecorder(filename, additional_data)
+            .to_string()
+    }
+
+    /// Stops the current recording session.
+    ///
+    /// The recording file is finalized and can be used for replay.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// client.start_recorder("test.log", false);
+    /// // ... perform actions ...
+    /// client.stop_recorder();
+    /// ```
+    pub fn stop_recorder(&mut self) {
+        self.inner.pin_mut().StopRecorder();
+    }
+
+    /// Retrieves information about a recorded simulation file.
+    ///
+    /// Returns detailed metadata about the recording including frames, time,
+    /// events, and actor states.
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - Name of the recording file
+    /// * `show_all` - If true, returns detailed info; if false, returns summary
+    ///
+    /// # Returns
+    ///
+    /// A formatted string containing the recording information
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// let info = client.show_recorder_file_info("test.log", false);
+    /// println!("Recording info:\n{}", info);
+    /// ```
+    pub fn show_recorder_file_info(&mut self, filename: &str, show_all: bool) -> String {
+        self.inner
+            .pin_mut()
+            .ShowRecorderFileInfo(filename, show_all)
+            .to_string()
+    }
+
+    /// Queries collision events from a recorded simulation.
+    ///
+    /// Filters collisions by actor types using category characters:
+    /// - 'h': Hero vehicle
+    /// - 'v': Vehicle
+    /// - 'w': Walker
+    /// - 't': Traffic light
+    /// - 'o': Other
+    /// - 'a': Any
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - Name of the recording file
+    /// * `category1` - First actor type filter
+    /// * `category2` - Second actor type filter
+    ///
+    /// # Returns
+    ///
+    /// A formatted string listing collision events
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// // Show all vehicle-to-vehicle collisions
+    /// let collisions = client.show_recorder_collisions("test.log", 'v', 'v');
+    /// println!("Collisions:\n{}", collisions);
+    /// ```
+    pub fn show_recorder_collisions(
+        &mut self,
+        filename: &str,
+        category1: char,
+        category2: char,
+    ) -> String {
+        self.inner
+            .pin_mut()
+            .ShowRecorderCollisions(filename, category1 as i8, category2 as i8)
+            .to_string()
+    }
+
+    /// Finds actors that were blocked (stuck) during the recording.
+    ///
+    /// An actor is considered blocked if it fails to move a minimum distance
+    /// within a specified time period.
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - Name of the recording file
+    /// * `min_time` - Minimum time in seconds to consider an actor blocked
+    /// * `min_distance` - Minimum distance in meters the actor should have moved
+    ///
+    /// # Returns
+    ///
+    /// A formatted string listing blocked actors
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// // Find actors that didn't move 1m in 60 seconds
+    /// let blocked = client.show_recorder_actors_blocked("test.log", 60.0, 1.0);
+    /// println!("Blocked actors:\n{}", blocked);
+    /// ```
+    pub fn show_recorder_actors_blocked(
+        &mut self,
+        filename: &str,
+        min_time: f32,
+        min_distance: f32,
+    ) -> String {
+        self.inner
+            .pin_mut()
+            .ShowRecorderActorsBlocked(filename, min_time as f64, min_distance as f64)
+            .to_string()
+    }
+
+    // ========================================================================
+    // Replay Methods
+    // ========================================================================
+
+    /// Replays a previously recorded simulation.
+    ///
+    /// Loads and replays a recording file with optional time range and camera following.
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - Name of the recording file
+    /// * `start_time` - Time in seconds to start playback (0.0 = from beginning)
+    /// * `duration` - Duration in seconds to play (0.0 = until end)
+    /// * `follow_id` - Actor ID to follow with camera (0 = no following)
+    /// * `replay_sensors` - If true, replays sensor data
+    ///
+    /// # Returns
+    ///
+    /// A message string indicating success or failure
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// // Replay from start, follow actor 42
+    /// let result = client.replay_file("test.log", 0.0, 0.0, 42, false);
+    /// println!("Replay started: {}", result);
+    /// ```
+    pub fn replay_file(
+        &mut self,
+        filename: &str,
+        start_time: f32,
+        duration: f32,
+        follow_id: u32,
+        replay_sensors: bool,
+    ) -> String {
+        self.inner
+            .pin_mut()
+            .ReplayFile(
+                filename,
+                start_time as f64,
+                duration as f64,
+                follow_id,
+                replay_sensors,
+            )
+            .to_string()
+    }
+
+    /// Stops the current replay session.
+    ///
+    /// # Arguments
+    ///
+    /// * `keep_actors` - If true, actors remain in the world after stopping
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
+    /// // ... wait for replay ...
+    /// client.stop_replayer(false);
+    /// ```
+    pub fn stop_replayer(&mut self, keep_actors: bool) {
+        self.inner.pin_mut().StopReplayer(keep_actors);
+    }
+
+    /// Sets the time factor for replay playback speed.
+    ///
+    /// # Arguments
+    ///
+    /// * `time_factor` - Speed multiplier (1.0 = normal, 2.0 = 2x speed, 0.5 = half speed)
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
+    /// client.set_replayer_time_factor(2.0); // Play at 2x speed
+    /// ```
+    pub fn set_replayer_time_factor(&mut self, time_factor: f32) {
+        self.inner
+            .pin_mut()
+            .SetReplayerTimeFactor(time_factor as f64);
+    }
+
+    /// Controls whether the hero vehicle is ignored during replay.
+    ///
+    /// # Arguments
+    ///
+    /// * `ignore_hero` - If true, the hero vehicle's recorded movements are not replayed
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
+    /// client.set_replayer_ignore_hero(true); // Skip hero vehicle replay
+    /// ```
+    pub fn set_replayer_ignore_hero(&mut self, ignore_hero: bool) {
+        self.inner.pin_mut().SetReplayerIgnoreHero(ignore_hero);
+    }
+
+    /// Controls whether the spectator is ignored during replay.
+    ///
+    /// # Arguments
+    ///
+    /// * `ignore_spectator` - If true, the spectator's recorded movements are not replayed
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let mut client = Client::default();
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
+    /// client.set_replayer_ignore_spectator(true); // Skip spectator replay
+    /// ```
+    pub fn set_replayer_ignore_spectator(&mut self, ignore_spectator: bool) {
+        self.inner
+            .pin_mut()
+            .SetReplayerIgnoreSpectator(ignore_spectator);
+    }
 }
 
 impl Default for Client {

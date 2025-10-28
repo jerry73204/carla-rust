@@ -60,6 +60,50 @@ public:
         return FfiTrafficManager(std::move(orig));
     }
 
+    // Recording methods
+    std::string StartRecorder(std::string filename, bool additional_data) {
+        return inner_.StartRecorder(std::move(filename), additional_data);
+    }
+
+    void StopRecorder() { inner_.StopRecorder(); }
+
+    std::string ShowRecorderFileInfo(std::string filename, bool show_all) {
+        return inner_.ShowRecorderFileInfo(std::move(filename), show_all);
+    }
+
+    std::string ShowRecorderCollisions(std::string filename, char type1, char type2) {
+        return inner_.ShowRecorderCollisions(std::move(filename), type1, type2);
+    }
+
+    std::string ShowRecorderActorsBlocked(std::string filename, double min_time,
+                                          double min_distance) {
+        return inner_.ShowRecorderActorsBlocked(std::move(filename), min_time, min_distance);
+    }
+
+    // Replay methods
+    std::string ReplayFile(std::string filename, double start_time, double duration,
+                           uint32_t follow_id, bool replay_sensors) {
+#ifdef CARLA_VERSION_0916
+        // 0.9.16 has an additional offset parameter
+        carla::geom::Transform offset;  // Identity transform (no offset)
+        return inner_.ReplayFile(std::move(filename), start_time, duration, follow_id,
+                                 replay_sensors, offset);
+#else
+        return inner_.ReplayFile(std::move(filename), start_time, duration, follow_id,
+                                 replay_sensors);
+#endif
+    }
+
+    void StopReplayer(bool keep_actors) { inner_.StopReplayer(keep_actors); }
+
+    void SetReplayerTimeFactor(double time_factor) { inner_.SetReplayerTimeFactor(time_factor); }
+
+    void SetReplayerIgnoreHero(bool ignore_hero) { inner_.SetReplayerIgnoreHero(ignore_hero); }
+
+    void SetReplayerIgnoreSpectator(bool ignore_spectator) {
+        inner_.SetReplayerIgnoreSpectator(ignore_spectator);
+    }
+
 private:
     Client inner_;
 };
