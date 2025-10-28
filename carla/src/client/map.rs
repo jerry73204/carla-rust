@@ -202,6 +202,55 @@ impl Map {
             .within_unique_ptr();
         unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
+
+    /// Returns the road network topology as pairs of connected waypoints.
+    ///
+    /// The topology describes the connectivity of the road network, where each
+    /// pair represents a connection from one waypoint to another. This is useful
+    /// for path planning and understanding the road network structure.
+    ///
+    /// # Returns
+    ///
+    /// A vector of waypoint pairs, where each pair `(start, end)` represents
+    /// a directed connection in the road network.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// let map = world.map();
+    ///
+    /// let topology = map.topology();
+    /// println!("Road network has {} connections", topology.len());
+    ///
+    /// // Examine first connection
+    /// if let Some((start, end)) = topology.first() {
+    ///     println!(
+    ///         "Connection: lane {} -> lane {}",
+    ///         start.lane_id(),
+    ///         end.lane_id()
+    ///     );
+    /// }
+    /// ```
+    pub fn topology(&self) -> Vec<(Waypoint, Waypoint)> {
+        let topology_pairs = self.inner.GetTopology();
+        let mut result = Vec::with_capacity(topology_pairs.len());
+
+        for pair in topology_pairs.iter() {
+            let first = pair.first();
+            let second = pair.second();
+
+            let start = unsafe { Waypoint::from_cxx(first).unwrap_unchecked() };
+            let end = unsafe { Waypoint::from_cxx(second).unwrap_unchecked() };
+
+            result.push((start, end));
+        }
+
+        result
+    }
 }
 
 impl Map {

@@ -5,6 +5,7 @@
 #include "carla_rust/client/landmark_list.hpp"
 #include "carla_rust/client/transform_list.hpp"
 #include "carla_rust/client/waypoint_list.hpp"
+#include "carla_rust/client/waypoint_pair.hpp"
 #include "junction.hpp"
 #include "waypoint_list.hpp"
 #include <memory>
@@ -16,6 +17,7 @@ using carla::client::Map;
 using carla_rust::client::FfiLandmarkList;
 using carla_rust::client::FfiTransformList;
 using carla_rust::client::FfiWaypointList;
+using carla_rust::client::FfiWaypointPair;
 
 // Map
 class FfiMap {
@@ -53,7 +55,15 @@ public:
         }
     }
 
-    // TopologyList GetTopology() const;
+    std::vector<FfiWaypointPair> GetTopology() const {
+        auto topology = inner_->GetTopology();
+        std::vector<FfiWaypointPair> result;
+        result.reserve(topology.size());
+        for (const auto& pair : topology) {
+            result.push_back(FfiWaypointPair(pair));
+        }
+        return result;
+    }
 
     std::unique_ptr<FfiWaypointList> GenerateWaypoints(double distance) const {
         auto waypoints = inner_->GenerateWaypoints(distance);
