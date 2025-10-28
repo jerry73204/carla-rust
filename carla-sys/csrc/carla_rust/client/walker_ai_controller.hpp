@@ -4,6 +4,7 @@
 #include "carla/Memory.h"
 #include "carla/client/WalkerAIController.h"
 #include "carla/geom/Location.h"
+#include "carla_rust/geom.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -11,6 +12,7 @@ using carla::SharedPtr;
 using carla::client::Actor;
 using carla::client::WalkerAIController;
 using carla::geom::Location;
+using carla_rust::geom::FfiLocation;
 
 // WalkerAIController
 class FfiWalkerAIController {
@@ -21,9 +23,18 @@ public:
 
     void Stop() const { inner_->Stop(); }
 
-    boost::optional<Location> GetRandomLocation() const { return inner_->GetRandomLocation(); }
+    std::unique_ptr<FfiLocation> GetRandomLocation() const {
+        auto result = inner_->GetRandomLocation();
+        if (result) {
+            return std::make_unique<FfiLocation>(std::move(*result));
+        } else {
+            return nullptr;
+        }
+    }
 
-    void GoToLocation(const Location& destination) const { inner_->GoToLocation(destination); }
+    void GoToLocation(const FfiLocation& destination) const {
+        inner_->GoToLocation(destination.as_native());
+    }
 
     void SetMaxSpeed(float max_speed) const { inner_->SetMaxSpeed(max_speed); }
 

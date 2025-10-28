@@ -1,8 +1,9 @@
 //! Walker AI controller for autonomous pedestrian navigation.
 
 use super::{Actor, ActorBase};
+use crate::geom::Location;
 use carla_sys::carla_rust::client::{FfiActor, FfiWalkerAIController};
-use cxx::SharedPtr;
+use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
 
 /// AI controller for autonomous walker navigation.
@@ -101,23 +102,66 @@ impl WalkerAIController {
         self.inner.Stop();
     }
 
-    // TODO: Implement get_random_location() once boost::optional FFI wrapper is ready
-    // /// Gets a random navigation location.
-    // ///
-    // /// Returns a random point within the map's navigation mesh,
-    // /// or `None` if no valid location is available.
-    // pub fn get_random_location(&self) -> Option<Location> {
-    //     // Requires boost::optional FFI wrapper
-    //     None
-    // }
+    /// Gets a random navigation location.
+    ///
+    /// Returns a random point within the map's navigation mesh,
+    /// or `None` if no valid location is available.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
+    /// if let Some(location) = ai.get_random_location() {
+    ///     println!("Random location: {:?}", location);
+    ///     ai.go_to_location(&location);
+    /// }
+    /// ```
+    pub fn get_random_location(&self) -> Option<Location> {
+        let ptr: UniquePtr<Location> = self.inner.GetRandomLocation();
+        if ptr.is_null() {
+            None
+        } else {
+            Some(ptr.as_ref().unwrap().clone())
+        }
+    }
 
-    // TODO: Implement go_to_location() once autocxx properly supports const reference parameters
-    // /// Directs the walker to navigate to a specific location.
-    // ///
-    // /// The AI controller will pathfind to the destination using the navigation mesh.
-    // pub fn go_to_location(&self, location: &Location) {
-    //     // Requires fixing autocxx const reference parameter handling
-    // }
+    /// Directs the walker to navigate to a specific location.
+    ///
+    /// The AI controller will pathfind to the destination using the navigation mesh.
+    ///
+    /// # Arguments
+    ///
+    /// * `location` - The target destination for the walker
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Location;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
+    /// let destination = Location {
+    ///     x: 100.0,
+    ///     y: 50.0,
+    ///     z: 0.0,
+    /// };
+    /// ai.go_to_location(&destination);
+    /// ```
+    pub fn go_to_location(&self, location: &Location) {
+        self.inner.GoToLocation(location);
+    }
 
     /// Sets the maximum walking speed.
     ///
