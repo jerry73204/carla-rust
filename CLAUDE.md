@@ -461,6 +461,29 @@ cargo build --all-targets --profile dev-release
 - Binaries are placed in `target/dev-release/` (not `target/debug/` or `target/release/`)
 - Examples must be built with this profile to work with test automation
 
+### Debugging autocxx FFI Generation
+
+When adding new methods to FFI wrapper classes and they don't appear in the Rust bindings:
+
+```bash
+# Generate documentation to see which methods autocxx generated
+cargo doc -p carla-sys --no-deps
+
+# Check the generated HTML for the type
+# Example: target/doc/carla_sys/carla_rust/client/struct.FfiWalkerAIController.html
+```
+
+The documentation shows:
+- Which methods were successfully generated
+- Whether a type is Opaque (no automatic method generation) or Trivial
+- Any autocxx warnings about why methods couldn't be generated
+
+Common issues:
+- Type is marked as `Opaque` instead of generated with full bindings
+- Method return types aren't compatible with autocxx (use `std::unique_ptr<T>` for optional returns)
+- Method parameters need special handling (pass by value or reference)
+- Missing `generate!()` declaration in `carla-sys/src/bindings.rs`
+
 ### Other Commands
 
 ```bash
