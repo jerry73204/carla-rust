@@ -11,10 +11,7 @@
 //! cargo run --example start_recording
 //! ```
 
-use carla::{
-    client::{ActorBase, Client, Vehicle},
-    rpc::VehicleControl,
-};
+use carla::client::{ActorBase, Client, Vehicle};
 use std::{thread, time::Duration};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

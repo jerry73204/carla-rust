@@ -13,10 +13,7 @@
 //! cargo run --example vehicle_gallery
 //! ```
 
-use carla::{
-    client::{ActorBase, Client, Vehicle},
-    geom::TransformExt,
-};
+use carla::client::{ActorBase, Client, Vehicle};
 use std::{thread, time::Duration};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -138,12 +138,9 @@ impl Image {
                 )
             })?;
 
-        img_buffer.save(path).map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to save image: {}", e),
-            )
-        })
+        img_buffer
+            .save(path)
+            .map_err(|e| std::io::Error::other(format!("Failed to save image: {}", e)))
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiImage>) -> Option<Self> {

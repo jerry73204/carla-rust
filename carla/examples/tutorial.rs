@@ -17,7 +17,6 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor, Vehicle},
-    rpc::VehicleControl,
     sensor::data::Image,
 };
 use std::{
@@ -81,9 +80,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Configure camera resolution
     let mut camera_bp = camera_bp;
-    camera_bp.set_attribute("image_size_x", "800");
-    camera_bp.set_attribute("image_size_y", "600");
-    camera_bp.set_attribute("fov", "90.0");
+    if !camera_bp.set_attribute("image_size_x", "800") {
+        return Err("Failed to set camera image_size_x".into());
+    }
+    if !camera_bp.set_attribute("image_size_y", "600") {
+        return Err("Failed to set camera image_size_y".into());
+    }
+    if !camera_bp.set_attribute("fov", "90.0") {
+        return Err("Failed to set camera fov".into());
+    }
 
     // Create transform for camera (mounted on vehicle roof)
     let camera_transform = nalgebra::Isometry3::from_parts(

@@ -26,14 +26,12 @@ use carla::{
 use std::time::Instant;
 
 fn main() {
+    println!("=== CARLA Batch Operations Example ===\n");
+
     println!("Connecting to CARLA simulator...");
     let mut client = Client::connect("localhost", 2000, None);
-    println!("Connected!");
-
-    // Load default map for clean world state
-    println!("\nLoading map: Town10HD_Opt...");
-    let world = client.load_world("Town10HD_Opt");
-    println!("Map loaded!");
+    let world = client.world();
+    println!("✓ Connected! Current map: {}\n", world.map().name());
 
     let blueprint_library = world.blueprint_library();
     let spawn_points = world.map().recommended_spawn_points();

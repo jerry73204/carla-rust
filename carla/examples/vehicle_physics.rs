@@ -14,12 +14,9 @@
 //! cargo run --example vehicle_physics
 //! ```
 
-use carla::{
-    client::{ActorBase, Client, Vehicle},
-    geom::TransformExt,
-};
+use carla::client::{ActorBase, Client, Vehicle};
 use nalgebra::Vector3;
-use std::{thread, time::Duration};
+use std::time::Duration;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== CARLA Vehicle Physics Example ===\n");
