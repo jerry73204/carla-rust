@@ -111,7 +111,7 @@ impl TrafficManager {
 
         self.inner.pin_mut().SetImportedRoute(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            &route,
+            route.as_ref().unwrap(),
             empty_buffer,
         );
     }
@@ -128,7 +128,9 @@ impl TrafficManager {
             vec
         });
 
-        self.inner.pin_mut().UpdateImportedRoute(&actor_id, &route);
+        self.inner
+            .pin_mut()
+            .UpdateImportedRoute(&actor_id, route.as_ref().unwrap());
     }
 
     pub fn set_respawn_dormant_vehicles(&mut self, yes: bool) {

@@ -79,6 +79,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate!("carla_rust::client::FfiWalker")
     generate!("carla_rust::client::FfiWalkerAIController")
     generate_pod!("carla_rust::client::FfiClientLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
@@ -91,6 +92,10 @@ include_cpp! {
     generate_pod!("carla_rust::rpc::FfiRpcColor")
     generate_pod!("carla_rust::rpc::FfiRpcLightState")
     generate_pod!("carla_rust::rpc::FfiRpcLightGroup")
+    generate!("carla_rust::rpc::FfiBoneTransformDataIn")
+    generate!("carla_rust::rpc::FfiBoneTransformDataOut")
+    generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
+    generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
 
     // carla
     generate!("carla::SharedPtr")
