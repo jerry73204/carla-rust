@@ -101,6 +101,14 @@ impl Vector3DExt for Vector3D {
 /// Provides conversions to/from `Translation3` and `Point3` for integration
 /// with nalgebra's linear algebra operations.
 pub trait LocationExt {
+    /// Creates a new location with the given coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - Forward coordinate
+    /// * `y` - Right coordinate
+    /// * `z` - Up coordinate
+    fn new(x: f32, y: f32, z: f32) -> Self;
     /// Creates a location from a nalgebra translation.
     fn from_na_translation(from: &Translation3<f32>) -> Self;
     /// Creates a location from a nalgebra point.
@@ -112,6 +120,11 @@ pub trait LocationExt {
 }
 
 impl LocationExt for Location {
+    #[inline]
+    fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
+
     fn from_na_translation(from: &Translation3<f32>) -> Self {
         Self {
             x: from.x,
@@ -221,6 +234,37 @@ pub struct BoundingBox<T> {
 }
 
 impl BoundingBox<f32> {
+    /// Creates a new bounding box with a given center location and half-extents.
+    ///
+    /// # Arguments
+    ///
+    /// * `location` - Center position of the bounding box
+    /// * `extent` - Half-extents along each axis (half-width, half-height, half-depth)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use carla::geom::{BoundingBox, Location, LocationExt, Vector3D};
+    ///
+    /// let bbox = BoundingBox::new(
+    ///     Location::new(0.0, 0.0, 1.0),
+    ///     Vector3D {
+    ///         x: 2.0,
+    ///         y: 1.0,
+    ///         z: 1.0,
+    ///     },
+    /// );
+    /// ```
+    pub fn new(location: Location, extent: Vector3D) -> Self {
+        Self {
+            transform: Isometry3 {
+                rotation: UnitQuaternion::identity(),
+                translation: location.to_na_translation(),
+            },
+            extent: extent.to_na(),
+        }
+    }
+
     /// Converts to CARLA's native C++ bounding box type.
     pub fn to_native(&self) -> NativeBoundingBox {
         let Self { transform, extent } = self;

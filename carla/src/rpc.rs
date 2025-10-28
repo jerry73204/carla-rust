@@ -31,6 +31,7 @@
 //!
 //! Most types are re-exported from the C++ library via FFI.
 
+mod color;
 mod environment_object;
 mod episode_settings;
 mod light_id;
@@ -54,6 +55,7 @@ pub use carla_sys::{
         FfiRpcLightState as LightState,
     },
 };
+pub use color::*;
 pub use environment_object::*;
 pub use episode_settings::*;
 pub use light_id::*;

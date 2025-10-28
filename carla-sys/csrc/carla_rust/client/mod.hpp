@@ -12,6 +12,7 @@
 #include "actor.hpp"
 #include "blueprint_library.hpp"
 #include "actor_list.hpp"
+#include "debug_helper.hpp"
 #include "world.hpp"
 #include "client.hpp"
 #include "actor_blueprint.hpp"

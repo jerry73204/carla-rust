@@ -45,6 +45,7 @@ using carla::rpc::MapLayer;
 using carla::rpc::WeatherParameters;
 using carla_rust::client::FfiActorVec;
 using carla_rust::client::FfiBoundingBoxList;
+using carla_rust::client::FfiDebugHelper;
 using carla_rust::client::FfiEnvironmentObjectList;
 using carla_rust::client::FfiLabelledPointList;
 using carla_rust::client::FfiLightManager;
@@ -339,6 +340,11 @@ public:
         auto end = end_location.as_native();
         auto orig = inner_.CastRay(start, end);
         return FfiLabelledPointList(std::move(orig));
+    }
+
+    std::unique_ptr<FfiDebugHelper> MakeDebugHelper() const {
+        auto helper = inner_.MakeDebugHelper();
+        return std::make_unique<FfiDebugHelper>(std::move(helper));
     }
 
     FfiWorld clone() const { return *this; }

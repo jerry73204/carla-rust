@@ -3,8 +3,8 @@
 
 use super::{
     Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, ActorVec, BlueprintLibrary,
-    BoundingBoxList, EnvironmentObjectList, LabelledPointList, Landmark, LightManager, Map,
-    Waypoint, WorldSnapshot,
+    BoundingBoxList, DebugHelper, EnvironmentObjectList, LabelledPointList, Landmark, LightManager,
+    Map, Waypoint, WorldSnapshot,
 };
 use crate::{
     geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
@@ -592,6 +592,30 @@ impl World {
             )
             .within_unique_ptr();
         unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() }
+    }
+
+    /// Creates a debug helper for drawing visualization primitives.
+    ///
+    /// Returns a [`DebugHelper`] that can be used to draw points, lines, boxes, arrows,
+    /// and text in the simulation for debugging and visualization purposes.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Location;
+    /// # use carla::rpc::Color;
+    /// #
+    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
+    /// # let mut world = client.world();
+    /// let mut debug = world.debug();
+    ///
+    /// // Draw a red point at the origin
+    /// debug.draw_point(Location::new(0.0, 0.0, 0.0), 0.5, Color::RED, 5.0, false);
+    /// ```
+    pub fn debug(&mut self) -> DebugHelper {
+        let ptr = self.inner.pin_mut().MakeDebugHelper();
+        DebugHelper { inner: ptr }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
