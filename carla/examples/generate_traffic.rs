@@ -1,210 +1,303 @@
-//! Generate Traffic Example - Spawning vehicles and pedestrians
+//! Traffic Generation Example
 //!
-//! This example demonstrates:
-//! - Spawning multiple vehicles with autopilot enabled
-//! - Spawning pedestrian walkers with AI controllers
-//! - Using Traffic Manager for vehicle coordination
-//! - Walker AI navigation to random locations
+//! Demonstrates how to generate realistic traffic by spawning:
+//! - Multiple vehicles with autopilot enabled
+//! - Pedestrians (walkers) with AI controllers
 //!
-//! Prerequisites:
-//! - CARLA simulator must be running
+//! This example shows batch operations for efficient actor spawning
+//! and demonstrates the walker AI controller system.
 //!
-//! Run with:
+//! # What it does
+//!
+//! 1. Spawns vehicles at random spawn points with autopilot
+//! 2. Spawns walkers at random locations on sidewalks
+//! 3. Attaches AI controllers to walkers for autonomous navigation
+//! 4. Commands walkers to walk to random destinations
+//! 5. Monitors traffic for a specified duration
+//! 6. Cleans up all spawned actors
+//!
+//! # Output
+//!
+//! Displays statistics about spawned traffic and their movement patterns.
+//!
+//! # Usage
+//!
 //! ```bash
 //! cargo run --example generate_traffic
 //! ```
 
 use carla::{
-    client::{ActorBase, Client, Vehicle, WalkerAIController},
-    geom::{Location, LocationExt},
+    client::{ActorBase, Client, WalkerAIController},
+    geom::{Location, LocationExt, Transform, TransformExt},
+    rpc::{ActorId, Command, VehicleControl, WalkerControl},
 };
-use nalgebra::Isometry3;
+use nalgebra::Translation3;
 use rand::Rng;
 use std::{thread, time::Duration};
 
+const NUM_VEHICLES: usize = 30;
+const NUM_WALKERS: usize = 50;
+const SIMULATION_DURATION_SECS: u64 = 60;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== CARLA Traffic Generation Example ===\n");
+    println!("Traffic Generation Example");
+    println!("==========================\n");
 
-    // Step 1: Connect to CARLA
-    println!("Step 1: Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    // Connect to CARLA server
+    let mut client = Client::default();
     let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let mut rng = rand::thread_rng();
 
-    // Step 2: Configure settings for better performance
-    println!("Step 2: Configuring simulation settings...");
-    let mut settings = world.settings();
-    settings.synchronous_mode = true;
-    settings.fixed_delta_seconds = Some(0.05);
-    world.apply_settings(&settings, Duration::from_secs(5));
-    println!("✓ Synchronous mode enabled with 0.05s fixed delta\n");
+    println!("Connected to CARLA simulator");
+    println!("Map: {}\n", world.map().name());
 
-    // Step 3: Spawn vehicles
-    println!("Step 3: Spawning vehicles with autopilot...");
-    let blueprint_library = world.blueprint_library();
-    let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.tesla.*").iter().collect();
+    // Configure pedestrian behavior
+    world.set_pedestrians_seed(rng.gen_range(0..100000));
+    world.set_pedestrians_cross_factor(0.2); // 20% chance to cross roads
 
+    let bp_lib = world.blueprint_library();
+    let spawn_points = world.map().recommended_spawn_points();
+
+    // ========================================================================
+    // PART 1: Spawn Vehicles with Autopilot
+    // ========================================================================
+
+    println!("=== Spawning {} Vehicles ===", NUM_VEHICLES);
+
+    let vehicle_blueprints = bp_lib.filter("vehicle.*");
     if vehicle_blueprints.is_empty() {
         return Err("No vehicle blueprints found".into());
     }
 
-    let spawn_points = world.map().recommended_spawn_points();
-    let num_vehicles = 10.min(spawn_points.len());
+    // Create batch spawn commands for vehicles
+    let mut vehicle_spawn_commands = Vec::new();
+    for i in 0..NUM_VEHICLES.min(spawn_points.len()) {
+        let vehicle_bp = vehicle_blueprints
+            .get(rng.gen_range(0..vehicle_blueprints.len()))
+            .ok_or("Failed to get vehicle blueprint")?;
+        let spawn_point = spawn_points.get(i).ok_or("No spawn point available")?;
+        let transform = Transform::from_na(&spawn_point);
 
-    let mut vehicles = Vec::new();
-    let mut rng = rand::thread_rng();
+        vehicle_spawn_commands.push(Command::spawn_actor(vehicle_bp.clone(), transform, None));
+    }
 
-    for i in 0..num_vehicles {
-        let spawn_point = spawn_points.get(i).unwrap();
-        let blueprint = vehicle_blueprints[rng.gen_range(0..vehicle_blueprints.len())].clone();
+    println!("Spawning vehicles in batch...");
+    let vehicle_responses = client.apply_batch_sync(vehicle_spawn_commands, false);
 
-        match world.spawn_actor(&blueprint, &spawn_point) {
-            Ok(actor) => {
-                if let Ok(vehicle) = Vehicle::try_from(actor) {
-                    vehicle.set_autopilot(true);
-                    println!("  ✓ Spawned vehicle {} (ID: {})", i + 1, vehicle.id());
-                    vehicles.push(vehicle);
-                } else {
-                    eprintln!("  ✗ Failed to convert actor to vehicle");
-                }
+    let mut vehicle_ids = Vec::new();
+    for (i, response) in vehicle_responses.iter().enumerate() {
+        if let Some(actor_id) = response.actor_id() {
+            vehicle_ids.push(actor_id);
+            if i % 10 == 0 {
+                println!("  Spawned {} vehicles...", i + 1);
             }
-            Err(e) => {
-                eprintln!("  ✗ Failed to spawn vehicle {}: {}", i + 1, e);
-            }
+        } else if let Some(error) = response.error() {
+            eprintln!("  Failed to spawn vehicle {}: {}", i, error);
         }
     }
-    println!("✓ Spawned {} vehicles\n", vehicles.len());
 
-    // Step 5: Spawn walkers with AI controllers
-    println!("Step 5: Spawning pedestrians with AI controllers...");
-    let walker_blueprints: Vec<_> = blueprint_library
-        .filter("walker.pedestrian.*")
-        .iter()
-        .collect();
+    println!("✓ Successfully spawned {} vehicles\n", vehicle_ids.len());
 
+    // Enable autopilot for all vehicles
+    println!("Enabling autopilot for vehicles...");
+    let mut autopilot_commands = Vec::new();
+    for &vehicle_id in &vehicle_ids {
+        autopilot_commands.push(Command::set_autopilot(vehicle_id, true, 8000));
+    }
+    client.apply_batch_sync(autopilot_commands, false);
+    println!("✓ Autopilot enabled\n");
+
+    // ========================================================================
+    // PART 2: Spawn Walkers (Pedestrians)
+    // ========================================================================
+
+    println!("=== Spawning {} Walkers ===", NUM_WALKERS);
+
+    let walker_blueprints = bp_lib.filter("walker.pedestrian.*");
     if walker_blueprints.is_empty() {
         return Err("No walker blueprints found".into());
     }
 
-    let walker_controller_bp = blueprint_library
+    // Generate random spawn locations for walkers
+    let mut walker_spawn_commands = Vec::new();
+    for _ in 0..NUM_WALKERS {
+        let walker_bp = walker_blueprints
+            .get(rng.gen_range(0..walker_blueprints.len()))
+            .ok_or("Failed to get walker blueprint")?;
+
+        // Get random location from navigation system
+        let translation = world.random_location_from_navigation();
+        let location = Location::from_na_translation(&translation);
+        let rotation = carla::geom::Rotation {
+            pitch: 0.0,
+            yaw: 0.0,
+            roll: 0.0,
+        };
+        let transform = Transform { location, rotation };
+        walker_spawn_commands.push(Command::spawn_actor(walker_bp.clone(), transform, None));
+    }
+
+    println!("Spawning walkers in batch...");
+    let walker_responses = client.apply_batch_sync(walker_spawn_commands, false);
+
+    let mut walker_ids = Vec::new();
+    for (i, response) in walker_responses.iter().enumerate() {
+        if let Some(actor_id) = response.actor_id() {
+            walker_ids.push(actor_id);
+            if i % 10 == 0 {
+                println!("  Spawned {} walkers...", i + 1);
+            }
+        }
+    }
+
+    println!("✓ Successfully spawned {} walkers\n", walker_ids.len());
+
+    // ========================================================================
+    // PART 3: Spawn Walker AI Controllers
+    // ========================================================================
+
+    println!("=== Spawning Walker AI Controllers ===");
+
+    let controller_bp = bp_lib
         .find("controller.ai.walker")
         .ok_or("Walker AI controller blueprint not found")?;
 
-    let num_walkers = 5;
-    let mut walkers = Vec::new();
+    // Spawn AI controller for each walker
+    let mut controller_spawn_commands = Vec::new();
+    for &walker_id in &walker_ids {
+        let zero_transform = Transform {
+            location: Location {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            rotation: carla::geom::Rotation {
+                pitch: 0.0,
+                yaw: 0.0,
+                roll: 0.0,
+            },
+        };
+        controller_spawn_commands.push(Command::spawn_actor(
+            controller_bp.clone(),
+            zero_transform,
+            Some(walker_id),
+        ));
+    }
+
+    println!("Spawning AI controllers in batch...");
+    let controller_responses = client.apply_batch_sync(controller_spawn_commands, false);
+
+    let mut controller_ids = Vec::new();
+    for response in controller_responses {
+        if let Some(actor_id) = response.actor_id() {
+            controller_ids.push(actor_id);
+        }
+    }
+
+    println!(
+        "✓ Successfully spawned {} AI controllers\n",
+        controller_ids.len()
+    );
+
+    // ========================================================================
+    // PART 4: Start Walker AI
+    // ========================================================================
+
+    println!("=== Starting Walker AI ===");
+
+    // Small delay to ensure all actors are initialized
+    thread::sleep(Duration::from_millis(500));
+
     let mut walker_controllers = Vec::new();
+    for &controller_id in &controller_ids {
+        if let Some(actor) = world.actor(controller_id) {
+            if let Ok(controller) = WalkerAIController::try_from(actor) {
+                // Start the AI
+                controller.start();
 
-    // Set pedestrian crossing factor
-    world.set_pedestrians_cross_factor(0.0); // 0% will cross roads
+                // Set walking speed (random between 0.5 and 2.0 m/s)
+                let speed = rng.gen_range(0.5..2.0);
+                controller.set_max_speed(speed);
 
-    for i in 0..num_walkers {
-        // Get random spawn location from navigation mesh
-        let spawn_location = world.random_location_from_navigation();
-        let spawn_transform =
-            Isometry3::from_parts(spawn_location, nalgebra::UnitQuaternion::identity());
-
-        // Spawn walker
-        let walker_bp = walker_blueprints[rng.gen_range(0..walker_blueprints.len())].clone();
-
-        match world.spawn_actor(&walker_bp, &spawn_transform) {
-            Ok(walker_actor) => {
-                let walker_id = walker_actor.id();
-                println!("  ✓ Spawned walker {} (ID: {})", i + 1, walker_id);
-
-                // Spawn AI controller for this walker
-                let controller_transform = Isometry3::identity();
-                match world.spawn_actor_opt(
-                    &walker_controller_bp,
-                    &controller_transform,
-                    Some(&walker_actor),
-                    carla::rpc::AttachmentType::Rigid,
-                ) {
-                    Ok(controller_actor) => {
-                        if let Ok(controller) = WalkerAIController::try_from(controller_actor) {
-                            // Start AI and set random destination
-                            controller.start();
-
-                            let random_dest = world.random_location_from_navigation();
-                            let dest_location = Location::from_na_translation(&random_dest);
-                            controller.go_to_location(&dest_location);
-
-                            // Set walking speed (m/s)
-                            let speed = if rng.gen_bool(0.8) { 1.4 } else { 2.5 }; // 80% walk, 20% run
-                            controller.set_max_speed(speed);
-
-                            println!("    ✓ AI controller started (speed: {:.1} m/s)", speed);
-                            walker_controllers.push(controller);
-                        }
-                    }
-                    Err(e) => {
-                        eprintln!("    ✗ Failed to spawn AI controller: {}", e);
-                    }
+                // Set random destination
+                if let Some(destination) = controller.get_random_location() {
+                    controller.go_to_location(&destination);
                 }
 
-                walkers.push(walker_actor);
-            }
-            Err(e) => {
-                eprintln!("  ✗ Failed to spawn walker {}: {}", i + 1, e);
+                walker_controllers.push(controller);
             }
         }
     }
-    println!("✓ Spawned {} walkers with AI controllers\n", walkers.len());
-
-    // Step 6: Run simulation
-    println!("Step 6: Running simulation for 30 seconds...");
-    println!(
-        "  Total actors: {} vehicles + {} walkers = {} actors\n",
-        vehicles.len(),
-        walkers.len(),
-        vehicles.len() + walkers.len()
-    );
-
-    for i in 1..=30 {
-        world.tick();
-        thread::sleep(Duration::from_millis(50));
-
-        if i % 5 == 0 {
-            println!("  Running... {} seconds", i);
-        }
-    }
-
-    // Step 7: Cleanup
-    println!("\n=== Cleanup ===");
 
     println!(
-        "Destroying {} walker controllers...",
+        "✓ Started {} walker AI controllers\n",
         walker_controllers.len()
     );
-    for (i, controller) in walker_controllers.iter().enumerate() {
-        if controller.destroy() {
-            println!("  ✓ Controller {} destroyed", i + 1);
+
+    // ========================================================================
+    // PART 5: Monitor Traffic
+    // ========================================================================
+
+    println!("=== Traffic Active ===");
+    println!(
+        "Running simulation for {} seconds...\n",
+        SIMULATION_DURATION_SECS
+    );
+
+    for elapsed in 0..SIMULATION_DURATION_SECS {
+        thread::sleep(Duration::from_secs(1));
+
+        if elapsed % 10 == 0 && elapsed > 0 {
+            println!(
+                "[{:02}:{:02}] Traffic active - {} vehicles, {} walkers",
+                elapsed / 60,
+                elapsed % 60,
+                vehicle_ids.len(),
+                walker_ids.len()
+            );
         }
     }
 
-    println!("Destroying {} walkers...", walkers.len());
-    for (i, walker) in walkers.iter().enumerate() {
-        if walker.destroy() {
-            println!("  ✓ Walker {} destroyed", i + 1);
-        }
+    // ========================================================================
+    // PART 6: Cleanup
+    // ========================================================================
+
+    println!("\n=== Cleaning Up ===");
+
+    // Stop walker AI controllers
+    println!("Stopping walker AI controllers...");
+    for controller in walker_controllers {
+        controller.stop();
     }
 
-    println!("Destroying {} vehicles...", vehicles.len());
-    for (i, vehicle) in vehicles.iter().enumerate() {
-        if vehicle.destroy() {
-            println!("  ✓ Vehicle {} destroyed", i + 1);
-        }
+    // Destroy all spawned actors
+    println!("Destroying all spawned actors...");
+
+    let mut destroy_commands = Vec::new();
+
+    for &controller_id in &controller_ids {
+        destroy_commands.push(Command::destroy_actor(controller_id));
+    }
+    for &walker_id in &walker_ids {
+        destroy_commands.push(Command::destroy_actor(walker_id));
+    }
+    for &vehicle_id in &vehicle_ids {
+        destroy_commands.push(Command::destroy_actor(vehicle_id));
     }
 
-    // Reset settings
-    let mut settings = world.settings();
-    settings.synchronous_mode = false;
-    settings.fixed_delta_seconds = None;
-    world.apply_settings(&settings, Duration::from_secs(5));
+    client.apply_batch_sync(destroy_commands, false);
 
-    println!("\n=== Traffic Generation Complete ===");
-    println!("Successfully spawned and cleaned up:");
-    println!("  - {} vehicles with autopilot", vehicles.len());
-    println!("  - {} pedestrians with AI navigation", walkers.len());
+    println!("✓ Cleanup complete\n");
+
+    println!("=== Traffic Generation Demo Complete ===");
+    println!("\nSummary:");
+    println!("  {} vehicles spawned with autopilot", vehicle_ids.len());
+    println!("  {} walkers spawned with AI control", walker_ids.len());
+    println!("  {} AI controllers created", controller_ids.len());
+    println!(
+        "  Simulation duration: {} seconds",
+        SIMULATION_DURATION_SECS
+    );
 
     Ok(())
 }
