@@ -50,31 +50,32 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
   - Examples: tutorial, vehicle_gallery, dynamic_weather, vehicle_physics, recording, replaying, recorder_info
   - Test Results: 100% compilation success
 
-- **Phase 11**: Intermediate Example Implementations (PARTIAL)
-  - Status: ✅ 3/6 examples implemented (50% complete)
-  - Completed: automatic_control, synchronous_mode, sensor_synchronization
-  - Remaining: generate_traffic, sensor_coordination (2), tutorial_gbuffer (awaiting Phase 5/6 APIs)
+- **Phase 11**: Intermediate Example Implementations - Headless Versions (COMPLETE)
+  - Status: ✅ 6/6 headless examples implemented (100% complete)
+  - Completed (headless): automatic_control, synchronous_mode, sensor_synchronization, generate_traffic, lidar_to_camera, visualize_multiple_sensors
+  - **Note:** These are simplified versions without GUI for API demonstration
+  - Full GUI versions matching Python examples planned for Phase 12
+  - Deferred: tutorial_gbuffer (awaiting Phase 6 GBuffer APIs)
 
 ### Active Development
 
-**Current Focus:** Example implementations using existing APIs
+**Current Focus:** Phase 11 complete! All intermediate examples successfully implemented.
 
 **Ready for Implementation (APIs Available):**
-- Phase 11 remaining examples (when Phase 5/6 complete)
-- Additional Phase 9 MEDIUM/LOW priority items
+- Phase 12: Advanced Example Implementations (requires Phase 2 Debug utilities + UI frameworks)
+- Additional utility improvements and example enhancements
 
 **Blocked (Awaiting API Implementation):**
-- Phase 5: Batch Operations and Commands
-- Phase 6: Advanced Sensor Features
+- Phase 6: Advanced Sensor Features (GBuffer APIs)
 - Phase 7: Advanced Actor and Attachment Features
-- Phase 11 (3 examples): generate_traffic, sensor_coordination, tutorial_gbuffer
+- Phase 11 (1 example): tutorial_gbuffer (requires Phase 6 GBuffer APIs)
 
 ### Example Statistics
 
-**Total Examples Implemented:** 17
+**Total Examples Implemented:** 20
 - Phase 0: 6 examples (test framework)
 - Phase 10: 8 examples (simple)
-- Phase 11: 3 examples (intermediate)
+- Phase 11: 6 examples (intermediate)
 
 **Build Status:** ✅ All examples compile successfully
 **Test Framework:** ✅ Automated test harness with CARLA server management
@@ -1374,26 +1375,37 @@ These APIs should be implemented in Phase 9 before continuing with Phase 11 exam
 
 ---
 
-## Phase 11: Intermediate Example Implementations
+## Phase 11: Intermediate Example Implementations (Headless/No GUI)
 
-**Priority:** Medium (Partial completion with existing APIs)
+**Priority:** Medium
 **Estimated Effort:** 3-4 weeks
-**Status:** ✅ Partially Complete (3/6 examples implemented)
-**✅ Completion Date:** 2025-10-28
-**⚠️ Note:** Implemented examples that use existing APIs. Remaining examples require Phase 5/6 APIs.
+**Status:** ✅ COMPLETE (6/6 headless examples implemented)
+**✅ Completion Date:** 2025-10-29
+**⚠️ Important Note:** These are **simplified headless versions** for API demonstration. Full GUI versions matching Python examples are in Phase 12.
 
 ### Overview
 
-Implement examples that combine multiple features and demonstrate more complex scenarios. These examples are essential for understanding real-world usage patterns.
+Implement intermediate examples that combine multiple features without GUI requirements. These demonstrate core functionality and are useful for:
+- Automated testing and CI/CD pipelines
+- Headless servers and cloud environments
+- API validation and learning
+- Data collection workflows
 
-**Implementation Status:** Three intermediate examples successfully implemented using existing Phase 3, 4, 8, 9 APIs. Remaining examples await Phase 5 (Batch Operations) and Phase 6 (Advanced Sensor Features) implementation.
+**Differences from Python Examples:**
+- Python's `automatic_control.py`, `synchronous_mode.py`, and `visualize_multiple_sensors.py` use pygame for real-time visualization
+- Our Phase 11 versions are simplified for headless operation (console output or save to disk)
+- Full GUI versions matching Python behavior are planned for Phase 12
+
+**Implementation Status:** All six headless examples successfully implemented using APIs from Phase 1 (Walker AI), Phase 3 (Recording), Phase 4 (Vehicle Physics), Phase 5 (Batch Operations), Phase 8 (Navigation), and Phase 9 (Camera Projection, Actor Destruction, Image Persistence).
 
 ### Completed Work Items
 
-- [x] **Automatic Control** (`automatic_control.rs`) ✅
+- [x] **Automatic Control (Headless)** (`automatic_control.rs`) ✅
   - File: `carla/examples/automatic_control.rs`
+  - **Python Equivalent:** `automatic_control.py` (has pygame GUI with camera view)
+  - **Our Implementation:** Headless console-only version
   - Enables autopilot on vehicle
-  - Displays real-time telemetry (location, velocity, control inputs)
+  - Displays real-time telemetry (location, velocity, control inputs) to console
   - 60-second monitoring session with formatted table output
   - Tests manual control override
   - Demonstrates: Autopilot, telemetry queries, control override, actor cleanup
@@ -1404,14 +1416,17 @@ Implement examples that combine multiple features and demonstrate more complex s
     - `Vehicle::apply_control()` - Manual control override
     - `Actor::destroy()` - Cleanup
   - **Test Status:** ✅ Compiled successfully, runs with CARLA server
+  - **Note:** Full GUI version with camera display planned for Phase 12
 
-- [x] **Synchronous Mode** (`synchronous_mode.rs`) ✅
+- [x] **Synchronous Mode (Headless)** (`synchronous_mode.rs`) ✅
   - File: `carla/examples/synchronous_mode.rs`
+  - **Python Equivalent:** `synchronous_mode.py` (has pygame GUI with camera display)
+  - **Our Implementation:** Headless console-only version
   - Enables synchronous simulation (fixed timestep)
   - Spawns vehicle with autopilot
   - Attaches RGB and semantic segmentation cameras
   - Runs 100 ticks (5 seconds at 20 FPS)
-  - Verifies frame synchronization between sensors
+  - Verifies frame synchronization between sensors via console output
   - Demonstrates: Synchronous mode, fixed delta time, tick-based simulation, sensor sync
   - **Key APIs Used:**
     - `WorldSettings::synchronous_mode = true`
@@ -1421,13 +1436,16 @@ Implement examples that combine multiple features and demonstrate more complex s
     - Multiple camera sensors with `listen()` callbacks
     - `AttachmentType::SpringArm` - Camera mount type
   - **Test Status:** ✅ Compiled successfully, demonstrates perfect sensor synchronization
+  - **Note:** Full GUI version with camera display planned for Phase 12
 
 - [x] **Sensor Synchronization** (`sensor_synchronization.rs`) ✅
   - File: `carla/examples/sensor_synchronization.rs`
+  - **Python Equivalent:** `sensor_synchronization.py` (console-only, no GUI)
+  - **Our Implementation:** ✅ Matches Python behavior
   - Spawns 4 different sensor types: RGB, Depth, Semantic, Lidar
   - All sensors attached to moving vehicle
   - 30-second monitoring of frame rates and synchronization
-  - Calculates synchronization quality metrics
+  - Calculates synchronization quality metrics via console output
   - Demonstrates: Multi-sensor setup, coordinate frames, data rates, sync verification
   - **Key APIs Used:**
     - Multiple sensor blueprints (camera.rgb, camera.depth, camera.semantic_segmentation, lidar.ray_cast)
@@ -1437,6 +1455,62 @@ Implement examples that combine multiple features and demonstrate more complex s
     - `LidarMeasurement::len()` - Total point count
     - Separate transforms for cameras vs lidar placement
   - **Test Status:** ✅ Compiled successfully, monitors 4 sensors simultaneously
+
+- [x] **Generate Traffic** (`generate_traffic.rs`) ✅
+  - File: `carla/examples/generate_traffic.rs` (295 lines)
+  - **Python Equivalent:** `generate_traffic.py` (console-only, no GUI)
+  - **Our Implementation:** ✅ Matches Python behavior
+  - Spawns 30 vehicles with autopilot using batch operations
+  - Spawns 50 walkers with AI controllers
+  - Demonstrates pedestrian navigation and random waypoint generation
+  - 60-second traffic simulation with console monitoring
+  - Demonstrates: Batch spawn commands, Walker AI controllers, traffic scenarios
+  - **Key APIs Used:**
+    - `Command::spawn_actor()` - Batch vehicle/walker spawning
+    - `Command::set_autopilot()` - Batch autopilot enable
+    - `Client::apply_batch_sync()` - Synchronous batch execution
+    - `WalkerAIController::start()`, `stop()`, `set_max_speed()`, `go_to_location()`
+    - `World::random_location_from_navigation()` - Random sidewalk locations
+    - `World::set_pedestrians_cross_factor()` - Pedestrian behavior config
+  - **Test Status:** ✅ Compiled successfully, spawns traffic with AI control
+
+- [x] **LiDAR-to-Camera Projection** (`lidar_to_camera.rs`) ✅
+  - File: `carla/examples/lidar_to_camera.rs` (321 lines)
+  - **Python Equivalent:** `lidar_to_camera.py` (saves to disk, no GUI)
+  - **Our Implementation:** ✅ Matches Python behavior
+  - Projects 3D LiDAR points onto 2D camera images
+  - Demonstrates sensor fusion and coordinate transformations
+  - Uses synchronous mode for perfect sensor synchronization
+  - Colors points by distance using viridis colormap
+  - Saves 50 annotated images showing LiDAR overlay to `_out/` directory
+  - Demonstrates: Sensor fusion, camera projection math, coordinate transforms
+  - **Key APIs Used:**
+    - `carla::sensor::camera::build_projection_matrix()` - Camera intrinsic matrix
+    - `carla::sensor::camera::world_to_camera()` - World-to-camera transform
+    - `carla::sensor::camera::project_to_2d()` - 3D-to-2D projection
+    - `SensorDataBase::frame()` - Frame number for synchronization
+    - `LidarMeasurement::as_slice()` - Point cloud iteration
+    - `Image::save_to_disk()` - Save annotated images
+  - **Test Status:** ✅ Compiled successfully, demonstrates sensor fusion
+
+- [x] **Multiple Sensor Visualization (Headless)** (`visualize_multiple_sensors.rs`) ✅
+  - File: `carla/examples/visualize_multiple_sensors.rs` (300 lines)
+  - **Python Equivalent:** `visualize_multiple_sensors.py` (pygame GUI with 2×3 grid display)
+  - **Our Implementation:** Headless version - saves to disk instead of real-time display
+  - Spawns 4 sensor types on single vehicle: RGB, Depth, Semantic, LiDAR
+  - Captures synchronized sensor data for 20 frames
+  - Saves RGB, depth, and semantic segmentation images to `_out/sensors/` directory
+  - Logs LiDAR point cloud statistics to console
+  - Demonstrates: Multi-sensor setup, synchronized capture, data persistence
+  - **Key APIs Used:**
+    - Multiple sensor blueprints and attribute configuration
+    - `World::spawn_actor_opt()` - Attach sensors to parent vehicle
+    - `Sensor::listen()` - Multiple concurrent sensor callbacks
+    - `Image::save_to_disk()` - Save sensor images
+    - `LidarMeasurement::len()`, `channel_count()` - LiDAR stats
+    - `Arc<Mutex<>>` - Thread-safe data sharing between callbacks
+  - **Test Status:** ✅ Compiled successfully, saves multi-sensor outputs
+  - **Note:** Full GUI version with real-time 2×3 grid display planned for Phase 12
 
 - [x] **Camera Projection Utilities** ✅
   - **Priority:** HIGH (Required for lidar_to_camera.rs, visualize_multiple_sensors.rs)
@@ -1455,7 +1529,7 @@ Implement examples that combine multiple features and demonstrate more complex s
     - 3D-to-2D projection with normalization
     - Based on CARLA Python lidar_to_camera.py reference
   - **Usage:** Sensor fusion, LiDAR-to-camera projection, bounding box projection
-  - **Unblocks:** lidar_to_camera.rs, visualize_multiple_sensors.rs examples
+  - **Unblocked Examples:** lidar_to_camera.rs, visualize_multiple_sensors.rs
 
 - [x] **Collision and Lane Invasion Sensors** ✅
   - **Priority:** MEDIUM
@@ -1475,25 +1549,13 @@ Implement examples that combine multiple features and demonstrate more complex s
     - ✅ Usage examples in doc comments
   - **Usage:** Safety monitoring, collision detection, lane departure warnings
 
-### Remaining Work Items (Awaiting Phase 5/6 APIs)
+### Deferred Work Items
 
-- [ ] **Generate Traffic** (`generate_traffic.rs`)
-  - Requires: Batch spawn APIs (Phase 5)
-  - Requires: Walker AI Controller APIs
-  - Requires: Traffic Manager enhancements
-  - Demonstrates: Batch commands, Traffic Manager, walker AI
-
-- [ ] **Sensor Coordination** (2 examples)
-  - `lidar_to_camera.rs` - Transform lidar points to camera view
-  - `visualize_multiple_sensors.rs` - Multi-sensor display
-  - **Requires:** Camera projection utilities (Phase 9 - new work item added)
-  - **Missing API:** `camera::build_projection_matrix()`, `camera::world_to_camera()`, `camera::project_to_2d()`
-  - Demonstrates: Coordinate transformations, sensor fusion, lidar-to-image projection
-
-- [ ] **GBuffer Access** (`tutorial_gbuffer.rs`)
-  - Requires: GBuffer texture APIs (Phase 6)
+- [ ] **GBuffer Access** (`tutorial_gbuffer.rs`) - DEFERRED
+  - Requires: GBuffer texture APIs (Phase 6 - deferred)
   - Access GBuffer textures (depth, normals, etc.)
   - Demonstrates: Advanced rendering features
+  - **Status:** Deferred pending Phase 6 GBuffer API implementation
 
 ### Test Cases
 
@@ -1546,37 +1608,208 @@ Implement complex examples with advanced features, external dependencies, and so
 
 ### Prerequisites
 
-- Phase 2: Debug and Visualization Utilities
+- Phase 2: Debug and Visualization Utilities ✅ (Complete)
 - All sensor APIs complete
-- UI framework integration (winit + pixels)
-- Math library integration (nalgebra)
-- Image processing utilities
+- UI framework integration (see options below)
+- Math library integration (nalgebra) ✅ (Already in use)
+- Image processing utilities ✅ (`image` crate already integrated)
+
+### UI Framework Options (Pygame Replacement)
+
+**Research Date:** 2025-10-29
+
+After evaluating Rust alternatives to Python's pygame, we have three main options:
+
+#### Option 1: **Macroquad** (RECOMMENDED)
+- **Website:** https://macroquad.rs/
+- **Version:** 0.4.14 (Latest: 2025-03-20)
+- **GitHub:** 2,500+ stars
+- **Philosophy:** Simple and easy to use, heavily inspired by raylib
+- **Pros:**
+  - ✅ **Simplest API** - Most pygame-like experience in Rust
+  - ✅ **Zero configuration** - Works out of the box
+  - ✅ **Beginner-friendly** - Avoids complex Rust concepts (lifetimes/borrowing)
+  - ✅ **Cross-platform** - Windows, macOS, Linux, Web (WASM), iOS, Android
+  - ✅ **Built-in features** - Texture loading, text rendering, input handling, audio
+  - ✅ **Automatic batching** - Efficient 2D rendering with geometry batching
+  - ✅ **Active development** - New tutorials in 2025, regular updates
+  - ✅ **Great learning resources** - Official guide (mq.agical.se), recent tutorials
+- **Cons:**
+  - ⚠️ Less control over low-level details
+  - ⚠️ Built on miniquad (adds abstraction layer)
+- **Best For:** Quick prototyping, pygame-like simplicity, getting GUI examples running fast
+- **Example:**
+  ```rust
+  use macroquad::prelude::*;
+
+  #[macroquad::main("CARLA Sensor View")]
+  async fn main() {
+      loop {
+          clear_background(BLACK);
+          draw_texture(&camera_texture, 0., 0., WHITE);
+          draw_text("Speed: 45 km/h", 20., 40., 30., WHITE);
+          next_frame().await
+      }
+  }
+  ```
+
+#### Option 2: **Winit + Pixels** (Original Plan)
+- **Winit:** https://github.com/rust-windowing/winit (15,000+ stars)
+- **Pixels:** https://github.com/parasyte/pixels (2,000+ stars)
+- **Version:** pixels 0.15.0 (Latest: 2025-01-08)
+- **Philosophy:** Modular composition of specialized crates
+- **Pros:**
+  - ✅ **More control** - Fine-grained control over rendering pipeline
+  - ✅ **Industry standard** - Winit is the foundation most Rust graphics use
+  - ✅ **GPU-accelerated** - Hardware-accelerated pixel buffer via wgpu
+  - ✅ **Explicit** - Clear separation between windowing and rendering
+  - ✅ **Modern APIs** - Built on wgpu (Vulkan, Metal, DirectX 12, OpenGL ES3)
+- **Cons:**
+  - ⚠️ More boilerplate code required
+  - ⚠️ Need to manage event loop manually
+  - ⚠️ Separate crates for text rendering, audio, etc.
+- **Best For:** When you need precise control, or building custom rendering pipelines
+- **Example:**
+  ```rust
+  use pixels::{Pixels, SurfaceTexture};
+  use winit::event_loop::EventLoop;
+
+  let event_loop = EventLoop::new();
+  let mut pixels = Pixels::new(WIDTH, HEIGHT, surface)?;
+  // Manual frame buffer manipulation
+  pixels.frame_mut()[idx] = color;
+  pixels.render()?;
+  ```
+
+#### Option 3: **SDL2** (Battle-tested C Library)
+- **Crate:** https://github.com/Rust-SDL2/rust-sdl2 (2,900+ stars)
+- **Philosophy:** Rust bindings to proven C library
+- **Pros:**
+  - ✅ **Proven** - SDL2 is industry-standard, shipped in thousands of games
+  - ✅ **Complete** - Windowing, rendering, audio, input all in one
+  - ✅ **Documentation** - Extensive C documentation applies
+- **Cons:**
+  - ❌ **No WASM support** - Cannot compile to WebAssembly
+  - ❌ **Missing modern features** - No RenderGeometry APIs in Rust bindings
+  - ❌ **C dependency** - Requires system SDL2 library or bundled build
+  - ❌ **Not pure Rust** - FFI overhead and safety concerns
+- **Best For:** When you need SDL2 specifically or have existing SDL2 code
+- **Note:** Not recommended for new Rust projects
+
+### Recommendation
+
+**Use Macroquad for Phase 12 GUI examples**
+
+**Rationale:**
+1. **Closest to pygame** - Matches Python pygame's simple, beginner-friendly API
+2. **Fastest implementation** - Less boilerplate = faster example development
+3. **Better examples** - More intuitive code for users learning CARLA Rust bindings
+4. **Active 2025 development** - Latest version from March 2025, new tutorials
+5. **Cross-platform** - Supports desktop, web, and mobile out of the box
+
+**Implementation path:**
+- Add `macroquad = "0.4"` dependency for Phase 12 examples
+- Keep existing headless examples (Phase 11) as-is for CI/testing
+- Create `*_gui.rs` versions using macroquad for visual demonstrations
 
 ### Work Items
 
+#### Full GUI Versions of Phase 11 Examples
+
+- [ ] **Automatic Control (Full GUI)** (`automatic_control_gui.rs`)
+  - **Python Equivalent:** `automatic_control.py` (pygame)
+  - **Rust Implementation:** macroquad
+  - Real-time window showing camera view
+  - HUD overlay with telemetry (speed, throttle, steering, location)
+  - Keyboard controls for manual override
+  - **APIs Used:**
+    - `macroquad` - Window and rendering
+    - `draw_texture()` - Display camera feed
+    - `draw_text()` - HUD overlay
+    - `Vehicle::transform()`, `velocity()`, `control()` - Telemetry
+  - Demonstrates: GUI integration, HUD rendering, real-time visualization
+
+- [ ] **Synchronous Mode (Full GUI)** (`synchronous_mode_gui.rs`)
+  - **Python Equivalent:** `synchronous_mode.py` (pygame)
+  - **Rust Implementation:** macroquad
+  - Real-time window showing synchronized camera view
+  - HUD overlay showing frame number, FPS, simulation stats
+  - Fixed delta time tick visualization
+  - **APIs Used:**
+    - `macroquad` - Window and rendering
+    - `World::tick()` - Frame-by-frame simulation
+    - `draw_texture()` - Camera display
+    - `get_fps()` - Frame rate monitoring
+  - Demonstrates: Synchronous mode with visual feedback, frame timing
+
+- [ ] **Multiple Sensor Visualization (Full GUI)** (`visualize_multiple_sensors_gui.rs`)
+  - **Python Equivalent:** `visualize_multiple_sensors.py` (pygame)
+  - **Rust Implementation:** macroquad
+  - Real-time window with 2×3 grid layout
+  - 6 sensor views: 4 RGB cameras (left/front/right/rear) + LiDAR + Semantic LiDAR
+  - Real-time bird's-eye LiDAR point rendering
+  - ESC/Q to quit
+  - **APIs Used:**
+    - `macroquad` - Window and grid rendering
+    - `draw_texture()` - Multiple camera viewports
+    - `draw_circle()` - LiDAR point visualization
+    - Grid layout calculations for 2×3 arrangement
+  - Demonstrates: Multi-viewport rendering, grid layouts, real-time sensor fusion
+
+#### Interactive and Advanced Examples
+
 - [ ] **Manual Control** (`manual_control.rs`)
-  - Full interactive vehicle control (WASD keys)
-  - Real-time HUD display
-  - Camera switching and controls
-  - Demonstrates: Complete interactive demo, UI integration
+  - **Python Equivalent:** `manual_control.py` (pygame)
+  - **Rust Implementation:** macroquad
+  - Full interactive vehicle control (WASD/arrow keys)
+  - Real-time HUD display with vehicle stats, world info, help text
+  - Camera switching (multiple viewpoints)
+  - Weather controls, recording toggle
+  - **APIs Used:**
+    - `macroquad` - Window, rendering, keyboard input
+    - `is_key_down()`, `is_key_pressed()` - Input handling
+    - `Vehicle::apply_control()` - Manual driving
+    - `World::set_weather()` - Weather changes
+  - Demonstrates: Complete interactive demo, keyboard input, UI integration
 
 - [ ] **Bounding Boxes** (2 examples)
+  - **Python Equivalent:** `bounding_boxes.py`, `client_bounding_boxes.py` (pygame)
+  - **Rust Implementation:** macroquad
   - `bounding_boxes.rs` - 2D/3D bbox generation and display
   - `client_bounding_boxes.rs` - Client-side bbox computation
-  - Camera projection matrix implementation
-  - Instance segmentation decoding
-  - Demonstrates: Computer vision, projection math
+  - Real-time visualization with bbox overlays on camera feed
+  - Different colors for vehicles, pedestrians, traffic signs
+  - **APIs Used:**
+    - `macroquad` - Window and drawing primitives
+    - `draw_rectangle_lines()` - Bounding box rendering
+    - `carla::sensor::camera` - Projection utilities
+    - `World::get_actors()` - Actor enumeration for bbox generation
+  - Demonstrates: Computer vision, projection math, object detection visualization
 
 - [ ] **Advanced Visualization** (3 examples)
-  - `draw_skeleton.rs` - Walker skeleton visualization
-  - `no_rendering_mode.rs` - Large-scale simulation (100+ vehicles)
-  - `open3d_lidar.rs` - Lidar point cloud visualization (optional)
-  - Demonstrates: Debug drawing, scalability, 3D viz
+  - `draw_skeleton.rs` - Walker skeleton bone visualization
+    - **Python Equivalent:** `draw_skeleton.py` (pygame)
+    - **Rust Implementation:** macroquad with `draw_line()` for bones
+  - `no_rendering_mode.rs` - Large-scale simulation (100+ vehicles) with stats overlay
+    - **Python Equivalent:** `no_rendering_mode.py` (pygame)
+    - **Rust Implementation:** macroquad for HUD, CARLA rendering disabled
+  - `open3d_lidar.rs` - LiDAR point cloud 3D visualization (OPTIONAL)
+    - Requires 3D visualization library (not macroquad)
+    - Consider `three-d` or `bevy` for true 3D rendering
+  - Demonstrates: Debug drawing, scalability, performance monitoring
 
 - [ ] **Hardware Input** (`manual_control_steeringwheel.rs`)
-  - Steering wheel and pedal support
-  - Force feedback (if available)
-  - Demonstrates: Hardware integration
+  - **Python Equivalent:** `manual_control_steeringwheel.py` (pygame + joystick)
+  - **Rust Implementation:** macroquad + gilrs
+  - Steering wheel and pedal support via `gilrs` crate (Rust gamepad library)
+  - Analog input mapping (steering angle, throttle, brake)
+  - Force feedback (if device supports it)
+  - Real-time macroquad display with input visualization
+  - **APIs Used:**
+    - `macroquad` - Window and rendering
+    - `gilrs` - Gamepad/wheel input
+    - `Vehicle::apply_control()` - Analog control input
+  - Demonstrates: Hardware integration, analog input handling
 
 ### Test Cases
 
