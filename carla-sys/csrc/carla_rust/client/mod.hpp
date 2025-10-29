@@ -27,6 +27,8 @@
 #include "environment_object_list.hpp"
 #include "actor_vec.hpp"
 #include "world_snapshot.hpp"
+#include "actor_snapshot.hpp"
+#include "actor_snapshot_list.hpp"
 #include "light_manager.hpp"
 #include "light.hpp"
 #include "light_state.hpp"

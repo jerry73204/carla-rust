@@ -91,6 +91,16 @@ unsafe impl Sync for crate::carla_rust::client::FfiLandmarkList {}
 unsafe impl Send for crate::carla_rust::client::FfiWorldSnapshot {}
 unsafe impl Sync for crate::carla_rust::client::FfiWorldSnapshot {}
 
+// SAFETY: FfiActorSnapshot is an immutable snapshot of actor state at a point in time.
+// All data is read-only and can be safely shared across threads.
+unsafe impl Send for crate::carla_rust::client::FfiActorSnapshot {}
+unsafe impl Sync for crate::carla_rust::client::FfiActorSnapshot {}
+
+// SAFETY: FfiActorSnapshotList is an immutable list of actor snapshots.
+// All data is read-only and can be safely shared across threads.
+unsafe impl Send for crate::carla_rust::client::FfiActorSnapshotList {}
+unsafe impl Sync for crate::carla_rust::client::FfiActorSnapshotList {}
+
 // SAFETY: FfiWaypointList is a read-only container of waypoint pointers.
 // All waypoints are immutable and the list itself is read-only.
 unsafe impl Send for crate::carla_rust::client::FfiWaypointList {}

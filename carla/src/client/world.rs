@@ -384,6 +384,69 @@ impl World {
         }
     }
 
+    /// Spawns an actor attached to a parent actor (convenience method).
+    ///
+    /// This is a convenience wrapper around [`spawn_actor_opt`](Self::spawn_actor_opt) that
+    /// makes the API clearer when you specifically want to attach an actor to a parent.
+    ///
+    /// # Arguments
+    ///
+    /// * `blueprint` - The actor blueprint
+    /// * `transform` - Initial position and rotation (relative to parent)
+    /// * `parent` - Parent actor to attach to
+    /// * `attachment_type` - How to attach to parent (defaults to [`AttachmentType::Rigid`] if not specified)
+    ///
+    /// # Examples
+    ///
+    /// Attaching a camera sensor to a vehicle:
+    ///
+    /// ```no_run
+    /// use carla::{client::Client, rpc::AttachmentType};
+    /// use nalgebra::{Isometry3, Translation3, UnitQuaternion};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// let bp_lib = world.blueprint_library();
+    ///
+    /// // Spawn a vehicle
+    /// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
+    /// let spawn_points = world.map().recommended_spawn_points();
+    /// let vehicle = world
+    ///     .spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())
+    ///     .unwrap();
+    ///
+    /// // Attach a camera to the vehicle's roof
+    /// let camera_bp = bp_lib.find("sensor.camera.rgb").unwrap();
+    /// let camera_transform = Isometry3::from_parts(
+    ///     Translation3::new(0.0, 0.0, 2.5).into(), // 2.5m above vehicle center
+    ///     UnitQuaternion::identity(),
+    /// );
+    ///
+    /// let camera = world
+    ///     .spawn_actor_attached(
+    ///         &camera_bp,
+    ///         &camera_transform,
+    ///         &vehicle,
+    ///         AttachmentType::Rigid, // Camera moves rigidly with vehicle
+    ///     )
+    ///     .unwrap();
+    /// ```
+    ///
+    /// See also: [`spawn_actor_opt`](Self::spawn_actor_opt) for spawning with optional parent
+    pub fn spawn_actor_attached<A, T>(
+        &mut self,
+        blueprint: &ActorBlueprint,
+        transform: &Isometry3<f32>,
+        parent: &A,
+        attachment_type: T,
+    ) -> Result<Actor>
+    where
+        A: ActorBase,
+        T: Into<Option<AttachmentType>>,
+    {
+        self.spawn_actor_opt(blueprint, transform, Some(parent), attachment_type)
+    }
+
     /// Waits for the next simulation tick and returns the world snapshot.
     ///
     /// In synchronous mode, the server waits for this call before advancing the simulation.

@@ -93,6 +93,8 @@ include_cpp! {
     generate!("carla_rust::client::FfiCommandBatch")
     generate!("carla_rust::client::FfiCommandResponse")
     generate!("carla_rust::client::FfiWaypointPair")
+    generate!("carla_rust::client::FfiActorSnapshot")
+    generate!("carla_rust::client::FfiActorSnapshotList")
     generate_pod!("carla_rust::client::FfiClientLightState")
     generate_pod!("carla_rust::geom::FfiLocation")
     generate_pod!("carla_rust::geom::FfiTransform")
