@@ -27,6 +27,9 @@ rand = "0.8"
 [build-dependencies]
 anyhow = "1.0.80"
 
+[dev-dependencies]
+approx = "0.5"
+
 [features]
 docs-only = ["carla-sys/docs-only"]
 build-prebuilt = ["carla-sys/build-prebuilt"]

@@ -53,6 +53,57 @@ impl Image {
         unsafe { slice::from_raw_parts(ptr, len) }
     }
 
+    /// Returns the raw image data as a byte slice.
+    ///
+    /// The image data is in BGRA format with 4 bytes per pixel (Blue, Green, Red, Alpha).
+    /// This provides zero-copy access to the underlying sensor data, useful for:
+    /// - Custom image processing algorithms
+    /// - Machine learning pipelines expecting raw bytes
+    /// - FFI with external image processing libraries
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::{Client, Sensor};
+    /// use carla::sensor::data::Image;
+    ///
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let camera_bp = bp_lib.find("sensor.camera.rgb").unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let camera_actor = world.spawn_actor(&camera_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let camera = Sensor::try_from(camera_actor).unwrap();
+    ///
+    /// camera.listen(|sensor_data| {
+    ///     if let Ok(image) = Image::try_from(sensor_data) {
+    ///         let raw_bytes = image.as_raw_bytes();
+    ///         // raw_bytes is in BGRA format: [B, G, R, A, B, G, R, A, ...]
+    ///         // Each pixel is 4 bytes
+    ///         assert_eq!(raw_bytes.len(), image.width() * image.height() * 4);
+    ///     }
+    /// });
+    /// ```
+    ///
+    /// # Format
+    ///
+    /// The data is in BGRA format (32 bits per pixel):
+    /// - Byte 0: Blue (0-255)
+    /// - Byte 1: Green (0-255)
+    /// - Byte 2: Red (0-255)
+    /// - Byte 3: Alpha (0-255)
+    ///
+    /// For RGB conversion, swap the B and R channels. For grayscale,
+    /// use a weighted sum: `0.299*R + 0.587*G + 0.114*B`.
+    pub fn as_raw_bytes(&self) -> &[u8] {
+        let ptr = self.inner.data() as *const u8;
+        let byte_len = self.len() * std::mem::size_of::<Color>();
+
+        debug_assert!(!ptr.is_null(), "Image data pointer is null");
+
+        unsafe { slice::from_raw_parts(ptr, byte_len) }
+    }
+
     pub fn as_array(&self) -> ArrayView2<'_, Color> {
         let width = self.width();
         let height = self.height();
