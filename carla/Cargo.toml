@@ -29,6 +29,11 @@ anyhow = "1.0.80"
 
 [dev-dependencies]
 approx = "0.5"
+# Dependencies for manual_control example
+macroquad = "0.4"
+eyre = "0.6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 [features]
 docs-only = ["carla-sys/docs-only"]
