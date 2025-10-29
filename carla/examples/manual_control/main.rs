@@ -98,91 +98,100 @@ async fn main() -> Result<()> {
         .init();
 
     info!("CARLA Manual Control starting...");
-    info!("See docs/roadmap.md Phase 13 for implementation plan");
+    info!("✅ Subphases 12.1-12.6 implemented (Basic functionality complete)");
 
     // Parse configuration (TODO: Add CLI arguments)
     let config = Config::default();
 
     // Connect to CARLA server
     info!("Connecting to CARLA at {}:{}", config.host, config.port);
-    let client = carla::client::Client::connect(&config.host, config.port, None);
+    let mut client = carla::client::Client::connect(&config.host, config.port, None);
 
-    // TODO Phase 1.2: Create world and spawn vehicle
-    let mut _world = self::world::World::new(&client, &config)?;
-    info!("✓ World initialized");
+    // ✅ Subphase 12.1.2: Create world and spawn vehicle
+    let mut world = self::world::World::new(&client, &config)?;
+    info!("✓ World initialized, vehicle spawned");
 
-    // TODO Phase 2.1: Create camera manager
-    let mut _camera = self::camera::CameraManager::new(config.width, config.height, config.gamma);
+    // ✅ Subphase 12.2.1: Create camera manager and spawn RGB camera
+    let mut camera = self::camera::CameraManager::new(config.width, config.height, config.gamma);
+    camera.spawn_camera(&mut world)?;
+    info!("✓ Camera spawned");
 
-    // TODO Phase 3: Create keyboard controller
-    let mut _keyboard = self::keyboard::KeyboardControl::new(config.autopilot);
+    // ✅ Subphase 12.3.1: Create keyboard controller
+    let mut keyboard = self::keyboard::KeyboardControl::new(config.autopilot);
 
-    // TODO Phase 4: Create HUD
-    let mut _hud = self::hud::HUD::new(config.width, config.height);
+    // ✅ Subphase 12.4: Create HUD
+    let mut hud = self::hud::Hud::new(config.width, config.height);
 
-    // TODO Phase 12: Create UI components
-    let mut _notifications = self::ui::FadingText::default();
-    let mut _help = self::ui::HelpText::new(config.width as f32, config.height as f32);
+    // ✅ Subphase 12.5: Spawn all sensors
+    hud.spawn_sensors(&mut world)?;
+    info!("✓ All sensors spawned");
+
+    // ✅ Subphase 12.3.2: Create UI components
+    let mut notifications = self::ui::FadingText::default();
+    // ✅ Subphase 12.12.2: Help overlay
+    let mut help = self::ui::HelpText::new(config.width as f32, config.height as f32);
 
     info!("✓ All components initialized");
-    info!("⚠️  Phase 1-12 implementation needed - see TODOs in source files");
+    info!("Press WASD/Arrow keys to control vehicle");
+    info!("Press P to toggle autopilot");
+    info!("Press TAB to cycle camera positions");
+    info!("Press ESC to quit");
 
-    // TODO Phase 1.1: Implement main game loop
-    // - Clear background
-    // - Update world (tick in sync mode)
-    // - Parse keyboard input
-    // - Apply vehicle control
-    // - Update HUD
-    // - Render camera
-    // - Render HUD
-    // - Render notifications
-    // - Render help
-    // - Handle quit (ESC)
-
-    // Placeholder main loop for Phase 1.1
+    // ✅ Subphase 12.1.2, 12.2, 12.3, and 12.4: Main game loop
     loop {
-        clear_background(BLACK);
+        let delta_time = get_frame_time();
 
-        // Display placeholder text
-        let text = "CARLA Manual Control - Phase 1.1 TODO";
-        let text_width = measure_text(text, None, 40, 1.0).width;
-        draw_text(
-            text,
-            (screen_width() - text_width) / 2.0,
-            screen_height() / 2.0,
-            40.0,
-            WHITE,
-        );
+        // ✅ Subphase 12.3.1: Parse continuous vehicle keys (WASD/arrows)
+        keyboard.parse_vehicle_keys(delta_time);
 
-        let instructions = "See src/main.rs for implementation TODO items";
-        let inst_width = measure_text(instructions, None, 20, 1.0).width;
-        draw_text(
-            instructions,
-            (screen_width() - inst_width) / 2.0,
-            screen_height() / 2.0 + 40.0,
-            20.0,
-            GRAY,
-        );
+        // ✅ Subphase 12.3.1: Apply vehicle control
+        keyboard.apply_control(&mut world)?;
 
-        let quit = "Press ESC to quit";
-        let quit_width = measure_text(quit, None, 20, 1.0).width;
-        draw_text(
-            quit,
-            (screen_width() - quit_width) / 2.0,
-            screen_height() / 2.0 + 80.0,
-            20.0,
-            DARKGRAY,
-        );
-
-        // ESC to quit
-        if is_key_pressed(KeyCode::Escape) {
+        // ✅ Subphase 12.3.2: Parse keyboard events (P for autopilot, ESC to quit)
+        // ✅ Subphase 12.10: Recording and replay (Ctrl+R, Ctrl+P, Ctrl+Minus/Plus, R)
+        // ✅ Subphase 12.12: Help and HUD toggle (H, F1)
+        if keyboard.parse_events(
+            &mut client,
+            &mut world,
+            &mut hud,
+            &mut camera,
+            &mut notifications,
+            &mut help,
+        ) {
             info!("Quitting...");
             break;
         }
 
+        // ✅ Subphase 12.2.2: Handle TAB key for camera switching
+        if is_key_pressed(KeyCode::Tab) {
+            info!("TAB pressed - switching camera");
+            camera.toggle_camera(&mut world)?;
+        }
+
+        // ✅ Subphase 12.4: Update HUD telemetry
+        hud.update(&world, delta_time);
+
+        // ✅ Subphase 12.3.2: Update notification fade timer
+        notifications.update(delta_time);
+
+        // Render camera view
+        camera.render()?;
+
+        // ✅ Subphase 12.4: Render HUD overlay
+        hud.render()?;
+
+        // ✅ Subphase 12.3.2: Render notifications
+        notifications.render();
+
+        // ✅ Subphase 12.12.2: Render help overlay
+        help.render();
+
         next_frame().await;
     }
 
+    info!("Cleaning up...");
+    camera.destroy();
+    world.destroy();
     info!("✓ Cleanup complete");
     Ok(())
 }

@@ -13,8 +13,9 @@ pub mod imu;
 pub mod lane_invasion;
 pub mod radar;
 
+// ✅ Subphase 12.5: Export sensors for use in main application
 pub use collision::CollisionSensor;
 pub use gnss::GnssSensor;
 pub use imu::IMUSensor;
 pub use lane_invasion::LaneInvasionSensor;
-pub use radar::RadarSensor;
+// pub use radar::RadarSensor; // TODO: Phase 8+

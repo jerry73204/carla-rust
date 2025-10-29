@@ -12,6 +12,7 @@ use macroquad::prelude::*;
 /// Fading text notification
 ///
 /// Displays a temporary message at the bottom of the screen that fades out
+#[allow(dead_code)]
 pub struct FadingText {
     pub text: String,
     pub color: Color,
@@ -37,6 +38,7 @@ impl FadingText {
     /// Set text to display
     ///
     /// TODO Phase 12.1: Called from keyboard/world events
+    #[allow(dead_code)]
     pub fn set_text(&mut self, text: impl Into<String>, seconds: f32) {
         self.text = text.into();
         self.seconds_left = seconds;
@@ -45,6 +47,7 @@ impl FadingText {
     }
 
     /// Set text with custom color
+    #[allow(dead_code)]
     pub fn set_text_colored(&mut self, text: impl Into<String>, color: Color, seconds: f32) {
         self.text = text.into();
         self.seconds_left = seconds;
@@ -55,6 +58,7 @@ impl FadingText {
     /// Update fade timer
     ///
     /// TODO Phase 12.1: Called each frame
+    #[allow(dead_code)]
     pub fn update(&mut self, delta_time: f32) {
         if self.seconds_left > 0.0 {
             self.seconds_left -= delta_time;
@@ -66,19 +70,36 @@ impl FadingText {
 
     /// Render notification
     ///
-    /// TODO Phase 12.1: Draw with alpha based on seconds_left
+    /// ✅ Subphase 12.3.2: Draw notification with alpha fade
     pub fn render(&self) {
         if self.seconds_left <= 0.0 || self.text.is_empty() {
             return;
         }
 
         // Calculate alpha fade (0.0 = transparent, 1.0 = opaque)
-        let alpha = (self.seconds_left / self.max_seconds * 500.0).min(1.0);
+        // Use a simpler fade: full opacity until last 0.5 seconds, then fade out
+        let alpha = if self.seconds_left < 0.5 {
+            self.seconds_left / 0.5
+        } else {
+            1.0
+        };
+
         let color_with_alpha = Color::new(self.color.r, self.color.g, self.color.b, alpha);
 
-        // TODO: Draw semi-transparent background
-        // TODO: Draw text with faded color
-        let _ = color_with_alpha; // Use it to avoid warning
+        // Draw semi-transparent background
+        let text_dimensions = measure_text(&self.text, None, 20, 1.0);
+        let padding = 10.0;
+        let bg_color = Color::new(0.0, 0.0, 0.0, alpha * 0.6);
+        draw_rectangle(
+            self.x - padding,
+            self.y - text_dimensions.height - padding,
+            text_dimensions.width + padding * 2.0,
+            text_dimensions.height + padding * 2.0,
+            bg_color,
+        );
+
+        // Draw text with faded color
+        draw_text(&self.text, self.x, self.y, 20.0, color_with_alpha);
     }
 }
 

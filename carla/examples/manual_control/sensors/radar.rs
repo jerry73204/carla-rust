@@ -13,6 +13,7 @@ use eyre::Result;
 /// Radar sensor
 ///
 /// Detects objects and draws debug visualization
+#[allow(dead_code)]
 pub struct RadarSensor {
     pub sensor: Option<Sensor>,
     pub enabled: bool,
@@ -32,6 +33,7 @@ impl RadarSensor {
     /// Spawn the radar sensor
     ///
     /// TODO Phase 11.1: Implement sensor spawning and listener
+    #[allow(dead_code)]
     pub fn spawn(&mut self, _world: &crate::world::World) -> Result<()> {
         // TODO: Get blueprint for sensor.other.radar
         // TODO: Set attributes (horizontal_fov=35, vertical_fov=20)
@@ -44,6 +46,7 @@ impl RadarSensor {
     /// Toggle radar visualization
     ///
     /// TODO Phase 11.1: G key functionality
+    #[allow(dead_code)]
     pub fn toggle(&mut self) {
         self.enabled = !self.enabled;
     }
@@ -51,6 +54,7 @@ impl RadarSensor {
     /// Draw radar detections as debug points
     ///
     /// TODO Phase 11.1: Called from sensor listener
+    #[allow(dead_code)]
     fn on_radar_data(&self, _detections: Vec<RadarDetection>) {
         // TODO: For each detection:
         //   - Calculate color based on velocity (red = negative, blue = positive)
@@ -61,6 +65,7 @@ impl RadarSensor {
 
 /// Radar detection
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RadarDetection {
     pub depth: f32,
     pub azimuth: f32,
