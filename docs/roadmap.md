@@ -15,13 +15,13 @@ The carla-rust library currently provides core functionality for:
 
 This roadmap focuses on filling gaps to achieve feature parity with the C++ client library.
 
-**Total Phases:** 14 (Phase 0 - Phase 13)
-**Estimated Total Effort:** ~27-35 weeks
+**Total Phases:** 15 (Phase 0 - Phase 14)
+**Estimated Total Effort:** ~31-39 weeks
 **Note:** All work items are tracked with checkboxes for easy progress monitoring.
 
 ## Current Progress Summary
 
-**Last Updated:** 2025-10-28
+**Last Updated:** 2025-10-29
 
 ### Completed Phases ✅
 
@@ -59,10 +59,18 @@ This roadmap focuses on filling gaps to achieve feature parity with the C++ clie
 
 ### Active Development
 
-**Current Focus:** Phase 11 complete! All intermediate examples successfully implemented.
+**Current Focus:** Phase 11 complete! Next up: Phase 12 and Phase 13 (Macroquad GUI examples).
 
-**Ready for Implementation (APIs Available):**
-- Phase 12: Advanced Example Implementations (requires Phase 2 Debug utilities + UI frameworks)
+**Ready for Implementation:**
+- ✅ **Phase 12: Advanced Example Implementations** - UI framework (Macroquad) selected, ready to start
+  - All prerequisites met: Phase 2 complete, UI framework chosen
+  - 8 GUI examples planned: automatic_control_gui, synchronous_mode_gui, visualize_multiple_sensors_gui, bounding_boxes (2), draw_skeleton, no_rendering_mode, manual_control_steeringwheel
+  - Note: manual_control moved to dedicated Phase 13
+- ✅ **Phase 13: Manual Control - Complete Interactive Example** - Dedicated phase for flagship example
+  - Full breakdown of 1367-line Python example into 12 incremental phases
+  - 37 work items with clear test criteria
+  - All required APIs already implemented
+  - Estimated effort: 6 weeks
 - Additional utility improvements and example enhancements
 
 **Blocked (Awaiting API Implementation):**
@@ -1593,124 +1601,110 @@ impl World {
 
 ---
 
-## Phase 12: Advanced Example Implementations
+## Phase 12: Advanced Example Implementations (GUI with Macroquad)
 
-**Priority:** Low (Dependent on Phase 2 + UI frameworks)
+**Priority:** Medium (UI framework selected, ready for implementation)
 **Estimated Effort:** 4-5 weeks
-**Status:** Not Started
-**⚠️ Prerequisites:** Must complete Phase 2 (Debug utilities) and integrate UI frameworks first
+**Status:** Ready to Start (UI framework: Macroquad selected 2025-10-29)
+**✅ UI Framework:** Macroquad v0.4 - pygame replacement for Rust
 
 ### Overview
 
-Implement complex examples with advanced features, external dependencies, and sophisticated interactions. These demonstrate professional-grade CARLA applications.
+Implement advanced examples with real-time GUI visualization using Macroquad. These examples demonstrate professional-grade CARLA applications with interactive controls and visual feedback, matching Python's pygame examples.
 
-**Note**: These examples cannot be implemented until their prerequisite APIs are available. See "Implementation Priority" section above.
+**Key Features:**
+- Real-time sensor visualization (cameras, LiDAR)
+- Interactive vehicle control with keyboard/gamepad input
+- HUD overlays with telemetry data
+- Multi-viewport grid layouts
+- 2D bounding box visualization
+
+**Note**: Phase 2 (Debug utilities) is already complete. Ready to begin implementation with Macroquad.
 
 ### Prerequisites
 
 - Phase 2: Debug and Visualization Utilities ✅ (Complete)
 - All sensor APIs complete
-- UI framework integration (see options below)
+- UI framework integration: **Macroquad** (decision finalized 2025-10-29)
 - Math library integration (nalgebra) ✅ (Already in use)
 - Image processing utilities ✅ (`image` crate already integrated)
 
-### UI Framework Options (Pygame Replacement)
+### UI Framework: Macroquad
 
-**Research Date:** 2025-10-29
+**Decision Date:** 2025-10-29
+**Status:** ✅ Selected as the official pygame replacement for Phase 12
 
-After evaluating Rust alternatives to Python's pygame, we have three main options:
+After comprehensive research and evaluation of Rust alternatives to Python's pygame, **Macroquad** has been selected as the official GUI framework for Phase 12 examples.
 
-#### Option 1: **Macroquad** (RECOMMENDED)
+#### Why Macroquad?
+
+**Core Information:**
 - **Website:** https://macroquad.rs/
 - **Version:** 0.4.14 (Latest: 2025-03-20)
-- **GitHub:** 2,500+ stars
+- **GitHub:** 2,500+ stars, actively maintained
 - **Philosophy:** Simple and easy to use, heavily inspired by raylib
-- **Pros:**
-  - ✅ **Simplest API** - Most pygame-like experience in Rust
-  - ✅ **Zero configuration** - Works out of the box
-  - ✅ **Beginner-friendly** - Avoids complex Rust concepts (lifetimes/borrowing)
-  - ✅ **Cross-platform** - Windows, macOS, Linux, Web (WASM), iOS, Android
-  - ✅ **Built-in features** - Texture loading, text rendering, input handling, audio
-  - ✅ **Automatic batching** - Efficient 2D rendering with geometry batching
-  - ✅ **Active development** - New tutorials in 2025, regular updates
-  - ✅ **Great learning resources** - Official guide (mq.agical.se), recent tutorials
-- **Cons:**
-  - ⚠️ Less control over low-level details
-  - ⚠️ Built on miniquad (adds abstraction layer)
-- **Best For:** Quick prototyping, pygame-like simplicity, getting GUI examples running fast
-- **Example:**
-  ```rust
-  use macroquad::prelude::*;
 
-  #[macroquad::main("CARLA Sensor View")]
-  async fn main() {
-      loop {
-          clear_background(BLACK);
-          draw_texture(&camera_texture, 0., 0., WHITE);
-          draw_text("Speed: 45 km/h", 20., 40., 30., WHITE);
-          next_frame().await
-      }
-  }
-  ```
+**Key Advantages:**
+- ✅ **Most pygame-like experience** - Simple, intuitive API matching Python pygame's ease of use
+- ✅ **Zero configuration** - Works out of the box, no complex setup required
+- ✅ **Beginner-friendly** - Avoids complex Rust concepts (lifetimes/borrowing) in the API
+- ✅ **Cross-platform** - Windows, macOS, Linux, Web (WASM), iOS, Android
+- ✅ **Built-in features** - Texture loading, text rendering, keyboard/mouse input, audio support
+- ✅ **Efficient rendering** - Automatic geometry batching for 2D graphics
+- ✅ **Active development** - Latest release March 2025, new tutorials published regularly
+- ✅ **Excellent resources** - Official guide at mq.agical.se, growing community
 
-#### Option 2: **Winit + Pixels** (Original Plan)
-- **Winit:** https://github.com/rust-windowing/winit (15,000+ stars)
-- **Pixels:** https://github.com/parasyte/pixels (2,000+ stars)
-- **Version:** pixels 0.15.0 (Latest: 2025-01-08)
-- **Philosophy:** Modular composition of specialized crates
-- **Pros:**
-  - ✅ **More control** - Fine-grained control over rendering pipeline
-  - ✅ **Industry standard** - Winit is the foundation most Rust graphics use
-  - ✅ **GPU-accelerated** - Hardware-accelerated pixel buffer via wgpu
-  - ✅ **Explicit** - Clear separation between windowing and rendering
-  - ✅ **Modern APIs** - Built on wgpu (Vulkan, Metal, DirectX 12, OpenGL ES3)
-- **Cons:**
-  - ⚠️ More boilerplate code required
-  - ⚠️ Need to manage event loop manually
-  - ⚠️ Separate crates for text rendering, audio, etc.
-- **Best For:** When you need precise control, or building custom rendering pipelines
-- **Example:**
-  ```rust
-  use pixels::{Pixels, SurfaceTexture};
-  use winit::event_loop::EventLoop;
+**Why Not Alternatives?**
+- **Winit + Pixels:** More boilerplate, requires manual event loop management, separate crates for text/audio
+- **SDL2:** No WebAssembly support, C dependency, missing modern features in Rust bindings
+- **Bevy:** Full game engine - overkill for simple 2D visualization examples
 
-  let event_loop = EventLoop::new();
-  let mut pixels = Pixels::new(WIDTH, HEIGHT, surface)?;
-  // Manual frame buffer manipulation
-  pixels.frame_mut()[idx] = color;
-  pixels.render()?;
-  ```
+**Example Code:**
+```rust
+use macroquad::prelude::*;
 
-#### Option 3: **SDL2** (Battle-tested C Library)
-- **Crate:** https://github.com/Rust-SDL2/rust-sdl2 (2,900+ stars)
-- **Philosophy:** Rust bindings to proven C library
-- **Pros:**
-  - ✅ **Proven** - SDL2 is industry-standard, shipped in thousands of games
-  - ✅ **Complete** - Windowing, rendering, audio, input all in one
-  - ✅ **Documentation** - Extensive C documentation applies
-- **Cons:**
-  - ❌ **No WASM support** - Cannot compile to WebAssembly
-  - ❌ **Missing modern features** - No RenderGeometry APIs in Rust bindings
-  - ❌ **C dependency** - Requires system SDL2 library or bundled build
-  - ❌ **Not pure Rust** - FFI overhead and safety concerns
-- **Best For:** When you need SDL2 specifically or have existing SDL2 code
-- **Note:** Not recommended for new Rust projects
+#[macroquad::main("CARLA Sensor View")]
+async fn main() {
+    loop {
+        clear_background(BLACK);
 
-### Recommendation
+        // Display camera feed
+        draw_texture(&camera_texture, 0., 0., WHITE);
 
-**Use Macroquad for Phase 12 GUI examples**
+        // HUD overlay
+        draw_text("Speed: 45 km/h", 20., 40., 30., WHITE);
+        draw_text("Throttle: 0.8", 20., 70., 30., WHITE);
 
-**Rationale:**
-1. **Closest to pygame** - Matches Python pygame's simple, beginner-friendly API
-2. **Fastest implementation** - Less boilerplate = faster example development
-3. **Better examples** - More intuitive code for users learning CARLA Rust bindings
-4. **Active 2025 development** - Latest version from March 2025, new tutorials
-5. **Cross-platform** - Supports desktop, web, and mobile out of the box
+        // Handle input
+        if is_key_pressed(KeyCode::Escape) {
+            break;
+        }
 
-**Implementation path:**
-- Add `macroquad = "0.4"` dependency for Phase 12 examples
-- Keep existing headless examples (Phase 11) as-is for CI/testing
-- Create `*_gui.rs` versions using macroquad for visual demonstrations
+        next_frame().await
+    }
+}
+```
+
+#### Implementation Plan
+
+**Dependency:**
+```toml
+[dependencies]
+macroquad = "0.4"
+```
+
+**Strategy:**
+1. Add macroquad dependency to Phase 12 example `Cargo.toml`
+2. Keep Phase 11 headless examples unchanged for CI/testing compatibility
+3. Create `*_gui.rs` variants of Phase 11 examples with macroquad GUI
+4. All new interactive examples (manual_control, bounding_boxes) use macroquad
+5. Use macroquad's async main loop pattern for all GUI examples
+
+**Learning Resources:**
+- Official guide: https://mq.agical.se/
+- API documentation: https://docs.rs/macroquad
+- GitHub examples: https://github.com/not-fl3/macroquad/tree/master/examples
+- 2025 tutorial series: "Rust Breakout with Macroquad" (theanswers42.com)
 
 ### Work Items
 
@@ -1758,19 +1752,10 @@ After evaluating Rust alternatives to Python's pygame, we have three main option
 
 #### Interactive and Advanced Examples
 
-- [ ] **Manual Control** (`manual_control.rs`)
-  - **Python Equivalent:** `manual_control.py` (pygame)
-  - **Rust Implementation:** macroquad
-  - Full interactive vehicle control (WASD/arrow keys)
-  - Real-time HUD display with vehicle stats, world info, help text
-  - Camera switching (multiple viewpoints)
-  - Weather controls, recording toggle
-  - **APIs Used:**
-    - `macroquad` - Window, rendering, keyboard input
-    - `is_key_down()`, `is_key_pressed()` - Input handling
-    - `Vehicle::apply_control()` - Manual driving
-    - `World::set_weather()` - Weather changes
-  - Demonstrates: Complete interactive demo, keyboard input, UI integration
+- [ ] **Manual Control** - **MOVED TO DEDICATED PHASE 13**
+  - **Note:** Due to high complexity (1367 lines, 13 components, 40+ controls), manual_control has been moved to its own dedicated phase
+  - **See:** Phase 13 for complete implementation breakdown
+  - **Status:** Phase 13 provides 12 incremental implementation phases with 37 work items
 
 - [ ] **Bounding Boxes** (2 examples)
   - **Python Equivalent:** `bounding_boxes.py`, `client_bounding_boxes.py` (pygame)
@@ -1852,7 +1837,411 @@ impl SemanticSegmentationImage {
 
 ---
 
-## Phase 13: Specialized Examples (Reference/Future)
+## Phase 13: Manual Control - Complete Interactive Example
+
+**Priority:** HIGH (Flagship example, comprehensive feature showcase)
+**Estimated Effort:** 4-6 weeks
+**Status:** Not Started
+**Python Equivalent:** `manual_control.py` (1367 lines, 13 major components)
+
+### Overview
+
+Implement the most comprehensive CARLA example - a fully interactive vehicle simulator with real-time controls, multiple sensors, HUD display, and advanced features. This is the flagship example that demonstrates the full capabilities of the carla-rust library.
+
+**Complexity Level:** VERY HIGH
+- 1367 lines of Python code
+- 13 distinct component classes
+- 14 different sensor types
+- Complex keyboard input system (40+ key bindings)
+- Real-time HUD with graphs and telemetry
+- Recording/replay system integration
+- Weather and map layer manipulation
+- Multiple camera positions and types
+
+**Why a Dedicated Phase?**
+
+Manual control is significantly more complex than other Phase 12 examples:
+- **Scope:** 3-4x larger than typical examples
+- **Integration:** Touches nearly every CARLA API
+- **UI Complexity:** Multi-layer rendering (camera, HUD, help text, notifications)
+- **State Management:** Vehicle, sensors, recording, weather, map layers
+- **Input Handling:** Both event-based (key press) and continuous (key down) input
+
+This dedicated phase allows for incremental implementation with clear milestones.
+
+### Component Inventory (from Python)
+
+The Python `manual_control.py` consists of 13 major components:
+
+1. **World Class** (lines 176-351)
+   - Vehicle spawning and respawning
+   - All sensor management (collision, lane invasion, GNSS, IMU, radar, camera)
+   - Weather cycling with presets
+   - Map layer management
+   - Recording state management
+
+2. **KeyboardControl Class** (lines 358-642)
+   - Event-based input (key press/release)
+   - Continuous input (key held down)
+   - Vehicle control (throttle, brake, steer, gear, handbrake)
+   - Walker control (speed, direction, jump)
+   - Ackermann steering mode
+   - Light state management (position, low beam, high beam, fog, interior, blinkers)
+
+3. **HUD Class** (lines 649-797)
+   - Real-time telemetry display (FPS, speed, location, compass)
+   - IMU data (accelerometer, gyroscope)
+   - Vehicle control state (throttle, steer, brake, gear)
+   - Collision history graph (200 frame rolling window)
+   - Nearby vehicles list (sorted by distance)
+   - Notification system integration
+
+4. **FadingText Class** (lines 804-826)
+   - Temporary notification display
+   - Time-based fade animation
+
+5. **HelpText Class** (lines 833-856)
+   - Full help overlay with all controls
+   - Toggle on/off with H key
+
+6. **CollisionSensor Class** (lines 863-895)
+   - Collision detection and history
+   - Intensity tracking (4000 frame buffer)
+
+7. **LaneInvasionSensor Class** (lines 902-926)
+   - Lane marking crossing detection
+   - Lane type identification
+
+8. **GnssSensor Class** (lines 933-954)
+   - GPS coordinates (latitude, longitude)
+
+9. **IMUSensor Class** (lines 961-993)
+   - Accelerometer, gyroscope, compass
+   - Value clamping (±99.9)
+
+10. **RadarSensor Class** (lines 1000-1061)
+    - Object detection with debug visualization
+    - Velocity-based color coding
+
+11. **CameraManager Class** (lines 1067-1216)
+    - 14 different sensor types
+    - 5 camera positions for vehicles, 5 for walkers
+    - Recording to disk capability
+    - Sensor data → pygame surface conversion
+
+12. **game_loop() Function** (lines 1223-1287)
+    - Main loop: tick, input, update, render
+    - Synchronous mode management
+    - Cleanup handling
+
+13. **main() Function** (lines 1294-1367)
+    - CLI argument parsing
+    - Initialization and teardown
+
+### Work Items (Incremental Implementation)
+
+The implementation is broken down into 12 incremental phases, building from basic to advanced:
+
+#### Phase 1: Foundation and Basic Window
+
+- [ ] **1.1: Project Setup and Dependencies**
+  - Add macroquad v0.4 dependency
+  - Create `carla/examples/manual_control.rs`
+  - Set up basic async main loop structure
+  - Test: Window opens and responds to ESC key
+
+- [ ] **1.2: Vehicle Spawning and Basic Display**
+  - Implement World struct (vehicle management only)
+  - Spawn vehicle at spawn point 0
+  - Display black window with simple "Manual Control" text
+  - Enable autopilot by default
+  - Test: Vehicle spawns, window displays, autopilot works
+
+#### Phase 2: Camera and Basic Rendering
+
+- [ ] **2.1: RGB Camera Integration**
+  - Implement basic CameraManager (RGB sensor only)
+  - Spawn RGB camera attached to vehicle
+  - Render camera feed to macroquad window
+  - Test: Live camera view displays at 60 FPS
+
+- [ ] **2.2: Camera Position Switching**
+  - Implement 5 camera positions (rear chase, hood, side, high, fixed)
+  - Add TAB key to cycle camera positions
+  - Update CameraManager to respawn sensor at new position
+  - Test: TAB cycles through all 5 positions smoothly
+
+#### Phase 3: Basic Vehicle Control
+
+- [ ] **3.1: Keyboard Input System**
+  - Implement KeyboardControl struct
+  - Parse WASD/Arrow keys for throttle, brake, steer
+  - Apply VehicleControl to player
+  - Test: Vehicle responds to keyboard input
+
+- [ ] **3.2: Autopilot Toggle**
+  - Add P key to toggle autopilot
+  - Display notification when autopilot changes
+  - Disable manual control when autopilot active
+  - Test: P key switches between manual and autopilot
+
+#### Phase 4: HUD - Basic Telemetry
+
+- [ ] **4.1: HUD Struct and FPS Display**
+  - Implement HUD struct with server/client FPS tracking
+  - Render semi-transparent overlay (220x720 pixels, alpha 100)
+  - Display FPS counters at top
+  - Test: HUD shows FPS, overlay doesn't block camera view
+
+- [ ] **4.2: Vehicle Telemetry**
+  - Add speed (km/h) display
+  - Add location (x, y) display
+  - Add vehicle name display
+  - Add map name display
+  - Test: Telemetry updates in real-time as vehicle moves
+
+#### Phase 5: Advanced Sensors (IMU, GNSS, Collision)
+
+- [ ] **5.1: IMUSensor Implementation**
+  - Spawn IMU sensor on vehicle
+  - Display compass heading with cardinal directions (N/S/E/W)
+  - Display accelerometer (x, y, z) values
+  - Display gyroscope (x, y, z) values
+  - Test: IMU data updates smoothly, compass shows correct heading
+
+- [ ] **5.2: GnssSensor Implementation**
+  - Spawn GNSS sensor on vehicle
+  - Display GPS coordinates (latitude, longitude) with 6 decimal precision
+  - Test: GNSS updates, coordinates match vehicle position
+
+- [ ] **5.3: CollisionSensor Implementation**
+  - Spawn collision sensor on vehicle
+  - Maintain 4000 frame collision history
+  - Display collision intensity graph (200 points, rolling window)
+  - Show collision notification on impact
+  - Test: Graph updates on collision, notification appears
+
+- [ ] **5.4: LaneInvasionSensor Implementation**
+  - Spawn lane invasion sensor on vehicle
+  - Display notification when crossing lane markings
+  - Show lane marking type (Solid, Broken, etc.)
+  - Test: Notification appears when driving over lane lines
+
+#### Phase 6: HUD - Advanced Display
+
+- [ ] **6.1: Control State Display**
+  - Show throttle, steer, brake as horizontal bars (0.0-1.0)
+  - Show reverse, hand brake, manual gear shift as checkboxes
+  - Show current gear (R/N/1/2/3/...)
+  - Test: Bars and checkboxes update as vehicle is controlled
+
+- [ ] **6.2: Nearby Vehicles List**
+  - Query all vehicles in world
+  - Calculate distances from player
+  - Sort by distance (closest first)
+  - Display top N vehicles within 200m with type and distance
+  - Test: List updates as vehicles approach/leave
+
+#### Phase 7: Advanced Controls
+
+- [ ] **7.1: Manual Transmission**
+  - Add M key to toggle manual gear shifting
+  - Add comma/period keys to shift up/down
+  - Display "Manual Transmission" notification
+  - Update HUD to show manual mode
+  - Test: Gear shifts manually, notification appears
+
+- [ ] **7.2: Light Controls**
+  - Implement light state management (bitflags)
+  - L key: cycle through position → low beam → fog → off
+  - Shift+L: toggle high beam
+  - Ctrl+L: toggle special lights
+  - I key: toggle interior
+  - Z key: left blinker, X key: right blinker
+  - Automatically set brake lights and reverse lights
+  - Test: All light keys work, auto lights engage correctly
+
+- [ ] **7.3: Ackermann Controller (Optional)**
+  - Add F key to toggle Ackermann controller
+  - Implement Ackermann speed control (km/h target)
+  - Display Ackermann info in HUD when active
+  - Q key: reverse direction
+  - Test: Ackermann mode activates, speed control works
+
+#### Phase 8: Multiple Camera Types
+
+- [ ] **8.1: Camera Type Switching**
+  - Extend CameraManager to support 14 sensor types:
+    - RGB, Depth (Raw/Gray/Logarithmic)
+    - Semantic Segmentation (Raw/CityScapes)
+    - Instance Segmentation (Raw/CityScapes)
+    - Cosmos Control, LiDAR, DVS
+    - RGB Distorted, Optical Flow, Normals
+  - Add backtick (`) and N keys to cycle sensors
+  - Add number keys 1-9, Ctrl+1-9 for direct sensor selection
+  - Display sensor name notification on switch
+  - Test: All 14 sensor types render correctly
+
+- [ ] **8.2: LiDAR Visualization**
+  - Convert LiDAR point cloud to 2D bird's-eye view
+  - Render points as white dots on black background
+  - Match Python's top-down projection
+  - Test: LiDAR view shows points around vehicle
+
+#### Phase 9: Weather and World Control
+
+- [ ] **9.1: Weather Cycling**
+  - Define 10+ weather presets (clear, rain, fog, etc.)
+  - C key: next weather, Shift+C: previous weather
+  - Display weather name notification
+  - Test: Weather changes smoothly, notification shows preset name
+
+- [ ] **9.2: Map Layer Control**
+  - B key: load next map layer
+  - Shift+B: unload next map layer
+  - Supported layers: All, None, Buildings, Decals, Foliage, Ground, ParkedVehicles, Particles, Props, StreetLights, Walls
+  - Display layer name notification
+  - Test: Layers load/unload, environment updates visually
+
+#### Phase 10: Recording and Replay
+
+- [ ] **10.1: Recording System**
+  - Ctrl+R: start/stop recording to "manual_recording.log"
+  - Track recording_enabled state
+  - Display "Recording ON/OFF" notification
+  - Store recording_start time for replay
+  - Test: Recording creates file, notification appears
+
+- [ ] **10.2: Replay System**
+  - Ctrl+P: replay "manual_recording.log"
+  - Destroy sensors before replay to fix camera
+  - Disable autopilot during replay
+  - Ctrl+Minus/Plus: adjust replay start time (±1 second)
+  - Shift+Minus/Plus: adjust by ±10 seconds
+  - Display replay notification and start time
+  - Test: Replay works, start time adjusts, camera positioned correctly
+
+- [ ] **10.3: Camera Recording**
+  - R key: toggle camera recording (save images to _out/)
+  - Display "Recording ON/OFF" notification
+  - Save current frame on each render (frame_NNNNNNNN.png format)
+  - Test: Images save to disk, numbering is sequential
+
+#### Phase 11: Advanced Features
+
+- [ ] **11.1: Radar Visualization**
+  - Spawn radar sensor on vehicle
+  - G key: toggle radar visualization
+  - Draw radar detections as 3D debug points (color by velocity)
+  - Test: Radar shows detections, G key toggles display
+
+- [ ] **11.2: Vehicle Door Control**
+  - O key: toggle all doors open/close
+  - Handle exception gracefully (not all vehicles have doors)
+  - Display "Opening/Closing Doors" notification
+  - Test: Doors open/close on vehicles that support it
+
+- [ ] **11.3: Constant Velocity Mode**
+  - Ctrl+W: toggle constant velocity mode (60 km/h = 17 m/s)
+  - Disable velocity when toggled off
+  - Display notification with mode state
+  - Test: Vehicle maintains constant speed when enabled
+
+- [ ] **11.4: Vehicle Telemetry Overlay**
+  - T key: toggle vehicle debug telemetry (CARLA's built-in)
+  - Display notification with state
+  - Test: Telemetry appears/disappears in CARLA window
+
+#### Phase 12: Help System and Notifications
+
+- [ ] **12.1: FadingText Notification System**
+  - Implement FadingText struct with alpha fade
+  - Position at bottom of screen (width x 40 pixels)
+  - 2-second display with fade out
+  - Test: Notifications appear, fade smoothly
+
+- [ ] **12.2: HelpText Overlay**
+  - Implement HelpText struct with full control listing
+  - H key or Shift+/: toggle help display
+  - Centered overlay (780 pixels wide)
+  - Semi-transparent background (alpha 220)
+  - List all 40+ key bindings with descriptions
+  - Test: Help appears/disappears, all keys listed
+
+- [ ] **12.3: Info Toggle**
+  - F1 key: toggle HUD info display
+  - Hide/show all telemetry (keep notifications and help)
+  - Test: F1 hides telemetry, shows black screen with camera only
+
+### Python Reference
+
+**File:** `~/Downloads/carla-simulator/CARLA_0.9.16/PythonAPI/examples/manual_control.py`
+**Lines:** 1367
+**Key Features:**
+- 40+ keyboard shortcuts
+- 14 sensor types
+- 5 camera positions
+- Real-time HUD with graphs
+- Recording/replay integration
+- Weather and map control
+- Light management
+- Ackermann steering
+
+### Implementation Strategy
+
+**Recommended Approach:**
+1. **Incremental development** - Implement phases 1-12 sequentially
+2. **Test after each phase** - Ensure stability before adding complexity
+3. **Commit frequently** - Each phase should be a separate commit
+4. **Document controls** - Update help text as features are added
+5. **Performance monitoring** - Ensure 60 FPS maintained throughout
+
+**Key Technical Decisions:**
+- Use `macroquad::prelude::*` for all rendering
+- Store sensors in World struct (avoid complex lifetimes)
+- Use `Arc<Mutex<>>` for sensor data shared with callbacks
+- Implement custom texture conversion from CARLA BGRA to macroquad RGBA
+- Use `is_key_pressed()` for toggle events, `is_key_down()` for continuous control
+
+**Estimated Timeline:**
+- Phases 1-3: 1 week (foundation)
+- Phases 4-6: 1 week (HUD and sensors)
+- Phases 7-8: 1.5 weeks (advanced controls and cameras)
+- Phases 9-10: 1 week (world manipulation and recording)
+- Phases 11-12: 1.5 weeks (polish and help system)
+- **Total: 6 weeks** (with testing and refinement)
+
+### Success Criteria
+
+- [ ] Vehicle spawns and displays camera view
+- [ ] All 40+ keyboard shortcuts work correctly
+- [ ] HUD shows all telemetry in real-time
+- [ ] 14 sensor types render correctly
+- [ ] 5 camera positions switch smoothly
+- [ ] Recording/replay system works
+- [ ] Weather changes apply
+- [ ] Map layers load/unload
+- [ ] Help overlay shows all controls
+- [ ] Maintains 60 FPS with all features enabled
+- [ ] Code is well-documented and maintainable
+
+### Dependencies
+
+**New Rust APIs:** None required - all APIs already implemented
+
+**Macroquad Features Used:**
+- `clear_background()`, `draw_texture()`, `draw_text()`, `draw_rectangle()`
+- `is_key_pressed()`, `is_key_down()`, `next_frame().await`
+- Texture creation from raw pixel data
+- Font rendering with custom sizes
+
+**Existing CARLA APIs:**
+- All Phase 0-11 APIs (vehicle, sensors, world, recording, etc.)
+- Camera projection utilities (from lidar_to_camera example)
+
+---
+
+## Phase 14: Specialized Examples (Reference/Future)
 
 **Priority:** Very Low (Deferred)
 **Estimated Effort:** Varies by integration
