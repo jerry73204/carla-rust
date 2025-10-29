@@ -42,10 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Step 3: Spawn vehicles
     println!("Step 3: Spawning vehicles with autopilot...");
     let blueprint_library = world.blueprint_library();
-    let vehicle_blueprints: Vec<_> = blueprint_library
-        .filter("vehicle.tesla.*")
-        .iter()
-        .collect();
+    let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.tesla.*").iter().collect();
 
     if vehicle_blueprints.is_empty() {
         return Err("No vehicle blueprints found".into());
@@ -103,10 +100,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for i in 0..num_walkers {
         // Get random spawn location from navigation mesh
         let spawn_location = world.random_location_from_navigation();
-        let spawn_transform = Isometry3::from_parts(
-            spawn_location,
-            nalgebra::UnitQuaternion::identity(),
-        );
+        let spawn_transform =
+            Isometry3::from_parts(spawn_location, nalgebra::UnitQuaternion::identity());
 
         // Spawn walker
         let walker_bp = walker_blueprints[rng.gen_range(0..walker_blueprints.len())].clone();
@@ -157,8 +152,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Step 6: Run simulation
     println!("Step 6: Running simulation for 30 seconds...");
-    println!("  Total actors: {} vehicles + {} walkers = {} actors\n",
-             vehicles.len(), walkers.len(), vehicles.len() + walkers.len());
+    println!(
+        "  Total actors: {} vehicles + {} walkers = {} actors\n",
+        vehicles.len(),
+        walkers.len(),
+        vehicles.len() + walkers.len()
+    );
 
     for i in 1..=30 {
         world.tick();
@@ -172,7 +171,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Step 7: Cleanup
     println!("\n=== Cleanup ===");
 
-    println!("Destroying {} walker controllers...", walker_controllers.len());
+    println!(
+        "Destroying {} walker controllers...",
+        walker_controllers.len()
+    );
     for (i, controller) in walker_controllers.iter().enumerate() {
         if controller.destroy() {
             println!("  ✓ Controller {} destroyed", i + 1);
