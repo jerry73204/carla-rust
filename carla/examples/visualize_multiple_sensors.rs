@@ -56,7 +56,6 @@ struct SensorFrame {
     depth_image: Option<Image>,
     semantic_image: Option<Image>,
     lidar_measurement: Option<LidarMeasurement>,
-    frame_number: usize,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

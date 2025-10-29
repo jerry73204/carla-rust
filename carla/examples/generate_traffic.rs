@@ -27,11 +27,10 @@
 //! ```
 
 use carla::{
-    client::{ActorBase, Client, WalkerAIController},
+    client::{Client, WalkerAIController},
     geom::{Location, LocationExt, Transform, TransformExt},
-    rpc::{ActorId, Command, VehicleControl, WalkerControl},
+    rpc::Command,
 };
-use nalgebra::Translation3;
 use rand::Rng;
 use std::{thread, time::Duration};
 

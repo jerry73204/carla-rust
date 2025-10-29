@@ -49,6 +49,9 @@ const IMAGE_HEIGHT: u32 = 600;
 const FOV: f32 = 90.0;
 const NUM_FRAMES: usize = 50;
 
+type CameraData = Arc<Mutex<Option<(Image, nalgebra::Isometry3<f32>, usize)>>>;
+type LidarData = Arc<Mutex<Option<(LidarMeasurement, nalgebra::Isometry3<f32>, usize)>>>;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("LiDAR-to-Camera Projection Example");
     println!("===================================\n");
@@ -62,9 +65,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Enable synchronous mode for perfect sensor sync
     let original_settings = world.settings();
-    let mut settings = EpisodeSettings::default();
-    settings.synchronous_mode = true;
-    settings.fixed_delta_seconds = Some(0.05); // 20 FPS
+    let settings = EpisodeSettings {
+        synchronous_mode: true,
+        fixed_delta_seconds: Some(0.05), // 20 FPS
+        ..Default::default()
+    };
     world.apply_settings(&settings, Duration::from_secs(5));
 
     println!("Enabled synchronous mode (20 FPS)");
@@ -168,10 +173,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
 
     // Shared data between sensors
-    let camera_data: Arc<Mutex<Option<(Image, nalgebra::Isometry3<f32>, usize)>>> =
-        Arc::new(Mutex::new(None));
-    let lidar_data: Arc<Mutex<Option<(LidarMeasurement, nalgebra::Isometry3<f32>, usize)>>> =
-        Arc::new(Mutex::new(None));
+    let camera_data: CameraData = Arc::new(Mutex::new(None));
+    let lidar_data: LidarData = Arc::new(Mutex::new(None));
 
     // Camera listener
     let camera_data_clone = camera_data.clone();
