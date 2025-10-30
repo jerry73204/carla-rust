@@ -29,6 +29,10 @@ use std::{
 };
 use tracing::info;
 
+/// Type alias for pending RGBA texture data from sensor callbacks
+/// Format: (rgba_data, width, height)
+type PendingRgba = Arc<Mutex<Option<(Vec<u8>, u32, u32)>>>;
+
 /// Camera position relative to vehicle
 #[derive(Clone)]
 pub struct CameraTransform {
@@ -228,7 +232,8 @@ impl SensorDefinition {
 /// Manages multiple camera sensors and their rendering
 pub struct CameraManager {
     pub sensor: Option<Sensor>,
-    pub texture: Arc<Mutex<Option<Texture2D>>>,
+    pub texture: Option<Texture2D>, // Texture created on main thread
+    pub pending_rgba: PendingRgba,  // RGBA data from sensor thread
     pub lidar_points: Arc<Mutex<Vec<(f32, f32, f32)>>>, // For LiDAR visualization
 
     pub current_position: usize,
@@ -321,7 +326,8 @@ impl CameraManager {
 
         Self {
             sensor: None,
-            texture: Arc::new(Mutex::new(None)),
+            texture: None,
+            pending_rgba: Arc::new(Mutex::new(None)),
             lidar_points: Arc::new(Mutex::new(Vec::new())),
             current_position: 0, // Start with rear chase camera
             current_sensor: 0,   // RGB by default
@@ -399,7 +405,7 @@ impl CameraManager {
         // Set up listener based on sensor type
         if sensor_def.is_image_sensor {
             // Image sensor (camera)
-            let texture_clone = Arc::clone(&self.texture);
+            let pending_rgba_clone = Arc::clone(&self.pending_rgba);
             let width = self.width;
             let height = self.height;
             let color_conversion = sensor_def.color_conversion;
@@ -407,7 +413,7 @@ impl CameraManager {
             sensor.listen(move |data| {
                 if let Ok(image) = Image::try_from(data) {
                     Self::update_texture_from_image(
-                        Arc::clone(&texture_clone),
+                        Arc::clone(&pending_rgba_clone),
                         image,
                         width,
                         height,
@@ -418,14 +424,14 @@ impl CameraManager {
         } else {
             // LiDAR sensor
             let lidar_points_clone = Arc::clone(&self.lidar_points);
-            let texture_clone = Arc::clone(&self.texture);
+            let pending_rgba_clone = Arc::clone(&self.pending_rgba);
             let width = self.width;
             let height = self.height;
 
             sensor.listen(move |data| {
                 if let Ok(lidar_data) = LidarMeasurement::try_from(data) {
                     Self::update_texture_from_lidar(
-                        Arc::clone(&texture_clone),
+                        Arc::clone(&pending_rgba_clone),
                         Arc::clone(&lidar_points_clone),
                         lidar_data,
                         width,
@@ -537,12 +543,28 @@ impl CameraManager {
         // TODO: Show notification
     }
 
+    /// Update camera textures from pending sensor data
+    ///
+    /// Must be called on main thread before render().
+    /// Creates textures from RGBA data produced by sensor callbacks.
+    pub fn update(&mut self) {
+        // Check for pending RGBA data from sensor callback
+        let mut pending = self.pending_rgba.lock().unwrap();
+        if let Some((rgba_data, width, height)) = pending.take() {
+            // Create texture on main thread
+            self.texture = Some(Texture2D::from_rgba8(
+                width as u16,
+                height as u16,
+                &rgba_data,
+            ));
+        }
+    }
+
     /// Render camera texture to screen
     ///
     /// ✅ Subphase 12.2.1: Display texture full-screen
     pub fn render(&self) -> Result<()> {
-        let texture_guard = self.texture.lock().unwrap();
-        if let Some(ref texture) = *texture_guard {
+        if let Some(ref texture) = self.texture {
             draw_texture(texture, 0.0, 0.0, WHITE);
         } else {
             // No texture yet, draw black background
@@ -554,8 +576,9 @@ impl CameraManager {
     /// Update texture from sensor image data with color conversion
     ///
     /// ✅ Subphase 12.8.1: Support multiple color conversion modes
+    /// Runs on sensor callback thread - stores RGBA data for main thread to process
     fn update_texture_from_image(
-        texture_arc: Arc<Mutex<Option<Texture2D>>>,
+        pending_rgba_arc: PendingRgba,
         image: Image,
         width: u32,
         height: u32,
@@ -613,12 +636,9 @@ impl CameraManager {
             }
         };
 
-        // Create texture from RGBA data
-        let texture = Texture2D::from_rgba8(width as u16, height as u16, &rgba_data);
-
-        // Update the shared texture
-        let mut texture_guard = texture_arc.lock().unwrap();
-        *texture_guard = Some(texture);
+        // Store RGBA data for main thread to create texture (not creating texture here - wrong thread!)
+        let mut pending_guard = pending_rgba_arc.lock().unwrap();
+        *pending_guard = Some((rgba_data, width, height));
 
         // TODO Phase 10.3: If recording, save to disk
     }
@@ -626,8 +646,9 @@ impl CameraManager {
     /// Update texture from LiDAR point cloud data
     ///
     /// ✅ Subphase 12.8.2: LiDAR bird's-eye view visualization
+    /// Runs on sensor callback thread - stores RGBA data for main thread to process
     fn update_texture_from_lidar(
-        texture_arc: Arc<Mutex<Option<Texture2D>>>,
+        pending_rgba_arc: PendingRgba,
         points_arc: Arc<Mutex<Vec<(f32, f32, f32)>>>,
         lidar_data: LidarMeasurement,
         width: u32,
@@ -681,12 +702,9 @@ impl CameraManager {
             }
         }
 
-        // Create texture from RGBA data
-        let texture = Texture2D::from_rgba8(width as u16, height as u16, &rgba_data);
-
-        // Update the shared texture
-        let mut texture_guard = texture_arc.lock().unwrap();
-        *texture_guard = Some(texture);
+        // Store RGBA data for main thread to create texture (not creating texture here - wrong thread!)
+        let mut pending_guard = pending_rgba_arc.lock().unwrap();
+        *pending_guard = Some((rgba_data, width, height));
     }
 
     /// Cleanup - destroy sensor

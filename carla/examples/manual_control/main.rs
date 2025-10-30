@@ -174,6 +174,9 @@ async fn main() -> Result<()> {
         // ✅ Subphase 12.3.2: Update notification fade timer
         notifications.update(delta_time);
 
+        // Update camera textures from pending sensor data (must be on main thread)
+        camera.update();
+
         // Render camera view
         camera.render()?;
 

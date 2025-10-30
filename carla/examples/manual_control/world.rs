@@ -207,15 +207,32 @@ impl World {
         // Get blueprint library
         let blueprint_library = world.blueprint_library();
 
+        // Debug: Count total blueprints
+        let total_count = blueprint_library.iter().count();
+        info!(
+            "Blueprint library contains {} total blueprints",
+            total_count
+        );
+
         // Filter for vehicle blueprints (default: "vehicle.*")
+        // Use starts_with instead of contains for more reliable matching
         let vehicle_blueprints: Vec<_> = blueprint_library
             .iter()
-            .filter(|bp| bp.id().contains(&config.filter))
+            .filter(|bp| bp.id().starts_with("vehicle."))
             .collect();
 
+        info!("Found {} vehicle blueprints", vehicle_blueprints.len());
+
         if vehicle_blueprints.is_empty() {
+            // Print some sample blueprint IDs for debugging
+            info!("Sample blueprint IDs:");
+            for (i, bp) in blueprint_library.iter().take(10).enumerate() {
+                info!("  {}: {}", i, bp.id());
+            }
+
             return Err(eyre!(
-                "No vehicle blueprints found matching filter: {}",
+                "No vehicle blueprints found. Total blueprints: {}, Filter: {}",
+                total_count,
                 config.filter
             ));
         }
@@ -232,17 +249,31 @@ impl World {
             return Err(eyre!("No spawn points available on this map"));
         }
 
-        // Spawn at the first spawn point
-        let spawn_point = spawn_points
-            .get(0)
-            .ok_or_else(|| eyre!("No spawn points available"))?;
-        info!("Spawning vehicle at spawn point 0");
+        // Try multiple spawn points until one succeeds
+        let mut player = None;
+        for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
+            info!("Trying to spawn vehicle at spawn point {}", i);
+            match world.spawn_actor(&blueprint, &spawn_point) {
+                Ok(actor) => {
+                    player = Some(
+                        Vehicle::try_from(actor)
+                            .map_err(|_| eyre!("Failed to convert to vehicle"))?,
+                    );
+                    info!(
+                        "✓ Vehicle spawned successfully at spawn point {}: ID {}",
+                        i,
+                        player.as_ref().unwrap().id()
+                    );
+                    break;
+                }
+                Err(e) => {
+                    info!("Spawn point {} failed: {:?}, trying next...", i, e);
+                }
+            }
+        }
 
-        let actor = world
-            .spawn_actor(&blueprint, &spawn_point)
-            .map_err(|e| eyre!("Failed to spawn actor: {:?}", e))?;
-        let player = Vehicle::try_from(actor).map_err(|_| eyre!("Failed to convert to vehicle"))?;
-        info!("✓ Vehicle spawned successfully: ID {}", player.id());
+        let player = player
+            .ok_or_else(|| eyre!("Failed to spawn vehicle at any of the first 10 spawn points"))?;
 
         // Enable autopilot if requested
         if config.autopilot {
