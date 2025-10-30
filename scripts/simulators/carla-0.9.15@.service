@@ -1,0 +1,13 @@
+[Unit]
+Description=CARLA Simulator 0.9.15 on port %i
+After=network.target
+
+[Service]
+Type=simple
+Environment="CARLA_PORT=%i"
+ExecStart=/home/aeon/repos/ros_zenoh_bridge/scripts/simulators/startup/run-0.9.15.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
