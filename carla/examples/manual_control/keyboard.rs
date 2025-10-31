@@ -36,7 +36,7 @@ pub struct KeyboardControl {
     pub autopilot_enabled: bool,
     pub manual_transmission_enabled: bool,
     pub current_gear: i32,
-    pub lights: u32, // VehicleLightState bitflags
+    pub lights: VehicleLightState,
     pub ackermann_enabled: bool,
     pub ackermann_control: VehicleAckermannControl,
     pub ackermann_reverse: f32,
@@ -60,7 +60,7 @@ impl KeyboardControl {
             autopilot_enabled: autopilot,
             manual_transmission_enabled: false,
             current_gear: 1,
-            lights: 0,
+            lights: VehicleLightState::NONE,
             ackermann_enabled: false,
             ackermann_control: VehicleAckermannControl {
                 steer: 0.0,
@@ -155,31 +155,31 @@ impl KeyboardControl {
         if is_key_pressed(KeyCode::L) {
             if shift_pressed {
                 // Shift+L - Toggle high beam
-                self.lights ^= VehicleLightState::HighBeam as u32;
+                self.lights ^= VehicleLightState::HIGH_BEAM;
                 notification.set_text("High beam toggled", 1.0);
             } else {
                 // L - Cycle through Position -> LowBeam -> Fog -> Off
-                let has_position = self.lights & (VehicleLightState::Position as u32) != 0;
-                let has_low_beam = self.lights & (VehicleLightState::LowBeam as u32) != 0;
-                let has_fog = self.lights & (VehicleLightState::Fog as u32) != 0;
+                let has_position = self.lights.contains(VehicleLightState::POSITION);
+                let has_low_beam = self.lights.contains(VehicleLightState::LOW_BEAM);
+                let has_fog = self.lights.contains(VehicleLightState::FOG);
 
                 if !has_position {
                     // Turn on position lights
-                    self.lights |= VehicleLightState::Position as u32;
+                    self.lights |= VehicleLightState::POSITION;
                     notification.set_text("Position lights", 1.0);
                 } else if !has_low_beam {
                     // Turn on low beam (position stays on)
-                    self.lights |= VehicleLightState::LowBeam as u32;
+                    self.lights |= VehicleLightState::LOW_BEAM;
                     notification.set_text("Low beam lights", 1.0);
                 } else if !has_fog {
                     // Turn on fog (position and low beam stay on)
-                    self.lights |= VehicleLightState::Fog as u32;
+                    self.lights |= VehicleLightState::FOG;
                     notification.set_text("Fog lights", 1.0);
                 } else {
                     // Turn all off
-                    self.lights &= !(VehicleLightState::Position as u32);
-                    self.lights &= !(VehicleLightState::LowBeam as u32);
-                    self.lights &= !(VehicleLightState::Fog as u32);
+                    self.lights &= !VehicleLightState::POSITION;
+                    self.lights &= !VehicleLightState::LOW_BEAM;
+                    self.lights &= !VehicleLightState::FOG;
                     notification.set_text("Lights off", 1.0);
                 }
             }
@@ -187,19 +187,19 @@ impl KeyboardControl {
 
         // I key - Toggle interior lights
         if is_key_pressed(KeyCode::I) {
-            self.lights ^= VehicleLightState::Interior as u32;
+            self.lights ^= VehicleLightState::INTERIOR;
             notification.set_text("Interior lights toggled", 1.0);
         }
 
         // Z key - Toggle left blinker
         if is_key_pressed(KeyCode::Z) {
-            self.lights ^= VehicleLightState::LeftBlinker as u32;
+            self.lights ^= VehicleLightState::LEFT_BLINKER;
             notification.set_text("Left blinker toggled", 1.0);
         }
 
         // X key - Toggle right blinker
         if is_key_pressed(KeyCode::X) {
-            self.lights ^= VehicleLightState::RightBlinker as u32;
+            self.lights ^= VehicleLightState::RIGHT_BLINKER;
             notification.set_text("Right blinker toggled", 1.0);
         }
 
@@ -369,10 +369,10 @@ impl KeyboardControl {
             notification.set_text(format!("Replay start: {:.1}s", world.recording_start), 1.0);
         }
 
-        // ✅ Subphase 12.10.3: R key - Camera recording (stub)
+        // ✅ Subphase 12.10.3: R key - Camera recording
         if is_key_pressed(KeyCode::R) && !ctrl_pressed {
-            // TODO: Implement camera frame capture to _out/
-            notification.set_text("Camera recording not yet implemented", 2.0);
+            let status = camera.toggle_recording();
+            notification.set_text(status, 2.0);
         }
 
         // ✅ Subphase 12.11.1: G key - Toggle radar visualization (stub)
@@ -519,21 +519,20 @@ impl KeyboardControl {
 
                 // Set brake light when braking
                 if self.control.brake > 0.0 {
-                    current_lights |= VehicleLightState::Brake as u32;
+                    current_lights |= VehicleLightState::BRAKE;
                 } else {
-                    current_lights &= !(VehicleLightState::Brake as u32);
+                    current_lights &= !VehicleLightState::BRAKE;
                 }
 
                 // Set reverse light when in reverse
                 if self.control.reverse {
-                    current_lights |= VehicleLightState::Reverse as u32;
+                    current_lights |= VehicleLightState::REVERSE;
                 } else {
-                    current_lights &= !(VehicleLightState::Reverse as u32);
+                    current_lights &= !VehicleLightState::REVERSE;
                 }
 
-                // Apply light state (transmute u32 to VehicleLightState)
-                let light_state: VehicleLightState = unsafe { std::mem::transmute(current_lights) };
-                player.set_light_state(&light_state);
+                // Apply light state (now type-safe with no unsafe code!)
+                player.set_light_state(&current_lights);
             }
         }
         Ok(())

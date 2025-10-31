@@ -39,6 +39,7 @@ mod episode_settings;
 mod light_id;
 mod map_layer;
 mod vehicle_failure_state;
+mod vehicle_light_state;
 mod vehicle_light_state_list;
 mod vehicle_physics_control;
 #[cfg(carla_0916)]
@@ -49,8 +50,7 @@ pub use carla_sys::{
     carla::rpc::{
         AckermannControllerSettings, AttachmentType, GearPhysicsControl,
         OpendriveGenerationParameters, TrafficLightState, VehicleAckermannControl, VehicleControl,
-        VehicleDoor, VehicleLightState_LightState as VehicleLightState, VehicleWheelLocation,
-        WalkerControl, WeatherParameters, WheelPhysicsControl,
+        VehicleDoor, VehicleWheelLocation, WalkerControl, WeatherParameters, WheelPhysicsControl,
     },
     carla_rust::rpc::{
         FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint, FfiRpcLightGroup as LightGroup,
@@ -65,6 +65,7 @@ pub use episode_settings::*;
 pub use light_id::*;
 pub use map_layer::*;
 pub use vehicle_failure_state::*;
+pub use vehicle_light_state::*;
 pub use vehicle_light_state_list::*;
 pub use vehicle_physics_control::*;
 #[cfg(carla_0916)]

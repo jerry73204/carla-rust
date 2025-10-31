@@ -157,8 +157,26 @@ impl Vehicle {
     }
 
     /// Sets the vehicle light state (headlights, brake lights, turn signals, etc.).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::rpc::VehicleLightState;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
+    /// // Turn on position and low beam lights
+    /// let lights = VehicleLightState::POSITION | VehicleLightState::LOW_BEAM;
+    /// vehicle.set_light_state(&lights);
+    /// ```
     pub fn set_light_state(&self, light_state: &VehicleLightState) {
-        self.inner.SetLightState(light_state);
+        let ffi_state = light_state.to_ffi();
+        self.inner.SetLightState(&ffi_state);
     }
 
     /// Sets the steering angle for a specific wheel (in degrees).
@@ -172,8 +190,27 @@ impl Vehicle {
     }
 
     /// Returns the current light state.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::rpc::VehicleLightState;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
+    /// let lights = vehicle.light_state();
+    /// if lights.contains(VehicleLightState::LOW_BEAM) {
+    ///     println!("Low beams are on");
+    /// }
+    /// ```
     pub fn light_state(&self) -> VehicleLightState {
-        self.inner.GetLightState()
+        let ffi_state = self.inner.GetLightState();
+        VehicleLightState::from_ffi(&ffi_state)
     }
 
     /// Returns the state of the traffic light affecting this vehicle.

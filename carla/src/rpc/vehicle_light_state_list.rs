@@ -55,7 +55,8 @@ impl<'a> VehicleLightStateListElement<'a> {
     }
 
     pub fn light_state(&self) -> VehicleLightState {
-        self.inner.light_state()
+        let ffi_state = self.inner.light_state();
+        VehicleLightState::from_ffi(&ffi_state)
     }
 
     pub(crate) unsafe fn from_cxx(ptr: UniquePtr<FfiVehicleLightStateElementRef>) -> Option<Self> {

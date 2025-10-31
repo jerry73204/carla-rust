@@ -25,7 +25,10 @@ use macroquad::prelude::*;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        Arc, Mutex,
+    },
 };
 use tracing::info;
 
@@ -248,9 +251,10 @@ pub struct CameraManager {
     width: u32,
     height: u32,
     gamma: f32,
-    // TODO Phase 10.3: Add recording state
-    // recording: bool,
-    // recording_frame: usize,
+
+    // ✅ Subphase 12.10.3: Camera recording state (shared with sensor callback thread)
+    recording: Arc<AtomicBool>,
+    recording_frame: Arc<AtomicU64>,
 }
 
 impl CameraManager {
@@ -336,6 +340,8 @@ impl CameraManager {
             width,
             height,
             gamma,
+            recording: Arc::new(AtomicBool::new(false)),
+            recording_frame: Arc::new(AtomicU64::new(0)),
         }
     }
 
@@ -406,6 +412,8 @@ impl CameraManager {
         if sensor_def.is_image_sensor {
             // Image sensor (camera)
             let pending_rgba_clone = Arc::clone(&self.pending_rgba);
+            let recording_clone = Arc::clone(&self.recording);
+            let recording_frame_clone = Arc::clone(&self.recording_frame);
             let width = self.width;
             let height = self.height;
             let color_conversion = sensor_def.color_conversion;
@@ -418,6 +426,8 @@ impl CameraManager {
                         width,
                         height,
                         color_conversion,
+                        Arc::clone(&recording_clone),
+                        Arc::clone(&recording_frame_clone),
                     );
                 }
             });
@@ -534,15 +544,6 @@ impl CameraManager {
         &self.sensors[self.current_sensor].display_name
     }
 
-    /// Toggle camera recording to disk
-    ///
-    /// TODO Phase 10.3: R key functionality
-    #[allow(dead_code)]
-    pub fn toggle_recording(&mut self) {
-        // TODO: self.recording = !self.recording
-        // TODO: Show notification
-    }
-
     /// Update camera textures from pending sensor data
     ///
     /// Must be called on main thread before render().
@@ -576,6 +577,7 @@ impl CameraManager {
     /// Update texture from sensor image data with color conversion
     ///
     /// ✅ Subphase 12.8.1: Support multiple color conversion modes
+    /// ✅ Subphase 12.10.3: Save PNG frames when recording enabled
     /// Runs on sensor callback thread - stores RGBA data for main thread to process
     fn update_texture_from_image(
         pending_rgba_arc: PendingRgba,
@@ -583,6 +585,8 @@ impl CameraManager {
         width: u32,
         height: u32,
         color_conversion: ColorConversion,
+        recording: Arc<AtomicBool>,
+        recording_frame: Arc<AtomicU64>,
     ) {
         // Get raw image data (Color format from CARLA with BGRA layout)
         let raw_data = image.as_slice();
@@ -638,9 +642,24 @@ impl CameraManager {
 
         // Store RGBA data for main thread to create texture (not creating texture here - wrong thread!)
         let mut pending_guard = pending_rgba_arc.lock().unwrap();
-        *pending_guard = Some((rgba_data, width, height));
+        *pending_guard = Some((rgba_data.clone(), width, height));
 
-        // TODO Phase 10.3: If recording, save to disk
+        // ✅ Subphase 12.10.3: Save frame to disk if recording
+        if recording.load(Ordering::SeqCst) {
+            let frame = recording_frame.fetch_add(1, Ordering::SeqCst);
+            let filename = format!("_out/{:08}.png", frame);
+
+            // Save PNG in background (don't block sensor callback)
+            if let Err(e) = image::save_buffer(
+                &filename,
+                &rgba_data,
+                width,
+                height,
+                image::ColorType::Rgba8,
+            ) {
+                eprintln!("Failed to save frame {}: {}", frame, e);
+            }
+        }
     }
 
     /// Update texture from LiDAR point cloud data
@@ -705,6 +724,29 @@ impl CameraManager {
         // Store RGBA data for main thread to create texture (not creating texture here - wrong thread!)
         let mut pending_guard = pending_rgba_arc.lock().unwrap();
         *pending_guard = Some((rgba_data, width, height));
+    }
+
+    /// Toggle camera frame recording
+    ///
+    /// ✅ Subphase 12.10.3: R key toggles recording to _out/ directory
+    pub fn toggle_recording(&mut self) -> &'static str {
+        let was_recording = self.recording.fetch_not(Ordering::SeqCst);
+        if !was_recording {
+            // Starting recording
+            self.recording_frame.store(0, Ordering::SeqCst);
+            // Create _out directory if it doesn't exist
+            std::fs::create_dir_all("_out").ok();
+            "Recording On"
+        } else {
+            // Stopping recording
+            "Recording Off"
+        }
+    }
+
+    /// Check if recording is currently active
+    #[allow(dead_code)]
+    pub fn is_recording(&self) -> bool {
+        self.recording.load(Ordering::SeqCst)
     }
 
     /// Cleanup - destroy sensor
