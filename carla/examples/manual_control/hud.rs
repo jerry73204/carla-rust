@@ -44,6 +44,7 @@ pub struct Hud {
     pub gnss_sensor: Option<crate::sensors::GnssSensor>,
     pub collision_sensor: Option<crate::sensors::CollisionSensor>,
     pub lane_invasion_sensor: Option<crate::sensors::LaneInvasionSensor>,
+    pub radar_sensor: Option<crate::sensors::RadarSensor>,
 
     // ✅ Subphase 12.6: Control state
     pub throttle: f32,
@@ -76,6 +77,7 @@ impl Hud {
             gnss_sensor: None,
             collision_sensor: None,
             lane_invasion_sensor: None,
+            radar_sensor: None,
             throttle: 0.0,
             steer: 0.0,
             brake: 0.0,
@@ -110,6 +112,11 @@ impl Hud {
         let mut lane_invasion = crate::sensors::LaneInvasionSensor::new();
         lane_invasion.spawn(world)?;
         self.lane_invasion_sensor = Some(lane_invasion);
+
+        // Spawn Radar sensor
+        let mut radar = crate::sensors::RadarSensor::new();
+        radar.spawn(world)?;
+        self.radar_sensor = Some(radar);
 
         Ok(())
     }

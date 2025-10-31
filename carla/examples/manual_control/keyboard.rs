@@ -375,15 +375,18 @@ impl KeyboardControl {
             notification.set_text(status, 2.0);
         }
 
-        // ✅ Subphase 12.11.1: G key - Toggle radar visualization (stub)
+        // ✅ Subphase 12.11.1: G key - Toggle radar visualization
         if is_key_pressed(KeyCode::G) {
-            world.radar_enabled = !world.radar_enabled;
-            let message = if world.radar_enabled {
-                "Radar visualization enabled (not yet implemented)"
-            } else {
-                "Radar visualization disabled"
-            };
-            notification.set_text(message, 2.0);
+            if let Some(ref mut radar) = hud.radar_sensor {
+                radar.toggle();
+                world.radar_enabled = !world.radar_enabled;
+                let message = if world.radar_enabled {
+                    "Radar visualization ON"
+                } else {
+                    "Radar visualization OFF"
+                };
+                notification.set_text(message, 2.0);
+            }
         }
 
         // ✅ Subphase 12.11.2: O key - Toggle vehicle doors

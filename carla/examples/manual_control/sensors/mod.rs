@@ -18,4 +18,4 @@ pub use collision::CollisionSensor;
 pub use gnss::GnssSensor;
 pub use imu::IMUSensor;
 pub use lane_invasion::LaneInvasionSensor;
-// pub use radar::RadarSensor; // TODO: Phase 8+
+pub use radar::RadarSensor;
