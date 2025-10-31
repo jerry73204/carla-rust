@@ -3,10 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-CARLACTL="$SCRIPT_DIR/simulators/carlactl"
+INSTALL_SCRIPT="$SCRIPT_DIR/simulators/install.sh"
 
 # Default values
 CARLA_VERSION="0.9.16"
+CARLA_PORT="2000"
 TIMEOUT_SECONDS=60
 REQUESTED_EXAMPLES=()
 
@@ -94,8 +95,13 @@ check_dependencies() {
         missing+=("timeout")
     fi
 
-    if [[ ! -x "$CARLACTL" ]]; then
-        error "carlactl not found at: $CARLACTL"
+    if ! command -v systemctl &> /dev/null; then
+        error "systemctl not found (systemd required)"
+        exit 1
+    fi
+
+    if [[ ! -x "$INSTALL_SCRIPT" ]]; then
+        error "Service install script not found at: $INSTALL_SCRIPT"
         exit 1
     fi
 
@@ -162,24 +168,39 @@ create_log_dir() {
     log "Log directory: $LOG_DIR"
 }
 
+# Ensure CARLA service is installed
+ensure_service_installed() {
+    local service_name="carla-${CARLA_VERSION}@.service"
+    local service_path="${HOME}/.config/systemd/user/${service_name}"
+
+    if [[ ! -f "$service_path" ]]; then
+        log "Installing CARLA ${CARLA_VERSION} service..."
+        if ! "$INSTALL_SCRIPT" install "$CARLA_VERSION" &> "$LOG_DIR/service-install.log"; then
+            error "Failed to install CARLA service"
+            cat "$LOG_DIR/service-install.log" >&2
+            exit 1
+        fi
+        log "Service installed successfully"
+    fi
+}
+
 # Check if CARLA is already running
 check_carla_status() {
-    if "$CARLACTL" status "$CARLA_VERSION" &>/dev/null; then
-        return 0  # Running
-    else
-        return 1  # Not running
-    fi
+    systemctl --user is-active "carla-${CARLA_VERSION}@${CARLA_PORT}.service" &>/dev/null
+    return $?
 }
 
 # Restart CARLA server (for clean state before each example)
 restart_carla() {
     local log_suffix="${1:-restart}"
+    local service_name="carla-${CARLA_VERSION}@${CARLA_PORT}.service"
 
-    log "Restarting CARLA $CARLA_VERSION for clean state..."
+    log "Restarting CARLA $CARLA_VERSION on port $CARLA_PORT for clean state..."
 
-    if ! "$CARLACTL" restart "$CARLA_VERSION" &> "$LOG_DIR/carla-$log_suffix.log"; then
-        error "Failed to restart CARLA $CARLA_VERSION"
+    if ! systemctl --user restart "$service_name" &> "$LOG_DIR/carla-$log_suffix.log"; then
+        error "Failed to restart CARLA service: $service_name"
         cat "$LOG_DIR/carla-$log_suffix.log" >&2
+        error "Check logs: journalctl --user -u $service_name -n 50"
         exit 1
     fi
 
@@ -191,20 +212,20 @@ restart_carla() {
     local attempt=0
 
     while [[ $attempt -lt $max_attempts ]]; do
-        # Try to connect to CARLA port 2000
-        if timeout 1 bash -c "echo > /dev/tcp/localhost/2000" 2>/dev/null; then
+        # Try to connect to CARLA port
+        if timeout 1 bash -c "echo > /dev/tcp/localhost/$CARLA_PORT" 2>/dev/null; then
             log ""
 
             # Wait a moment for server to stabilize
             sleep 2
 
-            # Verify with carlactl status that server is still running
+            # Verify with systemctl that server is still running
             if check_carla_status; then
                 log "CARLA ready."
                 return 0
             else
                 error "CARLA accepted connection but then crashed"
-                error "Check logs: journalctl --user -u carla@$CARLA_VERSION.service -n 50"
+                error "Check logs: journalctl --user -u $service_name -n 50"
                 exit 1
             fi
         fi
@@ -215,15 +236,17 @@ restart_carla() {
 
     log ""
     error "Server failed to become ready after ${max_attempts}s"
+    error "Check logs: journalctl --user -u $service_name -n 50"
     exit 1
 }
 
 # Stop CARLA server
 stop_carla() {
     if [[ "$CARLA_STARTED" == true ]]; then
+        local service_name="carla-${CARLA_VERSION}@${CARLA_PORT}.service"
         log ""
         log "Stopping CARLA $CARLA_VERSION..."
-        "$CARLACTL" stop "$CARLA_VERSION" &> "$LOG_DIR/carla-shutdown.log" || true
+        systemctl --user stop "$service_name" &> "$LOG_DIR/carla-shutdown.log" || true
         CARLA_STARTED=false
     fi
 }
@@ -375,6 +398,9 @@ main() {
     # Setup
     create_log_dir
     trap cleanup EXIT INT TERM
+
+    # Ensure CARLA service is installed
+    ensure_service_installed
 
     # Build first (before starting CARLA)
     build_examples
