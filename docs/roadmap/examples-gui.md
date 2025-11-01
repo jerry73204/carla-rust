@@ -140,28 +140,48 @@ These examples demonstrate essential CARLA workflows with GUI:
 ### Phase 13.1: Automatic Control
 
 **Priority:** HIGH
-**Estimated Effort:** 1 week
+**Estimated Effort:** 1 week (after Agent Phase completion)
 **Python Equivalent:** `automatic_control.py` (872 lines)
 **Target:** `carla/examples/automatic_control/`
+**⚠️ Status:** BLOCKED - Requires [Navigation Agents Implementation](agents.md)
 
 Demonstrates AI-driven navigation using CARLA's navigation agents with real-time HUD display.
 
+#### Agent Dependencies
+
+This example **cannot be implemented until the CARLA agent system is available in Rust**. See **[Navigation Agents Implementation](agents.md)** for complete details.
+
+**Required Agent APIs:**
+- `BasicAgent` - Simple waypoint-following agent with hazard detection
+- `LocalPlanner` - Trajectory following with PID control
+- `GlobalRoutePlanner` - High-level route computation
+- (Optional) `BehaviorAgent` - Advanced agent with behavior profiles (cautious/normal/aggressive)
+- (Optional) `ConstantVelocityAgent` - Simple testing agent
+
+**Timeline:**
+- **Agent Implementation:** 4-6 weeks (Phases A.1-A.4 in [agents.md](agents.md))
+- **This Example:** 1 week (after agents complete)
+- **Total: 5-7 weeks from start**
+
+**Decision Point:** Work on Phase 13.2, 13.3, or Phase 14 examples while agent APIs are being implemented.
+
 #### Features
 
-- BehaviorAgent with traffic rules and obstacle avoidance
-- BasicAgent with simple waypoint following
-- ConstantVelocityAgent for testing
+- BasicAgent with traffic rules and obstacle avoidance
 - Real-time HUD showing agent status and telemetry
-- Keyboard controls for agent switching and manual override
+- Keyboard controls for manual override
 - Camera feed with destination marker visualization
+- Optional: BehaviorAgent with multiple behavior profiles
+- Optional: ConstantVelocityAgent for testing
 
 #### Work Items
 
-- [ ] **13.1.1: Project Setup and Agent Integration**
-  - Create `automatic_control/` directory structure
-  - Add BehaviorAgent, BasicAgent, ConstantVelocityAgent bindings
-  - Implement agent trait abstraction for switching
-  - Test: Agents can be instantiated and switched
+- [ ] **13.1.1: Verify Agent APIs Available**
+  - Verify [Agent Phase](agents.md) implementation is complete
+  - Test BasicAgent, LocalPlanner, GlobalRoutePlanner APIs
+  - Run verification example: `basic_agent_minimal.rs`
+  - Confirm agent can navigate autonomously
+  - Test: basic_agent_minimal example reaches destination
 
 - [ ] **13.1.2: Basic Window and Vehicle Spawning**
   - Copy and adapt `World` struct from manual_control
@@ -175,57 +195,62 @@ Demonstrates AI-driven navigation using CARLA's navigation agents with real-time
   - Single camera position (rear chase view)
   - Test: Camera feed displays at 60 FPS
 
-- [ ] **13.1.4: Agent Control Loop**
-  - Implement agent.tick() in main loop
+- [ ] **13.1.4: Agent Integration**
+  - Instantiate BasicAgent with vehicle
+  - Set destination using random spawn point
+  - Integrate agent into main loop
+  - Test: Agent initialized correctly
+
+- [ ] **13.1.5: Agent Control Loop**
+  - Implement agent.run_step() in main loop
   - Apply agent VehicleControl to player
   - Handle destination reached event
   - Automatic respawn with new destination
   - Test: Agent drives to destination autonomously
 
-- [ ] **13.1.5: HUD Implementation**
+- [ ] **13.1.6: HUD Implementation**
   - Copy and simplify `Hud` from manual_control
   - Display: FPS, speed, location, heading, agent status
-  - Show current agent type (Behavior/Basic/Constant)
   - Show destination distance
+  - Show agent state (navigating, stopped, destination reached)
   - Remove: manual control bars, gear display
   - Test: HUD updates in real-time
 
-- [ ] **13.1.6: Sensor Integration**
+- [ ] **13.1.7: Sensor Integration**
   - Copy CollisionSensor, GnssSensor from manual_control
   - Display collision history graph
   - Display GNSS coordinates
   - Test: Sensors update correctly
 
-- [ ] **13.1.7: Keyboard Controls**
+- [ ] **13.1.8: Keyboard Controls**
   - Implement simplified keyboard handling
-  - P key: Toggle autopilot on/off (manual override)
-  - 1/2/3 keys: Switch agent type
-  - R key: Respawn at new location
+  - P key: Toggle agent on/off (manual override)
+  - R key: Respawn at new location with new destination
   - F1: Toggle HUD
   - H: Toggle help
   - ESC/Q: Quit
   - Test: All keys work correctly
 
-- [ ] **13.1.8: Destination Visualization**
+- [ ] **13.1.9: Destination Visualization**
   - Draw debug arrow pointing to destination
   - Update destination marker as vehicle moves
   - Clear visualization when destination reached
   - Test: Arrow visible and points correctly
 
-- [ ] **13.1.9: Help System**
+- [ ] **13.1.10: Help System**
   - Copy and adapt `HelpText` from manual_control
   - List all agent controls
   - Describe agent behaviors
   - Test: Help overlay displays all controls
 
-- [ ] **13.1.10: Weather and Environment**
+- [ ] **13.1.11: Weather and Environment (Optional)**
   - Copy weather cycling from manual_control
   - C/Shift+C: Cycle weather
   - Test: Weather changes apply
 
 **Estimated Code Reuse from manual_control:**
 - CameraManager: 60% (remove sensor switching, recording)
-- Hud: 40% (remove manual control displays)
+- Hud: 40% (remove manual control displays, add agent status)
 - CollisionSensor: 95%
 - GnssSensor: 95%
 - World: 50% (remove map layers, recording features)
@@ -235,11 +260,17 @@ Demonstrates AI-driven navigation using CARLA's navigation agents with real-time
 **Success Criteria:**
 - [ ] Agent navigates autonomously to destination
 - [ ] HUD shows agent status and telemetry
-- [ ] Can switch between 3 agent types
-- [ ] Manual override works (P key)
+- [ ] Manual override works (P key disables agent)
 - [ ] Collision detection works
 - [ ] Help overlay shows all controls
 - [ ] Maintains 60 FPS
+- [ ] Destination reached detection works
+- [ ] Auto-respawn with new destination works
+
+**Dependencies:**
+- ✅ Phase 12 (Manual Control) - Code reuse source
+- ⚠️ **Agent Phase (A.1-A.4)** - **CRITICAL BLOCKER**
+- See: [Navigation Agents Implementation](agents.md)
 
 ---
 

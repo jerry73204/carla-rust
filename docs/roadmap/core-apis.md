@@ -1027,3 +1027,280 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
+## Geometry Type Improvements
+
+**Priority:** HIGH
+**Estimated Effort:** 1-2 weeks
+**Status:** 🔴 Not Started
+**Dependencies:** None (can start immediately)
+**Context:** See `docs/geometry-types-analysis.md` and `docs/transform-composition-analysis.md`
+
+### Background
+
+The codebase currently uses two parallel geometry type systems:
+1. **CARLA types** (Location, Rotation, Transform) - left-handed, Z-up, degrees
+2. **nalgebra types** (Isometry3, Translation3, UnitQuaternion) - right-handed capable, radians
+
+Transform composition (multiplication) is critical for sensor mounting, vehicle attachments, and coordinate transforms. Users naturally want to compose transforms, but correctness depends on proper coordinate system handling.
+
+**Key Issues Identified:**
+- Transform multiplication via nalgebra not verified for correctness
+- `to_na()` conversion documentation doesn't clarify coordinate preservation
+- Existing code using nalgebra hasn't been audited for handedness issues
+- No native CARLA `Transform * Transform` operator
+
+**Reference Documents:**
+- `docs/geometry-types-analysis.md` - Comprehensive analysis of both type systems
+- `docs/transform-composition-analysis.md` - Transform multiplication correctness analysis
+
+### Work Items
+
+- [ ] **10.1: Native CARLA Transform Multiplication**
+  - **Priority:** HIGH
+  - **Estimated Effort:** 2-3 days
+  - **File:** `carla/src/geom.rs`
+  - **Tasks:**
+    1. Implement `std::ops::Mul` for `Transform`:
+       ```rust
+       impl std::ops::Mul for Transform {
+           type Output = Transform;
+           fn mul(self, rhs: Transform) -> Transform {
+               Transform::from_na(&(self.to_na() * rhs.to_na()))
+           }
+       }
+       ```
+    2. Implement `std::ops::Mul` for `&Transform`:
+       ```rust
+       impl std::ops::Mul<&Transform> for &Transform {
+           type Output = Transform;
+           fn mul(self, rhs: &Transform) -> Transform {
+               Transform::from_na(&(self.to_na() * rhs.to_na()))
+           }
+       }
+       ```
+    3. Add comprehensive tests:
+       - Pure translation composition: `(10,5,2) + (3,2,1) = (13,7,3)`
+       - Pure rotation composition: 90° yaw compositions
+       - Combined rotation + translation: Sensor offset transforms
+       - Verify against CARLA simulator (spawn sensor on vehicle, compare transforms)
+       - Round-trip tests: `t1 * t2 * inverse(t2) * inverse(t1) = identity`
+    4. Add usage examples to documentation
+  - **Success Criteria:**
+    - `transform1 * transform2` compiles and works correctly
+    - Tests verify composition matches CARLA C++ behavior
+    - Documentation includes sensor mounting example
+  - **Benefits:**
+    - Users don't need nalgebra knowledge for transform composition
+    - Type safe: `Transform * Transform → Transform`
+    - Correctness guaranteed by tests
+
+- [ ] **10.2: Document Coordinate System Preservation in `to_na()`**
+  - **Priority:** HIGH
+  - **Estimated Effort:** 1 day
+  - **File:** `carla/src/geom.rs`
+  - **Tasks:**
+    1. Update `LocationExt::to_na_translation()` documentation:
+       ```rust
+       /// Converts to nalgebra `Translation3`.
+       ///
+       /// **IMPORTANT**: The resulting `Translation3` represents the same
+       /// coordinate system as CARLA (left-handed, Z-up). Coordinates are
+       /// copied directly without sign changes:
+       /// - X: Forward (same in both systems)
+       /// - Y: Right (CARLA convention preserved)
+       /// - Z: Up (same in both systems)
+       ///
+       /// nalgebra is used purely as a math library; coordinate semantics
+       /// are preserved from CARLA.
+       fn to_na_translation(&self) -> Translation3<f32>;
+       ```
+    2. Update `RotationExt::to_na()` documentation:
+       ```rust
+       /// Converts to nalgebra `UnitQuaternion`.
+       ///
+       /// **IMPORTANT**: The resulting quaternion represents rotations in
+       /// CARLA's left-handed coordinate system. CARLA's Euler angles
+       /// (in degrees) are converted to radians and then to a quaternion
+       /// using intrinsic XYZ rotation order.
+       ///
+       /// **Coordinate System:** Left-handed, Z-up (CARLA convention)
+       /// **Rotation Order:** Intrinsic XYZ (roll, pitch, yaw)
+       /// **Angular Units:** Radians (converted from CARLA's degrees)
+       fn to_na(&self) -> UnitQuaternion<f32>;
+       ```
+    3. Update `TransformExt::to_na()` documentation:
+       ```rust
+       /// Converts to nalgebra `Isometry3`.
+       ///
+       /// **IMPORTANT**: The resulting `Isometry3` represents the same
+       /// coordinate system as CARLA (left-handed, Z-up). nalgebra is
+       /// used purely as a math library; coordinate semantics are preserved.
+       ///
+       /// **Transform Composition:**
+       /// Multiplication via nalgebra works correctly for transforms in
+       /// CARLA's coordinate system:
+       /// ```ignore
+       /// let vehicle_to_world = vehicle.transform();  // Isometry3
+       /// let sensor_to_vehicle = sensor_offset.to_na();
+       /// let sensor_to_world = vehicle_to_world * sensor_to_vehicle;
+       /// let sensor_transform = Transform::from_na(&sensor_to_world);
+       /// ```
+       ///
+       /// However, prefer using native CARLA `Transform * Transform` for
+       /// clearer intent and guaranteed correctness:
+       /// ```ignore
+       /// let sensor_world = vehicle_transform * sensor_offset;  // Recommended
+       /// ```
+       fn to_na(&self) -> Isometry3<f32>;
+       ```
+    4. Add module-level documentation to `carla/src/geom.rs`:
+       ```rust
+       //! # Coordinate System
+       //!
+       //! CARLA uses Unreal Engine's left-handed Z-up coordinate system:
+       //! - **X-axis**: Forward
+       //! - **Y-axis**: Right
+       //! - **Z-axis**: Up
+       //!
+       //! ## nalgebra Integration
+       //!
+       //! Extension traits provide conversions to/from nalgebra types. **Important**:
+       //! Converted types (Isometry3, Translation3, UnitQuaternion) still represent
+       //! CARLA's left-handed coordinate system. nalgebra is used as a math library;
+       //! coordinate semantics are preserved.
+       //!
+       //! ### Transform Composition
+       //!
+       //! For transform composition, prefer native CARLA multiplication:
+       //! ```ignore
+       //! let result = transform1 * transform2;  // Recommended
+       //! ```
+       //!
+       //! Composition via nalgebra also works but requires understanding coordinate systems:
+       //! ```ignore
+       //! let result = Transform::from_na(&(t1.to_na() * t2.to_na()));  // Advanced
+       //! ```
+       ```
+  - **Success Criteria:**
+    - All conversion trait methods have clear coordinate system documentation
+    - Module docs explain left-handed vs right-handed usage
+    - Examples show both CARLA native and nalgebra approaches
+    - Warnings about handedness in cross-products/vector operations
+
+- [ ] **10.3: Audit Existing nalgebra Usage for Handedness Issues**
+  - **Priority:** MEDIUM
+  - **Estimated Effort:** 3-5 days
+  - **Files:** All files in `carla/src/` and `carla/examples/`
+  - **Tasks:**
+    1. Search for all nalgebra usage in codebase:
+       ```bash
+       grep -r "cross\|Cross" carla/src/
+       grep -r "::na()" carla/src/ carla/examples/
+       grep -r "Isometry3\|Translation3\|UnitQuaternion" carla/src/
+       ```
+    2. Audit each usage for potential handedness issues:
+       - **Cross products**: Left-handed: `forward × right = up`; Right-handed: `forward × right = -up`
+       - **Rotation composition**: Verify order (left-multiply vs right-multiply)
+       - **Coordinate conversions**: Check for Y-axis sign flips
+       - **Vector operations**: Ensure consistent coordinate interpretation
+    3. Create audit report documenting:
+       - All nalgebra usage locations
+       - Classification: Safe / Potentially Unsafe / Unknown
+       - Reasoning for each classification
+       - Recommended fixes for unsafe usage
+    4. Fix identified issues:
+       - Replace cross products with CARLA-aware functions
+       - Add comments explaining coordinate system assumptions
+       - Update code to use CARLA types where appropriate
+    5. Add tests for corrected code
+  - **Key Areas to Check:**
+    - `carla/src/geom.rs` - Geometry utilities
+    - `carla/src/client/actor_base.rs` - Transform queries (lines 93-115)
+    - `carla/src/agents/` - Agent navigation code (uses both systems)
+    - `carla/examples/` - All examples using transforms
+    - Sensor projection code in Phase 9 (camera.rs)
+  - **Potential Issues to Look For:**
+    - Vector cross products: `v1.cross(&v2)` may have wrong sign
+    - Rotation direction: Positive rotations may be reversed
+    - Transform composition order: `t1 * t2` vs `t2 * t1`
+    - Euler angle extraction: May assume right-handed convention
+  - **Success Criteria:**
+    - Complete audit report in `docs/nalgebra-usage-audit.md`
+    - All identified issues fixed
+    - Tests added to prevent regression
+    - Code comments explain coordinate assumptions
+  - **Deliverables:**
+    - Audit report: `docs/nalgebra-usage-audit.md`
+    - List of fixes with before/after code
+    - New tests for corrected behavior
+
+### Test Cases
+
+#### Unit Tests (10.1 - Transform Multiplication)
+- `test_transform_mul_identity` - Multiply by identity transform
+- `test_transform_mul_translation` - Pure translation composition
+- `test_transform_mul_rotation` - Pure rotation composition (90°, 180°, 270°)
+- `test_transform_mul_combined` - Rotation + translation composition
+- `test_transform_mul_sensor_offset` - Realistic sensor mounting scenario
+- `test_transform_mul_inverse` - Compose with inverse, verify identity
+- `test_transform_mul_associativity` - Verify `(a * b) * c == a * (b * c)`
+- `test_transform_mul_reference` - Test `&Transform * &Transform` variant
+
+#### Integration Tests (10.1 - Transform Multiplication)
+- `test_transform_composition_with_simulator` - Compare with CARLA C++ results
+- `test_sensor_world_transform` - Spawn sensor on vehicle, verify transform
+- `test_attachment_transform_chain` - Multiple levels of attachment
+
+#### Documentation Tests (10.2)
+- `test_doc_examples_compile` - Verify all doc examples compile
+- `test_coordinate_system_docs` - Verify docs explain left-handed system
+
+#### Audit Tests (10.3)
+- Tests added per audit findings
+- Regression tests for identified issues
+
+### Implementation Notes
+
+**Transform Multiplication Implementation:**
+- Uses nalgebra internally for matrix/quaternion math
+- Converts: CARLA → nalgebra → multiply → CARLA
+- Overhead: ~100-200ns per composition (negligible)
+- Alternative: Could implement pure CARLA math, but nalgebra is well-tested
+
+**Coordinate System Documentation:**
+- Emphasize: nalgebra represents CARLA coords, not right-handed coords
+- Warn: Cross products and handed operations need care
+- Recommend: Use CARLA types for geometry, nalgebra for linear algebra
+
+**Audit Methodology:**
+- Start with automated search for key patterns
+- Manual review of each usage
+- Test suspicious code with simulator
+- Document assumptions in code comments
+
+### Dependencies and Blockers
+
+**Unblocks:**
+- Agent navigation code (Phase A.1-A.4) can safely use transforms
+- User code can compose transforms confidently
+- Examples can demonstrate sensor mounting correctly
+
+**Requires:**
+- Running CARLA simulator for integration tests (work item 10.1)
+- Knowledge of Unreal Engine coordinate conventions
+
+### Timeline
+
+**Week 1:**
+- Days 1-3: Implement Transform multiplication (10.1)
+- Days 4-5: Write tests and verify with simulator
+
+**Week 2:**
+- Day 1: Update documentation (10.2)
+- Days 2-5: Audit nalgebra usage (10.3)
+- Day 5: Write audit report and fixes
+
+**Total: 8-10 days**
+
+---
+
