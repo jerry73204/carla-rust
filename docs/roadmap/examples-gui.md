@@ -4,824 +4,1037 @@
 
 This document covers Phases 12-14: GUI Example Implementations with Macroquad. These examples demonstrate interactive CARLA applications with real-time visualization, keyboard controls, and comprehensive feature showcases.
 
+**Last Updated:** 2025-11-01
+
 ## Contents
 
-- [Phase 12: Manual Control - Complete Interactive Example](#phase-12-manual-control---complete-interactive-example)
-- [Phase 13: Advanced Example Implementations (GUI with Macroquad)](#phase-13-advanced-example-implementations-gui-with-macroquad)
-- [Phase 14: Specialized Examples (Reference/Future)](#phase-14-specialized-examples-referencefuture)
+- [Phase 12: Manual Control - Complete Interactive Example](#phase-12-manual-control---complete-interactive-example) ✅ COMPLETE
+- [Phase 13: Core GUI Examples](#phase-13-core-gui-examples)
+  - [13.1: Automatic Control](#phase-131-automatic-control)
+  - [13.2: Synchronous Mode GUI](#phase-132-synchronous-mode-gui)
+  - [13.3: Dynamic Weather GUI](#phase-133-dynamic-weather-gui)
+- [Phase 14: Advanced GUI Examples](#phase-14-advanced-gui-examples)
+  - [14.1: Bounding Boxes Visualization](#phase-141-bounding-boxes-visualization)
+  - [14.2: Multiple Sensor Grid View](#phase-142-multiple-sensor-grid-view)
+  - [14.3: No Rendering Mode (Performance Demo)](#phase-143-no-rendering-mode-performance-demo)
+  - [14.4: Walker Skeleton Visualization](#phase-144-walker-skeleton-visualization)
+- [Phase 15: Specialized GUI Examples (Optional)](#phase-15-specialized-gui-examples-optional)
+  - [15.1: Steering Wheel Support](#phase-151-steering-wheel-support)
+  - [15.2: LiDAR 3D Visualization](#phase-152-lidar-3d-visualization-optional)
 
 ---
 
-## Phase 12: Manual Control - Complete Interactive Example
+## Overview
 
-**Priority:** HIGH (Flagship example, comprehensive feature showcase)
-**Estimated Effort:** 4-6 weeks
-**Status:** ✅ COMPLETE (37/37 work items done, 100% feature parity)
-**Python Equivalent:** `manual_control.py` (1367 lines, 13 major components)
-
-### Overview
-
-Implement the most comprehensive CARLA example - a fully interactive vehicle simulator with real-time controls, multiple sensors, HUD display, and advanced features. This is the flagship example that demonstrates the full capabilities of the carla-rust library.
-
-**Complexity Level:** VERY HIGH
-- 1367 lines of Python code
-- 13 distinct component classes
-- 14 different sensor types
-- Complex keyboard input system (40+ key bindings)
-- Real-time HUD with graphs and telemetry
-- Recording/replay system integration
-- Weather and map layer manipulation
-- Multiple camera positions and types
-
-**Why a Dedicated Phase?**
-
-Manual control is significantly more complex than other Phase 13 examples:
-- **Scope:** 3-4x larger than typical examples
-- **Integration:** Touches nearly every CARLA API
-- **UI Complexity:** Multi-layer rendering (camera, HUD, help text, notifications)
-- **State Management:** Vehicle, sensors, recording, weather, map layers
-- **Input Handling:** Both event-based (key press) and continuous (key down) input
-
-This dedicated phase allows for incremental implementation with clear milestones.
-
-### Component Inventory (from Python)
-
-The Python `manual_control.py` consists of 13 major components:
-
-1. **World Class** (lines 176-351)
-   - Vehicle spawning and respawning
-   - All sensor management (collision, lane invasion, GNSS, IMU, radar, camera)
-   - Weather cycling with presets
-   - Map layer management
-   - Recording state management
-
-2. **KeyboardControl Class** (lines 358-642)
-   - Event-based input (key press/release)
-   - Continuous input (key held down)
-   - Vehicle control (throttle, brake, steer, gear, handbrake)
-   - Walker control (speed, direction, jump)
-   - Ackermann steering mode
-   - Light state management (position, low beam, high beam, fog, interior, blinkers)
-
-3. **HUD Class** (lines 649-797)
-   - Real-time telemetry display (FPS, speed, location, compass)
-   - IMU data (accelerometer, gyroscope)
-   - Vehicle control state (throttle, steer, brake, gear)
-   - Collision history graph (200 frame rolling window)
-   - Nearby vehicles list (sorted by distance)
-   - Notification system integration
-
-4. **FadingText Class** (lines 804-826)
-   - Temporary notification display
-   - Time-based fade animation
-
-5. **HelpText Class** (lines 833-856)
-   - Full help overlay with all controls
-   - Toggle on/off with H key
-
-6. **CollisionSensor Class** (lines 863-895)
-   - Collision detection and history
-   - Intensity tracking (4000 frame buffer)
-
-7. **LaneInvasionSensor Class** (lines 902-926)
-   - Lane marking crossing detection
-   - Lane type identification
-
-8. **GnssSensor Class** (lines 933-954)
-   - GPS coordinates (latitude, longitude)
-
-9. **IMUSensor Class** (lines 961-993)
-   - Accelerometer, gyroscope, compass
-   - Value clamping (±99.9)
-
-10. **RadarSensor Class** (lines 1000-1061)
-    - Object detection with debug visualization
-    - Velocity-based color coding
-
-11. **CameraManager Class** (lines 1067-1216)
-    - 14 different sensor types
-    - 5 camera positions for vehicles, 5 for walkers
-    - Recording to disk capability
-    - Sensor data → pygame surface conversion
-
-12. **game_loop() Function** (lines 1223-1287)
-    - Main loop: tick, input, update, render
-    - Synchronous mode management
-    - Cleanup handling
-
-13. **main() Function** (lines 1294-1367)
-    - CLI argument parsing
-    - Initialization and teardown
-
-### Work Items (Incremental Implementation)
-
-The implementation is broken down into 12 incremental phases, building from basic to advanced:
-
-#### Subphase 12.1: Foundation and Basic Window
-
-- [x] **12.1.1: Project Setup and Dependencies** ✅
-  - Add macroquad v0.4 dependency
-  - Create `carla/examples/manual_control.rs`
-  - Set up basic async main loop structure
-  - Test: Window opens and responds to ESC key
-
-- [x] **12.1.2: Vehicle Spawning and Basic Display** ✅
-  - Implement World struct (vehicle management only)
-  - Spawn vehicle with retry logic (tries up to 10 spawn points)
-  - Display black window with simple "Manual Control" text
-  - Enable autopilot by default
-  - Test: Vehicle spawns, window displays, autopilot works
-
-#### Subphase 12.2: Camera and Basic Rendering
-
-- [x] **12.2.1: RGB Camera Integration** ✅
-  - Implement basic CameraManager (RGB sensor only)
-  - Spawn RGB camera attached to vehicle
-  - Render camera feed to macroquad window (two-stage threading fix)
-  - Test: Live camera view displays at 60 FPS
-
-- [x] **12.2.2: Camera Position Switching** ✅
-  - Implement 5 camera positions (rear chase, hood, side, high, fixed)
-  - Add TAB key to cycle camera positions
-  - Update CameraManager to respawn sensor at new position
-  - Test: TAB cycles through all 5 positions smoothly
-
-#### Subphase 12.3: Basic Vehicle Control
-
-- [x] **12.3.1: Keyboard Input System** ✅
-  - Implement KeyboardControl struct
-  - Parse WASD/Arrow keys for throttle, brake, steer
-  - Apply VehicleControl to player
-  - Test: Vehicle responds to keyboard input
-
-- [x] **12.3.2: Autopilot Toggle** ✅
-  - Add P key to toggle autopilot
-  - Display notification when autopilot changes
-  - Disable manual control when autopilot active
-  - Test: P key switches between manual and autopilot
-
-#### Subphase 12.4: HUD - Basic Telemetry
-
-- [x] **12.4.1: HUD Struct and FPS Display** ✅
-  - Implement HUD struct with server/client FPS tracking
-  - Render semi-transparent overlay (220x720 pixels, alpha 100)
-  - Display FPS counters at top
-  - Test: HUD shows FPS, overlay doesn't block camera view
-
-- [x] **12.4.2: Vehicle Telemetry** ✅
-  - Add speed (km/h) display
-  - Add location (x, y) display
-  - Add vehicle name display
-  - Add map name display
-  - Test: Telemetry updates in real-time as vehicle moves
-
-#### Subphase 12.5: Advanced Sensors (IMU, GNSS, Collision)
-
-- [x] **12.5.1: IMUSensor Implementation** ✅
-  - Spawn IMU sensor on vehicle
-  - Display compass heading with cardinal directions (N/S/E/W)
-  - Display accelerometer (x, y, z) values
-  - Display gyroscope (x, y, z) values
-  - Test: IMU data updates smoothly, compass shows correct heading
-
-- [x] **12.5.2: GnssSensor Implementation** ✅
-  - Spawn GNSS sensor on vehicle
-  - Display GPS coordinates (latitude, longitude) with 6 decimal precision
-  - Test: GNSS updates, coordinates match vehicle position
-
-- [x] **12.5.3: CollisionSensor Implementation** ✅
-  - Spawn collision sensor on vehicle
-  - Maintain 4000 frame collision history
-  - Display collision intensity graph (200 points, rolling window)
-  - Show collision notification on impact
-  - Test: Graph updates on collision, notification appears
-
-- [x] **12.5.4: LaneInvasionSensor Implementation** ✅
-  - Spawn lane invasion sensor on vehicle
-  - Display notification when crossing lane markings
-  - Show lane marking type (Solid, Broken, etc.)
-  - Test: Notification appears when driving over lane lines
-
-#### Subphase 12.6: HUD - Advanced Display
-
-- [x] **12.6.1: Control State Display** ✅
-  - Show throttle, steer, brake as horizontal bars (0.0-1.0)
-  - Show reverse, hand brake, manual gear shift as checkboxes
-  - Show current gear (R/N/1/2/3/...)
-  - Test: Bars and checkboxes update as vehicle is controlled
-
-- [x] **12.6.2: Nearby Vehicles List** ✅
-  - Query all vehicles in world
-  - Calculate distances from player
-  - Sort by distance (closest first)
-  - Display top 5 vehicles within 200m with type and distance
-  - Test: List updates as vehicles approach/leave
-
-#### Subphase 12.7: Advanced Controls
-
-- [x] **12.7.1: Manual Transmission** ✅
-  - Add M key to toggle manual gear shifting
-  - Add comma/period keys to shift up/down
-  - Display "Manual Transmission" notification
-  - Update HUD to show manual mode
-  - Test: Gear shifts manually, notification appears
-
-- [x] **12.7.2: Light Controls** ✅
-  - Implement light state management (bitflags)
-  - L key: cycle through position → low beam → fog → off
-  - Shift+L: toggle high beam
-  - I key: toggle interior
-  - Z key: left blinker, X key: right blinker
-  - Automatically set brake lights and reverse lights
-  - Test: All light keys work, auto lights engage correctly
-
-- [x] **12.7.3: Ackermann Controller** ✅ (Experimental)
-  - Add F key to toggle Ackermann controller
-  - Implement Ackermann speed control (km/h target)
-  - Q key: reverse direction
-  - Note: Marked as experimental in implementation
-  - Test: Ackermann mode activates, speed control works
-
-#### Subphase 12.8: Multiple Camera Types
-
-- [x] **12.8.1: Camera Type Switching** ✅
-  - Extend CameraManager to support 14 sensor types:
-    - RGB, Depth (Raw/Gray/Logarithmic)
-    - Semantic Segmentation (Raw/CityScapes)
-    - Instance Segmentation (Raw/CityScapes)
-    - Cosmos Control, LiDAR, DVS
-    - RGB Distorted, Optical Flow, Normals
-  - Add backtick (`) and N keys to cycle sensors
-  - Add number keys 1-9, Ctrl+1-9 for direct sensor selection
-  - Display sensor name notification on switch
-  - Test: All 14 sensor types render correctly
-
-- [x] **12.8.2: LiDAR Visualization** ✅
-  - Convert LiDAR point cloud to 2D bird's-eye view
-  - Render points as white dots on black background
-  - Match Python's top-down projection
-  - Test: LiDAR view shows points around vehicle
-
-#### Subphase 12.9: Weather and World Control
-
-- [x] **12.9.1: Weather Cycling** ✅
-  - Define 14 weather presets (clear, cloudy, rain variants, sunset variants)
-  - C key: next weather, Shift+C: previous weather
-  - Display weather name notification
-  - Test: Weather changes smoothly, notification shows preset name
-
-- [x] **12.9.2: Map Layer Control** ✅
-  - B key: cycle and load next map layer
-  - Shift+B: unload current map layer
-  - Supported layers: All, None, Buildings, Decals, Foliage, Ground, ParkedVehicles, Particles, Props, StreetLights, Walls
-  - Display layer name notification
-  - Test: Layers load/unload, environment updates visually
-
-#### Subphase 12.10: Recording and Replay
-
-- [x] **12.10.1: Recording System** ✅
-  - Ctrl+R: start/stop recording to "manual_recording.log"
-  - Track recording_enabled state
-  - Display "Recording ON/OFF" notification
-  - Store recording_start time for replay
-  - Test: Recording creates file, notification appears
-
-- [x] **12.10.2: Replay System** ✅
-  - Ctrl+P: replay "manual_recording.log"
-  - Disable autopilot during replay
-  - Ctrl+Minus/Plus: adjust replay start time (±1 second)
-  - Shift+Minus/Plus: adjust by ±10 seconds
-  - Display replay notification and start time
-  - Test: Replay works, start time adjusts
-
-- [x] **12.10.3: Camera Recording** ✅
-  - R key: toggle camera recording (save images to _out/)
-  - Display "Recording ON/OFF" notification
-  - Save current frame on each render (sequential 8-digit PNG format: 00000000.png, 00000001.png, ...)
-  - Automatic _out/ directory creation
-  - Thread-safe frame counter using Arc<AtomicU64>
-  - Test: Recording works, frames saved correctly with all sensor types
-
-#### Subphase 12.11: Advanced Features
-
-- [x] **12.11.1: Radar Visualization** ✅
-  - G key: toggle radar visualization
-  - Spawn radar sensor on vehicle (FOV 35°x20°, 1500 points/second)
-  - Draw radar detections as 3D debug points (color by velocity)
-  - Velocity-based color coding: red (approaching) → white → blue (receding)
-  - Spherical to Cartesian coordinate conversion for 3D point placement
-  - Thread-safe enable/disable using Arc<Mutex<bool>>
-  - Test: Radar points visible when enabled, color changes with object velocity
-
-- [x] **12.11.2: Vehicle Door Control** ✅
-  - O key: toggle all doors open/close
-  - Handle exception gracefully (not all vehicles have doors)
-  - Display "Opening/Closing Doors" notification
-  - Test: Doors open/close on vehicles that support it
-
-- [x] **12.11.3: Constant Velocity Mode** ✅
-  - Ctrl+W: toggle constant velocity mode (60 km/h = 17 m/s)
-  - Disable velocity when toggled off
-  - Display notification with mode state
-  - Test: Vehicle maintains constant speed when enabled
-
-- [x] **12.11.4: Vehicle Telemetry Overlay** ✅
-  - T key: toggle vehicle debug telemetry (CARLA's built-in)
-  - Display notification with state
-  - Test: Telemetry appears/disappears in CARLA window
-
-#### Subphase 12.12: Help System and Notifications
-
-- [x] **12.12.1: FadingText Notification System** ✅
-  - Implement FadingText struct with alpha fade
-  - Position at bottom of screen (width x 40 pixels)
-  - 2-second display with fade out
-  - Test: Notifications appear, fade smoothly
-
-- [x] **12.12.2: HelpText Overlay** ✅
-  - Implement HelpText struct with full control listing
-  - H key or Shift+/: toggle help display
-  - Centered overlay (780 pixels wide)
-  - Semi-transparent background (alpha 220)
-  - List all 40+ key bindings with descriptions
-  - Test: Help appears/disappears, all keys listed
-
-- [x] **12.12.3: Info Toggle** ✅
-  - F1 key: toggle HUD info display
-  - Hide/show all telemetry (keep notifications and help)
-  - Test: F1 hides telemetry, shows black screen with camera only
-
-### Previously Deferred Items (Now Complete)
-
-Two features were initially deferred but have since been fully implemented:
-
-**12.10.3: Camera Recording** - Frame capture to _out/ directory ✅ COMPLETE
-- **Status:** Fully implemented (2025-10-30)
-- **Implementation:** Thread-safe PNG frame saving with sequential numbering
-- **Features:** Automatic directory creation, works with all 14 sensor types
-- **File format:** 8-digit zero-padded PNG (00000000.png, 00000001.png, ...)
-- **Performance:** Non-blocking saves in sensor callback thread
-
-**12.11.1: Radar Visualization** - 3D debug point rendering ✅ COMPLETE (2025-11-01)
-- **Status:** Fully implemented
-- **Implementation:** Radar sensor spawning with debug point visualization
-- **Features:** Velocity-based color coding (red=approaching, blue=receding)
-- **Configuration:** 35° horizontal FOV, 20° vertical FOV, 1500 points/second
-- **Coordinates:** Spherical (depth, azimuth, altitude) to Cartesian conversion
-
-All originally planned features for Phase 12 manual_control are now complete.
-
-### Python Reference
-
-**File:** `~/Downloads/carla-simulator/CARLA_0.9.16/PythonAPI/examples/manual_control.py`
-**Lines:** 1367
-**Key Features:**
-- 40+ keyboard shortcuts
-- 14 sensor types
-- 5 camera positions
-- Real-time HUD with graphs
-- Recording/replay integration
-- Weather and map control
-- Light management
-- Ackermann steering
-
-### Implementation Strategy
-
-**Recommended Approach:**
-1. **Incremental development** - Implement subphases 12.1-12.12 sequentially
-2. **Test after each subphase** - Ensure stability before adding complexity
-3. **Commit frequently** - Each subphase should be a separate commit
-4. **Document controls** - Update help text as features are added
-5. **Performance monitoring** - Ensure 60 FPS maintained throughout
-
-**Key Technical Decisions:**
-- Use `macroquad::prelude::*` for all rendering
-- Store sensors in World struct (avoid complex lifetimes)
-- Use `Arc<Mutex<>>` for sensor data shared with callbacks
-- Implement custom texture conversion from CARLA BGRA to macroquad RGBA
-- Use `is_key_pressed()` for toggle events, `is_key_down()` for continuous control
-
-**Estimated Timeline:**
-- Subphases 12.1-12.3: 1 week (foundation)
-- Subphases 12.4-12.6: 1 week (HUD and sensors)
-- Subphases 12.7-12.8: 1.5 weeks (advanced controls and cameras)
-- Subphases 12.9-12.10: 1 week (world manipulation and recording)
-- Subphases 12.11-12.12: 1.5 weeks (polish and help system)
-- **Total: 6 weeks** (with testing and refinement)
-
-### Implementation Progress
-
-**Date:** 2025-10-30
-
-#### Critical Threading Fix (Macroquad Compatibility)
-
-**Problem Identified:**
-- Macroquad's `Texture2D::from_rgba8()` requires execution on the main thread only
-- Sensor callbacks run on background threads, causing fatal threading violations
-- Error: `assertion failed: THREAD_ID.unwrap() == CURRENT_THREAD_ID.with(|id| *id)`
-
-**Solution Implemented:**
-Implemented a two-stage texture creation pipeline:
-
-1. **Stage 1 (Background thread)**: Sensor callbacks convert CARLA sensor data to RGBA format and store in shared buffer
-   - Created `PendingRgba` type alias: `Arc<Mutex<Option<(Vec<u8>, u32, u32)>>>`
-   - Modified `update_texture_from_image()` and `update_texture_from_lidar()` to store RGBA data only
-   - No texture creation on callback threads
-
-2. **Stage 2 (Main thread)**: New `camera.update()` method creates textures from pending RGBA data
-   - Called in main loop before `camera.render()`
-   - Texture creation now happens exclusively on main thread
-   - Respects macroquad's OpenGL threading requirements
-
-**Files Modified:**
-- `carla/examples/manual_control/camera.rs`: Added `PendingRgba` type alias, `update()` method, refactored texture callbacks
-- `carla/examples/manual_control/main.rs`: Added `camera.update()` call in main loop (line 178)
-- `carla/examples/manual_control/world.rs`: Fixed blueprint filtering and spawn point retry logic
-
-**Additional Improvements:**
-- Fixed blueprint filtering: Changed from `.contains()` to `.starts_with("vehicle.")` for reliable matching
-- Added spawn point retry logic: Tries up to 10 spawn points if first one is blocked
-- Added type alias for complex types to satisfy clippy linting rules
-- Created test script: `/tmp/test_manual_control.sh` for automated testing
-
-**Testing:**
-- Application now runs successfully without threading violations
-- All sensors spawn correctly (Camera RGB, IMU, GNSS, Collision, Lane Invasion)
-- Vehicle spawning works with fallback to alternate spawn points
-- Passes `make lint-rust` with zero errors
-
-#### Completion Status (Updated 2025-11-01)
-
-**Implementation Summary:**
-- **Subphases Complete:** 12/12 (All subphases 12.1-12.12) ✅
-- **Work Items Complete:** 37/37 (100%) ✅
-- **Deferred Items Implemented:** 2/2 (Camera recording + Radar visualization) ✅
-
-**Functional Features:**
-- ✅ Vehicle control (manual + autopilot) with WASD/arrows
-- ✅ 14 camera/sensor types with cycling (RGB, Depth, Semantic, LiDAR, etc.)
-- ✅ 5 camera positions
-- ✅ Real-time HUD with FPS, speed, location, compass, IMU, GNSS
-- ✅ Collision detection and history graph
-- ✅ Nearby vehicles tracking (200m radius)
-- ✅ Manual transmission with gear shifting (M, comma/period keys)
-- ✅ Light controls (L, Shift+L, I, Z, X keys)
-- ✅ Weather cycling (14 presets: C, Shift+C keys)
-- ✅ Map layer management (B, Shift+B keys)
-- ✅ Session recording/replay (Ctrl+R, Ctrl+P, Ctrl+Minus/Plus)
-- ✅ Camera frame recording to _out/ directory (R key) - COMPLETED 2025-11-01
-- ✅ Radar visualization with velocity color coding (G key) - COMPLETED 2025-11-01
-- ✅ Advanced features: doors (O), constant velocity (Ctrl+W), telemetry (T)
-- ✅ Help overlay (H key) and HUD toggle (F1 key)
-
-#### Recent Completions (2025-11-01)
-
-**Camera Recording (12.10.3):**
-- Full PNG frame capture implementation verified and documented
-- Thread-safe frame counting with `Arc<AtomicU64>`
-- Automatic `_out/` directory creation
-- Works with all 14 sensor types and color conversions
-- Non-blocking save operations in sensor callback thread
-- Sequential 8-digit zero-padded naming (00000000.png, 00000001.png, ...)
-- Average file sizes: ~2MB for RGB, ~50KB-1MB for depth/semantic
-- Implementation location: `camera.rs:647-662`, `camera.rs:732-743`
-
-**Radar Visualization (12.11.1):**
-- Radar sensor spawning and listener implementation
-- Spherical to Cartesian coordinate conversion (depth, azimuth, altitude → x, y, z)
-- Velocity-based color interpolation:
-  - Approaching objects (negative velocity): white → red
-  - Receding objects (positive velocity): white → blue
-  - Normalized velocity range: ±7.5 m/s
-- Debug point rendering with 0.1s lifetime
-- Thread-safe toggle using `Arc<Mutex<bool>>`
-- Sensor configuration: 35° horizontal FOV, 20° vertical FOV, 1500 points/second
-- Position: 2.5m forward, 0.0m lateral, 1.0m height from vehicle center
-- Implementation location: `sensors/radar.rs` (full module)
-
-### Success Criteria
-
-- [x] Vehicle spawns and displays camera view ✅ (2025-10-30)
-- [x] All 40+ keyboard shortcuts work correctly ✅ (37/37 implemented)
-- [x] HUD shows all telemetry in real-time ✅
-- [x] 14 sensor types render correctly ✅
-- [x] 5 camera positions switch smoothly ✅
-- [x] Recording/replay system works ✅ (Session recording + camera recording complete)
-- [x] Weather changes apply ✅
-- [x] Map layers load/unload ✅
-- [x] Help overlay shows all controls ✅
-- [x] Radar visualization with debug points ✅ (2025-11-01)
-- [ ] Maintains 60 FPS with all features enabled (needs performance testing)
-- [ ] Code is well-documented and maintainable (needs review)
-
-### Dependencies
-
-**New Rust APIs:** None required - all APIs already implemented
-
-**Macroquad Features Used:**
-- `clear_background()`, `draw_texture()`, `draw_text()`, `draw_rectangle()`
-- `is_key_pressed()`, `is_key_down()`, `next_frame().await`
-- Texture creation from raw pixel data
-- Font rendering with custom sizes
-
-**Existing CARLA APIs:**
-- All Phase 0-11 APIs (vehicle, sensors, world, recording, etc.)
-- Camera projection utilities (from lidar_to_camera example)
-
----
-
-## Phase 13: Advanced Example Implementations (GUI with Macroquad)
-
-**Priority:** Medium (UI framework selected, ready for implementation)
-**Estimated Effort:** 4-5 weeks
-**Status:** Ready to Start (UI framework: Macroquad selected 2025-10-29)
-**✅ UI Framework:** Macroquad v0.4 - pygame replacement for Rust
-
-### Overview
-
-Implement advanced examples with real-time GUI visualization using Macroquad. These examples demonstrate professional-grade CARLA applications with interactive controls and visual feedback, matching Python's pygame examples.
-
-**Key Features:**
-- Real-time sensor visualization (cameras, LiDAR)
-- Interactive vehicle control with keyboard/gamepad input
-- HUD overlays with telemetry data
-- Multi-viewport grid layouts
-- 2D bounding box visualization
-
-**Note**: Phase 2 (Debug utilities) is already complete. Ready to begin implementation with Macroquad.
-
-### Prerequisites
-
-- Phase 2: Debug and Visualization Utilities ✅ (Complete)
-- All sensor APIs complete
-- UI framework integration: **Macroquad** (decision finalized 2025-10-29)
-- Math library integration (nalgebra) ✅ (Already in use)
-- Image processing utilities ✅ (`image` crate already integrated)
-
-### UI Framework: Macroquad
+### GUI Framework: Macroquad
 
 **Decision Date:** 2025-10-29
-**Status:** ✅ Selected as the official pygame replacement for Phase 12 and 13
+**Status:** ✅ Selected and proven in Phase 12
 
-After comprehensive research and evaluation of Rust alternatives to Python's pygame, **Macroquad** has been selected as the official GUI framework for GUI examples (Phases 12 and 13).
+All GUI examples use **Macroquad v0.4** as the official pygame replacement:
+- Simple, pygame-like API
+- Cross-platform (Windows, macOS, Linux, WASM)
+- Built-in features: textures, text, keyboard/mouse, audio
+- Zero configuration required
 
-#### Why Macroquad?
-
-**Core Information:**
-- **Website:** https://macroquad.rs/
-- **Version:** 0.4.14 (Latest: 2025-03-20)
-- **GitHub:** 2,500+ stars, actively maintained
-- **Philosophy:** Simple and easy to use, heavily inspired by raylib
-
-**Key Advantages:**
-- ✅ **Most pygame-like experience** - Simple, intuitive API matching Python pygame's ease of use
-- ✅ **Zero configuration** - Works out of the box, no complex setup required
-- ✅ **Beginner-friendly** - Avoids complex Rust concepts (lifetimes/borrowing) in the API
-- ✅ **Cross-platform** - Windows, macOS, Linux, Web (WASM), iOS, Android
-- ✅ **Built-in features** - Texture loading, text rendering, keyboard/mouse input, audio support
-- ✅ **Efficient rendering** - Automatic geometry batching for 2D graphics
-- ✅ **Active development** - Latest release March 2025, new tutorials published regularly
-- ✅ **Excellent resources** - Official guide at mq.agical.se, growing community
-
-**Why Not Alternatives?**
-- **Winit + Pixels:** More boilerplate, requires manual event loop management, separate crates for text/audio
-- **SDL2:** No WebAssembly support, C dependency, missing modern features in Rust bindings
-- **Bevy:** Full game engine - overkill for simple 2D visualization examples
-
-**Example Code:**
+**Example Code Pattern:**
 ```rust
 use macroquad::prelude::*;
 
-#[macroquad::main("CARLA Sensor View")]
+#[macroquad::main("CARLA Example")]
 async fn main() {
+    // Setup
+    let client = carla::Client::default();
+    let mut world = client.world();
+
+    // Main loop
     loop {
         clear_background(BLACK);
 
-        // Display camera feed
-        draw_texture(&camera_texture, 0., 0., WHITE);
-
-        // HUD overlay
+        // Render camera/HUD
+        draw_texture(&texture, 0., 0., WHITE);
         draw_text("Speed: 45 km/h", 20., 40., 30., WHITE);
-        draw_text("Throttle: 0.8", 20., 70., 30., WHITE);
 
         // Handle input
-        if is_key_pressed(KeyCode::Escape) {
-            break;
-        }
+        if is_key_pressed(KeyCode::Escape) { break; }
 
         next_frame().await
     }
 }
 ```
 
-#### Implementation Plan
+### Code Organization Strategy
 
-**Dependency:**
-```toml
-[dependencies]
-macroquad = "0.4"
-```
+**Decision Date:** 2025-11-01 (see `docs/gui-code-sharing-analysis.md`)
 
-**Strategy:**
-1. Add macroquad dependency to Phase 12/13 example `Cargo.toml`
-2. Keep Phase 11 headless examples unchanged for CI/testing compatibility
-3. Create `*_gui.rs` variants of Phase 11 examples with macroquad GUI
-4. All new interactive examples (manual_control, bounding_boxes) use macroquad
-5. Use macroquad's async main loop pattern for all GUI examples
+**Current Approach:**
+- Each example maintains its own module structure
+- Copy and adapt code from `manual_control` as needed
+- Extract common modules only after 3+ examples show clear duplication
+- Prioritize example clarity over DRY principle
 
-**Learning Resources:**
-- Official guide: https://mq.agical.se/
-- API documentation: https://docs.rs/macroquad
-- GitHub examples: https://github.com/not-fl3/macroquad/tree/master/examples
-- 2025 tutorial series: "Rust Breakout with Macroquad" (theanswers42.com)
-
-### Work Items
-
-#### Full GUI Versions of Phase 11 Examples
-
-- [ ] **Automatic Control (Full GUI)** (`automatic_control_gui.rs`)
-  - **Python Equivalent:** `automatic_control.py` (pygame)
-  - **Rust Implementation:** macroquad
-  - Real-time window showing camera view
-  - HUD overlay with telemetry (speed, throttle, steering, location)
-  - Keyboard controls for manual override
-  - **APIs Used:**
-    - `macroquad` - Window and rendering
-    - `draw_texture()` - Display camera feed
-    - `draw_text()` - HUD overlay
-    - `Vehicle::transform()`, `velocity()`, `control()` - Telemetry
-  - Demonstrates: GUI integration, HUD rendering, real-time visualization
-
-- [ ] **Synchronous Mode (Full GUI)** (`synchronous_mode_gui.rs`)
-  - **Python Equivalent:** `synchronous_mode.py` (pygame)
-  - **Rust Implementation:** macroquad
-  - Real-time window showing synchronized camera view
-  - HUD overlay showing frame number, FPS, simulation stats
-  - Fixed delta time tick visualization
-  - **APIs Used:**
-    - `macroquad` - Window and rendering
-    - `World::tick()` - Frame-by-frame simulation
-    - `draw_texture()` - Camera display
-    - `get_fps()` - Frame rate monitoring
-  - Demonstrates: Synchronous mode with visual feedback, frame timing
-
-- [ ] **Multiple Sensor Visualization (Full GUI)** (`visualize_multiple_sensors_gui.rs`)
-  - **Python Equivalent:** `visualize_multiple_sensors.py` (pygame)
-  - **Rust Implementation:** macroquad
-  - Real-time window with 2×3 grid layout
-  - 6 sensor views: 4 RGB cameras (left/front/right/rear) + LiDAR + Semantic LiDAR
-  - Real-time bird's-eye LiDAR point rendering
-  - ESC/Q to quit
-  - **APIs Used:**
-    - `macroquad` - Window and grid rendering
-    - `draw_texture()` - Multiple camera viewports
-    - `draw_circle()` - LiDAR point visualization
-    - Grid layout calculations for 2×3 arrangement
-  - Demonstrates: Multi-viewport rendering, grid layouts, real-time sensor fusion
-
-#### Interactive and Advanced Examples
-
-- [ ] **Manual Control** - **MOVED TO DEDICATED PHASE 12**
-  - **Note:** Due to high complexity (1367 lines, 13 components, 40+ controls), manual_control has been moved to its own dedicated phase
-  - **See:** Phase 12 for complete implementation breakdown
-  - **Status:** Phase 12 provides 12 incremental implementation phases with 37 work items
-
-- [ ] **Bounding Boxes** (2 examples)
-  - **Python Equivalent:** `bounding_boxes.py`, `client_bounding_boxes.py` (pygame)
-  - **Rust Implementation:** macroquad
-  - `bounding_boxes.rs` - 2D/3D bbox generation and display
-  - `client_bounding_boxes.rs` - Client-side bbox computation
-  - Real-time visualization with bbox overlays on camera feed
-  - Different colors for vehicles, pedestrians, traffic signs
-  - **APIs Used:**
-    - `macroquad` - Window and drawing primitives
-    - `draw_rectangle_lines()` - Bounding box rendering
-    - `carla::sensor::camera` - Projection utilities
-    - `World::get_actors()` - Actor enumeration for bbox generation
-  - Demonstrates: Computer vision, projection math, object detection visualization
-
-- [ ] **Advanced Visualization** (3 examples)
-  - `draw_skeleton.rs` - Walker skeleton bone visualization
-    - **Python Equivalent:** `draw_skeleton.py` (pygame)
-    - **Rust Implementation:** macroquad with `draw_line()` for bones
-  - `no_rendering_mode.rs` - Large-scale simulation (100+ vehicles) with stats overlay
-    - **Python Equivalent:** `no_rendering_mode.py` (pygame)
-    - **Rust Implementation:** macroquad for HUD, CARLA rendering disabled
-  - `open3d_lidar.rs` - LiDAR point cloud 3D visualization (OPTIONAL)
-    - Requires 3D visualization library (not macroquad)
-    - Consider `three-d` or `bevy` for true 3D rendering
-  - Demonstrates: Debug drawing, scalability, performance monitoring
-
-- [ ] **Hardware Input** (`manual_control_steeringwheel.rs`)
-  - **Python Equivalent:** `manual_control_steeringwheel.py` (pygame + joystick)
-  - **Rust Implementation:** macroquad + gilrs
-  - Steering wheel and pedal support via `gilrs` crate (Rust gamepad library)
-  - Analog input mapping (steering angle, throttle, brake)
-  - Force feedback (if device supports it)
-  - Real-time macroquad display with input visualization
-  - **APIs Used:**
-    - `macroquad` - Window and rendering
-    - `gilrs` - Gamepad/wheel input
-    - `Vehicle::apply_control()` - Analog control input
-  - Demonstrates: Hardware integration, analog input handling
-
-### Test Cases
-
-#### Manual Testing Required
-- Most examples in this phase require human interaction
-- Create test checklist for manual verification
-- Document expected behavior and controls
-
-#### Automated Tests (Where Possible)
-- `test_projection_matrix` - Verify camera projection math
-- `test_bbox_computation` - 2D bbox from 3D coordinates
-- `test_instance_segmentation_decode` - Decode actor IDs
-- `test_large_scale_spawn` - 100 vehicles spawn successfully
-
-### Dependencies
-
-**External Crates**:
-- **winit** (v0.29+) - Window and event handling
-- **pixels** (v0.13+) - 2D rendering
-- **nalgebra** (v0.32+) - Matrix and vector math
-- **image** (v0.24+) - Image encoding/decoding
-- **gilrs** (v0.10+) - Game controller/wheel input
-
-**New Utilities**:
-```rust
-// Camera projection (new module)
-pub mod camera_projection {
-    pub fn build_projection_matrix(width: u32, height: u32, fov: f32) -> Matrix3<f32>;
-    pub fn world_to_camera(point: Location, camera_transform: &Transform) -> Vector3<f32>;
-    pub fn project_to_2d(point_3d: Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32);
-}
-
-// Instance segmentation utilities
-impl SemanticSegmentationImage {
-    pub fn decode_instance_ids(&self) -> (Vec<u8>, Vec<u16>);
-}
-```
-
-**See**: `docs/example_implementation_plan.md` for UI patterns and design guidelines
+**Future Considerations:**
+- Phase 2: Extract `carla/examples/common/` module after Phase 13
+- Phase 3: Consider separate `carla-gui` crate only if externally demanded
 
 ---
 
-## Phase 14: Specialized Examples (Reference/Future)
+## Phase 12: Manual Control - Complete Interactive Example
 
-**Priority:** Very Low (Deferred)
-**Estimated Effort:** Varies by integration
-**Status:** Documentation Only
-**⚠️ Note:** No implementation planned - documentation reference only
+**Priority:** HIGH (Flagship example)
+**Status:** ✅ COMPLETE (37/37 work items, 100% feature parity)
+**Completion Date:** 2025-11-01
+**Python Equivalent:** `manual_control.py` (1367 lines)
+
+### Summary
+
+The most comprehensive CARLA example - a fully interactive vehicle simulator with:
+- 40+ keyboard controls (WASD, arrows, lights, transmission, autopilot, etc.)
+- 14 camera/sensor types with live switching
+- 5 camera positions
+- Real-time HUD with telemetry, graphs, and nearby vehicles
+- Weather cycling (14 presets)
+- Map layer management
+- Recording/replay system
+- Radar visualization with velocity-based coloring
+- Camera frame recording to PNG
+
+**Implementation:** `carla/examples/manual_control/`
+- 3,500+ lines of well-organized Rust code
+- Modular structure: `camera.rs`, `hud.rs`, `keyboard.rs`, `world.rs`, `ui/`, `sensors/`
+- Thread-safe sensor callbacks using Arc/Mutex
+- Comprehensive error handling and documentation
+
+### Key Features Completed
+
+✅ All 37 work items complete (12 subphases)
+✅ Vehicle control (manual + autopilot)
+✅ 14 sensor types (RGB, depth, semantic, LiDAR, DVS, optical flow, etc.)
+✅ Real-time HUD with FPS, speed, compass, IMU, GNSS
+✅ Collision detection with history graph
+✅ Manual transmission with gear shifting
+✅ Light controls (position, low/high beam, fog, interior, blinkers)
+✅ Weather and map layer control
+✅ Session recording/replay (Ctrl+R, Ctrl+P)
+✅ Camera frame recording to `_out/` (R key) - **COMPLETED 2025-11-01**
+✅ Radar visualization with debug points (G key) - **COMPLETED 2025-11-01**
+✅ Help overlay (H key) with all controls
+✅ Ackermann steering mode
+
+**Reference:** See Phase 12 section below for historical development details.
+
+---
+
+## Phase 13: Core GUI Examples
+
+**Priority:** HIGH
+**Estimated Effort:** 3-4 weeks total
+**Status:** Ready to Start
+**Dependencies:** Phase 12 ✅ Complete
+
+These examples demonstrate essential CARLA workflows with GUI:
+- Automatic navigation with AI agents
+- Synchronous simulation mode
+- Dynamic environment control
+
+### Phase 13.1: Automatic Control
+
+**Priority:** HIGH
+**Estimated Effort:** 1 week
+**Python Equivalent:** `automatic_control.py` (872 lines)
+**Target:** `carla/examples/automatic_control/`
+
+Demonstrates AI-driven navigation using CARLA's navigation agents with real-time HUD display.
+
+#### Features
+
+- BehaviorAgent with traffic rules and obstacle avoidance
+- BasicAgent with simple waypoint following
+- ConstantVelocityAgent for testing
+- Real-time HUD showing agent status and telemetry
+- Keyboard controls for agent switching and manual override
+- Camera feed with destination marker visualization
+
+#### Work Items
+
+- [ ] **13.1.1: Project Setup and Agent Integration**
+  - Create `automatic_control/` directory structure
+  - Add BehaviorAgent, BasicAgent, ConstantVelocityAgent bindings
+  - Implement agent trait abstraction for switching
+  - Test: Agents can be instantiated and switched
+
+- [ ] **13.1.2: Basic Window and Vehicle Spawning**
+  - Copy and adapt `World` struct from manual_control
+  - Implement vehicle spawning with destination selection
+  - Display black window with basic text
+  - Test: Vehicle spawns, destination set, window displays
+
+- [ ] **13.1.3: Camera Integration**
+  - Copy `CameraManager` from manual_control
+  - Simplify to RGB camera only (no sensor switching)
+  - Single camera position (rear chase view)
+  - Test: Camera feed displays at 60 FPS
+
+- [ ] **13.1.4: Agent Control Loop**
+  - Implement agent.tick() in main loop
+  - Apply agent VehicleControl to player
+  - Handle destination reached event
+  - Automatic respawn with new destination
+  - Test: Agent drives to destination autonomously
+
+- [ ] **13.1.5: HUD Implementation**
+  - Copy and simplify `Hud` from manual_control
+  - Display: FPS, speed, location, heading, agent status
+  - Show current agent type (Behavior/Basic/Constant)
+  - Show destination distance
+  - Remove: manual control bars, gear display
+  - Test: HUD updates in real-time
+
+- [ ] **13.1.6: Sensor Integration**
+  - Copy CollisionSensor, GnssSensor from manual_control
+  - Display collision history graph
+  - Display GNSS coordinates
+  - Test: Sensors update correctly
+
+- [ ] **13.1.7: Keyboard Controls**
+  - Implement simplified keyboard handling
+  - P key: Toggle autopilot on/off (manual override)
+  - 1/2/3 keys: Switch agent type
+  - R key: Respawn at new location
+  - F1: Toggle HUD
+  - H: Toggle help
+  - ESC/Q: Quit
+  - Test: All keys work correctly
+
+- [ ] **13.1.8: Destination Visualization**
+  - Draw debug arrow pointing to destination
+  - Update destination marker as vehicle moves
+  - Clear visualization when destination reached
+  - Test: Arrow visible and points correctly
+
+- [ ] **13.1.9: Help System**
+  - Copy and adapt `HelpText` from manual_control
+  - List all agent controls
+  - Describe agent behaviors
+  - Test: Help overlay displays all controls
+
+- [ ] **13.1.10: Weather and Environment**
+  - Copy weather cycling from manual_control
+  - C/Shift+C: Cycle weather
+  - Test: Weather changes apply
+
+**Estimated Code Reuse from manual_control:**
+- CameraManager: 60% (remove sensor switching, recording)
+- Hud: 40% (remove manual control displays)
+- CollisionSensor: 95%
+- GnssSensor: 95%
+- World: 50% (remove map layers, recording features)
+- ui/help_text.rs: 70% (different controls)
+- ui/fading_text.rs: 95%
+
+**Success Criteria:**
+- [ ] Agent navigates autonomously to destination
+- [ ] HUD shows agent status and telemetry
+- [ ] Can switch between 3 agent types
+- [ ] Manual override works (P key)
+- [ ] Collision detection works
+- [ ] Help overlay shows all controls
+- [ ] Maintains 60 FPS
+
+---
+
+### Phase 13.2: Synchronous Mode GUI
+
+**Priority:** MEDIUM
+**Estimated Effort:** 3-5 days
+**Python Equivalent:** `synchronous_mode.py` (195 lines)
+**Target:** `carla/examples/synchronous_mode_gui.rs`
+
+Demonstrates frame-perfect synchronous simulation with visual feedback.
+
+#### Features
+
+- Synchronous mode context manager
+- Fixed delta time ticks (30 FPS simulation)
+- Dual camera display (RGB + semantic segmentation blended)
+- Frame counter and timing statistics
+- Simple waypoint following
+
+#### Work Items
+
+- [ ] **13.2.1: Synchronous Mode Implementation**
+  - Create SyncMode struct with context manager pattern
+  - Enable synchronous mode on enter
+  - Restore async mode on exit
+  - Implement frame-synchronized tick()
+  - Test: World.tick() returns consistent frame numbers
+
+- [ ] **13.2.2: Basic Window Setup**
+  - 800x600 window with macroquad
+  - Vehicle spawning at random spawn point
+  - Disable physics simulation (set_simulate_physics(false))
+  - Test: Window opens, vehicle spawns
+
+- [ ] **13.2.3: Dual Camera Setup**
+  - Spawn RGB camera (rear view)
+  - Spawn semantic segmentation camera (same position)
+  - Set up synchronized listeners with frame queues
+  - Test: Both cameras produce data at same frame
+
+- [ ] **13.2.4: Blended Rendering**
+  - Display RGB camera as base layer
+  - Overlay semantic segmentation with alpha blend
+  - Convert semantic seg to CityScapes palette
+  - Test: Blended view shows both RGB and segmentation
+
+- [ ] **13.2.5: HUD Display**
+  - Show real FPS (macroquad clock)
+  - Show simulated FPS (from timestamp)
+  - Show frame counter
+  - Show current waypoint info
+  - Test: FPS counters update correctly
+
+- [ ] **13.2.6: Waypoint Following**
+  - Get initial waypoint from spawn location
+  - Every tick: choose random next waypoint (1.5m ahead)
+  - Teleport vehicle to waypoint transform
+  - Test: Vehicle follows road waypoints
+
+- [ ] **13.2.7: Keyboard Controls**
+  - ESC/Q: Quit (cleanup properly)
+  - Space: Pause/unpause simulation
+  - R: Reset vehicle to start
+  - Test: All controls work
+
+**Success Criteria:**
+- [ ] Simulation runs at fixed 30 FPS (simulated)
+- [ ] Frame counter increments consistently
+- [ ] Dual camera blend displays correctly
+- [ ] No frame drops or desync
+- [ ] Clean shutdown when quitting
+- [ ] Simple and educational code (<300 lines)
+
+---
+
+### Phase 13.3: Dynamic Weather GUI
+
+**Priority:** LOW
+**Estimated Effort:** 2-3 days
+**Python Equivalent:** `dynamic_weather.py` (142 lines)
+**Target:** `carla/examples/dynamic_weather_gui.rs`
+
+Demonstrates smooth weather transitions with visual feedback.
+
+#### Features
+
+- Smooth weather parameter interpolation
+- 8-hour day/night cycle simulation
+- Real-time weather parameter display
+- Preset weather switching
+- Time of day control
+
+#### Work Items
+
+- [ ] **13.3.1: Weather Interpolation System**
+  - Create WeatherState struct with current/target parameters
+  - Implement smooth interpolation (linear blend)
+  - Update function: tick towards target weather
+  - Test: Weather transitions smoothly over time
+
+- [ ] **13.3.2: Basic Scene Setup**
+  - Spawn vehicle at fixed location
+  - Spawn rear-view camera
+  - Enable autopilot
+  - Test: Vehicle drives with autopilot
+
+- [ ] **13.3.3: Day/Night Cycle**
+  - Calculate sun position from simulation time
+  - 8-hour cycle (0° to 360° sun angle)
+  - Update sun altitude and azimuth
+  - Test: Sun moves across sky realistically
+
+- [ ] **13.3.4: HUD Display**
+  - Show current weather preset name
+  - Show sun altitude and azimuth
+  - Show simulation time (hours:minutes)
+  - Show weather parameters (clouds, rain, fog, etc.)
+  - Test: HUD updates in real-time
+
+- [ ] **13.3.5: Weather Presets**
+  - Define 14 weather presets (matching manual_control)
+  - C key: Next preset
+  - Shift+C: Previous preset
+  - Smooth transition to new preset (2 seconds)
+  - Test: Weather changes smoothly
+
+- [ ] **13.3.6: Time Control**
+  - T key: Toggle time progression
+  - +/- keys: Speed up/slow down time
+  - Numbers 1-9: Jump to time of day
+  - Test: Time control works
+
+- [ ] **13.3.7: Parameter Display**
+  - Show all WeatherParameters values
+  - Cloudiness, precipitation, wind, fog
+  - Sun altitude, azimuth
+  - Wetness level
+  - Test: All parameters display correctly
+
+**Success Criteria:**
+- [ ] Smooth weather transitions (no sudden changes)
+- [ ] Day/night cycle looks realistic
+- [ ] Can switch between all 14 presets
+- [ ] Time control works correctly
+- [ ] HUD shows all weather parameters
+- [ ] Maintains 60 FPS
+
+---
+
+## Phase 14: Advanced GUI Examples
+
+**Priority:** MEDIUM
+**Estimated Effort:** 4-5 weeks total
+**Status:** Ready to Start
+**Dependencies:** Phase 13 ✅ Required
+
+These examples demonstrate advanced visualization and computer vision techniques.
+
+### Phase 14.1: Bounding Boxes Visualization
+
+**Priority:** HIGH
+**Estimated Effort:** 1-1.5 weeks
+**Python Equivalent:** `bounding_boxes.py` (292 lines), `client_bounding_boxes.py` (215 lines)
+**Target:** `carla/examples/bounding_boxes.rs`, `carla/examples/client_bounding_boxes.rs`
+
+Demonstrates 2D/3D bounding box computation and visualization for computer vision.
+
+#### Features
+
+- 2D bounding boxes projected on camera image
+- 3D bounding boxes in world space
+- Server-side vs client-side computation
+- Different colors per actor type (vehicles, pedestrians, traffic signs)
+- Distance filtering and culling
+
+#### Work Items
+
+**Part A: Server-Side Bounding Boxes (`bounding_boxes.rs`)**
+
+- [ ] **14.1.1: Camera Projection Matrix**
+  - Implement camera intrinsic matrix K calculation
+  - FOV to focal length conversion
+  - Principal point calculation
+  - Test: Matrix values match CARLA camera specs
+
+- [ ] **14.1.2: 3D to 2D Projection**
+  - World coordinates to camera coordinates transformation
+  - Camera coordinates to image coordinates projection
+  - Handle points behind camera (negative Z)
+  - Test: Known 3D point projects to correct 2D pixel
+
+- [ ] **14.1.3: Actor Enumeration**
+  - Get all vehicles, walkers, traffic signs from world
+  - Filter by distance from camera (0-50m)
+  - Filter by in-camera-view check
+  - Test: Correct actors enumerated
+
+- [ ] **14.1.4: Bounding Box Computation**
+  - Get actor bounding box from CARLA
+  - Transform 8 corner points to world coordinates
+  - Project 8 corners to 2D image coordinates
+  - Find min/max to create 2D bounding rectangle
+  - Test: Bounding boxes surround actors correctly
+
+- [ ] **14.1.5: Bounding Box Rendering**
+  - Draw 2D rectangles on camera image
+  - Color by actor type: vehicles (blue), walkers (red), signs (yellow)
+  - Draw actor distance label
+  - Test: Boxes render correctly over camera feed
+
+- [ ] **14.1.6: 3D Bounding Box Visualization**
+  - Draw 12 edges of 3D bounding box using debug lines
+  - Use world.debug.draw_line()
+  - Color by actor type
+  - Test: 3D boxes visible in CARLA spectator view
+
+- [ ] **14.1.7: Keyboard Controls**
+  - Space: Toggle 2D boxes on/off
+  - B: Toggle 3D boxes on/off
+  - +/-: Adjust max distance
+  - F: Toggle distance filter
+  - Test: All toggles work
+
+**Part B: Client-Side Bounding Boxes (`client_bounding_boxes.rs`)**
+
+- [ ] **14.1.8: Client-Side Computation**
+  - Replicate server bounding box logic client-side
+  - Compare performance: server vs client
+  - Benchmark frame timing
+  - Test: Results match server-side computation
+
+- [ ] **14.1.9: Occlusion Handling**
+  - Implement depth buffer checking (optional)
+  - Draw only visible bounding boxes
+  - Handle partial occlusion
+  - Test: Occluded boxes not drawn
+
+- [ ] **14.1.10: Performance Optimization**
+  - Spatial partitioning for actor filtering
+  - Frustum culling before projection
+  - Batch rendering of boxes
+  - Test: Maintains 60 FPS with 100+ actors
+
+**Success Criteria:**
+- [ ] 2D boxes correctly surround all visible actors
+- [ ] 3D boxes visible in spectator view
+- [ ] Color coding by actor type works
+- [ ] Distance filtering works correctly
+- [ ] Client-side matches server-side results
+- [ ] Maintains 60 FPS with 50+ actors
+- [ ] Code demonstrates projection math clearly
+
+---
+
+### Phase 14.2: Multiple Sensor Grid View
+
+**Priority:** MEDIUM
+**Estimated Effort:** 1 week
+**Python Equivalent:** `visualize_multiple_sensors.py` (268 lines)
+**Target:** `carla/examples/visualize_multiple_sensors.rs`
+
+Demonstrates multi-viewport rendering with sensor fusion.
+
+#### Features
+
+- 2x3 grid layout (6 viewports)
+- 4 RGB cameras (front, rear, left, right)
+- 2 LiDAR sensors (standard + semantic)
+- Bird's-eye view LiDAR visualization
+- Synchronized sensor updates
+
+#### Work Items
+
+- [ ] **14.2.1: Grid Layout System**
+  - Calculate viewport positions for 2x3 grid
+  - Each viewport: 1280/3 x 720/2 pixels
+  - Implement layout manager
+  - Test: Grid divides screen evenly
+
+- [ ] **14.2.2: Multi-Camera Setup**
+  - Spawn 4 RGB cameras (front/rear/left/right)
+  - Position cameras around vehicle
+  - All cameras at 1280/3 x 720/2 resolution
+  - Test: All 4 cameras produce images
+
+- [ ] **14.2.3: LiDAR Setup**
+  - Spawn regular LiDAR sensor
+  - Spawn semantic LiDAR sensor
+  - Configure point cloud density
+  - Test: LiDAR data arrives correctly
+
+- [ ] **14.2.4: LiDAR Bird's-Eye View**
+  - Convert 3D point cloud to 2D top-down view
+  - Map Z-height to color gradient
+  - Scale and center on vehicle
+  - Test: LiDAR visualization shows surroundings
+
+- [ ] **14.2.5: Semantic LiDAR Coloring**
+  - Color points by semantic tag
+  - Road (gray), vehicles (blue), pedestrians (red)
+  - Buildings (brown), vegetation (green)
+  - Test: Semantic colors display correctly
+
+- [ ] **14.2.6: Synchronized Rendering**
+  - Render all 6 viewports each frame
+  - Handle different data rates gracefully
+  - Maintain aspect ratios
+  - Test: All viewports update smoothly
+
+- [ ] **14.2.7: Viewport Labels**
+  - Draw labels: "Front", "Rear", "Left", "Right", "LiDAR", "Semantic LiDAR"
+  - Show FPS per viewport
+  - Test: Labels visible and correct
+
+- [ ] **14.2.8: Keyboard Controls**
+  - Number keys 1-6: Focus single viewport (fullscreen)
+  - 0: Return to grid view
+  - ESC: Quit
+  - Test: Viewport switching works
+
+**Success Criteria:**
+- [ ] All 6 viewports render simultaneously
+- [ ] LiDAR bird's-eye view shows 3D environment
+- [ ] Semantic LiDAR colors make sense
+- [ ] Can zoom individual viewport to fullscreen
+- [ ] Maintains 30+ FPS with all sensors active
+- [ ] Grid layout is clear and organized
+
+---
+
+### Phase 14.3: No Rendering Mode (Performance Demo)
+
+**Priority:** MEDIUM
+**Estimated Effort:** 3-4 days
+**Python Equivalent:** `no_rendering_mode.py` (143 lines)
+**Target:** `carla/examples/no_rendering_mode.rs`
+
+Demonstrates large-scale simulation with rendering disabled for performance testing.
+
+#### Features
+
+- CARLA rendering disabled (no_rendering_mode)
+- 100+ vehicles spawned
+- Statistics overlay (vehicle count, FPS, memory)
+- Minimal GUI (stats only, no camera)
+- Performance monitoring
+
+#### Work Items
+
+- [ ] **14.3.1: No Rendering Mode Setup**
+  - Enable no_rendering_mode in WorldSettings
+  - Verify CARLA server performance
+  - Test: CARLA runs without rendering overhead
+
+- [ ] **14.3.2: Large-Scale Vehicle Spawning**
+  - Spawn 100-150 vehicles at random locations
+  - Enable autopilot for all vehicles
+  - Handle spawn failures gracefully
+  - Test: All vehicles spawn and drive
+
+- [ ] **14.3.3: Statistics Collection**
+  - Count active vehicles
+  - Measure simulation FPS
+  - Track physics step time
+  - Monitor memory usage
+  - Test: Stats update every frame
+
+- [ ] **14.3.4: Minimal GUI**
+  - Small window (400x300 pixels)
+  - Display statistics in table format
+  - No camera feed (rendering disabled)
+  - Update at 10 Hz (not every frame)
+  - Test: GUI displays stats clearly
+
+- [ ] **14.3.5: Performance Monitoring**
+  - Graph FPS over time
+  - Graph vehicle count over time
+  - Show min/max/avg FPS
+  - Test: Graphs update correctly
+
+- [ ] **14.3.6: Scalability Test**
+  - Button: Spawn +10 vehicles
+  - Button: Destroy 10 vehicles
+  - Measure FPS impact
+  - Test: Performance scales as expected
+
+- [ ] **14.3.7: Keyboard Controls**
+  - +: Spawn 10 more vehicles
+  - -: Destroy 10 vehicles
+  - R: Reset (destroy all, respawn 100)
+  - ESC: Quit
+  - Test: All controls work
+
+**Success Criteria:**
+- [ ] Can spawn 100+ vehicles
+- [ ] CARLA rendering is disabled
+- [ ] Statistics display correctly
+- [ ] Demonstrates performance headroom
+- [ ] Shows simulation FPS >> rendering FPS
+- [ ] Useful for performance benchmarking
+
+---
+
+### Phase 14.4: Walker Skeleton Visualization
+
+**Priority:** LOW
+**Estimated Effort:** 4-5 days
+**Python Equivalent:** `draw_skeleton.py` (198 lines)
+**Target:** `carla/examples/draw_skeleton.rs`
+
+Demonstrates walker bone structure and skeletal animation.
+
+#### Features
+
+- Real-time bone transform visualization
+- Skeleton overlay on camera view
+- Bone connections (parent-child hierarchy)
+- Multiple walkers with different animations
+- 3D skeleton in world space
+
+#### Work Items
+
+- [ ] **14.4.1: Bone Transform API**
+  - Implement get_bone_transforms() bindings
+  - Parse bone name and transform data
+  - Build bone hierarchy tree
+  - Test: Bone data retrieved correctly
+
+- [ ] **14.4.2: Walker Spawning**
+  - Spawn 5-10 walkers at random locations
+  - Start different walk animations
+  - Enable AI navigation
+  - Test: Walkers animate correctly
+
+- [ ] **14.4.3: Bone Projection**
+  - Get bone world positions
+  - Project to 2D camera coordinates
+  - Handle off-screen bones
+  - Test: Bones project correctly
+
+- [ ] **14.4.4: Skeleton Rendering (2D)**
+  - Draw lines between connected bones
+  - Draw circles at joint positions
+  - Color by walker ID
+  - Overlay on camera feed
+  - Test: Skeleton overlays walker correctly
+
+- [ ] **14.4.5: Skeleton Rendering (3D)**
+  - Use debug.draw_line() for 3D bones
+  - Draw in CARLA world space
+  - Update every frame
+  - Test: 3D skeleton visible in spectator
+
+- [ ] **14.4.6: Bone Name Labels**
+  - Display bone names near joints
+  - Only for selected walker
+  - Font size adapts to distance
+  - Test: Labels readable and positioned correctly
+
+- [ ] **14.4.7: Walker Selection**
+  - Click walker to select
+  - Show detailed skeleton for selected walker
+  - Tab: Cycle through walkers
+  - Test: Selection works correctly
+
+- [ ] **14.4.8: Keyboard Controls**
+  - S: Toggle skeleton display
+  - B: Toggle bone labels
+  - Tab: Next walker
+  - 2D/3D: Toggle render mode
+  - Test: All toggles work
+
+**Success Criteria:**
+- [ ] Skeleton overlays match walker pose
+- [ ] Bone connections accurate
+- [ ] Animations smooth (60 FPS)
+- [ ] 3D skeleton visible in world
+- [ ] Can select and inspect individual walkers
+- [ ] Useful for animation debugging
+
+---
+
+## Phase 15: Specialized GUI Examples (Optional)
+
+**Priority:** LOW
+**Estimated Effort:** 2-3 weeks total
+**Status:** Future Work
+**Dependencies:** Phase 14 recommended
+
+These examples require additional hardware or specialized libraries.
+
+### Phase 15.1: Steering Wheel Support
+
+**Priority:** LOW
+**Estimated Effort:** 1-1.5 weeks
+**Python Equivalent:** `manual_control_steeringwheel.py` (997 lines)
+**Target:** `carla/examples/manual_control_steeringwheel.rs`
+
+Demonstrates hardware input from racing wheels and pedals.
+
+#### Features
+
+- Logitech G29/G920 support (via gilrs crate)
+- Analog steering input
+- Analog throttle/brake pedals
+- Force feedback (if supported)
+- Button mapping for lights, gears, etc.
+- Visual input display on HUD
+
+#### Work Items
+
+- [ ] **15.1.1: Gamepad Library Integration**
+  - Add `gilrs = "0.10"` dependency
+  - Initialize gamepad context
+  - Enumerate connected devices
+  - Test: Steering wheel detected
+
+- [ ] **15.1.2: Analog Input Mapping**
+  - Map steering axis (-1.0 to 1.0)
+  - Map throttle axis (0.0 to 1.0)
+  - Map brake axis (0.0 to 1.0)
+  - Apply dead zones and curves
+  - Test: Smooth analog control
+
+- [ ] **15.1.3: Button Mapping**
+  - Map gear shift buttons
+  - Map light controls
+  - Map camera switching
+  - Map handbrake button
+  - Test: All buttons work
+
+- [ ] **15.1.4: Force Feedback**
+  - Detect FF-capable devices
+  - Apply resistance based on speed
+  - Road surface vibration effects
+  - Collision feedback
+  - Test: FF effects work (if hardware supports)
+
+- [ ] **15.1.5: HUD Integration**
+  - Copy HUD from manual_control
+  - Add input visualizer (steering angle, pedal positions)
+  - Show connected device name
+  - Test: HUD displays hardware state
+
+- [ ] **15.1.6: Fallback to Keyboard**
+  - Detect no gamepad scenario
+  - Fall back to WASD controls
+  - Show warning message
+  - Test: Works without wheel connected
+
+**Success Criteria:**
+- [ ] Steering wheel provides smooth control
+- [ ] Analog inputs mapped correctly
+- [ ] Force feedback works (if hardware supports)
+- [ ] Can play with wheel exactly like manual_control
+- [ ] Graceful fallback if no wheel detected
+
+---
+
+### Phase 15.2: LiDAR 3D Visualization (Optional)
+
+**Priority:** VERY LOW
+**Estimated Effort:** 1-2 weeks
+**Python Equivalent:** `open3d_lidar.py` (157 lines)
+**Target:** `carla/examples/open3d_lidar.rs`
+
+Demonstrates 3D point cloud visualization with rotation/zoom.
+
+**Note:** Requires 3D graphics library (not macroquad)
+
+#### Options
+
+**Option A: Use three-d crate**
+- Full 3D rendering pipeline
+- Point cloud rendering
+- Camera controls (orbit, zoom)
+- Estimated effort: 1.5 weeks
+
+**Option B: Use bevy engine**
+- Game engine with ECS
+- Built-in 3D rendering
+- More complex but feature-rich
+- Estimated effort: 2 weeks
+
+**Option C: Defer to external tools**
+- Save point clouds to PLY/PCD format
+- Use external viewers (CloudCompare, MeshLab)
+- Document export workflow
+- Estimated effort: 2-3 days
+
+#### Recommendation
+
+**Defer to Phase 16** or provide PLY export utility instead.
+- True 3D visualization requires different rendering approach
+- Macroquad is 2D-focused
+- Most users will use external 3D viewers
+- Export utility is more practical
+
+---
+
+## Phase 12: Manual Control - Historical Development
+
+**Status:** ✅ COMPLETE (2025-11-01)
+**Work Items:** 37/37 (100%)
 
 ### Overview
 
-Document external integration examples from the Python repository. Most are deferred as they require external systems, proprietary SDKs, or are better served by separate integration crates.
+The most comprehensive CARLA example - implemented incrementally over 12 subphases. This section documents the development history and implementation strategy.
 
-**Note**: These examples are explicitly deferred. Implementation is not planned unless there is specific user demand.
+**Complexity Level:** VERY HIGH
+- 1367 lines of Python code
+- 13 distinct component classes
+- 14 different sensor types
+- 40+ key bindings
+- Real-time HUD with graphs and telemetry
 
-### Examples (Reference Only)
+### Implementation History
 
-- **InvertedAI Traffic** (`invertedai_traffic.py`)
-  - Status: Deferred - requires InvertedAI API subscription
-  - Integration point: Traffic generation via external AI
+#### Subphase 12.1: Foundation and Basic Window ✅
 
-- **NVIDIA Cosmos Generation** (`carla_cosmos_gen.py`)
-  - Status: Deferred - requires NVIDIA Cosmos SDK
-  - Integration point: Synthetic data generation
+- [x] **12.1.1: Project Setup and Dependencies**
+- [x] **12.1.2: Vehicle Spawning and Basic Display**
 
-- **V2X Communication** (`V2XDemo.py`, `test_addsecondvx.py`)
-  - Status: Deferred - requires V2X protocol implementation
-  - Integration point: Vehicle-to-vehicle/infrastructure communication
+#### Subphase 12.2: Camera and Basic Rendering ✅
 
-- **ROS2 Bridge** (`ros2/*`)
-  - Status: Future - recommend separate `carla-ros2` crate
-  - Integration point: ROS2 message conversion and topics
+- [x] **12.2.1: RGB Camera Integration**
+- [x] **12.2.2: Camera Position Switching** (5 positions)
 
-- **RSS Safety** (`rss/*`)
-  - Status: Deferred - requires Intel RSS library bindings
-  - Integration point: Safety validation and constraint checking
+#### Subphase 12.3: Basic Vehicle Control ✅
 
-### Work Items
+- [x] **12.3.1: Keyboard Input System** (WASD/arrows)
+- [x] **12.3.2: Autopilot Toggle** (P key)
 
-- [ ] **Integration Documentation**
-  - Document FFI requirements for each integration
-  - Identify Rust crate alternatives where available
-  - Create integration guide for common patterns
+#### Subphase 12.4: HUD - Basic Telemetry ✅
 
-- [ ] **External Crate Recommendations**
-  - ROS2: `rclrs` (existing ROS2 Rust bindings)
-  - V2X: Protocol-specific crates (when available)
-  - RSS: Custom FFI bindings (complex undertaking)
+- [x] **12.4.1: HUD Struct and FPS Display**
+- [x] **12.4.2: Vehicle Telemetry** (speed, location, names)
 
-### Rationale
+#### Subphase 12.5: Advanced Sensors ✅
 
-These integrations are deferred because they:
-1. Require external paid services (InvertedAI)
-2. Require proprietary SDKs (NVIDIA Cosmos)
-3. Are better served by dedicated integration crates (ROS2)
-4. Require extensive additional FFI work (RSS)
+- [x] **12.5.1: IMUSensor Implementation** (compass, accel, gyro)
+- [x] **12.5.2: GnssSensor Implementation** (GPS coordinates)
+- [x] **12.5.3: CollisionSensor Implementation** (history graph)
+- [x] **12.5.4: LaneInvasionSensor Implementation** (lane markings)
 
-**Recommendation**: Document integration patterns but don't implement unless there's specific user demand.
+#### Subphase 12.6: HUD - Advanced Display ✅
+
+- [x] **12.6.1: Control State Display** (throttle/brake/steer bars)
+- [x] **12.6.2: Nearby Vehicles List** (sorted by distance)
+
+#### Subphase 12.7: Advanced Controls ✅
+
+- [x] **12.7.1: Manual Transmission** (M, comma/period keys)
+- [x] **12.7.2: Light Controls** (L, Shift+L, I, Z, X keys)
+- [x] **12.7.3: Ackermann Controller** (F key, experimental)
+
+#### Subphase 12.8: Multiple Camera Types ✅
+
+- [x] **12.8.1: Camera Type Switching** (14 sensor types, backtick/N/1-9 keys)
+- [x] **12.8.2: LiDAR Visualization** (bird's-eye view)
+
+#### Subphase 12.9: Weather and World Control ✅
+
+- [x] **12.9.1: Weather Cycling** (14 presets, C/Shift+C keys)
+- [x] **12.9.2: Map Layer Control** (B/Shift+B keys, 11 layers)
+
+#### Subphase 12.10: Recording and Replay ✅
+
+- [x] **12.10.1: Recording System** (Ctrl+R)
+- [x] **12.10.2: Replay System** (Ctrl+P, time adjustment)
+- [x] **12.10.3: Camera Recording** (R key, PNG to _out/) - **COMPLETED 2025-11-01**
+
+#### Subphase 12.11: Advanced Features ✅
+
+- [x] **12.11.1: Radar Visualization** (G key, velocity-based coloring) - **COMPLETED 2025-11-01**
+- [x] **12.11.2: Vehicle Door Control** (O key)
+- [x] **12.11.3: Constant Velocity Mode** (Ctrl+W)
+- [x] **12.11.4: Vehicle Telemetry Overlay** (T key, CARLA built-in)
+
+#### Subphase 12.12: Help System and Notifications ✅
+
+- [x] **12.12.1: FadingText Notification System** (2-second fade)
+- [x] **12.12.2: HelpText Overlay** (H/Shift+/, all 40+ controls)
+- [x] **12.12.3: Info Toggle** (F1 key)
+
+### Recent Completions (2025-11-01)
+
+**Camera Recording (12.10.3):**
+- Thread-safe PNG frame saving to `_out/` directory
+- Sequential 8-digit naming (00000000.png, ...)
+- Works with all 14 sensor types
+- Non-blocking saves in callback thread
+- `Arc<AtomicU64>` frame counter
+- Implementation: `camera.rs:647-662`, `camera.rs:732-743`
+
+**Radar Visualization (12.11.1):**
+- Radar sensor spawning (35°×20° FOV, 1500 pts/sec)
+- Spherical to Cartesian coordinate conversion
+- Velocity-based color coding (red=approaching, blue=receding)
+- Debug point rendering (0.1s lifetime)
+- `Arc<Mutex<bool>>` thread-safe toggling
+- Implementation: `sensors/radar.rs` (full module)
+
+### Success Criteria (All Met)
+
+- [x] Vehicle spawns and displays camera view
+- [x] All 40+ keyboard shortcuts work correctly
+- [x] HUD shows all telemetry in real-time
+- [x] 14 sensor types render correctly
+- [x] 5 camera positions switch smoothly
+- [x] Recording/replay system works (session + camera)
+- [x] Weather changes apply
+- [x] Map layers load/unload
+- [x] Help overlay shows all controls
+- [x] Radar visualization with debug points
+
+### Key Technical Achievements
+
+**Threading Fix (2025-10-30):**
+- Solved macroquad texture creation on wrong thread
+- Two-stage pipeline: sensor callback → RGBA buffer → main thread texture
+- `Arc<Mutex<Option<(Vec<u8>, u32, u32)>>>` for thread-safe data passing
+
+**Modular Architecture:**
+- Clean separation: main, camera, hud, keyboard, world, ui, sensors
+- ~3,500 lines well-organized Rust
+- Reusable components for future examples
 
 ---
 
+## Summary: Phase Progress
+
+| Phase | Example              | Status      | Work Items   | Estimated Effort |
+|-------|----------------------|-------------|--------------|------------------|
+| 12    | Manual Control       | ✅ COMPLETE | 37/37 (100%) | 4-6 weeks        |
+| 13.1  | Automatic Control    | ⏳ Ready    | 0/10         | 1 week           |
+| 13.2  | Synchronous Mode GUI | ⏳ Ready    | 0/7          | 3-5 days         |
+| 13.3  | Dynamic Weather GUI  | ⏳ Ready    | 0/7          | 2-3 days         |
+| 14.1  | Bounding Boxes       | ⏳ Ready    | 0/10         | 1-1.5 weeks      |
+| 14.2  | Multiple Sensors     | ⏳ Ready    | 0/8          | 1 week           |
+| 14.3  | No Rendering Mode    | ⏳ Ready    | 0/7          | 3-4 days         |
+| 14.4  | Walker Skeleton      | ⏳ Ready    | 0/8          | 4-5 days         |
+| 15.1  | Steering Wheel       | ⏳ Future   | 0/6          | 1-1.5 weeks      |
+| 15.2  | LiDAR 3D Vis         | ⏳ Deferred | 0/0          | See options      |
+
+**Total:** 1/10 examples complete, 9 examples planned
+
+**Next Priority:** Phase 13.1 (Automatic Control) - demonstrates AI navigation agents
+
+---
+
+## Dependencies
+
+### Required Crates
+
+**Core:**
+- `macroquad = "0.4"` - 2D rendering and window management
+- `eyre = "0.6"` - Error handling
+- `tracing = "0.1"` - Logging
+- `tracing-subscriber = "0.3"` - Log formatting
+
+**Optional (Phase 15+):**
+- `gilrs = "0.10"` - Gamepad/steering wheel input
+- `three-d = "0.16"` OR `bevy = "0.12"` - 3D visualization (Phase 15.2)
+
+### CARLA APIs
+
+All examples use existing APIs from Phases 0-11:
+- Vehicle control and physics
+- Sensor data (cameras, LiDAR, radar, GNSS, IMU)
+- World manipulation (weather, map layers)
+- Recording and replay
+- Actor spawning and management
+- Debug visualization
+
+---
+
+## Learning Resources
+
+### Macroquad
+- Official guide: https://mq.agical.se/
+- API documentation: https://docs.rs/macroquad
+- Examples: https://github.com/not-fl3/macroquad/tree/master/examples
+
+### CARLA
+- Python examples: `CARLA_*/PythonAPI/examples/`
+- Manual control reference: `manual_control.py`
+- Sensor documentation: https://carla.readthedocs.io/en/latest/ref_sensors/
+
+### Computer Vision
+- Camera projection math
+- Bounding box computation
+- Coordinate transformations
+
+---
+
+**[← Back to Roadmap Index](../roadmap.md)**
