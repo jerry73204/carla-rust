@@ -3,7 +3,7 @@
 
 use super::{Junction, LandmarkList, WaypointList};
 use crate::{
-    geom::TransformExt,
+    geom::Transform,
     road::{
         element::{LaneMarking, LaneMarking_LaneChange},
         JuncId, LaneId, LaneType, RoadId, SectionId,
@@ -47,7 +47,7 @@ impl Waypoint {
     }
 
     pub fn transform(&self) -> Isometry3<f32> {
-        self.inner.GetTransform().to_na()
+        Transform::from_ffi(self.inner.GetTransform()).to_na()
     }
 
     pub fn junction_id(&self) -> JuncId {

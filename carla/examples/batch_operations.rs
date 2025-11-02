@@ -20,7 +20,7 @@
 
 use carla::{
     client::Client,
-    geom::{Location, Transform, TransformExt},
+    geom::{Location, Transform},
     rpc::{Command, VehicleControl},
 };
 use std::time::Instant;

@@ -4,7 +4,7 @@
 //! [`WorldSnapshot`](super::WorldSnapshot) without requiring actor lookups.
 
 use crate::{
-    geom::{TransformExt, Vector3DExt},
+    geom::{Transform, Vector3DExt},
     rpc::ActorId,
 };
 use carla_sys::carla_rust::client::FfiActorSnapshot;
@@ -84,7 +84,7 @@ impl ActorSnapshot {
     /// );
     /// ```
     pub fn transform(&self) -> nalgebra::Isometry3<f32> {
-        self.inner.GetTransform().to_na()
+        Transform::from_ffi(self.inner.GetTransform()).to_na()
     }
 
     /// Returns the actor's velocity vector in meters per second.

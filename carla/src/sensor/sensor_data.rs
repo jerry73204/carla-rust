@@ -1,4 +1,4 @@
-use crate::geom::TransformExt;
+use crate::geom::Transform;
 use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -31,7 +31,7 @@ pub trait SensorDataBase {
     ///
     /// This is the sensor's position and orientation when the measurement was taken.
     fn sensor_transform(&self) -> Isometry3<f32> {
-        self.cxx_sensor_data().GetSensorTransform().to_na()
+        Transform::from_ffi(self.cxx_sensor_data().GetSensorTransform()).to_na()
     }
 }
 

@@ -31,6 +31,14 @@ public:
 
 static_assert(sizeof(FfiLocation) == sizeof(Location), "FfiLocation and Location size mismatch");
 
+// Alignment and offset verification for FfiLocation
+static_assert(alignof(FfiLocation) == alignof(Location),
+              "FfiLocation and Location alignment mismatch");
+static_assert(alignof(FfiLocation) == 4, "FfiLocation must have 4-byte alignment (f32 alignment)");
+static_assert(offsetof(FfiLocation, x) == 0, "FfiLocation x must be first field (offset 0)");
+static_assert(offsetof(FfiLocation, y) == 4, "FfiLocation y must be second field (offset 4)");
+static_assert(offsetof(FfiLocation, z) == 8, "FfiLocation z must be third field (offset 8)");
+
 // Transform
 class FfiTransform {
 public:
@@ -52,6 +60,24 @@ public:
 
 static_assert(sizeof(FfiTransform) == sizeof(Transform),
               "FfiTransform and Transform size mismatch");
+
+// Alignment verification (critical for repr(C) compatibility)
+static_assert(alignof(FfiTransform) == alignof(Transform),
+              "FfiTransform and Transform alignment mismatch");
+static_assert(alignof(FfiTransform) == 4,
+              "FfiTransform must have 4-byte alignment (f32 alignment)");
+
+// Field offset verification (ensures field order matches)
+static_assert(offsetof(FfiTransform, location) == offsetof(Transform, location),
+              "FfiTransform location field offset mismatch");
+static_assert(offsetof(FfiTransform, rotation) == offsetof(Transform, rotation),
+              "FfiTransform rotation field offset mismatch");
+
+// Field order verification (location must be first, rotation second)
+static_assert(offsetof(FfiTransform, location) == 0,
+              "FfiTransform location must be first field (offset 0)");
+static_assert(offsetof(FfiTransform, rotation) == sizeof(FfiLocation),
+              "FfiTransform rotation must immediately follow location");
 
 // BoundingBox
 class FfiBoundingBox {

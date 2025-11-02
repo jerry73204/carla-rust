@@ -2,7 +2,7 @@
 // to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
 
 use crate::{
-    geom::TransformExt,
+    geom::Transform,
     road::{RoadId, SignalOrientation},
 };
 use carla_sys::carla_rust::client::FfiLandmark;
@@ -29,7 +29,7 @@ impl Landmark {
     }
 
     pub fn transform(&self) -> Isometry3<f32> {
-        self.inner.GetTransform().to_na()
+        Transform::from_ffi(self.inner.GetTransform().clone()).to_na()
     }
 
     pub fn road_id(&self) -> RoadId {

@@ -7,7 +7,7 @@ use super::{
     Map, Waypoint, WorldSnapshot,
 };
 use crate::{
-    geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
+    geom::{Location, LocationExt, Transform, Vector3D, Vector3DExt},
     road::JuncId,
     rpc::{
         ActorId, AttachmentType, EpisodeSettings, LabelledPoint, MapLayer, VehicleLightStateList,
@@ -366,7 +366,7 @@ impl World {
                 let_cxx_string!(socket_name = "");
                 self.inner.pin_mut().TrySpawnActor(
                     &blueprint.inner,
-                    &ffi_transform,
+                    ffi_transform.as_ffi(),
                     parent_ptr,
                     attachment_type,
                     &socket_name,
@@ -375,7 +375,7 @@ impl World {
             #[cfg(not(carla_0916))]
             let actor = self.inner.pin_mut().TrySpawnActor(
                 &blueprint.inner,
-                &ffi_transform,
+                ffi_transform.as_ffi(),
                 parent_ptr,
                 attachment_type,
             );

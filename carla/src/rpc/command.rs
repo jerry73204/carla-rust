@@ -244,7 +244,12 @@ impl Command {
                 parent,
             } => {
                 let desc = blueprint.inner.MakeActorDescription().within_unique_ptr();
-                Batch::AddSpawnActor(batch.pin_mut(), desc, transform, parent.unwrap_or(0));
+                Batch::AddSpawnActor(
+                    batch.pin_mut(),
+                    desc,
+                    transform.as_ffi(),
+                    parent.unwrap_or(0),
+                );
             }
             Self::DestroyActor { actor_id } => {
                 Batch::AddDestroyActor(batch.pin_mut(), *actor_id);
@@ -269,7 +274,7 @@ impl Command {
                 actor_id,
                 transform,
             } => {
-                Batch::AddApplyTransform(batch.pin_mut(), *actor_id, transform);
+                Batch::AddApplyTransform(batch.pin_mut(), *actor_id, transform.as_ffi());
             }
             Self::ApplyLocation { actor_id, location } => {
                 Batch::AddApplyLocation(batch.pin_mut(), *actor_id, location);
@@ -279,7 +284,7 @@ impl Command {
                 transform,
                 speed,
             } => {
-                Batch::AddApplyWalkerState(batch.pin_mut(), *actor_id, transform, *speed);
+                Batch::AddApplyWalkerState(batch.pin_mut(), *actor_id, transform.as_ffi(), *speed);
             }
             Self::ApplyTargetVelocity { actor_id, velocity } => {
                 Batch::AddApplyTargetVelocity(batch.pin_mut(), *actor_id, velocity);

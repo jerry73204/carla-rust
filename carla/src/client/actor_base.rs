@@ -3,7 +3,7 @@
 
 use super::{Actor, ActorAttributeValueList, World};
 use crate::{
-    geom::{Location, LocationExt, Transform, TransformExt, Vector3D, Vector3DExt},
+    geom::{Location, LocationExt, Transform, Vector3D, Vector3DExt},
     rpc::ActorId,
 };
 use autocxx::WithinUniquePtr;
@@ -96,7 +96,7 @@ pub trait ActorBase: Clone {
 
     /// Returns the actor's current transform (position and rotation).
     fn transform(&self) -> Isometry3<f32> {
-        self.cxx_actor().GetTransform().to_na()
+        Transform::from_ffi(self.cxx_actor().GetTransform()).to_na()
     }
 
     /// Returns the actor's velocity vector in m/s.
@@ -123,7 +123,7 @@ pub trait ActorBase: Clone {
     /// Teleports the actor to a new transform (position and rotation).
     fn set_transform(&self, transform: &Isometry3<f32>) {
         self.cxx_actor()
-            .SetTransform(&Transform::from_na(transform))
+            .SetTransform(Transform::from_na(transform).as_ffi())
     }
 
     /// Sets the target velocity for physics simulation (m/s).

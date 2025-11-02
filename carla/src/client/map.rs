@@ -5,7 +5,7 @@ use core::slice;
 
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
-    geom::{Location, LocationExt, Transform, TransformExt},
+    geom::{Location, LocationExt, Transform},
     road::{LaneId, LaneType, RoadId},
 };
 use autocxx::WithinUniquePtr;
@@ -312,7 +312,9 @@ impl RecommendedSpawnPoints {
 
     /// Returns the spawn points as a slice.
     pub fn as_slice(&self) -> &[Transform] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
+        // Safety: Transform is #[repr(transparent)] over FfiTransform,
+        // so pointer cast is safe
+        unsafe { slice::from_raw_parts(self.inner.data() as *const Transform, self.len()) }
     }
 
     /// Gets the spawn point at the given index.
