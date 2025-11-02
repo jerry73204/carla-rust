@@ -1,5 +1,5 @@
 use crate::{
-    geom::{Location, LocationExt, Vector2D, Vector2DExt},
+    geom::{FfiVector2D, Location, Vector2D},
     utils::IteratorExt,
 };
 use autocxx::prelude::*;
@@ -52,15 +52,28 @@ impl VehiclePhysicsControl {
             use_sweep_wheel_collision,
         } = *self;
 
+        // SAFETY: Our Vector2D and carla::geom::Vector2D have identical layout
+        // We need to collect native Vector2<f32> into CxxVector<carla::geom::Vector2D>
         let torque_curve = torque_curve
             .iter()
-            .map(Vector2D::from_na)
+            .map(|v| unsafe {
+                let ffi_vec = Vector2D::from_na(v);
+                // Convert FfiVector2D to carla::geom::Vector2D by reinterpret cast
+                std::mem::transmute::<crate::geom::FfiVector2D, carla_sys::carla::geom::Vector2D>(
+                    ffi_vec.into_ffi(),
+                )
+            })
             .collect_cxx_vector();
         let steering_curve = steering_curve
             .iter()
-            .map(Vector2D::from_na)
+            .map(|v| unsafe {
+                let ffi_vec = Vector2D::from_na(v);
+                std::mem::transmute::<crate::geom::FfiVector2D, carla_sys::carla::geom::Vector2D>(
+                    ffi_vec.into_ffi(),
+                )
+            })
             .collect_cxx_vector();
-        let mut center_of_mass = Box::pin(Location::from_na_translation(center_of_mass));
+        let mut center_of_mass = Box::pin(Location::from_na_translation(center_of_mass).into_ffi());
         let mut forward_gears = forward_gears.iter().cloned().collect_cxx_vector();
         let mut wheels = wheels.iter().cloned().collect_cxx_vector();
 
@@ -88,7 +101,17 @@ impl VehiclePhysicsControl {
 
     pub fn from_cxx(from: &FfiVehiclePhysicsControl) -> Self {
         Self {
-            torque_curve: from.torque_curve().iter().map(|v| v.to_na()).collect(),
+            torque_curve: from
+                .torque_curve()
+                .iter()
+                .map(|v| unsafe {
+                    Vector2D::from_ffi(std::mem::transmute::<
+                        carla_sys::carla::geom::Vector2D,
+                        FfiVector2D,
+                    >(v.clone()))
+                    .to_na()
+                })
+                .collect(),
             max_rpm: from.max_rpm(),
             moi: from.moi(),
             damping_rate_full_throttle: from.damping_rate_full_throttle(),
@@ -103,8 +126,18 @@ impl VehiclePhysicsControl {
             forward_gears: from.forward_gears().iter().cloned().collect(),
             mass: from.mass(),
             drag_coefficient: from.drag_coefficient(),
-            center_of_mass: from.center_of_mass().to_na_translation(),
-            steering_curve: from.steering_curve().iter().map(|v| v.to_na()).collect(),
+            center_of_mass: Location::from_ffi(from.center_of_mass().clone()).to_na_translation(),
+            steering_curve: from
+                .steering_curve()
+                .iter()
+                .map(|v| unsafe {
+                    Vector2D::from_ffi(std::mem::transmute::<
+                        carla_sys::carla::geom::Vector2D,
+                        FfiVector2D,
+                    >(v.clone()))
+                    .to_na()
+                })
+                .collect(),
             wheels: from.wheels().iter().cloned().collect(),
             use_sweep_wheel_collision: from.use_sweep_wheel_collision(),
         }

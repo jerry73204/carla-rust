@@ -4,10 +4,10 @@
 //! [`WorldSnapshot`](super::WorldSnapshot) without requiring actor lookups.
 
 use crate::{
-    geom::{Transform, Vector3DExt},
+    geom::{Transform, Vector3D},
     rpc::ActorId,
 };
-use carla_sys::carla_rust::client::FfiActorSnapshot;
+use carla_sys::carla_rust::{client::FfiActorSnapshot, geom::FfiVector3D};
 use cxx::UniquePtr;
 use derivative::Derivative;
 use nalgebra::Vector3;
@@ -99,7 +99,15 @@ impl ActorSnapshot {
     /// println!("Actor speed: {:.1} m/s", speed);
     /// ```
     pub fn velocity(&self) -> Vector3<f32> {
-        self.inner.GetVelocity().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.inner.GetVelocity();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     /// Returns the actor's angular velocity vector in radians per second.
@@ -114,7 +122,15 @@ impl ActorSnapshot {
     /// println!("Actor rotation speed: {:.2} rad/s", rotation_speed);
     /// ```
     pub fn angular_velocity(&self) -> Vector3<f32> {
-        self.inner.GetAngularVelocity().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.inner.GetAngularVelocity();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     /// Returns the actor's acceleration vector in meters per second squared.
@@ -129,7 +145,15 @@ impl ActorSnapshot {
     /// println!("Actor acceleration: {:.2} m/s²", accel_magnitude);
     /// ```
     pub fn acceleration(&self) -> Vector3<f32> {
-        self.inner.GetAcceleration().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.inner.GetAcceleration();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiActorSnapshot>) -> Option<Self> {

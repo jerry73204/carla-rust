@@ -3,7 +3,7 @@
 use super::{Actor, ActorBase};
 use crate::geom::Location;
 use carla_sys::carla_rust::client::{FfiActor, FfiWalkerAIController};
-use cxx::{SharedPtr, UniquePtr};
+use cxx::SharedPtr;
 use derivative::Derivative;
 
 /// AI controller for autonomous walker navigation.
@@ -124,11 +124,11 @@ impl WalkerAIController {
     /// }
     /// ```
     pub fn get_random_location(&self) -> Option<Location> {
-        let ptr: UniquePtr<Location> = self.inner.GetRandomLocation();
+        let ptr = self.inner.GetRandomLocation();
         if ptr.is_null() {
             None
         } else {
-            Some(ptr.as_ref().unwrap().clone())
+            Some(Location::from_ffi(ptr.as_ref().unwrap().clone()))
         }
     }
 
@@ -160,7 +160,7 @@ impl WalkerAIController {
     /// ai.go_to_location(&destination);
     /// ```
     pub fn go_to_location(&self, location: &Location) {
-        self.inner.GoToLocation(location);
+        self.inner.GoToLocation(location.as_ffi());
     }
 
     /// Sets the maximum walking speed.

@@ -13,7 +13,7 @@
 
 use carla::{
     client::{ActorBase, Client, Walker},
-    geom::Vector3D,
+    geom::{FfiVector3D, Vector3D},
     rpc::WalkerControl,
 };
 
@@ -86,10 +86,15 @@ fn main() {
     println!("Testing different movement directions:\n");
 
     for (name, direction) in directions.iter() {
-        let control = WalkerControl {
-            direction: direction.clone(),
-            speed: 2.0, // m/s
-            jump: false,
+        // SAFETY: Vector3D and carla::geom::Vector3D have identical memory layout
+        let control = unsafe {
+            WalkerControl {
+                direction: std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
+                    direction.into_ffi(),
+                ),
+                speed: 2.0, // m/s
+                jump: false,
+            }
         };
 
         walker.apply_control(&control);
@@ -102,14 +107,20 @@ fn main() {
 
     // Final control: diagonal movement
     println!("\nBonus - Diagonal movement:");
-    let diagonal_control = WalkerControl {
-        direction: Vector3D {
-            x: 0.707, // ~45 degrees
-            y: 0.707,
-            z: 0.0,
-        },
-        speed: 2.0,
-        jump: false,
+    let direction = Vector3D {
+        x: 0.707, // ~45 degrees
+        y: 0.707,
+        z: 0.0,
+    };
+    // SAFETY: Vector3D and carla::geom::Vector3D have identical memory layout
+    let diagonal_control = unsafe {
+        WalkerControl {
+            direction: std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
+                direction.into_ffi(),
+            ),
+            speed: 2.0,
+            jump: false,
+        }
     };
 
     walker.apply_control(&diagonal_control);

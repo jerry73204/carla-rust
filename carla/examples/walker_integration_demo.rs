@@ -13,7 +13,7 @@
 
 use carla::{
     client::{ActorBase, Client, Walker, WalkerAIController},
-    geom::Vector3D,
+    geom::{FfiVector3D, Vector3D},
     rpc::{AttachmentType, WalkerControl},
 };
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
@@ -88,14 +88,20 @@ fn demo_walker_control() {
     println!("Walker ID: {}", walker.id());
 
     // Apply walker control
-    let control = WalkerControl {
-        direction: Vector3D {
-            x: 1.0,
-            y: 0.0,
-            z: 0.0,
-        },
-        speed: 1.5, // m/s
-        jump: false,
+    let direction = Vector3D {
+        x: 1.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    // SAFETY: Vector3D and carla::geom::Vector3D have identical memory layout
+    let control = unsafe {
+        WalkerControl {
+            direction: std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
+                direction.into_ffi(),
+            ),
+            speed: 1.5, // m/s
+            jump: false,
+        }
     };
 
     println!(

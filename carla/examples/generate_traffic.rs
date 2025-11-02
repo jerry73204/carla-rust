@@ -28,7 +28,7 @@
 
 use carla::{
     client::{Client, WalkerAIController},
-    geom::{Location, LocationExt, Transform},
+    geom::{Location, Transform},
     rpc::Command,
 };
 use rand::Rng;

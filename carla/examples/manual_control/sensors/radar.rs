@@ -10,7 +10,6 @@
 use carla::{
     client::Sensor,
     geom::Location,
-    prelude::*,
     rpc::{AttachmentType, Color},
     sensor::data::RadarMeasurement,
 };

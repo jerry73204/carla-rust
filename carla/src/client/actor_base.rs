@@ -3,11 +3,11 @@
 
 use super::{Actor, ActorAttributeValueList, World};
 use crate::{
-    geom::{Location, LocationExt, Transform, Vector3D, Vector3DExt},
+    geom::{Location, Transform, Vector3D},
     rpc::ActorId,
 };
 use autocxx::WithinUniquePtr;
-use carla_sys::carla_rust::client::FfiActor;
+use carla_sys::carla_rust::{client::FfiActor, geom::FfiVector3D};
 use cxx::SharedPtr;
 use nalgebra::{Isometry3, Translation3, Vector3};
 
@@ -91,7 +91,7 @@ pub trait ActorBase: Clone {
 
     /// Returns the actor's current location (position only).
     fn location(&self) -> Translation3<f32> {
-        self.cxx_actor().GetLocation().to_na_translation()
+        Location::from_ffi(self.cxx_actor().GetLocation()).to_na_translation()
     }
 
     /// Returns the actor's current transform (position and rotation).
@@ -101,23 +101,47 @@ pub trait ActorBase: Clone {
 
     /// Returns the actor's velocity vector in m/s.
     fn velocity(&self) -> Vector3<f32> {
-        self.cxx_actor().GetVelocity().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.cxx_actor().GetVelocity();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     /// Returns the actor's acceleration vector in m/s².
     fn acceleration(&self) -> Vector3<f32> {
-        self.cxx_actor().GetAcceleration().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.cxx_actor().GetAcceleration();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     /// Returns the actor's angular velocity in radians/s.
     fn angular_velocity(&self) -> Vector3<f32> {
-        self.cxx_actor().GetAngularVelocity().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.cxx_actor().GetAngularVelocity();
+            Vector3D::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::Vector3D,
+                FfiVector3D,
+            >(cpp_vec))
+            .to_na()
+        }
     }
 
     /// Teleports the actor to a new location.
     fn set_location(&self, location: &Translation3<f32>) {
         self.cxx_actor()
-            .SetLocation(&Location::from_na_translation(location))
+            .SetLocation(Location::from_na_translation(location).as_ffi())
     }
 
     /// Teleports the actor to a new transform (position and rotation).
@@ -128,20 +152,35 @@ pub trait ActorBase: Clone {
 
     /// Sets the target velocity for physics simulation (m/s).
     fn set_target_velocity(&self, vector: &Vector3<f32>) {
-        self.cxx_actor()
-            .SetTargetVelocity(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().SetTargetVelocity(cpp_vec)
+        }
     }
 
     /// Sets the target angular velocity for physics simulation (rad/s).
     fn set_target_angular_velocity(&self, vector: &Vector3<f32>) {
-        self.cxx_actor()
-            .SetTargetAngularVelocity(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().SetTargetAngularVelocity(cpp_vec)
+        }
     }
 
     /// Enables constant velocity mode (actor moves at fixed velocity regardless of physics).
     fn enable_constant_velocity(&self, vector: &Vector3<f32>) {
-        self.cxx_actor()
-            .EnableConstantVelocity(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().EnableConstantVelocity(cpp_vec)
+        }
     }
 
     /// Disables constant velocity mode.
@@ -151,35 +190,74 @@ pub trait ActorBase: Clone {
 
     /// Applies an impulse (instantaneous velocity change) to the actor's center of mass.
     fn add_impulse(&self, vector: &Vector3<f32>) {
-        self.cxx_actor().AddImpulse1(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddImpulse1(cpp_vec)
+        }
     }
 
     /// Applies an impulse at a specific location on the actor.
     fn add_impulse_at(&self, vector: &Vector3<f32>, location: &Vector3<f32>) {
-        self.cxx_actor()
-            .AddImpulse2(&Vector3D::from_na(vector), &Vector3D::from_na(location))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let ffi_loc = Vector3D::from_na(location);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            let cpp_loc = &*(ffi_loc.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddImpulse2(cpp_vec, cpp_loc)
+        }
     }
 
     /// Applies a continuous force to the actor's center of mass.
     fn add_force(&self, vector: &Vector3<f32>) {
-        self.cxx_actor().AddForce1(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddForce1(cpp_vec)
+        }
     }
 
     /// Applies a continuous force at a specific location on the actor.
     fn add_force_at(&self, vector: &Vector3<f32>, location: &Vector3<f32>) {
-        self.cxx_actor()
-            .AddForce2(&Vector3D::from_na(vector), &Vector3D::from_na(location))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let ffi_loc = Vector3D::from_na(location);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            let cpp_loc = &*(ffi_loc.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddForce2(cpp_vec, cpp_loc)
+        }
     }
 
     /// Applies an angular impulse (instantaneous rotation change).
     fn add_angular_impulse(&self, vector: &Vector3<f32>) {
-        self.cxx_actor()
-            .AddAngularImpulse(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddAngularImpulse(cpp_vec)
+        }
     }
 
     /// Applies a continuous torque (rotational force).
     fn add_torque(&self, vector: &Vector3<f32>) {
-        self.cxx_actor().AddTorque(&Vector3D::from_na(vector))
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        unsafe {
+            let ffi_vec = Vector3D::from_na(vector);
+            let cpp_vec = &*(ffi_vec.as_ffi() as *const FfiVector3D
+                as *const carla_sys::carla::geom::Vector3D);
+            self.cxx_actor().AddTorque(cpp_vec)
+        }
     }
 
     /// Enables or disables physics simulation for this actor.

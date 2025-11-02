@@ -7,7 +7,7 @@ use super::{
     Map, Waypoint, WorldSnapshot,
 };
 use crate::{
-    geom::{Location, LocationExt, Transform, Vector3D, Vector3DExt},
+    geom::{Location, Transform, Vector3D},
     road::JuncId,
     rpc::{
         ActorId, AttachmentType, EpisodeSettings, LabelledPoint, MapLayer, VehicleLightStateList,
@@ -17,7 +17,10 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::{FfiActor, FfiWorld};
+use carla_sys::carla_rust::{
+    client::{FfiActor, FfiWorld},
+    geom::FfiVector3D,
+};
 use cxx::{let_cxx_string, CxxVector, UniquePtr};
 use derivative::Derivative;
 use nalgebra::{Isometry3, Translation3, Vector3};
@@ -137,9 +140,8 @@ impl World {
     ///
     /// Useful for spawning actors at random valid positions.
     pub fn random_location_from_navigation(&self) -> Translation3<f32> {
-        self.inner
-            .GetRandomLocationFromNavigation()
-            .to_na_translation()
+        let cpp_loc = self.inner.GetRandomLocationFromNavigation();
+        Location::from_ffi(cpp_loc.as_ref().unwrap().clone()).to_na_translation()
     }
 
     /// Returns the spectator actor (the free-flying camera).
@@ -613,11 +615,15 @@ impl World {
         direction: &Vector3<f32>,
         search_distance: f32,
     ) -> Option<LabelledPoint> {
-        let ptr = self.inner.ProjectPoint(
-            Location::from_na_translation(location),
-            Vector3D::from_na(direction),
-            search_distance,
-        );
+        let ffi_loc = Location::from_na_translation(location);
+        let ffi_dir = Vector3D::from_na(direction);
+        // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+        let cpp_dir = unsafe {
+            std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(ffi_dir.into_ffi())
+        };
+        let ptr = self
+            .inner
+            .ProjectPoint(ffi_loc.into_ffi(), cpp_dir, search_distance);
 
         if ptr.is_null() {
             None
@@ -631,9 +637,10 @@ impl World {
         location: &Translation3<f32>,
         search_distance: f32,
     ) -> Option<LabelledPoint> {
-        let ptr = self
-            .inner
-            .GroundProjection(Location::from_na_translation(location), search_distance);
+        let ptr = self.inner.GroundProjection(
+            Location::from_na_translation(location).into_ffi(),
+            search_distance,
+        );
 
         if ptr.is_null() {
             None
@@ -650,8 +657,8 @@ impl World {
         let ptr = self
             .inner
             .CastRay(
-                Location::from_na_translation(start),
-                Location::from_na_translation(end),
+                Location::from_na_translation(start).into_ffi(),
+                Location::from_na_translation(end).into_ffi(),
             )
             .within_unique_ptr();
         unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() }

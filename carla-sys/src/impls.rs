@@ -251,6 +251,84 @@ impl Clone for crate::carla_rust::geom::FfiLocation {
     }
 }
 
+impl Debug for crate::carla_rust::geom::FfiRotation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiRotation")
+            .field("pitch", &self.pitch)
+            .field("yaw", &self.yaw)
+            .field("roll", &self.roll)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiRotation {
+    fn clone(&self) -> Self {
+        Self {
+            pitch: self.pitch,
+            yaw: self.yaw,
+            roll: self.roll,
+        }
+    }
+}
+
+impl Debug for crate::carla_rust::geom::FfiVector2D {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiVector2D")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiVector2D {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y,
+        }
+    }
+}
+
+impl Debug for crate::carla_rust::geom::FfiVector3D {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiVector3D")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .field("z", &self.z)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiVector3D {
+    fn clone(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
+}
+
+impl Debug for crate::carla_rust::geom::FfiGeoLocation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FfiGeoLocation")
+            .field("latitude", &self.latitude)
+            .field("longitude", &self.longitude)
+            .field("altitude", &self.altitude)
+            .finish()
+    }
+}
+
+impl Clone for crate::carla_rust::geom::FfiGeoLocation {
+    fn clone(&self) -> Self {
+        Self {
+            latitude: self.latitude,
+            longitude: self.longitude,
+            altitude: self.altitude,
+        }
+    }
+}
+
 impl Debug for crate::carla_rust::geom::FfiTransform {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("FfiTransform")

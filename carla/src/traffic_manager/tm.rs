@@ -8,12 +8,7 @@
 // - as_ref() on a non-null SharedPtr is guaranteed to succeed
 
 use super::{Action, ActionBuffer, PrivateAction};
-use crate::{
-    client::ActorBase,
-    geom::{Location, LocationExt},
-    rpc::ActorId,
-    utils::CxxVectorExt,
-};
+use crate::{client::ActorBase, geom::Location, rpc::ActorId, utils::CxxVectorExt};
 use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::{client::FfiActor, traffic_manager::FfiTrafficManager};
 use cxx::{CxxVector, SharedPtr, UniquePtr};
@@ -72,8 +67,8 @@ impl TrafficManager {
         P: AsRef<Point3<f32>>,
     {
         let path = path.iter().fold(CxxVector::new_typed(), |mut vec, point| {
-            let point = <Location as LocationExt>::from_na_point(point.as_ref());
-            vec.pin_mut().push(point);
+            let point = Location::from_na_point(point.as_ref());
+            vec.pin_mut().push(point.into_ffi());
             vec
         });
 
@@ -95,8 +90,8 @@ impl TrafficManager {
         P: AsRef<Point3<f32>>,
     {
         let path = path.iter().fold(CxxVector::new_typed(), |mut vec, point| {
-            let point = <Location as LocationExt>::from_na_point(point.as_ref());
-            vec.pin_mut().push(point);
+            let point = Location::from_na_point(point.as_ref());
+            vec.pin_mut().push(point.into_ffi());
             vec
         });
 

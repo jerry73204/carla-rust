@@ -13,7 +13,7 @@
 
 use carla::{
     client::Client,
-    geom::{BoundingBox, Location, LocationExt, Rotation, Vector3D},
+    geom::{BoundingBox, Location, Rotation, Vector3D},
     rpc::Color,
 };
 use std::{thread, time::Duration};

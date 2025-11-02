@@ -30,7 +30,7 @@ impl<'a> LightMut<'a> {
     }
 
     pub fn location(&self) -> Location {
-        self.inner.GetLocation()
+        Location::from_ffi(self.inner.GetLocation())
     }
 
     pub fn light_group(&self) -> LightGroup {

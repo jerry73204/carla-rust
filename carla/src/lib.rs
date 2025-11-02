@@ -231,26 +231,21 @@ mod utils;
 ///
 /// - [`ActorBase`](crate::client::ActorBase) - Core actor functionality
 /// - [`TimestampExt`](crate::client::TimestampExt) - Timestamp conversion utilities
-/// - [`LocationExt`](crate::geom::LocationExt) - Location type conversions
-/// - [`RotationExt`](crate::geom::RotationExt) - Rotation type conversions
-/// - [`Vector2DExt`](crate::geom::Vector2DExt) - 2D vector conversions
-/// - [`Vector3DExt`](crate::geom::Vector3DExt) - 3D vector conversions
 /// - [`SensorDataBase`](crate::sensor::SensorDataBase) - Sensor data common methods
 ///
 /// # Example
 ///
 /// ```
-/// use carla::{geom::Location, prelude::*};
+/// use carla::geom::Location;
 /// use nalgebra::Translation3;
 ///
-/// // LocationExt is now in scope
+/// // Location methods are now directly on the type
 /// let translation = Translation3::new(1.0, 2.0, 3.0);
 /// let loc = Location::from_na_translation(&translation);
 /// ```
 pub mod prelude {
     pub use crate::{
         client::{ActorBase as _, TimestampExt as _},
-        geom::{LocationExt as _, RotationExt as _, Vector2DExt as _, Vector3DExt as _},
         sensor::SensorDataBase as _,
     };
 }

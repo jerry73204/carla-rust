@@ -51,7 +51,7 @@ use crate::{
     },
 };
 use autocxx::WithinUniquePtr;
-use carla_sys::carla_rust::client::FfiCommandBatch;
+use carla_sys::carla_rust::{client::FfiCommandBatch, geom::FfiVector3D};
 use cxx::UniquePtr;
 
 /// A command to be executed in a batch operation.
@@ -277,7 +277,7 @@ impl Command {
                 Batch::AddApplyTransform(batch.pin_mut(), *actor_id, transform.as_ffi());
             }
             Self::ApplyLocation { actor_id, location } => {
-                Batch::AddApplyLocation(batch.pin_mut(), *actor_id, location);
+                Batch::AddApplyLocation(batch.pin_mut(), *actor_id, location.as_ffi());
             }
             Self::ApplyWalkerState {
                 actor_id,
@@ -287,25 +287,55 @@ impl Command {
                 Batch::AddApplyWalkerState(batch.pin_mut(), *actor_id, transform.as_ffi(), *speed);
             }
             Self::ApplyTargetVelocity { actor_id, velocity } => {
-                Batch::AddApplyTargetVelocity(batch.pin_mut(), *actor_id, velocity);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(velocity.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyTargetVelocity(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::ApplyTargetAngularVelocity {
                 actor_id,
                 angular_velocity,
             } => {
-                Batch::AddApplyTargetAngularVelocity(batch.pin_mut(), *actor_id, angular_velocity);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(angular_velocity.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyTargetAngularVelocity(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::ApplyImpulse { actor_id, impulse } => {
-                Batch::AddApplyImpulse(batch.pin_mut(), *actor_id, impulse);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(impulse.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyImpulse(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::ApplyForce { actor_id, force } => {
-                Batch::AddApplyForce(batch.pin_mut(), *actor_id, force);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(force.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyForce(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::ApplyAngularImpulse { actor_id, impulse } => {
-                Batch::AddApplyAngularImpulse(batch.pin_mut(), *actor_id, impulse);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(impulse.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyAngularImpulse(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::ApplyTorque { actor_id, torque } => {
-                Batch::AddApplyTorque(batch.pin_mut(), *actor_id, torque);
+                // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
+                unsafe {
+                    let cpp_vec = &*(torque.as_ffi() as *const FfiVector3D
+                        as *const carla_sys::carla::geom::Vector3D);
+                    Batch::AddApplyTorque(batch.pin_mut(), *actor_id, cpp_vec);
+                }
             }
             Self::SetSimulatePhysics { actor_id, enabled } => {
                 Batch::AddSetSimulatePhysics(batch.pin_mut(), *actor_id, *enabled);

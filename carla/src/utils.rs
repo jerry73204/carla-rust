@@ -1,15 +1,17 @@
 //! Internal utilities.
 
-use crate::geom::Location;
 use carla_sys::{
     carla::{
         geom::Vector2D,
         rpc::{GearPhysicsControl, WheelPhysicsControl},
     },
-    carla_rust::utils::{
-        new_ffi_location_vector, new_gear_physics_control_vector, new_uint32_t_vector,
-        new_uint64_t_vector, new_uint8_t_vector, new_vector_2d_vector,
-        new_wheel_physics_control_vector,
+    carla_rust::{
+        geom::FfiLocation,
+        utils::{
+            new_ffi_location_vector, new_gear_physics_control_vector, new_uint32_t_vector,
+            new_uint64_t_vector, new_uint8_t_vector, new_vector_2d_vector,
+            new_wheel_physics_control_vector,
+        },
     },
 };
 use cxx::{kind::Trivial, vector::VectorElement, CxxVector, ExternType, UniquePtr};
@@ -57,7 +59,7 @@ impl NewCxxVectorElement for WheelPhysicsControl {
     }
 }
 
-impl NewCxxVectorElement for Location {
+impl NewCxxVectorElement for FfiLocation {
     fn new_vector() -> UniquePtr<CxxVector<Self>> {
         new_ffi_location_vector()
     }

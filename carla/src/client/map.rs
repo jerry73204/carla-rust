@@ -5,7 +5,7 @@ use core::slice;
 
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
-    geom::{Location, LocationExt, Transform},
+    geom::{Location, Transform},
     road::{LaneId, LaneType, RoadId},
 };
 use autocxx::WithinUniquePtr;
@@ -119,7 +119,7 @@ impl Map {
         let location = Location::from_na_translation(location);
         let ptr = self
             .inner
-            .GetWaypoint(&location, project_to_road, lane_type as i32);
+            .GetWaypoint(location.as_ffi(), project_to_road, lane_type as i32);
         Waypoint::from_cxx(ptr)
     }
 

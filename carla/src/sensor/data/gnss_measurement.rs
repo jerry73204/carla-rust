@@ -14,7 +14,14 @@ pub struct GnssMeasurement {
 
 impl GnssMeasurement {
     pub fn geo_location(&self) -> GeoLocation {
-        self.inner.GetGeoLocation()
+        // SAFETY: carla::geom::GeoLocation and FfiGeoLocation have identical memory layout
+        unsafe {
+            let cpp_geo = self.inner.GetGeoLocation();
+            GeoLocation::from_ffi(std::mem::transmute::<
+                carla_sys::carla::geom::GeoLocation,
+                crate::geom::FfiGeoLocation,
+            >(cpp_geo))
+        }
     }
 
     pub fn longitude(&self) -> f64 {

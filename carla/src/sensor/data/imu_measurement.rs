@@ -1,4 +1,4 @@
-use crate::{geom::Vector3DExt, sensor::SensorData};
+use crate::{geom::Vector3D, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiImuMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -15,7 +15,12 @@ pub struct ImuMeasurement {
 
 impl ImuMeasurement {
     pub fn accelerometer(&self) -> Vector3<f32> {
-        self.inner.GetAccelerometer().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.inner.GetAccelerometer();
+            Vector3D::from_ffi((&cpp_vec as *const _ as *const crate::geom::FfiVector3D).read())
+                .to_na()
+        }
     }
 
     pub fn compass(&self) -> f32 {
@@ -23,7 +28,12 @@ impl ImuMeasurement {
     }
 
     pub fn gyroscope(&self) -> Vector3<f32> {
-        self.inner.GetGyroscope().to_na()
+        // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
+        unsafe {
+            let cpp_vec = self.inner.GetGyroscope();
+            Vector3D::from_ffi((&cpp_vec as *const _ as *const crate::geom::FfiVector3D).read())
+                .to_na()
+        }
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiImuMeasurement>) -> Option<Self> {

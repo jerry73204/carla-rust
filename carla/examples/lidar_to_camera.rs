@@ -29,7 +29,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor},
-    geom::{Location, LocationExt},
+    geom::Location,
     rpc::{AttachmentType, EpisodeSettings},
     sensor::{
         camera::{build_projection_matrix, project_to_2d, world_to_camera},

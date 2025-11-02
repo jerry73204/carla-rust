@@ -39,7 +39,7 @@
 //! ```
 
 use crate::{
-    geom::{BoundingBox, Location, Rotation},
+    geom::{BoundingBox, FfiRotation, Location, Rotation},
     rpc::Color,
 };
 use carla_sys::carla_rust::client::{
@@ -98,7 +98,7 @@ impl DebugHelper {
         let ffi_color = color.into();
         FfiDebugHelper_DrawPoint(
             &self.inner,
-            &location,
+            location.as_ffi(),
             size,
             &ffi_color,
             life_time,
@@ -150,8 +150,8 @@ impl DebugHelper {
         let ffi_color = color.into();
         FfiDebugHelper_DrawLine(
             &self.inner,
-            &begin,
-            &end,
+            begin.as_ffi(),
+            end.as_ffi(),
             thickness,
             &ffi_color,
             life_time,
@@ -207,8 +207,8 @@ impl DebugHelper {
         let ffi_color = color.into();
         FfiDebugHelper_DrawArrow(
             &self.inner,
-            &begin,
-            &end,
+            begin.as_ffi(),
+            end.as_ffi(),
             thickness,
             arrow_size,
             &ffi_color,
@@ -261,10 +261,14 @@ impl DebugHelper {
     ) {
         let ffi_color = color.into();
         let native_bbox = bbox.to_native();
+        // SAFETY: FfiRotation and carla::geom::Rotation have identical memory layout
+        let cpp_rotation = unsafe {
+            &*(rotation.as_ffi() as *const FfiRotation as *const carla_sys::carla::geom::Rotation)
+        };
         FfiDebugHelper_DrawBox(
             &self.inner,
             &native_bbox,
-            &rotation,
+            cpp_rotation,
             thickness,
             &ffi_color,
             life_time,
@@ -317,7 +321,7 @@ impl DebugHelper {
         cxx::let_cxx_string!(text_cxx = text);
         FfiDebugHelper_DrawString(
             &self.inner,
-            &location,
+            location.as_ffi(),
             &text_cxx,
             draw_shadow,
             &ffi_color,
