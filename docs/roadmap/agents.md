@@ -50,9 +50,29 @@ VehiclePIDController (low-level vehicle control)
 
 ## Python Agent API Reference
 
+### Agent Inheritance Hierarchy
+
+The Python implementation uses **class inheritance** where agents extend each other:
+
+```
+BasicAgent (base class - 508 lines)
+    ├─ BehaviorAgent (extends BasicAgent - 318 lines)
+    └─ ConstantVelocityAgent (extends BasicAgent - 130 lines)
+```
+
+**Key Observation:** There is **NO abstract base class** in Python. `BasicAgent` is a concrete class that serves as both:
+1. A usable agent on its own
+2. A base class for more specialized agents
+
+**Inheritance Pattern:**
+- `BehaviorAgent` **extends** `BasicAgent` via `super().__init__()`
+- `ConstantVelocityAgent` **extends** `BasicAgent` via `super().__init__()`
+- Both override `run_step()` to customize control logic
+- Both reuse helper methods (`_affected_by_traffic_light`, `_vehicle_obstacle_detected`)
+
 ### BasicAgent
 
-**File:** `PythonAPI/carla/agents/navigation/basic_agent.py` (510 lines)
+**File:** `PythonAPI/carla/agents/navigation/basic_agent.py` (508 lines)
 
 **Purpose:** Traffic-aware navigation agent with obstacle detection and traffic light compliance.
 
@@ -70,23 +90,23 @@ BasicAgent(vehicle, target_speed=20, opt_dict={}, map_inst=None, grp_inst=None)
 
 **Public Methods (15):**
 
-| Method | Return Type | Purpose |
-|--------|-------------|---------|
-| `set_target_speed(speed)` | None | Set cruise speed (km/h) |
-| `follow_speed_limits(value=True)` | None | Enable dynamic speed limits from map |
-| `set_destination(end_location, start_location=None)` | None | Set navigation goal |
-| `set_global_plan(plan, stop_waypoint_creation, clean_queue)` | None | Apply pre-computed route |
-| `trace_route(start_waypoint, end_waypoint)` | List[Tuple] | Compute route between waypoints |
-| `run_step()` | VehicleControl | Execute one control cycle |
-| `done()` | bool | Check if destination reached |
-| `ignore_traffic_lights(active)` | None | Toggle red light compliance |
-| `ignore_stop_signs(active)` | None | Toggle stop sign compliance |
-| `ignore_vehicles(active)` | None | Toggle vehicle obstacle detection |
-| `set_offset(offset)` | None | Set lateral positioning offset |
-| `lane_change(direction, same_lane_time, other_lane_time, lane_change_time)` | None | Execute lane change maneuver |
-| `get_local_planner()` | LocalPlanner | Access LocalPlanner instance |
-| `get_global_planner()` | GlobalRoutePlanner | Access GlobalRoutePlanner instance |
-| `add_emergency_stop(control)` | VehicleControl | Apply maximum braking |
+| Method                                                                      | Return Type        | Purpose                              |
+|-----------------------------------------------------------------------------|--------------------|--------------------------------------|
+| `set_target_speed(speed)`                                                   | None               | Set cruise speed (km/h)              |
+| `follow_speed_limits(value=True)`                                           | None               | Enable dynamic speed limits from map |
+| `set_destination(end_location, start_location=None)`                        | None               | Set navigation goal                  |
+| `set_global_plan(plan, stop_waypoint_creation, clean_queue)`                | None               | Apply pre-computed route             |
+| `trace_route(start_waypoint, end_waypoint)`                                 | List[Tuple]        | Compute route between waypoints      |
+| `run_step()`                                                                | VehicleControl     | Execute one control cycle            |
+| `done()`                                                                    | bool               | Check if destination reached         |
+| `ignore_traffic_lights(active)`                                             | None               | Toggle red light compliance          |
+| `ignore_stop_signs(active)`                                                 | None               | Toggle stop sign compliance          |
+| `ignore_vehicles(active)`                                                   | None               | Toggle vehicle obstacle detection    |
+| `set_offset(offset)`                                                        | None               | Set lateral positioning offset       |
+| `lane_change(direction, same_lane_time, other_lane_time, lane_change_time)` | None               | Execute lane change maneuver         |
+| `get_local_planner()`                                                       | LocalPlanner       | Access LocalPlanner instance         |
+| `get_global_planner()`                                                      | GlobalRoutePlanner | Access GlobalRoutePlanner instance   |
+| `add_emergency_stop(control)`                                               | VehicleControl     | Apply maximum braking                |
 
 **Dependencies:**
 - LocalPlanner
@@ -250,6 +270,374 @@ VehiclePIDController(vehicle, args_lateral, args_longitudinal, offset=0,
 - `distance_vehicle(waypoint, vehicle_transform)` → float - 2D distance
 - `vector(location_1, location_2)` → Vector3D - Normalized direction vector
 - `draw_waypoints(world, waypoints, z)` → None - Debug visualization (optional)
+- `positive(num)` → float - Returns number if positive, else 0.0
+
+## Rust Design Architecture
+
+### Summary
+
+The Rust agent implementation uses **composition over inheritance** to achieve code reuse while maintaining type safety and zero-cost abstractions.
+
+**Key Design Decisions:**
+
+1. **AgentCore as Shared Component:** All agents contain an `AgentCore` struct that provides:
+   - Hazard detection methods (traffic lights, obstacles)
+   - Lane change path generation
+   - Configuration management
+   - Planner instances (LocalPlanner, GlobalRoutePlanner)
+
+2. **Concrete Types, Not Trait Objects:** Each agent type (`BasicAgent`, `BehaviorAgent`, `ConstantVelocityAgent`) is a distinct struct, not variations of a base class. This provides:
+   - Zero-cost abstraction (no vtable overhead)
+   - Type-specific APIs (each agent can have unique methods)
+   - Clear ownership semantics
+
+3. **Optional Trait for Polymorphism:** An `Agent` trait will be implemented **only if needed** for polymorphic use cases (e.g., storing different agent types in collections).
+
+4. **Code Reuse via Composition:** Instead of inheriting methods from a base class, all agents:
+   - Own an `AgentCore` instance
+   - Delegate to `core.affected_by_traffic_light()`, `core.vehicle_obstacle_detected()`, etc.
+   - Share the same underlying detection and planning logic
+
+### Design Philosophy: Composition over Inheritance
+
+Unlike Python's class inheritance approach, the Rust implementation will use **composition with shared components**.
+
+**Python vs Rust Approach:**
+
+```
+Python (Inheritance):                    Rust (Composition):
+┌─────────────────┐                      ┌─────────────────┐
+│   BasicAgent    │                      │   AgentCore     │
+│  (base class)   │                      │ (shared logic)  │
+└────────┬────────┘                      └────────┬────────┘
+         │ extends                                │ contains
+    ┌────┴────┐                           ┌──────┴──────┐
+    ▼         ▼                           ▼             ▼
+┌─────────┐ ┌─────────┐         ┌─────────────┐ ┌──────────────┐
+│Behavior │ │Constant │         │ BasicAgent  │ │BehaviorAgent │
+│ Agent   │ │Velocity │         │ {core: ..}  │ │ {core: ..}   │
+└─────────┘ └─────────┘         └─────────────┘ └──────────────┘
+```
+
+**Why composition in Rust?**
+1. Rust doesn't have classical inheritance
+2. Trait objects have runtime overhead (avoided for performance)
+3. Composition is more flexible and idiomatic in Rust
+4. Code sharing via shared structs is clearer and more explicit
+5. Each agent type can have unique APIs without base class constraints
+
+### Proposed Architecture
+
+#### Core Components (Shared Structs)
+
+```rust
+// carla/src/agents/navigation/agent_core.rs
+
+/// Shared core state and behavior detection used by all agents
+pub struct AgentCore {
+    vehicle: Vehicle,
+    world: World,
+    map: Map,
+
+    // Planners
+    local_planner: LocalPlanner,
+    global_planner: GlobalRoutePlanner,
+
+    // Detection flags
+    ignore_traffic_lights: bool,
+    ignore_stop_signs: bool,
+    ignore_vehicles: bool,
+
+    // Configuration
+    base_tlight_threshold: f64,
+    base_vehicle_threshold: f64,
+    speed_ratio: f64,
+    max_brake: f64,
+    offset: f64,
+    use_bbs_detection: bool,
+
+    // Cached state
+    lights_map: HashMap<u32, Waypoint>, // traffic_light.id -> trigger waypoint
+    last_traffic_light: Option<TrafficLight>,
+}
+
+impl AgentCore {
+    /// Core hazard detection methods shared by all agents
+    pub fn affected_by_traffic_light(
+        &mut self,
+        lights_list: &ActorList,
+        max_distance: f64,
+    ) -> TrafficLightDetectionResult { /* ... */ }
+
+    pub fn vehicle_obstacle_detected(
+        &self,
+        vehicle_list: &ActorList,
+        max_distance: f64,
+        up_angle_th: f64,
+        low_angle_th: f64,
+        lane_offset: i32,
+    ) -> ObstacleDetectionResult { /* ... */ }
+
+    pub fn generate_lane_change_path(
+        waypoint: &Waypoint,
+        direction: LaneChangeDirection,
+        distance_same_lane: f64,
+        distance_other_lane: f64,
+        lane_change_distance: f64,
+        check: bool,
+        lane_changes: u32,
+        step_distance: f64,
+    ) -> Vec<(Waypoint, RoadOption)> { /* ... */ }
+
+    // Configuration methods
+    pub fn ignore_traffic_lights(&mut self, active: bool) { /* ... */ }
+    pub fn ignore_stop_signs(&mut self, active: bool) { /* ... */ }
+    pub fn ignore_vehicles(&mut self, active: bool) { /* ... */ }
+    pub fn set_offset(&mut self, offset: f64) { /* ... */ }
+}
+```
+
+#### Agent Types (Individual Structs)
+
+Each agent type is its own struct that **contains** an `AgentCore`:
+
+```rust
+// carla/src/agents/navigation/basic_agent.rs
+
+pub struct BasicAgent {
+    core: AgentCore,
+    target_speed: f64,
+    sampling_resolution: f64,
+}
+
+impl BasicAgent {
+    pub fn new(
+        vehicle: Vehicle,
+        target_speed: f64,
+        opt_dict: AgentConfig,
+        map_inst: Option<Map>,
+        grp_inst: Option<GlobalRoutePlanner>,
+    ) -> Result<Self> { /* ... */ }
+
+    pub fn run_step(&mut self) -> Result<VehicleControl> {
+        // BasicAgent-specific control logic
+        let hazard_detected = false;
+
+        // Use core for detection
+        let vehicle_list = self.core.world.get_actors().filter("*vehicle*");
+        let vehicle_speed = misc::get_speed(&self.core.vehicle) / 3.6;
+        let max_vehicle_distance = self.core.base_vehicle_threshold
+            + self.core.speed_ratio * vehicle_speed;
+
+        let (affected_by_vehicle, _, _) = self.core.vehicle_obstacle_detected(
+            &vehicle_list, max_vehicle_distance, 90.0, 0.0, 0
+        );
+        if affected_by_vehicle {
+            hazard_detected = true;
+        }
+
+        // ... check traffic lights via core ...
+
+        let mut control = self.core.local_planner.run_step()?;
+        if hazard_detected {
+            control = self.add_emergency_stop(control);
+        }
+
+        Ok(control)
+    }
+
+    pub fn set_destination(&mut self, end_location: Location, start_location: Option<Location>) { /* ... */ }
+    pub fn add_emergency_stop(&self, control: VehicleControl) -> VehicleControl { /* ... */ }
+    pub fn done(&self) -> bool { self.core.local_planner.done() }
+    // ... other BasicAgent methods ...
+}
+```
+
+```rust
+// carla/src/agents/navigation/behavior_agent.rs
+
+pub struct BehaviorAgent {
+    core: AgentCore,  // Reuses all core detection logic
+    behavior: BehaviorType,
+
+    // BehaviorAgent-specific state
+    look_ahead_steps: usize,
+    speed: f64,
+    speed_limit: f64,
+    direction: Option<RoadOption>,
+    incoming_direction: Option<RoadOption>,
+    incoming_waypoint: Option<Waypoint>,
+    min_speed: f64,
+    sampling_resolution: f64,
+}
+
+#[derive(Clone)]
+pub enum BehaviorType {
+    Cautious(BehaviorParams),
+    Normal(BehaviorParams),
+    Aggressive(BehaviorParams),
+}
+
+pub struct BehaviorParams {
+    pub max_speed: f64,
+    pub speed_lim_dist: f64,
+    pub speed_decrease: f64,
+    pub safety_time: f64,
+    pub min_proximity_threshold: f64,
+    pub braking_distance: f64,
+    pub tailgate_counter: i32,
+}
+
+impl BehaviorAgent {
+    pub fn new(
+        vehicle: Vehicle,
+        behavior: BehaviorType,
+        opt_dict: AgentConfig,
+        map_inst: Option<Map>,
+        grp_inst: Option<GlobalRoutePlanner>,
+    ) -> Result<Self> { /* ... */ }
+
+    pub fn run_step(&mut self, debug: bool) -> Result<VehicleControl> {
+        self.update_information();
+
+        // 1. Traffic light check (reuses core)
+        if self.traffic_light_manager() {
+            return Ok(self.emergency_stop());
+        }
+
+        // 2. Pedestrian avoidance
+        let (walker_state, walker, w_distance) = self.pedestrian_avoid_manager()?;
+        if walker_state {
+            let distance = w_distance - /* bounding box calculation */;
+            if distance < self.behavior.params().braking_distance {
+                return Ok(self.emergency_stop());
+            }
+        }
+
+        // 3. Car following with TTC calculation
+        let (vehicle_state, vehicle, distance) = self.collision_and_car_avoid_manager()?;
+        if vehicle_state {
+            let distance = distance - /* bounding box calculation */;
+            if distance < self.behavior.params().braking_distance {
+                return Ok(self.emergency_stop());
+            } else {
+                return Ok(self.car_following_manager(vehicle, distance, debug)?);
+            }
+        }
+
+        // 4. Normal control
+        let target_speed = /* ... */;
+        self.core.local_planner.set_speed(target_speed);
+        self.core.local_planner.run_step(debug)
+    }
+
+    fn update_information(&mut self) { /* ... */ }
+    fn traffic_light_manager(&mut self) -> bool { /* ... */ }
+    fn collision_and_car_avoid_manager(&mut self) -> Result<ObstacleDetectionResult> { /* ... */ }
+    fn pedestrian_avoid_manager(&mut self) -> Result<ObstacleDetectionResult> { /* ... */ }
+    fn car_following_manager(&mut self, vehicle: Actor, distance: f64, debug: bool) -> Result<VehicleControl> { /* ... */ }
+    fn tailgating(&mut self, waypoint: &Waypoint, vehicle_list: &ActorList) { /* ... */ }
+    fn emergency_stop(&self) -> VehicleControl { /* ... */ }
+}
+```
+
+```rust
+// carla/src/agents/navigation/constant_velocity_agent.rs
+
+pub struct ConstantVelocityAgent {
+    core: AgentCore,  // Reuses core detection
+
+    // ConstantVelocityAgent-specific state
+    use_basic_behavior: bool,
+    target_speed: f64,  // m/s
+    current_speed: f64,
+    constant_velocity_stop_time: Option<f64>,
+    collision_sensor: Option<Sensor>,
+    restart_time: f64,
+    is_constant_velocity_active: bool,
+}
+
+impl ConstantVelocityAgent {
+    pub fn run_step(&mut self) -> Result<VehicleControl> {
+        if !self.is_constant_velocity_active {
+            // Check restart timer or use basic behavior
+            // ...
+        }
+
+        // Simplified hazard detection (reuses core methods)
+        let mut hazard_speed = self.target_speed;
+
+        // ... vehicle and traffic light checks via core ...
+
+        self.set_constant_velocity(hazard_speed);
+        self.core.local_planner.run_step()
+    }
+
+    fn set_constant_velocity(&mut self, speed: f64) { /* ... */ }
+    fn set_collision_sensor(&mut self) { /* ... */ }
+    pub fn destroy_sensor(&mut self) { /* ... */ }
+}
+```
+
+### Optional: Trait for Polymorphism (If Needed)
+
+If we need to store different agent types in a collection or pass them generically:
+
+```rust
+pub trait Agent {
+    fn run_step(&mut self) -> Result<VehicleControl>;
+    fn done(&self) -> bool;
+    fn set_destination(&mut self, end_location: Location, start_location: Option<Location>);
+    fn set_target_speed(&mut self, speed: f64);
+    // ... common interface methods ...
+}
+
+impl Agent for BasicAgent { /* ... */ }
+impl Agent for BehaviorAgent { /* ... */ }
+impl Agent for ConstantVelocityAgent { /* ... */ }
+
+// Usage (if needed):
+fn run_agent_loop(agent: &mut dyn Agent) {
+    while !agent.done() {
+        let control = agent.run_step().unwrap();
+        // apply control...
+    }
+}
+```
+
+**Decision:** Implement the trait **only if user code requires polymorphism**. For initial implementation, concrete types are sufficient.
+
+### Module Structure
+
+```
+carla/src/agents/
+├── mod.rs                              # Public re-exports
+├── navigation/
+│   ├── mod.rs                          # Navigation module exports
+│   ├── types.rs                        # RoadOption, AgentConfig, etc.
+│   ├── agent_core.rs                   # Shared AgentCore struct
+│   ├── basic_agent.rs                  # BasicAgent struct
+│   ├── behavior_agent.rs               # BehaviorAgent struct + BehaviorType enum
+│   ├── constant_velocity_agent.rs      # ConstantVelocityAgent struct
+│   ├── local_planner.rs                # LocalPlanner
+│   ├── global_route_planner.rs         # GlobalRoutePlanner
+│   ├── controller.rs                   # VehiclePIDController
+│   └── pid.rs                          # PID controller implementations
+└── tools/
+    ├── mod.rs                          # Tools module exports
+    ├── misc.rs                         # Utility functions
+    └── types.rs                        # ObstacleDetectionResult, TrafficLightDetectionResult
+```
+
+### Benefits of This Design
+
+1. **Code Reuse:** All agents share `AgentCore` for common detection logic
+2. **Type Safety:** Each agent is a concrete type with specific behavior
+3. **No Runtime Overhead:** No trait objects unless explicitly needed
+4. **Clear Ownership:** Each agent owns its core, planners, and state
+5. **Extensibility:** Easy to add new agent types by creating new structs with `AgentCore`
+6. **Idiomatic Rust:** Uses composition, not inheritance
+7. **Testing:** Can test `AgentCore` independently from agent types
 
 ## Implementation Phases
 
@@ -408,70 +796,133 @@ VehiclePIDController(vehicle, args_lateral, args_longitudinal, offset=0,
 
 **Work Items:**
 
-- [ ] **A.4.1: BasicAgent Structure**
-  - File: `carla/src/agents/navigation/basic_agent.rs`
-  - Constructor with `opt_dict`
-  - Internal state: LocalPlanner, GlobalRoutePlanner, configuration flags
-  - Tests: Agent instantiation with various configurations
+- [ ] **A.4.1: AgentCore Shared Structure**
+  - File: `carla/src/agents/navigation/agent_core.rs`
+  - Define `AgentCore` struct with vehicle, world, map, planners, flags, config
+  - Constructor: `AgentCore::new(vehicle, map_inst, grp_inst, opt_dict)`
+  - Configuration methods: `ignore_traffic_lights()`, `ignore_vehicles()`, `set_offset()`
+  - Accessor methods: `local_planner()`, `global_planner()`, `vehicle()`, `world()`, `map()`
+  - Tests: Core instantiation and configuration
   - Time: 1 day
 
-- [ ] **A.4.2: BasicAgent Navigation**
-  - Implement `set_destination(end_location, start_location)` - Compute and set route
-  - Implement `set_global_plan(plan)` - Apply pre-computed route
-  - Implement `trace_route(start, end)` - Route computation wrapper
-  - Implement `done()` - Check if destination reached
-  - Implement `get_local_planner()`, `get_global_planner()` - Accessor methods
-  - Tests: Destination setting and route computation
-  - Time: 2 days
-
-- [ ] **A.4.3: BasicAgent Hazard Detection**
-  - Implement `_affected_by_traffic_light()` - Check traffic light state ahead
-  - Implement `_vehicle_obstacle_detected()` - Bounding box intersection check
-  - Use `geo` crate for polygon intersection
-  - Implement `ignore_traffic_lights(active)`, `ignore_vehicles(active)` - Toggle detection
-  - Tests: Hazard detection in controlled scenarios
-  - Time: 3-4 days
-
-- [ ] **A.4.4: BasicAgent Control**
-  - Implement `run_step()` - Main agent control loop
-    1. Check hazards (traffic lights, vehicles)
-    2. Compute target speed (speed limits, hazards, target speed)
-    3. Get control from LocalPlanner
-    4. Apply emergency stop if needed
-  - Implement `add_emergency_stop(control)` - Maximum braking
-  - Implement `set_target_speed(speed)`, `follow_speed_limits(value)`
-  - Tests: Control output validation in various scenarios
+- [ ] **A.4.2: AgentCore Traffic Light Detection**
+  - Implement `affected_by_traffic_light(&mut self, lights_list, max_distance)` → `TrafficLightDetectionResult`
+  - Logic: Check red lights ahead using trigger volume and waypoint matching
+  - Cache traffic light trigger waypoints in `lights_map`
+  - Track `last_traffic_light` for efficiency
+  - Tests: Traffic light detection in various scenarios
   - Time: 2-3 days
 
-- [ ] **A.4.5: BasicAgent Lane Change**
-  - Implement `lane_change(direction, same_lane_time, other_lane_time, lane_change_time)`
-  - Implement `_generate_lane_change_path()` - Create waypoint sequence for lane change
-  - Tests: Lane change trajectory generation and execution
-  - Time: 2 days
-
-- [ ] **A.4.6: BehaviorAgent (Optional)**
-  - File: `carla/src/agents/navigation/behavior_agent.rs`
-  - Extends BasicAgent
-  - Behavior profiles: `Cautious`, `Normal`, `Aggressive` (affect safety margins, speeds)
-  - Additional methods: `car_following_manager`, `pedestrian_avoid_manager`, `tailgating`
-  - Tests: Behavior profile differences measurable
-  - **Note:** Can be deferred if time is limited; Phase 13.1 can use BasicAgent only
+- [ ] **A.4.3: AgentCore Vehicle Obstacle Detection**
+  - Implement `vehicle_obstacle_detected(&self, vehicle_list, max_distance, up_angle_th, low_angle_th, lane_offset)` → `ObstacleDetectionResult`
+  - Two detection modes:
+    1. Bounding box intersection (use `geo` crate polygon intersection)
+    2. Simplified waypoint-based detection
+  - Build route polygon from planned waypoints
+  - Check intersection with target vehicle bounding boxes
+  - Tests: Obstacle detection with various vehicle configurations
   - Time: 3-4 days
 
-- [ ] **A.4.7: ConstantVelocityAgent**
-  - File: `carla/src/agents/navigation/constant_velocity_agent.rs`
-  - Extends BasicAgent
-  - Override: Disable speed limit following and hazard detection
-  - Simple agent for testing purposes
-  - Tests: Constant velocity maintained
+- [ ] **A.4.4: AgentCore Lane Change Path Generation**
+  - Implement static method `generate_lane_change_path(waypoint, direction, distances, ...)`
+  - Generate waypoint sequence: same lane → lane change → other lane
+  - Validate lane change is possible (lane availability, lane markings)
+  - Return `Vec<(Waypoint, RoadOption)>` or empty if impossible
+  - Tests: Lane change path generation for left/right changes
+  - Time: 2 days
+
+- [ ] **A.4.5: BasicAgent Structure and Navigation**
+  - File: `carla/src/agents/navigation/basic_agent.rs`
+  - Define `BasicAgent { core: AgentCore, target_speed, sampling_resolution }`
+  - Constructor: `BasicAgent::new(vehicle, target_speed, opt_dict, map_inst, grp_inst)`
+  - Navigation methods:
+    - `set_destination(end_location, start_location, clean_queue)`
+    - `set_global_plan(plan, stop_waypoint_creation, clean_queue)`
+    - `trace_route(start_waypoint, end_waypoint)`
+    - `done()` - delegates to `core.local_planner.done()`
+  - Tests: Agent instantiation and route planning
+  - Time: 2 days
+
+- [ ] **A.4.6: BasicAgent Control Loop**
+  - Implement `run_step(&mut self)` → `Result<VehicleControl>`
+  - Control flow:
+    1. Get vehicle list and speed
+    2. Check vehicle obstacles (via `core.vehicle_obstacle_detected()`)
+    3. Check traffic lights (via `core.affected_by_traffic_light()`)
+    4. Get control from `core.local_planner.run_step()`
+    5. Apply emergency stop if hazard detected
+  - Implement `add_emergency_stop(control)` - set throttle=0, brake=max_brake
+  - Configuration methods: `set_target_speed()`, `follow_speed_limits()`, `ignore_traffic_lights()`, `ignore_vehicles()`, `set_offset()`
+  - Tests: Control output in various scenarios (clear road, obstacles, red lights)
+  - Time: 2-3 days
+
+- [ ] **A.4.7: BasicAgent Lane Change**
+  - Implement `lane_change(direction, same_lane_time, other_lane_time, lane_change_time)`
+  - Call `AgentCore::generate_lane_change_path()` to generate path
+  - Apply path via `set_global_plan()`
+  - Tests: Lane change execution
   - Time: 1 day
 
+- [ ] **A.4.8: BehaviorAgent Structure and Behavior Types**
+  - File: `carla/src/agents/navigation/behavior_agent.rs`
+  - Define `BehaviorType` enum: `Cautious(BehaviorParams)`, `Normal(BehaviorParams)`, `Aggressive(BehaviorParams)`
+  - Define `BehaviorParams` struct with behavior-specific parameters
+  - Implement `Default` for each behavior preset
+  - Define `BehaviorAgent { core: AgentCore, behavior: BehaviorType, ... }`
+  - Constructor: `BehaviorAgent::new(vehicle, behavior, opt_dict, map_inst, grp_inst)`
+  - Tests: Behavior type instantiation
+  - Time: 1-2 days
+
+- [ ] **A.4.9: BehaviorAgent Advanced Detection**
+  - Implement `update_information(&mut self)` - Update speed, speed limit, direction, look-ahead
+  - Implement `traffic_light_manager(&mut self)` - Wrapper around core detection
+  - Implement `collision_and_car_avoid_manager(&mut self)` - Vehicle detection with lane offset handling
+  - Implement `pedestrian_avoid_manager(&mut self)` - Walker detection
+  - Implement `tailgating(&mut self, waypoint, vehicle_list)` - Lane change opportunity detection
+  - Tests: Detection methods with various scenarios
+  - Time: 3 days
+
+- [ ] **A.4.10: BehaviorAgent Control Logic**
+  - Implement `run_step(&mut self, debug: bool)` → `Result<VehicleControl>`
+  - Control flow (4-tier decision):
+    1. Red lights → emergency stop
+    2. Pedestrians → emergency stop or adjust speed
+    3. Vehicles → car following manager (TTC-based)
+    4. Normal → speed limit compliance
+  - Implement `car_following_manager(vehicle, distance, debug)` - TTC calculation and adaptive speed
+  - Implement `emergency_stop()` - Create emergency stop control
+  - Tests: Behavior agent control in complex scenarios
+  - Time: 3-4 days
+
+- [ ] **A.4.11: ConstantVelocityAgent**
+  - File: `carla/src/agents/navigation/constant_velocity_agent.rs`
+  - Define `ConstantVelocityAgent { core: AgentCore, use_basic_behavior, target_speed, ... }`
+  - Constructor sets up collision sensor listener
+  - Implement `run_step()` - Simplified control with constant velocity override
+  - Implement `set_constant_velocity(speed)` - Use vehicle's constant velocity feature
+  - Implement `set_collision_sensor()` - Attach collision sensor with stop callback
+  - Implement `destroy_sensor()` - Cleanup method
+  - Tests: Constant velocity maintenance and collision handling
+  - Time: 2 days
+
+- [ ] **A.4.12: Optional Agent Trait (If Needed)**
+  - File: `carla/src/agents/navigation/mod.rs`
+  - Define `pub trait Agent` with common interface: `run_step()`, `done()`, `set_destination()`, `set_target_speed()`
+  - Implement `Agent` for `BasicAgent`, `BehaviorAgent`, `ConstantVelocityAgent`
+  - **Decision:** Only implement if Phase 13.1 requires polymorphic agent handling
+  - Tests: Trait object usage
+  - Time: 1 day (optional)
+
 **Success Criteria:**
-- BasicAgent navigates to destination autonomously
+- `AgentCore` provides reusable hazard detection for all agents
+- `BasicAgent` navigates to destination autonomously
 - Traffic light detection works (stops at red lights)
 - Vehicle obstacle detection prevents collisions
 - Lane change maneuvers execute smoothly
-- Agent behavior matches Python BasicAgent in test scenarios
+- `BehaviorAgent` exhibits measurable differences between Cautious/Normal/Aggressive modes
+- `ConstantVelocityAgent` maintains constant speed and handles collisions
+- Agent behavior matches Python agent behavior in test scenarios
+- Code reuse via composition (all agents use same `AgentCore`)
 
 ## Missing Rust APIs
 
