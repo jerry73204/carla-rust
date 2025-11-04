@@ -14,6 +14,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor, Vehicle},
+    geom::{Location, Rotation},
     rpc::AttachmentType,
     sensor::data::Image,
 };
@@ -50,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_points = world.map().recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
     vehicle.set_autopilot(true);
     println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());
@@ -70,10 +71,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("Failed to set RGB camera fov".into());
     }
 
-    let camera_transform = nalgebra::Isometry3::from_parts(
-        nalgebra::Translation3::new(-5.0, 0.0, 3.0), // Behind and above vehicle
-        nalgebra::UnitQuaternion::from_euler_angles(-0.15, 0.0, 0.0), // Slight downward angle
-    );
+    let camera_transform = carla::geom::Transform {
+        location: Location::new(-5.0, 0.0, 3.0), // Behind and above vehicle
+        rotation: Rotation::new(-0.15_f32.to_degrees(), 0.0, 0.0), // Slight downward angle
+    };
 
     let camera_rgb_actor = world.spawn_actor_opt(
         &camera_rgb_bp,
@@ -144,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Display status every 10 ticks
         if tick % 10 == 0 {
-            let location = vehicle.transform().translation;
+            let location = vehicle.transform().location;
             let velocity = vehicle.velocity();
             let speed = (velocity.x.powi(2) + velocity.y.powi(2) + velocity.z.powi(2)).sqrt();
             let rgb_frames = *rgb_frame_count.lock().unwrap();

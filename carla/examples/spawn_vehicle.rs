@@ -44,7 +44,7 @@ fn main() {
 
     // Spawn vehicle
     let vehicle = world
-        .spawn_actor(&vehicle_bp, &spawn_point)
+        .spawn_actor(&vehicle_bp, spawn_point)
         .expect("Failed to spawn vehicle");
 
     println!("✓ Vehicle spawned successfully!");

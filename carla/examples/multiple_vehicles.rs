@@ -42,7 +42,7 @@ fn main() {
     for i in 0..spawn_count {
         let spawn_point = spawn_points.get(i).unwrap();
 
-        match world.spawn_actor(&vehicle_bp, &spawn_point) {
+        match world.spawn_actor(&vehicle_bp, spawn_point) {
             Ok(vehicle) => {
                 println!("  ✓ Vehicle {} spawned (ID: {})", i + 1, vehicle.id());
                 vehicles.push(vehicle);

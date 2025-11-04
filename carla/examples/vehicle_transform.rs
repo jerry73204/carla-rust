@@ -33,7 +33,7 @@ fn main() {
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle = world
-        .spawn_actor(&vehicle_bp, &spawn_point)
+        .spawn_actor(&vehicle_bp, spawn_point)
         .expect("Failed to spawn vehicle");
 
     println!("Vehicle spawned: ID {}\n", vehicle.id());
@@ -42,9 +42,9 @@ fn main() {
     let transform = vehicle.transform();
     println!("Transform:");
     println!("  Translation:");
-    println!("    x: {:.2}", transform.translation.x);
-    println!("    y: {:.2}", transform.translation.y);
-    println!("    z: {:.2}", transform.translation.z);
+    println!("    x: {:.2}", transform.location.x);
+    println!("    y: {:.2}", transform.location.y);
+    println!("    z: {:.2}", transform.location.z);
     println!("  Rotation: {:?}", transform.rotation);
 
     // Get just the location (convenience method)

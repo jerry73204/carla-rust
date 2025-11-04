@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_points = world.map().recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());

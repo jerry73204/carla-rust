@@ -174,9 +174,7 @@ impl AgentCore {
         }
 
         // Simplified implementation: check if any traffic light is red and nearby
-        let vehicle_isometry = self.vehicle.transform();
-        let vehicle_location =
-            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
+        let vehicle_location = self.vehicle.transform().location;
 
         if let Some(ref lights) = self.lights_list {
             for actor in lights.iter() {
@@ -189,9 +187,7 @@ impl AgentCore {
                     }
 
                     // Check distance
-                    let light_isometry = traffic_light.transform();
-                    let light_location =
-                        crate::geom::Location::from_na_translation(&light_isometry.translation);
+                    let light_location = traffic_light.transform().location;
                     let distance = ((vehicle_location.x - light_location.x).powi(2)
                         + (vehicle_location.y - light_location.y).powi(2))
                     .sqrt();
@@ -234,8 +230,7 @@ impl AgentCore {
         }
 
         // Get vehicle waypoint
-        let vehicle_isometry = self.vehicle.transform();
-        let vehicle_location = Location::from_na_translation(&vehicle_isometry.translation);
+        let vehicle_location = self.vehicle.transform().location;
         let vehicle_waypoint = self
             .map
             .waypoint_at(&vehicle_location)
@@ -258,13 +253,8 @@ impl AgentCore {
                     // Check if vehicle's waypoint is in the affected waypoints
                     for trigger_wp in affected_waypoints.iter() {
                         // Check if trigger waypoint is close to vehicle waypoint
-                        let trigger_isometry = trigger_wp.transform();
-                        let trigger_loc = crate::geom::Location::from_na_translation(
-                            &trigger_isometry.translation,
-                        );
-                        let vehicle_loc = crate::geom::Location::from_na_translation(
-                            &vehicle_isometry.translation,
-                        );
+                        let trigger_loc = trigger_wp.transform().location;
+                        let vehicle_loc = vehicle_location;
 
                         let distance = ((trigger_loc.x - vehicle_loc.x).powi(2)
                             + (trigger_loc.y - vehicle_loc.y).powi(2))
@@ -307,12 +297,8 @@ impl AgentCore {
 
         let vehicle_list = self.world.actors().filter("*vehicle*");
 
-        let vehicle_isometry = self.vehicle.transform();
-        let vehicle_location =
-            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
-
-        // Convert isometry to our Transform type to get rotation
-        let vehicle_transform = crate::geom::Transform::from_na(&vehicle_isometry);
+        let vehicle_transform = self.vehicle.transform();
+        let vehicle_location = vehicle_transform.location;
         let vehicle_forward = vehicle_transform.rotation.forward_vector();
 
         for actor in vehicle_list.iter() {
@@ -321,9 +307,7 @@ impl AgentCore {
                 continue;
             }
 
-            let other_isometry = actor.transform();
-            let other_location =
-                crate::geom::Location::from_na_translation(&other_isometry.translation);
+            let other_location = actor.transform().location;
 
             // Check distance
             let dx = other_location.x - vehicle_location.x;
@@ -392,9 +376,8 @@ impl AgentCore {
 
         for (waypoint, _) in route_waypoints.iter().take(20) {
             // Look ahead at most 20 waypoints
-            let wp_isometry = waypoint.transform();
-            let wp_transform = crate::geom::Transform::from_na(&wp_isometry);
-            let wp_loc = crate::geom::Location::from_na_translation(&wp_isometry.translation);
+            let wp_transform = waypoint.transform();
+            let wp_loc = wp_transform.location;
 
             // Get forward and right vectors
             let forward = wp_transform.rotation.forward_vector();
@@ -414,9 +397,8 @@ impl AgentCore {
 
         // Add right side in reverse to close the polygon
         for (waypoint, _) in route_waypoints.iter().take(20).rev() {
-            let wp_isometry = waypoint.transform();
-            let wp_transform = crate::geom::Transform::from_na(&wp_isometry);
-            let wp_loc = crate::geom::Location::from_na_translation(&wp_isometry.translation);
+            let wp_transform = waypoint.transform();
+            let wp_loc = wp_transform.location;
 
             let forward = wp_transform.rotation.forward_vector();
             let right = crate::geom::Vector3D {
@@ -442,9 +424,7 @@ impl AgentCore {
 
         // Check each vehicle for intersection
         let vehicle_list = self.world.actors().filter("*vehicle*");
-        let vehicle_isometry = self.vehicle.transform();
-        let vehicle_location =
-            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
+        let vehicle_location = self.vehicle.transform().location;
 
         for actor in vehicle_list.iter() {
             // Skip self
@@ -453,9 +433,8 @@ impl AgentCore {
             }
 
             // Distance check first for efficiency
-            let other_isometry = actor.transform();
-            let other_location =
-                crate::geom::Location::from_na_translation(&other_isometry.translation);
+            let other_transform = actor.transform();
+            let other_location = other_transform.location;
 
             let dx = other_location.x - vehicle_location.x;
             let dy = other_location.y - vehicle_location.y;
@@ -470,7 +449,7 @@ impl AgentCore {
                 let bbox = other_vehicle.bounding_box();
 
                 // Build bounding box polygon in world coordinates
-                let bbox_transform = crate::geom::Transform::from_na(&other_isometry);
+                let bbox_transform = other_transform;
 
                 // Get bounding box corners (in local coordinates)
                 let extent = &bbox.extent;

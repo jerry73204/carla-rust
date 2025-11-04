@@ -49,11 +49,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle for impulse test...");
 
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle1 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle1.id());
-    println!("Initial position: {:?}", vehicle1.transform().translation);
+    println!("Initial position: {:?}", vehicle1.transform().location);
 
     // Tick the simulation to settle the vehicle
     for _ in 0..10 {
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         world.tick();
 
         if i % 10 == 0 {
-            let pos = vehicle1.transform().translation;
+            let pos = vehicle1.transform().location;
             let vel = vehicle1.velocity();
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",
@@ -94,11 +94,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle for force test...");
 
     let spawn_point = spawn_points.get(1).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle2 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle2.id());
-    println!("Initial position: {:?}", vehicle2.transform().translation);
+    println!("Initial position: {:?}", vehicle2.transform().location);
 
     // Tick to settle
     for _ in 0..10 {
@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         world.tick();
 
         if i % 10 == 0 {
-            let pos = vehicle2.transform().translation;
+            let pos = vehicle2.transform().location;
             let vel = vehicle2.velocity();
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",
@@ -137,7 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle for torque test...");
 
     let spawn_point = spawn_points.get(2).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle3 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle3.id());
@@ -158,14 +158,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if i % 10 == 0 {
             let angular_vel = vehicle3.angular_velocity();
             let transform = vehicle3.transform();
-            let euler = transform.rotation.euler_angles();
             println!(
                 "  t={:.1}s: angular_vel=({:.1}, {:.1}, {:.1}), yaw={:.1}°",
                 i as f32 * 0.05,
                 angular_vel.x,
                 angular_vel.y,
                 angular_vel.z,
-                euler.2.to_degrees() // yaw is the third Euler angle
+                transform.rotation.yaw
             );
         }
     }
@@ -177,7 +176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle for combined test...");
 
     let spawn_point = spawn_points.get(3).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle4 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle4.id());
@@ -201,7 +200,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         world.tick();
 
         if i % 15 == 0 {
-            let pos = vehicle4.transform().translation;
+            let pos = vehicle4.transform().location;
             let vel = vehicle4.velocity();
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",

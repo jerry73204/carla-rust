@@ -8,7 +8,10 @@
 //! - Phase 5.3: Collision intensity graph (200 frame rolling window)
 
 use carla::{
-    client::Sensor, prelude::*, rpc::AttachmentType,
+    client::Sensor,
+    geom::{Location, Rotation},
+    prelude::*,
+    rpc::AttachmentType,
     sensor::data::CollisionEvent as CarlaCollisionEvent,
 };
 use eyre::{eyre, Result};
@@ -63,11 +66,15 @@ impl CollisionSensor {
         info!("Spawning collision sensor");
 
         // Spawn collision sensor attached to vehicle
+        let transform = &carla::geom::Transform {
+            location: Location::new(0.0, 0.0, 0.0),
+            rotation: Rotation::new(0.0, 0.0, 0.0),
+        };
         let collision_actor = world
             .world
             .spawn_actor_opt(
                 &collision_bp,
-                &nalgebra::Isometry3::identity(),
+                transform,
                 Some(player),
                 AttachmentType::Rigid,
             )

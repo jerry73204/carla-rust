@@ -253,7 +253,7 @@ impl World {
         let mut player = None;
         for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
             info!("Trying to spawn vehicle at spawn point {}", i);
-            match world.spawn_actor(&blueprint, &spawn_point) {
+            match world.spawn_actor(&blueprint, spawn_point) {
                 Ok(actor) => {
                     player = Some(
                         Vehicle::try_from(actor)

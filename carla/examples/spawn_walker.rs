@@ -43,7 +43,7 @@ fn main() {
 
     // Spawn walker
     let walker = world
-        .spawn_actor(&walker_bp, &spawn_point)
+        .spawn_actor(&walker_bp, spawn_point)
         .expect("Failed to spawn walker");
 
     println!("✓ Walker spawned successfully!");

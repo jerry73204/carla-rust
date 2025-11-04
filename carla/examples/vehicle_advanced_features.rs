@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     println!("\nSpawning vehicle at spawn point 0...");
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
 
     let vehicle: carla::client::Vehicle = actor
         .try_into()

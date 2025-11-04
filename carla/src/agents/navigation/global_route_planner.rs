@@ -69,8 +69,7 @@ impl GlobalRoutePlanner {
         for (start_wp, end_wp) in topology.iter() {
             // Add start waypoint if not already present
             if !self.waypoint_to_node.contains_key(&start_wp.id()) {
-                let isometry = start_wp.transform();
-                let location = Location::from_na_translation(&isometry.translation);
+                let location = start_wp.transform().location;
                 let node = RoadNode {
                     waypoint: start_wp.clone(),
                     location,
@@ -81,8 +80,7 @@ impl GlobalRoutePlanner {
 
             // Add end waypoint if not already present
             if !self.waypoint_to_node.contains_key(&end_wp.id()) {
-                let isometry = end_wp.transform();
-                let location = Location::from_na_translation(&isometry.translation);
+                let location = end_wp.transform().location;
                 let node = RoadNode {
                     waypoint: end_wp.clone(),
                     location,
@@ -98,10 +96,8 @@ impl GlobalRoutePlanner {
             let end_idx = self.waypoint_to_node[&end_wp.id()];
 
             // Calculate edge length
-            let start_isometry = start_wp.transform();
-            let start_loc = Location::from_na_translation(&start_isometry.translation);
-            let end_isometry = end_wp.transform();
-            let end_loc = Location::from_na_translation(&end_isometry.translation);
+            let start_loc = start_wp.transform().location;
+            let end_loc = end_wp.transform().location;
 
             let length = ((end_loc.x - start_loc.x).powi(2)
                 + (end_loc.y - start_loc.y).powi(2)
@@ -168,8 +164,8 @@ impl GlobalRoutePlanner {
     /// Computes the RoadOption for an edge based on the turn angle.
     fn compute_road_option(&self, start_wp: &Waypoint, end_wp: &Waypoint) -> RoadOption {
         // Get transforms
-        let start_transform = crate::geom::Transform::from_na(&start_wp.transform());
-        let end_transform = crate::geom::Transform::from_na(&end_wp.transform());
+        let start_transform = start_wp.transform();
+        let end_transform = end_wp.transform();
 
         // Get forward vectors
         let start_forward = start_transform.rotation.forward_vector();
@@ -275,8 +271,7 @@ impl GlobalRoutePlanner {
 
     /// Finds the closest node in the graph to the given waypoint.
     fn find_closest_node(&self, waypoint: &Waypoint) -> Result<NodeIndex> {
-        let wp_isometry = waypoint.transform();
-        let wp_loc = Location::from_na_translation(&wp_isometry.translation);
+        let wp_loc = waypoint.transform().location;
 
         // Check if waypoint is directly in the graph
         if let Some(&node_idx) = self.waypoint_to_node.get(&waypoint.id()) {

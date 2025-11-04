@@ -7,7 +7,12 @@
 //! - Phase 5.2: GPS coordinate tracking
 //! - Phase 5.2: Display in HUD with 6 decimal precision
 
-use carla::{client::Sensor, rpc::AttachmentType, sensor::data::GnssMeasurement};
+use carla::{
+    client::Sensor,
+    geom::{Location, Rotation, Transform},
+    rpc::AttachmentType,
+    sensor::data::GnssMeasurement,
+};
 use eyre::{eyre, Result};
 use std::sync::{Arc, Mutex};
 use tracing::info;
@@ -58,10 +63,10 @@ impl GnssSensor {
         info!("Spawning GNSS sensor");
 
         // Set sensor location (x=1.0, z=2.8)
-        let transform = nalgebra::Isometry3::new(
-            nalgebra::Vector3::new(1.0, 0.0, 2.8),
-            nalgebra::Vector3::new(0.0, 0.0, 0.0),
-        );
+        let transform = Transform {
+            location: Location::new(1.0, 0.0, 2.8),
+            rotation: Rotation::new(0.0, 0.0, 0.0),
+        };
 
         // Spawn GNSS sensor attached to vehicle
         let gnss_actor = world

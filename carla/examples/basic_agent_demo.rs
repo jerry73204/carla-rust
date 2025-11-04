@@ -39,7 +39,7 @@ fn main() -> Result<()> {
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
 
-    let spawn_point = &spawn_points.as_slice()[0].to_na();
+    let spawn_point = &spawn_points.as_slice()[0];
     let vehicle = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = carla::client::Vehicle::try_from(vehicle)
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
@@ -79,8 +79,8 @@ fn main() -> Result<()> {
         vehicle.apply_control(&control);
 
         if step_count % 100 == 0 {
-            let isometry = vehicle.transform();
-            let location = carla::geom::Location::from_na_translation(&isometry.translation);
+            let transform = vehicle.transform();
+            let location = transform.location;
             println!(
                 "Step {}: Location ({:.1}, {:.1}, {:.1}), throttle={:.2}, brake={:.2}, steer={:.2}",
                 step_count,

@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_points = world.map().recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle.id());
@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Get vehicle state
         let transform = vehicle.transform();
-        let location = transform.translation;
+        let location = transform.location;
         let velocity = vehicle.velocity();
         let speed = (velocity.x.powi(2) + velocity.y.powi(2) + velocity.z.powi(2)).sqrt();
         let control = vehicle.control();
@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Final statistics
-    let final_location = vehicle.transform().translation;
+    let final_location = vehicle.transform().location;
     let final_velocity = vehicle.velocity();
     let final_speed =
         (final_velocity.x.powi(2) + final_velocity.y.powi(2) + final_velocity.z.powi(2)).sqrt();

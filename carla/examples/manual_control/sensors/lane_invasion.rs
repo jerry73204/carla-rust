@@ -7,7 +7,12 @@
 //! - Phase 5.4: Lane marking crossing detection
 //! - Phase 5.4: Lane type identification and notification
 
-use carla::{client::Sensor, rpc::AttachmentType, sensor::data::LaneInvasionEvent};
+use carla::{
+    client::Sensor,
+    geom::{Location, Rotation, Transform},
+    rpc::AttachmentType,
+    sensor::data::LaneInvasionEvent,
+};
 use eyre::{eyre, Result};
 use std::sync::{Arc, Mutex};
 use tracing::{info, warn};
@@ -52,7 +57,10 @@ impl LaneInvasionSensor {
             .world
             .spawn_actor_opt(
                 &lane_invasion_bp,
-                &nalgebra::Isometry3::identity(),
+                &Transform {
+                    location: Location::new(0.0, 0.0, 0.0),
+                    rotation: Rotation::new(0.0, 0.0, 0.0),
+                },
                 Some(player),
                 AttachmentType::Rigid,
             )

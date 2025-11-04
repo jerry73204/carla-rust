@@ -146,9 +146,9 @@ impl Hud {
                     .sqrt();
             self.speed_kmh = velocity_ms * 3.6; // m/s to km/h
 
-            // Get location from transform translation
-            let translation = transform.translation;
-            self.location = (translation.x, translation.y, translation.z);
+            // Get location from transform
+            let location = transform.location;
+            self.location = (location.x, location.y, location.z);
 
             // Get vehicle blueprint ID as name
             if self.vehicle_name.is_empty() {
@@ -195,7 +195,7 @@ impl Hud {
             None => return,
         };
 
-        let player_location = player.transform().translation;
+        let player_location = player.transform().location;
 
         // Get all actors and filter for vehicles
         let actors = world.world.actors();
@@ -209,7 +209,7 @@ impl Hud {
         let mut nearby: Vec<(String, f32)> = vehicles
             .iter()
             .map(|v| {
-                let v_location = v.transform().translation;
+                let v_location = v.transform().location;
                 let dx = v_location.x - player_location.x;
                 let dy = v_location.y - player_location.y;
                 let distance = (dx * dx + dy * dy).sqrt();

@@ -13,7 +13,6 @@ use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiWaypoint;
 use cxx::SharedPtr;
 use derivative::Derivative;
-use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
 /// A waypoint on a map.
@@ -46,8 +45,9 @@ impl Waypoint {
         self.inner.GetDistance()
     }
 
-    pub fn transform(&self) -> Isometry3<f32> {
-        Transform::from_ffi(self.inner.GetTransform()).to_na()
+    /// Returns the transform (position and rotation) of this waypoint.
+    pub fn transform(&self) -> Transform {
+        Transform::from_ffi(self.inner.GetTransform())
     }
 
     pub fn junction_id(&self) -> JuncId {

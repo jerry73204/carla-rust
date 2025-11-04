@@ -164,13 +164,8 @@ impl LocalPlanner {
         let (target_waypoint, _) = &self.waypoints_queue[0];
 
         // Check if we need to advance to next waypoint
-        let vehicle_isometry = self.vehicle.transform();
-        let vehicle_location =
-            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
-
-        let waypoint_isometry = target_waypoint.transform();
-        let waypoint_location =
-            crate::geom::Location::from_na_translation(&waypoint_isometry.translation);
+        let vehicle_location = self.vehicle.transform().location;
+        let waypoint_location = target_waypoint.transform().location;
 
         let distance = ((vehicle_location.x - waypoint_location.x).powi(2)
             + (vehicle_location.y - waypoint_location.y).powi(2)
@@ -197,9 +192,7 @@ impl LocalPlanner {
 
         // Get target waypoint (might be updated after pop)
         let (target_waypoint, _) = &self.waypoints_queue[0];
-        let target_isometry = target_waypoint.transform();
-        let target_location =
-            crate::geom::Location::from_na_translation(&target_isometry.translation);
+        let target_location = target_waypoint.transform().location;
 
         // Determine target speed
         let target_speed = self.target_speed;

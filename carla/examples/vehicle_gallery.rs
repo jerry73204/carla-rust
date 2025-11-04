@@ -13,7 +13,10 @@
 //! cargo run --example vehicle_gallery
 //! ```
 
-use carla::client::{ActorBase, Client, Vehicle};
+use carla::{
+    client::{ActorBase, Client, Vehicle},
+    geom::{Location, Rotation, Transform},
+};
 use std::{thread, time::Duration};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -60,28 +63,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // Spawn the vehicle
-        match world.spawn_actor(blueprint, &spawn_point) {
+        match world.spawn_actor(blueprint, spawn_point) {
             Ok(actor) => {
                 if let Ok(vehicle) = Vehicle::try_from(actor) {
                     // Position camera to view the vehicle
                     let vehicle_transform = vehicle.transform();
-                    let vehicle_location = vehicle_transform.translation;
+                    let vehicle_location = vehicle_transform.location;
 
                     // Create camera transform: 8m behind and 3m above the vehicle
-                    let camera_transform = nalgebra::Isometry3::from_parts(
-                        nalgebra::Translation3::new(
+                    let camera_transform = Transform {
+                        location: Location::new(
                             vehicle_location.x - 8.0,
                             vehicle_location.y,
                             vehicle_location.z + 3.0,
                         ),
-                        nalgebra::UnitQuaternion::from_euler_angles(
-                            0.0,
-                            0.0,
-                            -20.0_f32.to_radians(),
-                        ),
-                    );
+                        rotation: Rotation::new(0.0, 0.0, -20.0_f32.to_degrees()),
+                    };
 
-                    spectator.set_transform(&camera_transform);
+                    spectator.set_transform(&camera_transform.to_na());
 
                     // Display vehicle for 3 seconds
                     thread::sleep(Duration::from_secs(3));

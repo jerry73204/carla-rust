@@ -75,7 +75,7 @@ impl<'a> ActorBuilder<'a> {
         T: Into<Option<AttachmentType>>,
     {
         self.world
-            .spawn_actor_opt(&self.blueprint, &transform.to_na(), parent, attachment_type)
+            .spawn_actor_opt(&self.blueprint, &transform, parent, attachment_type)
     }
 
     /// Spawns a vehicle at the given transform.

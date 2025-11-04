@@ -1,12 +1,7 @@
 //! High-level vehicle PID controller combining lateral and longitudinal control.
 
 use super::pid::{PIDLateralController, PIDLongitudinalController, PIDParams};
-use crate::{
-    agents::tools::get_speed,
-    client::ActorBase,
-    geom::{Location, Transform},
-    rpc::VehicleControl,
-};
+use crate::{agents::tools::get_speed, client::ActorBase, geom::Location, rpc::VehicleControl};
 
 /// Combined PID controller for vehicle control.
 ///
@@ -133,8 +128,7 @@ impl VehiclePIDController {
         waypoint: &Location,
     ) -> anyhow::Result<VehicleControl> {
         // Get vehicle state
-        // Convert nalgebra Isometry3 to CARLA Transform at the boundary
-        let vehicle_transform = Transform::from_na(&vehicle.transform());
+        let vehicle_transform = vehicle.transform();
         let current_speed = get_speed(vehicle);
 
         // Apply lateral offset to waypoint

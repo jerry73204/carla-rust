@@ -29,7 +29,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor},
-    geom::Location,
+    geom::{Location, Rotation},
     rpc::{AttachmentType, EpisodeSettings},
     sensor::{
         camera::{build_projection_matrix, project_to_2d, world_to_camera},
@@ -37,7 +37,7 @@ use carla::{
         SensorDataBase,
     },
 };
-use nalgebra::{Point3, Translation3, UnitQuaternion};
+use nalgebra::Point3;
 use std::{
     fs,
     sync::{Arc, Mutex},
@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_points = world.map().recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
     let vehicle = world
-        .spawn_actor(&vehicle_bp, &spawn_point)
+        .spawn_actor(&vehicle_bp, spawn_point)
         .map_err(|e| format!("Failed to spawn vehicle: {:?}", e))?;
 
     println!("Spawned vehicle at spawn point 0");
@@ -135,10 +135,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Enabled autopilot");
 
     // Attach camera (front center, at windshield height)
-    let camera_transform = nalgebra::Isometry3::from_parts(
-        Translation3::new(1.6, 0.0, 1.6),
-        UnitQuaternion::identity(),
-    );
+    let camera_transform = carla::geom::Transform {
+        location: Location::new(1.6, 0.0, 1.6),
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
     let camera_actor = world
         .spawn_actor_opt(
             &camera_bp,
@@ -151,10 +151,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Attached RGB camera");
 
     // Attach LiDAR (slightly above camera)
-    let lidar_transform = nalgebra::Isometry3::from_parts(
-        Translation3::new(1.0, 0.0, 1.8),
-        UnitQuaternion::identity(),
-    );
+    let lidar_transform = carla::geom::Transform {
+        location: Location::new(1.0, 0.0, 1.8),
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
     let lidar_actor = world
         .spawn_actor_opt(
             &lidar_bp,

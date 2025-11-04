@@ -34,10 +34,10 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor, Vehicle},
+    geom::{Location, Rotation, Transform},
     rpc::AttachmentType,
     sensor::data::{Image, LidarMeasurement},
 };
-use nalgebra::{Translation3, UnitQuaternion};
 use std::{
     fs,
     sync::{Arc, Mutex},
@@ -83,17 +83,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let vehicle_actor = world
-        .spawn_actor(&vehicle_bp, &spawn_point)
+        .spawn_actor(&vehicle_bp, spawn_point)
         .map_err(|e| format!("Failed to spawn vehicle: {:?}", e))?;
     let vehicle = Vehicle::try_from(vehicle_actor).map_err(|_| "Failed to convert to vehicle")?;
     vehicle.set_autopilot(true);
     println!(" Vehicle spawned with autopilot\n");
 
     // Define sensor mount position (front hood)
-    let sensor_transform = nalgebra::Isometry3::from_parts(
-        Translation3::new(2.0, 0.0, 1.5),
-        UnitQuaternion::identity(),
-    );
+    let sensor_transform = Transform {
+        location: Location::new(2.0, 0.0, 1.5),
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
 
     // ========================================================================
     // Configure and spawn sensors
@@ -142,10 +142,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("Failed to set lidar points_per_second".into());
     }
 
-    let lidar_transform = nalgebra::Isometry3::from_parts(
-        Translation3::new(0.0, 0.0, 2.5),
-        UnitQuaternion::identity(),
-    );
+    let lidar_transform = Transform {
+        location: Location::new(0.0, 0.0, 2.5),
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
     let lidar_sensor = spawn_sensor(&mut world, &lidar_bp, &lidar_transform, &vehicle)?;
     println!("   LiDAR\n");
 
@@ -292,7 +292,7 @@ fn configure_camera(
 fn spawn_sensor(
     world: &mut carla::client::World,
     bp: &carla::client::ActorBlueprint,
-    transform: &nalgebra::Isometry3<f32>,
+    transform: &Transform,
     parent: &Vehicle,
 ) -> Result<Sensor, Box<dyn std::error::Error>> {
     let actor = world.spawn_actor_opt(bp, transform, Some(parent), AttachmentType::Rigid)?;

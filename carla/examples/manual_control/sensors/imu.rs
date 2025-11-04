@@ -7,7 +7,12 @@
 //! - Phase 5.1: IMU data tracking with value clamping
 //! - Phase 5.1: Compass heading with cardinal directions
 
-use carla::{client::Sensor, rpc::AttachmentType, sensor::data::ImuMeasurement};
+use carla::{
+    client::Sensor,
+    geom::{Location, Rotation, Transform},
+    rpc::AttachmentType,
+    sensor::data::ImuMeasurement,
+};
 use eyre::{eyre, Result};
 use std::sync::{Arc, Mutex};
 use tracing::info;
@@ -64,7 +69,10 @@ impl IMUSensor {
             .world
             .spawn_actor_opt(
                 &imu_bp,
-                &nalgebra::Isometry3::identity(),
+                &Transform {
+                    location: Location::new(0.0, 0.0, 0.0),
+                    rotation: Rotation::new(0.0, 0.0, 0.0),
+                },
                 Some(player),
                 AttachmentType::Rigid,
             )

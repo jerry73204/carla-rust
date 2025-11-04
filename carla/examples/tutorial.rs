@@ -17,6 +17,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor, Vehicle},
+    geom::Location,
     sensor::data::Image,
 };
 use std::{
@@ -57,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Spawn vehicle
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle.id());
@@ -91,10 +92,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Create transform for camera (mounted on vehicle roof)
-    let camera_transform = nalgebra::Isometry3::from_parts(
-        nalgebra::Translation3::new(0.0, 0.0, 2.0), // 2m above vehicle
-        nalgebra::UnitQuaternion::identity(),
-    );
+    let camera_transform = carla::geom::Transform {
+        location: Location::new(0.0, 0.0, 2.0), // 2m above vehicle
+        rotation: carla::geom::Rotation::new(0.0, 0.0, 0.0),
+    };
 
     // Spawn camera attached to vehicle
     use carla::rpc::AttachmentType;

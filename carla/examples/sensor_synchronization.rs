@@ -14,6 +14,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor, Vehicle},
+    geom::{Location, Rotation},
     rpc::AttachmentType,
     sensor::data::{Image, LidarMeasurement},
 };
@@ -50,21 +51,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spawn_points = world.map().recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
-    let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
+    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
     vehicle.set_autopilot(true);
     println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());
 
     // Define sensor transforms
-    let camera_transform = nalgebra::Isometry3::from_parts(
-        nalgebra::Translation3::new(2.0, 0.0, 1.5), // Front hood position
-        nalgebra::UnitQuaternion::identity(),
-    );
+    let camera_transform = carla::geom::Transform {
+        location: Location::new(2.0, 0.0, 1.5), // Front hood position
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
 
-    let lidar_transform = nalgebra::Isometry3::from_parts(
-        nalgebra::Translation3::new(0.0, 0.0, 2.5), // Roof position
-        nalgebra::UnitQuaternion::identity(),
-    );
+    let lidar_transform = carla::geom::Transform {
+        location: Location::new(0.0, 0.0, 2.5), // Roof position
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
 
     println!("Spawning sensors...");
 

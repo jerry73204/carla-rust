@@ -75,9 +75,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get(rng.gen_range(0..vehicle_blueprints.len()))
             .ok_or("Failed to get vehicle blueprint")?;
         let spawn_point = spawn_points.get(i).ok_or("No spawn point available")?;
-        let transform = Transform::from_na(&spawn_point);
 
-        vehicle_spawn_commands.push(Command::spawn_actor(vehicle_bp.clone(), transform, None));
+        vehicle_spawn_commands.push(Command::spawn_actor(
+            vehicle_bp.clone(),
+            spawn_point.clone(),
+            None,
+        ));
     }
 
     println!("Spawning vehicles in batch...");

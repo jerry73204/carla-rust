@@ -23,7 +23,7 @@ use carla_sys::carla_rust::{
 };
 use cxx::{let_cxx_string, CxxVector, UniquePtr};
 use derivative::Derivative;
-use nalgebra::{Isometry3, Translation3, Vector3};
+use nalgebra::{Translation3, Vector3};
 use static_assertions::assert_impl_all;
 use std::{ptr, time::Duration};
 
@@ -296,7 +296,7 @@ impl World {
     pub fn spawn_actor(
         &mut self,
         blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
+        transform: &Transform,
     ) -> Result<Actor> {
         self.spawn_actor_opt::<Actor, _>(blueprint, transform, None, None)
     }
@@ -344,7 +344,7 @@ impl World {
     pub fn spawn_actor_opt<A, T>(
         &mut self,
         blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
+        transform: &Transform,
         parent: Option<&A>,
         attachment_type: T,
     ) -> Result<Actor>
@@ -361,7 +361,7 @@ impl World {
                 .and_then(|parent| parent.as_ref())
                 .map(|ref_| ref_ as *const _ as *mut _)
                 .unwrap_or(ptr::null_mut());
-            let ffi_transform = Transform::from_na(transform);
+            let ffi_transform = transform.clone();
             #[cfg(carla_0916)]
             let actor = {
                 use cxx::let_cxx_string;
@@ -382,7 +382,7 @@ impl World {
                 attachment_type,
             );
             Actor::from_cxx(actor)
-                .ok_or_else(|| anyhow!("Unable to spawn an actor with transform {}", transform))
+                .ok_or_else(|| anyhow!("Unable to spawn an actor with transform {:?}", transform))
         }
     }
 
@@ -438,7 +438,7 @@ impl World {
     pub fn spawn_actor_attached<A, T>(
         &mut self,
         blueprint: &ActorBlueprint,
-        transform: &Isometry3<f32>,
+        transform: &Transform,
         parent: &A,
         attachment_type: T,
     ) -> Result<Actor>

@@ -95,8 +95,8 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's current transform (position and rotation).
-    fn transform(&self) -> Isometry3<f32> {
-        Transform::from_ffi(self.cxx_actor().GetTransform()).to_na()
+    fn transform(&self) -> Transform {
+        Transform::from_ffi(self.cxx_actor().GetTransform())
     }
 
     /// Returns the actor's velocity vector in m/s.

@@ -35,7 +35,7 @@ fn main() -> Result<()> {
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
 
-    let spawn_point = &spawn_points.as_slice()[0].to_na();
+    let spawn_point = &spawn_points.as_slice()[0];
     let vehicle = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = carla::client::Vehicle::try_from(vehicle)
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;

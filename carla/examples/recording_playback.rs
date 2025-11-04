@@ -41,7 +41,7 @@ fn main() {
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle = world
-        .spawn_actor(&vehicle_bp, &spawn_point)
+        .spawn_actor(&vehicle_bp, spawn_point)
         .expect("Failed to spawn vehicle");
     let vehicle = Vehicle::try_from(vehicle).expect("Actor is not a vehicle");
 

@@ -38,7 +38,7 @@ fn main() {
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let walker_actor = world
-        .spawn_actor(&walker_bp, &spawn_point)
+        .spawn_actor(&walker_bp, spawn_point)
         .expect("Failed to spawn walker");
 
     let walker: Walker = walker_actor

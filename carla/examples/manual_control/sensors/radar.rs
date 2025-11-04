@@ -9,7 +9,7 @@
 
 use carla::{
     client::Sensor,
-    geom::Location,
+    geom::{Location, Rotation},
     rpc::{AttachmentType, Color},
     sensor::data::RadarMeasurement,
 };
@@ -59,10 +59,10 @@ impl RadarSensor {
         info!("Spawning radar sensor with FOV 35°x20°");
 
         // Position radar at the front of the vehicle
-        let radar_transform = nalgebra::Isometry3::new(
-            nalgebra::Vector3::new(2.5, 0.0, 1.0),
-            nalgebra::Vector3::zeros(),
-        );
+        let radar_transform = carla::geom::Transform {
+            location: Location::new(2.5, 0.0, 1.0),
+            rotation: Rotation::new(0.0, 0.0, 0.0),
+        };
 
         // Spawn radar sensor attached to vehicle
         let radar_actor = world

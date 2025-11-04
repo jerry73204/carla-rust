@@ -35,7 +35,7 @@ fn main() {
     // Display first few spawn points
     println!("\nFirst 3 spawn points:");
     for (i, point) in spawn_points.iter().take(3).enumerate() {
-        let loc = &point.translation;
+        let loc = &point.location;
         println!("  {}: x={:.2}, y={:.2}, z={:.2}", i, loc.x, loc.y, loc.z);
     }
 

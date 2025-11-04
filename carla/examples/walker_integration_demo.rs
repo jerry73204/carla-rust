@@ -13,10 +13,9 @@
 
 use carla::{
     client::{ActorBase, Client, Walker, WalkerAIController},
-    geom::{FfiVector3D, Vector3D},
+    geom::{FfiVector3D, Location, Rotation, Transform, Vector3D},
     rpc::{AttachmentType, WalkerControl},
 };
-use nalgebra::{Isometry3, Translation3, UnitQuaternion};
 use std::{thread, time::Duration};
 
 /// Helper function to connect to CARLA
@@ -40,7 +39,7 @@ fn spawn_walker(client: &Client) -> Walker {
     for i in 0..spawn_points.len().min(10) {
         let spawn_point = spawn_points.get(i).expect("No spawn points available");
 
-        if let Ok(actor) = world.spawn_actor(&walker_bp, &spawn_point) {
+        if let Ok(actor) = world.spawn_actor(&walker_bp, spawn_point) {
             return actor.try_into().expect("Failed to cast to Walker");
         }
     }
@@ -59,8 +58,10 @@ fn spawn_walker_ai_controller(client: &Client, walker: &Walker) -> WalkerAIContr
 
     // AI controller must be spawned attached to the walker as parent
     // Use identity transform (no offset from walker)
-    let transform =
-        Isometry3::from_parts(Translation3::new(0.0, 0.0, 0.0), UnitQuaternion::identity());
+    let transform = Transform {
+        location: Location::new(0.0, 0.0, 0.0),
+        rotation: Rotation::new(0.0, 0.0, 0.0),
+    };
 
     let actor = world
         .spawn_actor_opt(&ai_bp, &transform, Some(walker), AttachmentType::Rigid)

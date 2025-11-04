@@ -12,7 +12,6 @@ use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::{FfiMap, FfiTransformList};
 use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
-use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
 /// Represents the map of the simulation, Corresponds to [`carla.Map`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map) in the Python API.
@@ -337,13 +336,13 @@ impl RecommendedSpawnPoints {
     /// Gets the spawn point at the given index.
     ///
     /// Returns `None` if the index is out of bounds.
-    pub fn get(&self, index: usize) -> Option<Isometry3<f32>> {
-        Some(self.as_slice().get(index)?.to_na())
+    pub fn get(&self, index: usize) -> Option<&Transform> {
+        self.as_slice().get(index)
     }
 
     /// Returns an iterator over all spawn points.
-    pub fn iter(&self) -> impl Iterator<Item = Isometry3<f32>> + Send + '_ {
-        self.as_slice().iter().map(|trans| trans.to_na())
+    pub fn iter(&self) -> impl Iterator<Item = &Transform> + Send + '_ {
+        self.as_slice().iter()
     }
 
     fn from_cxx(ptr: UniquePtr<FfiTransformList>) -> Option<Self> {

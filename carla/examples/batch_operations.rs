@@ -20,7 +20,7 @@
 
 use carla::{
     client::Client,
-    geom::{Location, Transform},
+    geom::Location,
     rpc::{Command, VehicleControl},
 };
 use std::time::Instant;
@@ -53,8 +53,11 @@ fn main() {
     let mut spawn_commands = Vec::new();
     for i in 0..spawn_count {
         let spawn_point = spawn_points.get(i).unwrap();
-        let transform = Transform::from_na(&spawn_point);
-        spawn_commands.push(Command::spawn_actor(tesla_bp.clone(), transform, None));
+        spawn_commands.push(Command::spawn_actor(
+            tesla_bp.clone(),
+            spawn_point.clone(),
+            None,
+        ));
     }
 
     println!("Created {} spawn commands", spawn_commands.len());
@@ -191,11 +194,11 @@ fn main() {
     for (i, &actor_id) in vehicle_ids.iter().enumerate() {
         // Create a new location offset from the original spawn point
         let original_spawn = spawn_points.get(i).unwrap();
-        let original_translation = original_spawn.translation.vector;
+        let original_location = original_spawn.location;
         let new_location = Location {
-            x: original_translation.x + 10.0,
-            y: original_translation.y,
-            z: original_translation.z,
+            x: original_location.x + 10.0,
+            y: original_location.y,
+            z: original_location.z,
         };
 
         teleport_commands.push(Command::ApplyLocation {

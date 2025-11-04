@@ -16,6 +16,7 @@
 
 use carla::{
     client::Sensor,
+    geom::{Location, Rotation},
     prelude::*,
     rpc::AttachmentType,
     sensor::data::{Image, LidarMeasurement},
@@ -49,6 +50,7 @@ pub struct CameraTransform {
 
 impl CameraTransform {
     /// Create an Isometry3 transform from this CameraTransform
+    #[allow(dead_code)]
     fn to_isometry(&self) -> Isometry3<f32> {
         // Convert Euler angles (pitch, yaw, roll) to quaternion
         // CARLA uses: pitch (around Y), yaw (around Z), roll (around X)
@@ -387,7 +389,10 @@ impl CameraManager {
 
         // Get current camera transform
         let (cam_transform, attachment_type) = &self.camera_transforms[self.current_position];
-        let transform = cam_transform.to_isometry();
+        let transform = carla::geom::Transform {
+            location: Location::new(cam_transform.x, cam_transform.y, cam_transform.z),
+            rotation: Rotation::new(cam_transform.pitch, cam_transform.yaw, cam_transform.roll),
+        };
 
         info!(
             "Spawning sensor '{}' at position {}",

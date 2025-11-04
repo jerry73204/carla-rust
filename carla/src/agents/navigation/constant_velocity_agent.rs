@@ -150,18 +150,14 @@ impl ConstantVelocityAgent {
                 .local_planner
                 .get_incoming_waypoint_and_direction(0)
             {
-                let isometry = wp.transform();
-                crate::geom::Location::from_na_translation(&isometry.translation)
+                wp.transform().location
             } else {
-                let isometry = self.core.vehicle.transform();
-                crate::geom::Location::from_na_translation(&isometry.translation)
+                self.core.vehicle.transform().location
             }
         } else if let Some((wp, _)) = self.core.local_planner.get_plan().last() {
-            let isometry = wp.transform();
-            crate::geom::Location::from_na_translation(&isometry.translation)
+            wp.transform().location
         } else {
-            let isometry = self.core.vehicle.transform();
-            crate::geom::Location::from_na_translation(&isometry.translation)
+            self.core.vehicle.transform().location
         };
 
         let route = self
@@ -194,12 +190,8 @@ impl ConstantVelocityAgent {
         start_waypoint: &Waypoint,
         end_waypoint: &Waypoint,
     ) -> Result<Vec<(Waypoint, RoadOption)>> {
-        let start_isometry = start_waypoint.transform();
-        let start_location =
-            crate::geom::Location::from_na_translation(&start_isometry.translation);
-
-        let end_isometry = end_waypoint.transform();
-        let end_location = crate::geom::Location::from_na_translation(&end_isometry.translation);
+        let start_location = start_waypoint.transform().location;
+        let end_location = end_waypoint.transform().location;
 
         self.core
             .global_planner

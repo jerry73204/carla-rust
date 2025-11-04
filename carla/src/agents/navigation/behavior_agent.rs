@@ -271,17 +271,13 @@ impl BehaviorAgent {
     fn pedestrian_avoid_manager(&self) -> Result<(bool, Option<u32>, f32)> {
         // Similar to vehicle detection but for walkers
         let walker_list = self.core.world.actors().filter("*walker.pedestrian*");
-        let vehicle_isometry = self.core.vehicle.transform();
-        let vehicle_location =
-            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
+        let vehicle_location = self.core.vehicle.transform().location;
 
         let params = self.behavior.params();
         let max_distance = params.min_proximity_threshold + params.safety_time * (self.speed / 3.6);
 
         for actor in walker_list.iter() {
-            let walker_isometry = actor.transform();
-            let walker_location =
-                crate::geom::Location::from_na_translation(&walker_isometry.translation);
+            let walker_location = actor.transform().location;
 
             let dx = walker_location.x - vehicle_location.x;
             let dy = walker_location.y - vehicle_location.y;
@@ -423,18 +419,14 @@ impl BehaviorAgent {
                 .local_planner
                 .get_incoming_waypoint_and_direction(0)
             {
-                let isometry = wp.transform();
-                crate::geom::Location::from_na_translation(&isometry.translation)
+                wp.transform().location
             } else {
-                let isometry = self.core.vehicle.transform();
-                crate::geom::Location::from_na_translation(&isometry.translation)
+                self.core.vehicle.transform().location
             }
         } else if let Some((wp, _)) = self.core.local_planner.get_plan().last() {
-            let isometry = wp.transform();
-            crate::geom::Location::from_na_translation(&isometry.translation)
+            wp.transform().location
         } else {
-            let isometry = self.core.vehicle.transform();
-            crate::geom::Location::from_na_translation(&isometry.translation)
+            self.core.vehicle.transform().location
         };
 
         let route = self
@@ -467,12 +459,8 @@ impl BehaviorAgent {
         start_waypoint: &Waypoint,
         end_waypoint: &Waypoint,
     ) -> Result<Vec<(Waypoint, RoadOption)>> {
-        let start_isometry = start_waypoint.transform();
-        let start_location =
-            crate::geom::Location::from_na_translation(&start_isometry.translation);
-
-        let end_isometry = end_waypoint.transform();
-        let end_location = crate::geom::Location::from_na_translation(&end_isometry.translation);
+        let start_location = start_waypoint.transform().location;
+        let end_location = end_waypoint.transform().location;
 
         self.core
             .global_planner
