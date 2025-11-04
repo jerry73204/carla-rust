@@ -4,66 +4,90 @@
 
 This document tracks the migration of CARLA geometry types from FFI exports to native Rust types with compile-time memory layout verification.
 
+## Progress Summary
+
+**Overall Status:** 🚧 **Phase F In Progress** (Phases A-E Complete)
+
+| Phase | Status | Progress | Notes |
+|-------|--------|----------|-------|
+| A: Location | ✅ Complete | 5/5 | Native type with arithmetic operators |
+| B: Rotation | ✅ Complete | 5/5 | Native type with FFI vector methods |
+| C: Vector3D | ✅ Complete | 4/4 | Native type with full arithmetic |
+| D: Vector2D | ✅ Complete | 4/4 | Native type with full arithmetic |
+| E: GeoLocation | ✅ Complete | 4/4 | Native type with FFI conversions |
+| F: API Cleanup | 🚧 In Progress | 2/28 methods | Replacing nalgebra in public APIs |
+
+**Next Steps:** Continue Phase F work - updating public APIs to use native types instead of nalgebra.
+
 ## Overview
 
-Currently, most geometry types in `carla/src/geom.rs` are direct re-exports of FFI types from `carla-sys`. This creates several issues:
+The geometry type migration has been completed (Phases A-E). All core types are now native Rust implementations with `#[repr(C)]` layout, public fields, and idiomatic Rust APIs.
 
-1. **No Rust trait implementations**: Cannot implement `std::ops` traits (Add, Sub, Mul, etc.) on foreign types due to orphan rules
-2. **Limited type safety**: FFI types expose raw C++ semantics without Rust idiomatic wrappers
-3. **Poor user experience**: Users work directly with FFI types instead of clean Rust APIs
-4. **No compile-time guarantees**: Layout compatibility is assumed, not verified
+**Remaining work (Phase F):** 26 public API methods still use nalgebra types and need to be updated to use native types.
 
-The Transform type migration (completed) demonstrates the proper approach:
+**Historical Issues (Now Resolved):**
+1. ~~No Rust trait implementations~~ → ✅ All types now implement `std::ops` traits
+2. ~~Limited type safety~~ → ✅ Native Rust types with idiomatic APIs
+3. ~~Poor user experience~~ → ✅ Clean public fields and helper methods
+4. ~~No compile-time guarantees~~ → ✅ Layout verified via static assertions
+
+**Migration Pattern Used:**
 - Define native Rust struct with `#[repr(C)]` and public fields
 - Add comprehensive static_asserts on C++ side (size, alignment, field offsets)
 - Add Rust static_assertions using `memoffset` crate for field offset verification
 - Use `transmute` for zero-cost FFI conversion with verified identical layouts
 - Implement Rust traits (Mul, Add, etc.) on owned types
+- Keep nalgebra conversion methods for advanced use cases
 
 ## Migration Status
 
 | Type        | Status          | C++ Fields                    | Size     | Priority | Notes                                            |
 |-------------|-----------------|-------------------------------|----------|----------|--------------------------------------------------|
 | Transform   | ✅ **COMPLETE** | location, rotation            | 24 bytes | -        | Migration complete with full layout verification |
-| Location    | 📋 **PLANNED**  | x, y, z                       | 12 bytes | HIGH     | Already has FfiLocation wrapper, needs Rust type |
-| Rotation    | 📋 **PLANNED**  | pitch, yaw, roll              | 12 bytes | HIGH     | Direct FFI export, needs migration               |
-| Vector3D    | 📋 **PLANNED**  | x, y, z                       | 12 bytes | MEDIUM   | Direct FFI export, needs migration               |
-| Vector2D    | 📋 **PLANNED**  | x, y                          | 8 bytes  | MEDIUM   | Direct FFI export, needs migration               |
-| GeoLocation | 📋 **PLANNED**  | latitude, longitude, altitude | 24 bytes | LOW      | GPS coordinates, less frequently used            |
+| Location    | ✅ **COMPLETE** | x, y, z                       | 12 bytes | -        | Native Rust type with full arithmetic operators  |
+| Rotation    | ✅ **COMPLETE** | pitch, yaw, roll              | 12 bytes | -        | Native Rust type with vector methods via FFI    |
+| Vector3D    | ✅ **COMPLETE** | x, y, z                       | 12 bytes | -        | Native Rust type with full arithmetic operators  |
+| Vector2D    | ✅ **COMPLETE** | x, y                          | 8 bytes  | -        | Native Rust type with full arithmetic operators  |
+| GeoLocation | ✅ **COMPLETE** | latitude, longitude, altitude | 24 bytes | -        | Native Rust type with complex FFI methods        |
 
 ## Current State
 
-### Direct FFI Exports (Need Migration)
+### ✅ All Core Types Migrated
+
+All geometry types have been migrated to native Rust implementations:
 
 ```rust
 // carla/src/geom.rs
-pub use carla_sys::{
-    carla::geom::{GeoLocation, Rotation, Vector2D, Vector3D},
-    carla_rust::geom::FfiLocation as Location,
-};
+#[repr(C)]
+pub struct Location { pub x: f32, pub y: f32, pub z: f32 }
+
+#[repr(C)]
+pub struct Rotation { pub pitch: f32, pub yaw: f32, pub roll: f32 }
+
+#[repr(C)]
+pub struct Vector3D { pub x: f32, pub y: f32, pub z: f32 }
+
+#[repr(C)]
+pub struct Vector2D { pub x: f32, pub y: f32 }
+
+#[repr(C)]
+pub struct GeoLocation { pub latitude: f64, pub longitude: f64, pub altitude: f64 }
+
+#[repr(C)]
+pub struct Transform { pub location: Location, pub rotation: Rotation }
 ```
 
-**Problems:**
-- `GeoLocation`, `Rotation`, `Vector2D`, `Vector3D` are foreign types from `carla_sys`
-- Cannot implement Rust traits like `Add`, `Sub`, `Mul`, `Div`, `Neg` due to orphan rules
-- Users work directly with C++ types, not idiomatic Rust
-- No compile-time layout verification
+**Benefits Achieved:**
+- ✅ All types are native Rust with public fields
+- ✅ Arithmetic operators implemented (Add, Sub, Mul, Div where appropriate)
+- ✅ Compile-time layout verification via static assertions
+- ✅ Zero-cost FFI conversion via transmute
+- ✅ Idiomatic Rust API with helper methods
+- ✅ nalgebra conversion support maintained
 
-### FfiLocation (Partial Migration)
+### Remaining Work: Phase F - Public API Cleanup
 
-`FfiLocation` exists in C++ but is still exported as-is:
-```cpp
-// carla-sys/csrc/carla_rust/geom.hpp
-class FfiLocation {
-public:
-    float x;
-    float y;
-    float z;
-    // ... has layout verification
-};
-```
-
-This needs to become a native Rust type like Transform.
+While the core types are complete, **28 public API methods still expose nalgebra types** instead of using the native types. See Phase F section below for details.
 
 ## Migration Phases
 
@@ -993,37 +1017,48 @@ For each phase:
 
 ## Migration Checklist
 
-- [ ] Phase A: Location Type Migration
-  - [ ] A.1: Verify C++ layout checks ✅ **COMPLETE**
-  - [ ] A.2: Define native Rust Location
-  - [ ] A.3: Implement arithmetic operators
-  - [ ] A.4: Migrate LocationExt trait
-  - [ ] A.5: Update all usages
+- [x] **Phase A: Location Type Migration** ✅ **COMPLETE**
+  - [x] A.1: Verify C++ layout checks
+  - [x] A.2: Define native Rust Location
+  - [x] A.3: Implement arithmetic operators
+  - [x] A.4: Migrate LocationExt trait
+  - [x] A.5: Update all usages
 
-- [ ] Phase B: Rotation Type Migration
-  - [ ] B.1: C++ wrapper and verification
-  - [ ] B.2: Define native Rust Rotation
-  - [ ] B.3: Migrate RotationExt trait
-  - [ ] B.4: Update Transform type
-  - [ ] B.5: Update all usages
+- [x] **Phase B: Rotation Type Migration** ✅ **COMPLETE**
+  - [x] B.1: C++ wrapper and verification
+  - [x] B.2: Define native Rust Rotation
+  - [x] B.3: Migrate RotationExt trait
+  - [x] B.4: Update Transform type
+  - [x] B.5: Update all usages
 
-- [ ] Phase C: Vector3D Type Migration
-  - [ ] C.1: C++ wrapper and verification
-  - [ ] C.2: Define native Rust Vector3D
-  - [ ] C.3: Migrate Vector3DExt trait
-  - [ ] C.4: Update all usages
+- [x] **Phase C: Vector3D Type Migration** ✅ **COMPLETE**
+  - [x] C.1: C++ wrapper and verification
+  - [x] C.2: Define native Rust Vector3D
+  - [x] C.3: Migrate Vector3DExt trait
+  - [x] C.4: Update all usages
 
-- [ ] Phase D: Vector2D Type Migration
-  - [ ] D.1: C++ wrapper and verification
-  - [ ] D.2: Define native Rust Vector2D
-  - [ ] D.3: Migrate Vector2DExt trait
-  - [ ] D.4: Update all usages
+- [x] **Phase D: Vector2D Type Migration** ✅ **COMPLETE**
+  - [x] D.1: C++ wrapper and verification
+  - [x] D.2: Define native Rust Vector2D
+  - [x] D.3: Migrate Vector2DExt trait
+  - [x] D.4: Update all usages
 
-- [ ] Phase E: GeoLocation Type Migration
-  - [ ] E.1: C++ wrapper and verification
-  - [ ] E.2: Define native Rust GeoLocation
-  - [ ] E.3: Handle complex FFI method calls
-  - [ ] E.4: Update all usages
+- [x] **Phase E: GeoLocation Type Migration** ✅ **COMPLETE**
+  - [x] E.1: C++ wrapper and verification
+  - [x] E.2: Define native Rust GeoLocation
+  - [x] E.3: Handle complex FFI method calls
+  - [x] E.4: Update all usages
+
+- [ ] **Phase F: Public API Cleanup** 🚧 **IN PROGRESS**
+  - [x] F.1.1: Map::waypoint() → waypoint_at(&Location) ✅
+  - [x] F.1.2: ActorBuilder spawn methods (3 methods) ✅
+  - [ ] F.1.3: Waypoint::transform() → Transform
+  - [ ] F.1.4: Map spawn points → Transform
+  - [ ] F.2: Actor Query APIs (ActorSnapshot, World, Landmark, EnvironmentObject)
+  - [ ] F.3: Sensor Data APIs (IMU, Camera)
+  - [ ] F.4: BoundingBox APIs
+  - [ ] F.5: Examples and Documentation
+  - [ ] F.6: Testing and Verification
 
 - [ ] Final Verification
   - [ ] All tests pass
@@ -1031,18 +1066,346 @@ For each phase:
   - [ ] Linter passes (make lint-rust)
   - [ ] Documentation updated
   - [ ] Performance benchmarks (verify zero-cost)
+  - [ ] Migration guide complete
+  - [ ] API is clean and idiomatic
+
+## Phase F: Public API Cleanup (Replace nalgebra Types)
+
+**Priority:** HIGH (User-facing impact)
+**Dependencies:** Phases A-E (native types must exist first) ✅ **COMPLETE**
+**Estimated Effort:** 5-8 days
+**Status:** 🚧 **IN PROGRESS** (2/28 methods complete - F.1.1, F.1.2 done)
+
+### Overview
+
+After migrating geometry types to native Rust (Phases A-E), **28 public API methods still expose nalgebra types** where native types should be used. This phase replaces those nalgebra types to provide a clean, idiomatic Rust API.
+
+**Audit Results:**
+- Total: 51 methods use nalgebra types
+- 19 methods: ✅ Intentional (conversion methods like `from_na()`, `to_na()`)
+- 28 methods: ⚠️ Need cleanup (user-facing APIs)
+- 4 methods: ✅ Already correct (using native types)
+
+**Full audit report:** `tmp/nalgebra-api-audit.md`
+**Implementation plan:** `tmp/geometry-api-cleanup-plan.md`
+
+### F.1: Critical Client APIs (Priority 1)
+
+**Impact:** Highest - Used in every example and by all agents
+
+#### F.1.1: Map::waypoint() - CRITICAL
+**File:** `carla/src/client/map.rs` (line 98)
+
+```rust
+// Current (nalgebra)
+pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint>
+
+// Target (native) - Add new method
+pub fn waypoint_at(&self, location: &Location) -> Option<Waypoint> {
+    self.waypoint(&location.to_na_translation())
+}
+
+// Deprecate old method
+#[deprecated(since = "0.13.0", note = "Use waypoint_at() with &Location instead")]
+pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint>
+```
+
+**Usage:** Every agent uses this to find waypoints from positions.
+
+#### F.1.2: ActorBuilder Spawn Methods - CRITICAL
+**File:** `carla/src/client/actor_builder.rs` (lines 40, 58, 78)
+
+```rust
+// Current (nalgebra)
+pub fn spawn_actor(self, transform: &Isometry3<f32>) -> Result<Actor>
+pub fn spawn_vehicle(self, transform: &Isometry3<f32>) -> Result<Vehicle>
+pub fn spawn_sensor(self, transform: &Isometry3<f32>) -> Result<Sensor>
+
+// Target (native)
+pub fn spawn_actor(self, transform: &Transform) -> Result<Actor>
+pub fn spawn_vehicle(self, transform: &Transform) -> Result<Vehicle>
+pub fn spawn_sensor(self, transform: &Transform) -> Result<Sensor>
+```
+
+**Strategy:** These are terminal methods (consume self), so we can use method overloading:
+1. Add new methods that accept `&Transform`
+2. Keep old methods temporarily with deprecation warnings
+3. Remove in v0.14.0 or v1.0.0
+
+**Usage:** Every example spawns actors.
+
+#### F.1.3: Waypoint::transform() - HIGH
+**File:** `carla/src/client/waypoint.rs` (line 49)
+
+```rust
+// Current (nalgebra)
+pub fn transform(&self) -> Isometry3<f32>
+
+// Target (native)
+pub fn transform(&self) -> Transform
+
+// Keep compatibility via new method name
+pub fn transform_na(&self) -> Isometry3<f32> {
+    self.transform().to_na()
+}
+```
+
+**Usage:** Agents and navigation code query waypoint transforms constantly.
+
+#### F.1.4: Map Spawn Points (TransformList) - HIGH
+**File:** `carla/src/client/map.rs` (lines 323, 328)
+
+```rust
+// Current (nalgebra)
+impl TransformList {
+    pub fn get(&self, index: usize) -> Option<Isometry3<f32>>
+    pub fn iter(&self) -> impl Iterator<Item = Isometry3<f32>>
+}
+
+// Target (native)
+impl TransformList {
+    pub fn get(&self, index: usize) -> Option<Transform>
+    pub fn iter(&self) -> impl Iterator<Item = Transform>
+}
+```
+
+**Usage:** Getting spawn points in every example.
+
+### F.2: Actor Query APIs (Priority 2)
+
+#### F.2.1: ActorSnapshot Methods - HIGH
+**File:** `carla/src/client/actor_snapshot.rs` (lines 86, 101, 124, 147)
+
+```rust
+// Current (nalgebra)
+pub fn transform(&self) -> Isometry3<f32>
+pub fn velocity(&self) -> Vector3<f32>
+pub fn angular_velocity(&self) -> Vector3<f32>
+pub fn acceleration(&self) -> Vector3<f32>
+
+// Target (native)
+pub fn transform(&self) -> Transform
+pub fn velocity(&self) -> Vector3D
+pub fn angular_velocity(&self) -> Vector3D
+pub fn acceleration(&self) -> Vector3D
+```
+
+**Usage:** Recording and replaying actor states.
+
+#### F.2.2: World::random_location_from_navigation() - MEDIUM
+**File:** `carla/src/client/world.rs` (line 142)
+
+```rust
+// Current (nalgebra)
+pub fn random_location_from_navigation(&self) -> Translation3<f32>
+
+// Target (native)
+pub fn random_location_from_navigation(&self) -> Location
+```
+
+#### F.2.3: Landmark::transform() - MEDIUM
+**File:** `carla/src/client/landmark.rs` (line 31)
+
+```rust
+// Current (nalgebra)
+pub fn transform(&self) -> Isometry3<f32>
+
+// Target (native)
+pub fn transform(&self) -> Transform
+```
+
+#### F.2.4: EnvironmentObject::transform() - MEDIUM
+**File:** `carla/src/rpc/environment_object.rs` (line 21)
+
+```rust
+// Current (nalgebra)
+pub fn transform(&self) -> Isometry3<f32>
+
+// Target (native)
+pub fn transform(&self) -> Transform
+```
+
+### F.3: Sensor Data APIs (Priority 3)
+
+#### F.3.1: IMUMeasurement Sensor Data - MEDIUM
+**File:** `carla/src/sensor/data/imu_measurement.rs` (lines 17, 30)
+
+```rust
+// Current (nalgebra)
+pub fn accelerometer(&self) -> Vector3<f32>
+pub fn gyroscope(&self) -> Vector3<f32>
+
+// Target (native)
+pub fn accelerometer(&self) -> Vector3D
+pub fn gyroscope(&self) -> Vector3D
+```
+
+#### F.3.2: Camera::project_to_2d() - LOW
+**File:** `carla/src/sensor/camera.rs` (line 169)
+
+```rust
+// Current (nalgebra)
+pub fn project_to_2d(point_3d: &Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32)
+
+// Target (native)
+pub fn project_to_2d(point_3d: &Vector3D, k_matrix: &Matrix3<f32>) -> (f32, f32)
+```
+
+**Note:** Matrix3 remains as-is (not a geometry type).
+
+### F.4: BoundingBox APIs (Priority 3)
+
+#### F.4.1: BoundingBox Vertices - LOW
+**File:** `carla/src/geom.rs` (lines 1474, 1487)
+
+```rust
+// Current (nalgebra)
+pub fn local_vertices(&self) -> Vec<Translation3<f32>>
+pub fn world_vertices(&self, in_bbox_to_world_tr: &Isometry3<f32>) -> Vec<Translation3<f32>>
+
+// Target (native)
+pub fn local_vertices(&self) -> Vec<Location>
+pub fn world_vertices(&self, transform: &Transform) -> Vec<Location>
+```
+
+### F.5: Migration Strategy
+
+**Approach:** Hybrid (Non-Breaking with Deprecation)
+
+1. **v0.13.0: Add Native API Variants**
+   - Add new methods with native types (e.g., `waypoint_at()`)
+   - Keep old methods with deprecation warnings
+   - Update all examples to use native types
+   - Update documentation
+
+2. **v0.13.1-v0.13.x: Deprecation Period**
+   - Users migrate at their own pace
+   - Collect feedback
+   - Fix any issues
+
+3. **v0.14.0 or v1.0.0: Remove Deprecated Methods**
+   - Remove nalgebra methods entirely
+   - Native types become the only API
+   - Clean, idiomatic Rust API
+
+### F.6: Work Items
+
+- [ ] F.1: Critical Client APIs (3-4 days)
+  - [ ] F.1.1: Map::waypoint() → waypoint_at()
+  - [ ] F.1.2: ActorBuilder spawn methods (3 methods)
+  - [ ] F.1.3: Waypoint::transform()
+  - [ ] F.1.4: Map spawn points (TransformList)
+
+- [ ] F.2: Actor Query APIs (2 days)
+  - [ ] F.2.1: ActorSnapshot methods (4 methods)
+  - [ ] F.2.2: World::random_location_from_navigation()
+  - [ ] F.2.3: Landmark::transform()
+  - [ ] F.2.4: EnvironmentObject::transform()
+
+- [ ] F.3: Sensor Data APIs (1 day)
+  - [ ] F.3.1: IMUMeasurement sensor data (2 methods)
+  - [ ] F.3.2: Camera::project_to_2d()
+
+- [ ] F.4: BoundingBox APIs (1 day)
+  - [ ] F.4.1: BoundingBox vertices (2 methods)
+
+- [ ] F.5: Examples and Documentation (1-2 days)
+  - [ ] Update all examples to use native types
+  - [ ] Update CLAUDE.md with native type guidelines
+  - [ ] Create migration guide (`docs/migration-v0.13.md`)
+  - [ ] Update README with examples
+
+- [ ] F.6: Testing (1 day)
+  - [ ] Compatibility tests for deprecated methods
+  - [ ] New API tests for native types
+  - [ ] Run all examples with new APIs
+  - [ ] Verify deprecation warnings appear
+
+### F.7: Success Criteria
+
+After Phase F completion:
+
+1. ✅ Public API primarily uses native Rust types
+2. ✅ nalgebra only exposed in explicit conversion methods (`from_na()`, `to_na()`)
+3. ✅ All examples use native types
+4. ✅ Deprecation warnings guide users to new API
+5. ✅ Zero runtime overhead (conversion is zero-cost)
+6. ✅ Documentation clearly shows native type usage
+7. ✅ Migration guide helps users transition
+
+### F.8: Testing Strategy
+
+1. **Compatibility Tests:**
+   - Ensure deprecated methods still work
+   - Test both old and new APIs in parallel
+
+2. **New API Tests:**
+   - Add tests for native type variants
+   - Test zero-cost conversions
+
+3. **Example Tests:**
+   - Run all examples with new APIs
+   - Verify output matches old behavior
+
+4. **Migration Tests:**
+   - Test that deprecated warnings appear
+   - Verify warning messages are clear
+
+### F.9: Documentation Updates
+
+1. **CLAUDE.md:**
+   - Add section on geometry types
+   - Specify native types should be used
+   - Document conversion methods for advanced users
+
+2. **Migration Guide:** `docs/migration-v0.13.md`
+   - Show before/after examples
+   - List all API changes
+   - Provide migration checklist
+
+3. **Examples:**
+   - Update all examples to use native types
+   - Add comments explaining the changes
+
+4. **API Documentation:**
+   - Update doc comments to reference native types
+   - Add examples to doc comments
+
+### F.10: Files Affected
+
+**Summary:** 28 methods across 8 files need updates
+
+| File | Methods | Priority |
+|------|---------|----------|
+| `carla/src/client/map.rs` | 3 | CRITICAL |
+| `carla/src/client/actor_builder.rs` | 3 | CRITICAL |
+| `carla/src/client/waypoint.rs` | 1 | HIGH |
+| `carla/src/client/actor_snapshot.rs` | 4 | HIGH |
+| `carla/src/client/world.rs` | 1 | MEDIUM |
+| `carla/src/client/landmark.rs` | 1 | MEDIUM |
+| `carla/src/rpc/environment_object.rs` | 1 | MEDIUM |
+| `carla/src/sensor/data/imu_measurement.rs` | 2 | MEDIUM |
+| `carla/src/sensor/camera.rs` | 1 | LOW |
+| `carla/src/geom.rs` (BoundingBox) | 2 | LOW |
+
+---
 
 ## Notes
 
-- **Order matters:** Location → Rotation → Vector3D → Vector2D → GeoLocation
+- **Order matters:** Location → Rotation → Vector3D → Vector2D → GeoLocation → API Cleanup
   - Transform already uses Location and Rotation
   - GeoLocation methods return Location
+  - **Phase F depends on Phases A-E being complete first**
 
-- **Breaking changes:** This is a breaking API change
+- **Breaking changes:** Phases A-E are breaking API changes
   - Users must update imports
   - Extension traits will be removed
   - Methods move from traits to impl blocks
   - Should be done in a major version bump
+
+- **Phase F is non-breaking initially:** Uses deprecation strategy
+  - v0.13.0: Add new APIs, deprecate old ones
+  - v0.14.0 or v1.0.0: Remove deprecated APIs
 
 - **Performance:** Zero-cost abstraction via transmute
   - No runtime overhead
@@ -1050,3 +1413,5 @@ For each phase:
   - Compile-time verified
 
 - **Reference:** Transform migration (PR #XXX) as template for all types
+
+- **Audit Complete:** See `tmp/nalgebra-api-audit.md` for full analysis
