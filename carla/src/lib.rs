@@ -74,6 +74,7 @@
 //! - [`client`] - Core client, world, and actor types
 //! - [`sensor`] - Sensor types and sensor data
 //! - [`traffic_manager`] - Traffic management and autopilot
+//! - [`agents`] - Navigation agents for autonomous vehicle control
 //! - [`geom`] - Geometry types (vectors, transforms, locations)
 //! - [`rpc`] - RPC types for configuration and control
 //! - [`road`] - Road network and waypoint navigation
@@ -213,6 +214,7 @@
 //! - [`carla_sys`] - Low-level FFI bindings (re-exported by this crate)
 //! - [`prelude`] - Import commonly used traits with `use carla::prelude::*`
 
+pub mod agents;
 pub mod client;
 pub mod geom;
 pub mod road;
