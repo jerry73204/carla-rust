@@ -2,7 +2,6 @@ use crate::geom::Transform;
 use carla_sys::carla_rust::sensor::FfiSensorData;
 use cxx::SharedPtr;
 use derivative::Derivative;
-use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
 /// Base trait for all sensor data types.
@@ -30,8 +29,8 @@ pub trait SensorDataBase {
     /// Returns the world transform of the sensor at capture time.
     ///
     /// This is the sensor's position and orientation when the measurement was taken.
-    fn sensor_transform(&self) -> Isometry3<f32> {
-        Transform::from_ffi(self.cxx_sensor_data().GetSensorTransform()).to_na()
+    fn sensor_transform(&self) -> Transform {
+        Transform::from_ffi(self.cxx_sensor_data().GetSensorTransform())
     }
 }
 

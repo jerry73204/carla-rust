@@ -14,8 +14,10 @@
 //! cargo run --example vehicle_physics
 //! ```
 
-use carla::client::{ActorBase, Client, Vehicle};
-use nalgebra::Vector3;
+use carla::{
+    client::{ActorBase, Client, Vehicle},
+    geom::Vector3D,
+};
 use std::time::Duration;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Apply upward impulse (lift the vehicle)
     println!("\nApplying upward impulse (0, 0, 5000 N·s)...");
-    let impulse = Vector3::new(0.0, 0.0, 5000.0);
+    let impulse = Vector3D::new(0.0, 0.0, 5000.0);
     vehicle1.add_impulse(&impulse);
 
     // Observe the effect over time
@@ -107,7 +109,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Apply continuous forward force
     println!("\nApplying continuous forward force (5000, 0, 0 N) for 3 seconds...");
-    let force = Vector3::new(5000.0, 0.0, 0.0);
+    let force = Vector3D::new(5000.0, 0.0, 0.0);
 
     for i in 0..60 {
         // Apply force each tick (continuous acceleration)
@@ -149,7 +151,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Apply torque to spin the vehicle
     println!("\nApplying Z-axis torque (0, 0, 10000 N·m) for 3 seconds...");
-    let torque = Vector3::new(0.0, 0.0, 10000.0);
+    let torque = Vector3D::new(0.0, 0.0, 10000.0);
 
     for i in 0..60 {
         vehicle3.add_torque(&torque);
@@ -192,11 +194,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Force: (1000, 500, 0) N");
 
     // Initial impulse
-    vehicle4.add_impulse(&Vector3::new(2000.0, 0.0, 3000.0));
+    vehicle4.add_impulse(&Vector3D::new(2000.0, 0.0, 3000.0));
 
     // Continuous force
     for i in 0..60 {
-        vehicle4.add_force(&Vector3::new(1000.0, 500.0, 0.0));
+        vehicle4.add_force(&Vector3D::new(1000.0, 500.0, 0.0));
         world.tick();
 
         if i % 15 == 0 {

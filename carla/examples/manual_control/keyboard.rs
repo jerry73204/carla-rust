@@ -410,13 +410,13 @@ impl KeyboardControl {
         // ✅ Subphase 12.11.3: Ctrl+W - Toggle constant velocity mode
         if is_key_pressed(KeyCode::W) && ctrl_pressed {
             if let Some(ref player) = world.player {
-                use nalgebra::Vector3;
+                use carla::geom::Vector3D;
 
                 world.constant_velocity_enabled = !world.constant_velocity_enabled;
 
                 if world.constant_velocity_enabled {
                     // 60 km/h = 16.67 m/s ≈ 17 m/s
-                    let velocity = Vector3::new(17.0, 0.0, 0.0);
+                    let velocity = Vector3D::new(17.0, 0.0, 0.0);
                     player.enable_constant_velocity(&velocity);
                     notification.set_text("Constant velocity mode ON (60 km/h)", 2.0);
                 } else {

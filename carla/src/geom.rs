@@ -756,6 +756,13 @@ impl Vector3D {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
+    /// Calculates the norm (magnitude) of the vector.
+    /// Alias for `length()` for nalgebra compatibility.
+    #[inline]
+    pub fn norm(&self) -> f32 {
+        self.length()
+    }
+
     /// Calculates the squared length (avoids sqrt for performance).
     pub fn length_squared(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z

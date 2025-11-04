@@ -50,7 +50,7 @@ const FOV: f32 = 90.0;
 const NUM_FRAMES: usize = 50;
 
 type CameraData = Arc<Mutex<Option<(Image, carla::geom::Transform, usize)>>>;
-type LidarData = Arc<Mutex<Option<(LidarMeasurement, nalgebra::Isometry3<f32>, usize)>>>;
+type LidarData = Arc<Mutex<Option<(LidarMeasurement, carla::geom::Transform, usize)>>>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("LiDAR-to-Camera Projection Example");
@@ -180,7 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let camera_data_clone = camera_data.clone();
     camera.listen(move |sensor_data| {
         let frame = sensor_data.frame();
-        let transform = carla::geom::Transform::from_na(&sensor_data.sensor_transform());
+        let transform = sensor_data.sensor_transform();
         if let Ok(image) = Image::try_from(sensor_data) {
             *camera_data_clone.lock().unwrap() = Some((image, transform, frame));
         }
@@ -246,7 +246,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Point3::new(detection.point.x, detection.point.y, detection.point.z);
 
                 // Transform to world space
-                let point_world = lidar_transform.transform_point(&point_lidar);
+                let point_world = lidar_transform.to_na().transform_point(&point_lidar);
 
                 // Convert Point3 to Location
                 let world_location = Location::from_na_point(&point_world);

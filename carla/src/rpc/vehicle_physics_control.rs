@@ -7,11 +7,10 @@ use carla_sys::{
     carla::rpc::{GearPhysicsControl, WheelPhysicsControl},
     carla_rust::rpc::FfiVehiclePhysicsControl,
 };
-use nalgebra::Vector2;
 
 #[derive(Debug, Clone)]
 pub struct VehiclePhysicsControl {
-    pub torque_curve: Vec<Vector2<f32>>,
+    pub torque_curve: Vec<Vector2D>,
     pub max_rpm: f32,
     pub moi: f32,
     pub damping_rate_full_throttle: f32,
@@ -25,7 +24,7 @@ pub struct VehiclePhysicsControl {
     pub mass: f32,
     pub drag_coefficient: f32,
     pub center_of_mass: Location,
-    pub steering_curve: Vec<Vector2<f32>>,
+    pub steering_curve: Vec<Vector2D>,
     pub wheels: Vec<WheelPhysicsControl>,
     pub use_sweep_wheel_collision: bool,
 }
@@ -53,23 +52,21 @@ impl VehiclePhysicsControl {
         } = *self;
 
         // SAFETY: Our Vector2D and carla::geom::Vector2D have identical layout
-        // We need to collect native Vector2<f32> into CxxVector<carla::geom::Vector2D>
+        // Convert Vec<Vector2D> into CxxVector<carla::geom::Vector2D>
         let torque_curve = torque_curve
             .iter()
             .map(|v| unsafe {
-                let ffi_vec = Vector2D::from_na(v);
                 // Convert FfiVector2D to carla::geom::Vector2D by reinterpret cast
                 std::mem::transmute::<crate::geom::FfiVector2D, carla_sys::carla::geom::Vector2D>(
-                    ffi_vec.into_ffi(),
+                    v.into_ffi(),
                 )
             })
             .collect_cxx_vector();
         let steering_curve = steering_curve
             .iter()
             .map(|v| unsafe {
-                let ffi_vec = Vector2D::from_na(v);
                 std::mem::transmute::<crate::geom::FfiVector2D, carla_sys::carla::geom::Vector2D>(
-                    ffi_vec.into_ffi(),
+                    v.into_ffi(),
                 )
             })
             .collect_cxx_vector();
@@ -109,7 +106,6 @@ impl VehiclePhysicsControl {
                         carla_sys::carla::geom::Vector2D,
                         FfiVector2D,
                     >(v.clone()))
-                    .to_na()
                 })
                 .collect(),
             max_rpm: from.max_rpm(),
@@ -135,7 +131,6 @@ impl VehiclePhysicsControl {
                         carla_sys::carla::geom::Vector2D,
                         FfiVector2D,
                     >(v.clone()))
-                    .to_na()
                 })
                 .collect(),
             wheels: from.wheels().iter().cloned().collect(),

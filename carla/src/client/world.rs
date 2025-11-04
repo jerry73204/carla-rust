@@ -23,7 +23,6 @@ use carla_sys::carla_rust::{
 };
 use cxx::{let_cxx_string, CxxVector, UniquePtr};
 use derivative::Derivative;
-use nalgebra::{Translation3, Vector3};
 use static_assertions::assert_impl_all;
 use std::{ptr, time::Duration};
 
@@ -611,19 +610,19 @@ impl World {
 
     pub fn project_point(
         &self,
-        location: &Translation3<f32>,
-        direction: &Vector3<f32>,
+        location: &Location,
+        direction: &Vector3D,
         search_distance: f32,
     ) -> Option<LabelledPoint> {
-        let ffi_loc = Location::from_na_translation(location);
-        let ffi_dir = Vector3D::from_na(direction);
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         let cpp_dir = unsafe {
-            std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(ffi_dir.into_ffi())
+            std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
+                direction.into_ffi(),
+            )
         };
         let ptr = self
             .inner
-            .ProjectPoint(ffi_loc.into_ffi(), cpp_dir, search_distance);
+            .ProjectPoint(location.into_ffi(), cpp_dir, search_distance);
 
         if ptr.is_null() {
             None
@@ -634,13 +633,12 @@ impl World {
 
     pub fn ground_projection(
         &self,
-        location: &Translation3<f32>,
+        location: &Location,
         search_distance: f32,
     ) -> Option<LabelledPoint> {
-        let ptr = self.inner.GroundProjection(
-            Location::from_na_translation(location).into_ffi(),
-            search_distance,
-        );
+        let ptr = self
+            .inner
+            .GroundProjection(location.into_ffi(), search_distance);
 
         if ptr.is_null() {
             None
@@ -649,17 +647,10 @@ impl World {
         }
     }
 
-    pub fn cast_ray(
-        &self,
-        start: &Translation3<f32>,
-        end: &Translation3<f32>,
-    ) -> LabelledPointList {
+    pub fn cast_ray(&self, start: &Location, end: &Location) -> LabelledPointList {
         let ptr = self
             .inner
-            .CastRay(
-                Location::from_na_translation(start).into_ffi(),
-                Location::from_na_translation(end).into_ffi(),
-            )
+            .CastRay(start.into_ffi(), end.into_ffi())
             .within_unique_ptr();
         unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() }
     }

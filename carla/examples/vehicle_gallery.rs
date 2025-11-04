@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         rotation: Rotation::new(0.0, 0.0, -20.0_f32.to_degrees()),
                     };
 
-                    spectator.set_transform(&camera_transform.to_na());
+                    spectator.set_transform(&camera_transform);
 
                     // Display vehicle for 3 seconds
                     thread::sleep(Duration::from_secs(3));
