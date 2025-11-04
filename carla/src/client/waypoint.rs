@@ -139,6 +139,46 @@ impl Waypoint {
         unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Python-compatible alias for `all_landmarks_in_distance()`.
+    ///
+    /// Returns all landmarks from the current waypoint until the specified distance.
+    ///
+    /// # Arguments
+    /// * `distance` - Maximum search distance in meters
+    /// * `stop_at_junction` - If true, stops searching at junctions
+    ///
+    /// # Python API Equivalent
+    /// ```python
+    /// landmarks = waypoint.get_landmarks(distance, stop_at_junction=False)
+    /// ```
+    #[inline]
+    pub fn get_landmarks(&self, distance: f64, stop_at_junction: bool) -> LandmarkList {
+        self.all_landmarks_in_distance(distance, stop_at_junction)
+    }
+
+    /// Python-compatible alias for `landmarks_of_type_in_distance()`.
+    ///
+    /// Returns landmarks of a specific type from the current waypoint until the specified distance.
+    ///
+    /// # Arguments
+    /// * `distance` - Maximum search distance in meters
+    /// * `type_` - Landmark type to filter (e.g., "1000001" for speed limits)
+    /// * `stop_at_junction` - If true, stops searching at junctions
+    ///
+    /// # Python API Equivalent
+    /// ```python
+    /// landmarks = waypoint.get_landmarks_of_type(distance, type, stop_at_junction=False)
+    /// ```
+    #[inline]
+    pub fn get_landmarks_of_type(
+        &self,
+        distance: f64,
+        type_: &str,
+        stop_at_junction: bool,
+    ) -> LandmarkList {
+        self.landmarks_of_type_in_distance(distance, type_, stop_at_junction)
+    }
+
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiWaypoint>) -> Option<Self> {
         if ptr.is_null() {
             None
