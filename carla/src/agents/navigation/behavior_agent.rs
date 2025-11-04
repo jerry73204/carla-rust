@@ -8,7 +8,7 @@ use super::{
 };
 use crate::{
     agents::tools::get_speed,
-    client::{ActorBase, Map, Vehicle, Waypoint},
+    client::{Actor, ActorBase, Map, Vehicle, Waypoint},
     geom::Location,
     rpc::VehicleControl,
 };
@@ -267,8 +267,8 @@ impl BehaviorAgent {
         ))
     }
 
-    /// Detects pedestrian obstacles and returns (found, actor_id, distance).
-    fn pedestrian_avoid_manager(&self) -> Result<(bool, Option<u32>, f32)> {
+    /// Detects pedestrian obstacles and returns (found, actor, distance).
+    fn pedestrian_avoid_manager(&self) -> Result<(bool, Option<Actor>, f32)> {
         // Similar to vehicle detection but for walkers
         let walker_list = self.core.world.actors().filter("*walker.pedestrian*");
         let vehicle_location = self.core.vehicle.transform().location;
@@ -284,7 +284,7 @@ impl BehaviorAgent {
             let distance = (dx * dx + dy * dy).sqrt();
 
             if distance < max_distance {
-                return Ok((true, Some(actor.id()), distance));
+                return Ok((true, Some(actor), distance));
             }
         }
 
@@ -347,14 +347,41 @@ impl BehaviorAgent {
         }
 
         // Priority 2: Check for pedestrians
-        let (walker_found, _, walker_distance) = self.pedestrian_avoid_manager()?;
+        let (walker_found, walker_actor, walker_distance) = self.pedestrian_avoid_manager()?;
         if walker_found {
+            // Distance is computed from center to center,
+            // we use bounding boxes to calculate the actual distance
+            let vehicle_bbox = self.core.vehicle.bounding_box();
+
+            // Get maximum extent (approximate radius) for ego vehicle
+            let vehicle_radius = vehicle_bbox.extent.x.max(vehicle_bbox.extent.y);
+
+            // Get walker radius - use actual bbox on 0.9.16+, approximate on older versions
+            let walker_radius = {
+                #[cfg(carla_version_0916)]
+                {
+                    // Use actual walker bounding box (available in 0.9.16+)
+                    let walker = walker_actor.unwrap();
+                    let walker_bbox = walker.bounding_box();
+                    walker_bbox.extent.x.max(walker_bbox.extent.y)
+                }
+                #[cfg(not(carla_version_0916))]
+                {
+                    // Approximate walker radius for older CARLA versions
+                    let _ = walker_actor; // Suppress unused variable warning
+                    0.4
+                }
+            };
+
+            // Adjust distance by subtracting radii
+            let actual_distance = walker_distance - walker_radius - vehicle_radius;
+
             let params = self.behavior.params();
-            if walker_distance < params.braking_distance {
+            if actual_distance < params.braking_distance {
                 if debug {
                     println!(
-                        "BehaviorAgent: Pedestrian too close ({:.1}m) - emergency stop",
-                        walker_distance
+                        "BehaviorAgent: Pedestrian too close ({:.1}m actual, {:.1}m center-to-center) - emergency stop",
+                        actual_distance, walker_distance
                     );
                 }
                 return Ok(self.emergency_stop());
@@ -362,20 +389,41 @@ impl BehaviorAgent {
         }
 
         // Priority 3: Check for vehicle obstacles
-        let (vehicle_found, _, vehicle_distance) = self.collision_and_car_avoid_manager()?;
+        let (vehicle_found, vehicle_id, vehicle_distance) =
+            self.collision_and_car_avoid_manager()?;
         if vehicle_found {
+            // Distance is computed from center to center,
+            // we use bounding boxes to calculate the actual distance
+            let ego_bbox = self.core.vehicle.bounding_box();
+
+            // Get the obstacle vehicle and its bounding box
+            let vehicle_actor = self.core.world.actor(vehicle_id.unwrap()).unwrap();
+            let obstacle_bbox = if let Ok(vehicle) = Vehicle::try_from(vehicle_actor) {
+                vehicle.bounding_box()
+            } else {
+                // If not a vehicle (shouldn't happen in vehicle detection), use default bbox
+                ego_bbox.clone()
+            };
+
+            // Get maximum extent (approximate radius) for both
+            let vehicle_radius = obstacle_bbox.extent.x.max(obstacle_bbox.extent.y);
+            let ego_radius = ego_bbox.extent.x.max(ego_bbox.extent.y);
+
+            // Adjust distance by subtracting radii
+            let actual_distance = vehicle_distance - vehicle_radius - ego_radius;
+
             let params = self.behavior.params();
-            if vehicle_distance < params.braking_distance {
+            if actual_distance < params.braking_distance {
                 if debug {
                     println!(
-                        "BehaviorAgent: Vehicle too close ({:.1}m) - emergency stop",
-                        vehicle_distance
+                        "BehaviorAgent: Vehicle too close ({:.1}m actual, {:.1}m center-to-center) - emergency stop",
+                        actual_distance, vehicle_distance
                     );
                 }
                 return Ok(self.emergency_stop());
             } else {
-                // Use car following behavior
-                return self.car_following_manager(vehicle_distance, debug);
+                // Use car following behavior with actual distance
+                return self.car_following_manager(actual_distance, debug);
             }
         }
 
