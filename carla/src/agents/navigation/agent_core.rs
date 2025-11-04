@@ -5,7 +5,10 @@ use super::{
     local_planner::{LocalPlanner, LocalPlannerConfig},
     types::RoadOption,
 };
-use crate::client::{ActorBase, ActorList, Map, TrafficLight, Vehicle, Waypoint, World};
+use crate::{
+    client::{ActorBase, ActorList, Map, TrafficLight, Vehicle, Waypoint, World},
+    geom::{Location, Vector3D},
+};
 use anyhow::Result;
 
 /// Result of obstacle detection.
@@ -151,6 +154,9 @@ impl AgentCore {
     }
 
     /// Checks if a traffic light is affecting the vehicle.
+    ///
+    /// Uses distance-based detection as a fallback. For more accurate detection,
+    /// use `affected_by_traffic_light_with_trigger_volumes()`.
     pub fn affected_by_traffic_light(
         &mut self,
         max_distance: f32,
@@ -207,7 +213,88 @@ impl AgentCore {
         })
     }
 
+    /// Checks if a traffic light is affecting the vehicle using trigger volume waypoints.
+    ///
+    /// This is more accurate than the simple distance check, as it only detects
+    /// traffic lights that actually affect the vehicle's current lane.
+    pub fn affected_by_traffic_light_with_trigger_volumes(
+        &mut self,
+        max_distance: f32,
+    ) -> Result<TrafficLightDetectionResult> {
+        if self.ignore_traffic_lights {
+            return Ok(TrafficLightDetectionResult {
+                traffic_light_was_found: false,
+                traffic_light: None,
+            });
+        }
+
+        // Get traffic lights if not cached
+        if self.lights_list.is_none() {
+            self.lights_list = Some(self.world.actors().filter("*traffic_light*"));
+        }
+
+        // Get vehicle waypoint
+        let vehicle_isometry = self.vehicle.transform();
+        let vehicle_waypoint = self
+            .map
+            .waypoint(&vehicle_isometry.translation)
+            .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint for vehicle location"))?;
+
+        if let Some(ref lights) = self.lights_list {
+            for actor in lights.iter() {
+                // Try to cast to TrafficLight
+                if let Ok(traffic_light) = TrafficLight::try_from(actor.clone()) {
+                    // Check if red or yellow
+                    use crate::rpc::TrafficLightState;
+                    let state = traffic_light.state();
+                    if state != TrafficLightState::Red && state != TrafficLightState::Yellow {
+                        continue;
+                    }
+
+                    // Get affected lane waypoints (trigger volume)
+                    let affected_waypoints = traffic_light.affected_lane_waypoints();
+
+                    // Check if vehicle's waypoint is in the affected waypoints
+                    for trigger_wp in affected_waypoints.iter() {
+                        // Check if trigger waypoint is close to vehicle waypoint
+                        let trigger_isometry = trigger_wp.transform();
+                        let trigger_loc = crate::geom::Location::from_na_translation(
+                            &trigger_isometry.translation,
+                        );
+                        let vehicle_loc = crate::geom::Location::from_na_translation(
+                            &vehicle_isometry.translation,
+                        );
+
+                        let distance = ((trigger_loc.x - vehicle_loc.x).powi(2)
+                            + (trigger_loc.y - vehicle_loc.y).powi(2))
+                        .sqrt();
+
+                        // Also check if same road_id and lane_id for more accuracy
+                        let same_road = trigger_wp.road_id() == vehicle_waypoint.road_id();
+                        let same_lane = trigger_wp.lane_id() == vehicle_waypoint.lane_id();
+
+                        if distance < max_distance && same_road && same_lane {
+                            self.last_traffic_light = Some(traffic_light.clone());
+                            return Ok(TrafficLightDetectionResult {
+                                traffic_light_was_found: true,
+                                traffic_light: Some(traffic_light),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(TrafficLightDetectionResult {
+            traffic_light_was_found: false,
+            traffic_light: None,
+        })
+    }
+
     /// Checks if a vehicle obstacle is in front.
+    ///
+    /// Uses distance and dot product check. For more accurate detection,
+    /// use `vehicle_obstacle_detected_with_bounding_boxes()`.
     pub fn vehicle_obstacle_detected(&self, max_distance: f32) -> Result<ObstacleDetectionResult> {
         if self.ignore_vehicles {
             return Ok(ObstacleDetectionResult {
@@ -254,6 +341,179 @@ impl AgentCore {
                     obstacle_id: Some(actor.id()),
                     distance,
                 });
+            }
+        }
+
+        Ok(ObstacleDetectionResult {
+            obstacle_was_found: false,
+            obstacle_id: None,
+            distance: -1.0,
+        })
+    }
+
+    /// Checks if a vehicle obstacle is in the planned route using bounding box intersection.
+    ///
+    /// This is more accurate than simple distance checks, as it checks if the vehicle's
+    /// bounding box actually intersects with the planned route polygon.
+    ///
+    /// # Arguments
+    /// * `max_distance` - Maximum look-ahead distance for checking obstacles
+    /// * `route_waypoints` - Planned route waypoints to check against
+    ///
+    /// # Returns
+    /// ObstacleDetectionResult with obstacle information
+    pub fn vehicle_obstacle_detected_with_bounding_boxes(
+        &self,
+        max_distance: f32,
+        route_waypoints: &[(Waypoint, RoadOption)],
+    ) -> Result<ObstacleDetectionResult> {
+        use geo::{Coord, LineString, Polygon as GeoPolygon};
+
+        if self.ignore_vehicles {
+            return Ok(ObstacleDetectionResult {
+                obstacle_was_found: false,
+                obstacle_id: None,
+                distance: -1.0,
+            });
+        }
+
+        if route_waypoints.is_empty() {
+            return Ok(ObstacleDetectionResult {
+                obstacle_was_found: false,
+                obstacle_id: None,
+                distance: -1.0,
+            });
+        }
+
+        // Build route polygon from waypoints
+        let mut route_coords: Vec<Coord<f64>> = Vec::new();
+        const ROUTE_WIDTH: f32 = 2.0; // Half width of route corridor in meters
+
+        for (waypoint, _) in route_waypoints.iter().take(20) {
+            // Look ahead at most 20 waypoints
+            let wp_isometry = waypoint.transform();
+            let wp_transform = crate::geom::Transform::from_na(&wp_isometry);
+            let wp_loc = crate::geom::Location::from_na_translation(&wp_isometry.translation);
+
+            // Get forward and right vectors
+            let forward = wp_transform.rotation.forward_vector();
+            let right = crate::geom::Vector3D {
+                x: -forward.y,
+                y: forward.x,
+                z: 0.0,
+            };
+
+            // Add left and right edge points
+            let left_point = Coord {
+                x: (wp_loc.x - right.x * ROUTE_WIDTH) as f64,
+                y: (wp_loc.y - right.y * ROUTE_WIDTH) as f64,
+            };
+            route_coords.push(left_point);
+        }
+
+        // Add right side in reverse to close the polygon
+        for (waypoint, _) in route_waypoints.iter().take(20).rev() {
+            let wp_isometry = waypoint.transform();
+            let wp_transform = crate::geom::Transform::from_na(&wp_isometry);
+            let wp_loc = crate::geom::Location::from_na_translation(&wp_isometry.translation);
+
+            let forward = wp_transform.rotation.forward_vector();
+            let right = crate::geom::Vector3D {
+                x: -forward.y,
+                y: forward.x,
+                z: 0.0,
+            };
+
+            let right_point = Coord {
+                x: (wp_loc.x + right.x * ROUTE_WIDTH) as f64,
+                y: (wp_loc.y + right.y * ROUTE_WIDTH) as f64,
+            };
+            route_coords.push(right_point);
+        }
+
+        // Close the polygon
+        if !route_coords.is_empty() {
+            let first = route_coords[0];
+            route_coords.push(first);
+        }
+
+        let route_polygon = GeoPolygon::new(LineString::from(route_coords), vec![]);
+
+        // Check each vehicle for intersection
+        let vehicle_list = self.world.actors().filter("*vehicle*");
+        let vehicle_isometry = self.vehicle.transform();
+        let vehicle_location =
+            crate::geom::Location::from_na_translation(&vehicle_isometry.translation);
+
+        for actor in vehicle_list.iter() {
+            // Skip self
+            if actor.id() == self.vehicle.id() {
+                continue;
+            }
+
+            // Distance check first for efficiency
+            let other_isometry = actor.transform();
+            let other_location =
+                crate::geom::Location::from_na_translation(&other_isometry.translation);
+
+            let dx = other_location.x - vehicle_location.x;
+            let dy = other_location.y - vehicle_location.y;
+            let distance = (dx * dx + dy * dy).sqrt();
+
+            if distance > max_distance {
+                continue;
+            }
+
+            // Try to cast to Vehicle to get bounding box
+            if let Ok(other_vehicle) = crate::client::Vehicle::try_from(actor.clone()) {
+                let bbox = other_vehicle.bounding_box();
+
+                // Build bounding box polygon in world coordinates
+                let bbox_transform = crate::geom::Transform::from_na(&other_isometry);
+
+                // Get bounding box corners (in local coordinates)
+                let extent = &bbox.extent;
+                let corners = vec![
+                    crate::geom::Location::new(extent.x, extent.y, 0.0),
+                    crate::geom::Location::new(-extent.x, extent.y, 0.0),
+                    crate::geom::Location::new(-extent.x, -extent.y, 0.0),
+                    crate::geom::Location::new(extent.x, -extent.y, 0.0),
+                ];
+
+                // Transform corners to world coordinates
+                let mut world_coords: Vec<Coord<f64>> = Vec::new();
+                for corner in corners {
+                    // Apply rotation then translation: world = rotation * local + translation
+                    let rotated = bbox_transform.rotation.rotate_vector(&Vector3D {
+                        x: corner.x,
+                        y: corner.y,
+                        z: corner.z,
+                    });
+                    let world_corner = Location {
+                        x: rotated.x + bbox_transform.location.x,
+                        y: rotated.y + bbox_transform.location.y,
+                        z: rotated.z + bbox_transform.location.z,
+                    };
+                    world_coords.push(Coord {
+                        x: world_corner.x as f64,
+                        y: world_corner.y as f64,
+                    });
+                }
+
+                // Close the polygon
+                world_coords.push(world_coords[0]);
+
+                let bbox_polygon = GeoPolygon::new(LineString::from(world_coords), vec![]);
+
+                // Check intersection
+                use geo::algorithm::intersects::Intersects;
+                if route_polygon.intersects(&bbox_polygon) {
+                    return Ok(ObstacleDetectionResult {
+                        obstacle_was_found: true,
+                        obstacle_id: Some(actor.id()),
+                        distance,
+                    });
+                }
             }
         }
 

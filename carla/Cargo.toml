@@ -26,6 +26,7 @@ rand = "0.8"
 bitflags = "2.6"
 memoffset = "0.9"
 petgraph = "0.6"
+geo = "0.27"
 
 [build-dependencies]
 anyhow = "1.0.80"
