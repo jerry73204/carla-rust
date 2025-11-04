@@ -32,8 +32,7 @@ fn main() -> Result<()> {
 
     // Check landmarks around first few spawn points
     for (i, spawn_transform) in spawn_points.as_slice().iter().take(5).enumerate() {
-        let spawn_iso = spawn_transform.to_na();
-        let waypoint = match map.waypoint(&spawn_iso.translation) {
+        let waypoint = match map.waypoint_at(&spawn_transform.location) {
             Some(wp) => wp,
             None => {
                 println!("Spawn point {}: No waypoint found", i);
@@ -52,7 +51,7 @@ fn main() -> Result<()> {
         let landmarks = waypoint.all_landmarks_in_distance(50.0, false);
         println!("  Found {} landmarks within 50m", landmarks.len());
 
-        if landmarks.len() > 0 {
+        if !landmarks.is_empty() {
             for (j, landmark) in landmarks.iter().take(3).enumerate() {
                 println!(
                     "    [{}] {} (type: {}, distance: {:.2}m, value: {})",
@@ -74,8 +73,7 @@ fn main() -> Result<()> {
 
     // Demonstrate Python-compatible method aliases
     let spawn_transform = &spawn_points.as_slice()[0];
-    let spawn_iso = spawn_transform.to_na();
-    if let Some(waypoint) = map.waypoint(&spawn_iso.translation) {
+    if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
         // Method 2: Python-compatible alias (same functionality)
         let landmarks = waypoint.get_landmarks(100.0, false);
         println!(
@@ -112,13 +110,12 @@ fn main() -> Result<()> {
     ];
 
     for spawn_transform in spawn_points.as_slice().iter().take(10) {
-        let spawn_iso = spawn_transform.to_na();
-        if let Some(waypoint) = map.waypoint(&spawn_iso.translation) {
+        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
             for (type_code, type_name) in &test_types {
                 // Method 3: Filter by type (Rust-idiomatic)
                 let filtered = waypoint.landmarks_of_type_in_distance(100.0, type_code, false);
 
-                if filtered.len() > 0 {
+                if !filtered.is_empty() {
                     println!(
                         "Found {} {} landmark(s) at Road {}, Lane {}:",
                         filtered.len(),
@@ -139,9 +136,7 @@ fn main() -> Result<()> {
                         let transform = landmark.transform();
                         println!(
                             "    Position: ({:.2}, {:.2}, {:.2})",
-                            transform.translation.vector.x,
-                            transform.translation.vector.y,
-                            transform.translation.vector.z
+                            transform.location.x, transform.location.y, transform.location.z
                         );
                     }
                 }
@@ -152,10 +147,10 @@ fn main() -> Result<()> {
     println!("\n=== Using Python-Compatible Type Filtering ===\n");
 
     // Method 4: Python-compatible type filtering alias
-    if let Some(waypoint) = map.waypoint(&spawn_points.as_slice()[0].to_na().translation) {
+    if let Some(waypoint) = map.waypoint_at(&spawn_points.as_slice()[0].location) {
         let speed_limits = waypoint.get_landmarks_of_type(150.0, "1000001", false);
 
-        if speed_limits.len() > 0 {
+        if !speed_limits.is_empty() {
             println!("Speed limits ahead:");
             for limit in speed_limits.iter() {
                 println!(
@@ -174,11 +169,10 @@ fn main() -> Result<()> {
 
     // Find any landmark to demonstrate all available properties
     for spawn_transform in spawn_points.as_slice().iter() {
-        let spawn_iso = spawn_transform.to_na();
-        if let Some(waypoint) = map.waypoint(&spawn_iso.translation) {
+        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
             let landmarks = waypoint.get_landmarks(200.0, false);
 
-            if let Some(landmark) = landmarks.iter().next() {
+            if let Some(landmark) = landmarks.get(0) {
                 println!("Detailed landmark properties:");
                 println!("  ID: {}", landmark.id());
                 println!("  Name: {}", landmark.name());
@@ -188,8 +182,8 @@ fn main() -> Result<()> {
                 println!("  Distance: {:.2}m", landmark.distance());
                 println!("  Road ID: {}", landmark.road_id());
                 println!("  Is Dynamic: {}", landmark.is_dynamic());
-                println!("  Orientation: {}", landmark.orientation());
-                println!("  Z-Offset: {}", landmark.z_offset());
+                // Note: orientation() returns C++ enum without Display/Debug trait
+                println!("  Z-Offset: {}", landmark.z_offet());
                 println!("  Country: {}", landmark.country());
                 println!("  Height: {}", landmark.height());
                 println!("  Width: {}", landmark.width());
@@ -201,19 +195,16 @@ fn main() -> Result<()> {
                 let transform = landmark.transform();
                 println!(
                     "  Transform: pos=({:.2}, {:.2}, {:.2})",
-                    transform.translation.vector.x,
-                    transform.translation.vector.y,
-                    transform.translation.vector.z
+                    transform.location.x, transform.location.y, transform.location.z
                 );
 
                 // Get the waypoint where the landmark is effective
-                if let Some(lm_waypoint) = landmark.waypoint() {
-                    println!(
-                        "  Effective at: Road {}, Lane {}",
-                        lm_waypoint.road_id(),
-                        lm_waypoint.lane_id()
-                    );
-                }
+                let lm_waypoint = landmark.waypoint();
+                println!(
+                    "  Effective at: Road {}, Lane {}",
+                    lm_waypoint.road_id(),
+                    lm_waypoint.lane_id()
+                );
 
                 break;
             }
