@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Temporary Files
+
+**IMPORTANT:** When creating temporary files for testing or experimentation, always use the project's `tmp/` directory.
+
+**✅ DO use project tmp directory:**
+```bash
+# Good - use Write/Edit tools
+/home/aeon/repos/carla-rust/tmp/test_file.rs
+```
+
+**❌ DO NOT use system /tmp:**
+```bash
+# Bad - avoid system tmp
+/tmp/test_file.rs
+```
+
 ## Overview
 
 This is a Rust client library for the CARLA simulator. The project uses FFI bindings to interface with the CARLA C++ client library and provides a safe, idiomatic Rust API.
@@ -78,6 +94,23 @@ Why? The `dev-release` profile is required for:
 - Examples to be placed in correct directory for test automation
 - Adequate performance for CARLA simulations
 - Debug symbols for troubleshooting
+
+### Linting and Code Quality
+
+Always run linting before committing code:
+
+```bash
+# Run Rust linting (fmt + clippy)
+make lint-rust
+
+# Or run individual checks
+cargo +nightly fmt --check
+cargo clippy --all-targets -- -D warnings
+```
+
+**Common clippy issues:**
+- Use `!collection.is_empty()` instead of `collection.len() > 0`
+- Use `collection.is_empty()` instead of `collection.len() == 0` or `collection.len() < 1`
 
 ## Crate Architecture
 
@@ -263,6 +296,14 @@ When creating new examples:
    - Print output so users can see what's happening
    - Avoid complex assertions (those go in unit tests)
 
+5. **Common mistakes when updating examples:**
+   - Using `.to_na()` when native types are now expected
+   - Accessing `transform.translation.vector.x` instead of `transform.location.x`
+   - Using `map.waypoint(&translation)` instead of `map.waypoint_at(&location)`
+   - Assuming all methods return `Option<T>` (some return `T` directly - check the API!)
+   - Printing C++ enums without Debug/Display trait (e.g., `SignalOrientation`)
+   - Using `.len() > 0` instead of `!is_empty()` (clippy will catch this)
+
 ### Unit Test Pattern
 
 Unit tests stay in source files using `#[cfg(test)]`:
@@ -317,11 +358,104 @@ Utility functions for building `libcarla_client` from CARLA source. Used by carl
 - Custom C++ wrappers in `carla-sys/csrc/` handle types that autocxx can't process
 - FFI boundaries are in `carla-sys`; safe Rust wrappers are in `carla`
 
+### Geometry Types Migration (Completed)
+
+**IMPORTANT:** Geometry types have been migrated from FFI exports to native Rust types.
+
+All geometry types (`Location`, `Rotation`, `Vector3D`, `Vector2D`, `GeoLocation`, `Transform`) are now:
+- Native Rust types with `#[repr(C)]` and public fields
+- Have verified memory layout compatibility with C++ types via static assertions
+- Support direct field access without needing extension traits
+- Implement appropriate arithmetic operators (e.g., `Vector3D` has full arithmetic, `Location` has only addition/subtraction)
+
+**Key changes:**
+- Extension traits (`LocationExt`, `RotationExt`, `Vector2DExt`, `Vector3DExt`) have been **removed**
+- Methods are now directly on the types (no trait imports needed)
+- FFI conversion uses `as_ffi()`, `from_ffi()`, `into_ffi()` methods
+- Zero-cost conversions via `std::mem::transmute` with verified layouts
+
+**FFI Boundary Pattern:**
+```rust
+// Native Rust → FFI
+let native_loc = Location::new(1.0, 2.0, 3.0);
+let ffi_loc: FfiLocation = native_loc.into_ffi();
+
+// FFI → Native Rust
+let native_loc = Location::from_ffi(ffi_loc);
+
+// Reference conversion (zero-cost)
+let ffi_ref: &FfiLocation = native_loc.as_ffi();
+```
+
+**When interfacing with C++ types:**
+```rust
+// When C++ API expects carla::geom::Vector3D but you have Vector3D:
+unsafe {
+    let cpp_vec = std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
+        rust_vec.into_ffi()
+    );
+}
+```
+
+**Common API patterns with native types:**
+
+1. **Accessing transform components:**
+   ```rust
+   // ✅ Correct - use native fields
+   let transform = actor.transform();
+   println!("Position: ({}, {}, {})",
+       transform.location.x,
+       transform.location.y,
+       transform.location.z);
+
+   // ❌ Wrong - old nalgebra pattern
+   transform.translation.vector.x  // This no longer exists!
+   ```
+
+2. **Getting waypoints from locations:**
+   ```rust
+   // ✅ Correct - waypoint_at() takes &Location
+   let waypoint = map.waypoint_at(&transform.location)?;
+
+   // ❌ Wrong - don't use .to_na() anymore
+   let iso = transform.to_na();
+   let waypoint = map.waypoint(&iso.translation)?;  // Old pattern
+   ```
+
+3. **Working with vectors:**
+   ```rust
+   // ✅ Correct - native Vector3D
+   let velocity = actor.velocity();
+   let speed = velocity.length();  // or velocity.norm() for compatibility
+
+   // ❌ Wrong - nalgebra Vector3
+   use nalgebra::Vector3;  // Don't use this for CARLA types
+   ```
+
+4. **Checking collection emptiness:**
+   ```rust
+   // ✅ Correct - idiomatic Rust
+   if !landmarks.is_empty() { /* ... */ }
+
+   // ❌ Wrong - clippy will complain
+   if landmarks.len() > 0 { /* ... */ }
+   ```
+
+5. **Optional return types - check the API carefully:**
+   ```rust
+   // Some methods return Option<T>
+   if let Some(waypoint) = map.waypoint_at(&location) { /* ... */ }
+
+   // Some methods return T directly (never None)
+   let waypoint = landmark.waypoint();  // Always succeeds
+   ```
+
+See `docs/roadmap/geom.md` for implementation details.
+
 ### Extension Traits Pattern
 
-The crate uses extension traits extensively to add Rust-idiomatic methods to FFI types:
+The crate uses extension traits to add Rust-idiomatic methods to certain types:
 - `ActorBase` trait for common actor operations
-- `LocationExt`, `RotationExt`, `TransformExt` for geometry types
 - `SensorDataBase` for sensor data
 - `TimestampExt` for timestamp operations
 
