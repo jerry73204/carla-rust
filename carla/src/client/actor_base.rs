@@ -2,6 +2,8 @@
 // to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
 
 use super::{Actor, ActorAttributeValueList, World};
+#[cfg(carla_version_0916)]
+use crate::geom::BoundingBox;
 use crate::{
     geom::{Location, Transform, Vector3D},
     rpc::ActorId,
@@ -266,6 +268,36 @@ pub trait ActorBase: Clone {
     /// Returns whether the actor is currently active.
     fn is_active(&self) -> bool {
         self.cxx_actor().IsActive()
+    }
+
+    /// Returns the actor's bounding box in world coordinates.
+    ///
+    /// The bounding box contains the actor's extent (half-size along each axis)
+    /// and its transform (position and orientation) in world space.
+    ///
+    /// **Note:** This method is only available in CARLA 0.9.16+. For earlier versions,
+    /// use type-specific methods like [`super::Vehicle::bounding_box()`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::{ActorBase, Client};
+    ///
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    ///
+    /// let bbox = actor.bounding_box();
+    /// println!("Bounding box extent: {:?}", bbox.extent);
+    /// println!("Bounding box center: {:?}", bbox.transform.location);
+    /// ```
+    #[cfg(carla_version_0916)]
+    fn bounding_box(&self) -> BoundingBox {
+        let bbox = self.cxx_actor().GetBoundingBox();
+        BoundingBox::from_native(&bbox)
     }
 
     /// Destroys this actor and removes it from the simulation.

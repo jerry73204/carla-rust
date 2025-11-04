@@ -127,6 +127,13 @@ fn main() -> Result<()> {
         // Export version for dependent crates (will be available as DEP_CARLA_SYS_CARLA_VERSION)
         println!("cargo:carla_version={}", version.as_str());
 
+        // Expose version to Rust code via cfg flags
+        match version {
+            CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
+            CarlaVersion::V0_9_15 => println!("cargo:rustc-cfg=carla_version_0915"),
+            CarlaVersion::V0_9_14 => println!("cargo:rustc-cfg=carla_version_0914"),
+        }
+
         // Set version-specific compiler flags before autocxx processes headers
         let extra_clang_args = match version {
             CarlaVersion::V0_9_16 => vec!["-DCARLA_VERSION_0916"],

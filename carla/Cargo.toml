@@ -10,6 +10,9 @@ homepage = "https://github.com/jerry73204/carla-rust"
 repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla/"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(carla_version_0914, carla_version_0915, carla_version_0916)'] }
+
 [dependencies]
 autocxx = "0.26.0"
 cxx = "1.0.119"
