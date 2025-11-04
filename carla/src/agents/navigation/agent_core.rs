@@ -3,8 +3,9 @@
 use super::{
     global_route_planner::GlobalRoutePlanner,
     local_planner::{LocalPlanner, LocalPlannerConfig},
+    types::RoadOption,
 };
-use crate::client::{ActorBase, ActorList, Map, TrafficLight, Vehicle, World};
+use crate::client::{ActorBase, ActorList, Map, TrafficLight, Vehicle, Waypoint, World};
 use anyhow::Result;
 
 /// Result of obstacle detection.
@@ -20,6 +21,15 @@ pub struct ObstacleDetectionResult {
 pub struct TrafficLightDetectionResult {
     pub traffic_light_was_found: bool,
     pub traffic_light: Option<TrafficLight>,
+}
+
+/// Lane change direction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LaneChangeDirection {
+    /// Change to left lane
+    Left,
+    /// Change to right lane
+    Right,
 }
 
 /// Configuration for AgentCore.
@@ -73,9 +83,9 @@ pub struct AgentCore {
     pub global_planner: GlobalRoutePlanner,
 
     // Configuration
-    ignore_traffic_lights: bool,
-    ignore_stop_signs: bool,
-    ignore_vehicles: bool,
+    pub ignore_traffic_lights: bool,
+    pub ignore_stop_signs: bool,
+    pub ignore_vehicles: bool,
     pub base_tlight_threshold: f32,
     pub base_vehicle_threshold: f32,
     pub speed_ratio: f32,
@@ -252,6 +262,99 @@ impl AgentCore {
             obstacle_id: None,
             distance: -1.0,
         })
+    }
+
+    /// Generates a lane change path.
+    ///
+    /// # Arguments
+    /// * `waypoint` - Starting waypoint
+    /// * `direction` - Lane change direction (left or right)
+    /// * `distance_same_lane` - Distance to travel in same lane before starting change (meters)
+    /// * `distance_other_lane` - Distance to travel in new lane after completing change (meters)
+    /// * `lane_change_distance` - Distance over which to perform the lane change (meters)
+    /// * `check` - Whether to check if lane change is possible
+    /// * `step_distance` - Distance between waypoints in the path (meters)
+    ///
+    /// # Returns
+    /// Vector of waypoints with road options, or empty if lane change not possible
+    pub fn generate_lane_change_path(
+        waypoint: &Waypoint,
+        direction: LaneChangeDirection,
+        distance_same_lane: f32,
+        distance_other_lane: f32,
+        lane_change_distance: f32,
+        check: bool,
+        step_distance: f32,
+    ) -> Vec<(Waypoint, RoadOption)> {
+        let mut path = Vec::new();
+
+        // Phase 1: Stay in same lane for distance_same_lane
+        let mut current_wp = waypoint.clone();
+        let same_lane_steps = (distance_same_lane / step_distance).ceil() as usize;
+
+        for _ in 0..same_lane_steps {
+            path.push((current_wp.clone(), RoadOption::LaneFollow));
+            let next_wps = current_wp.next(step_distance as f64);
+            if next_wps.is_empty() {
+                return Vec::new(); // Can't continue
+            }
+            current_wp = next_wps.get(0).unwrap().clone();
+        }
+
+        // Check if lane change is possible
+        let target_lane_wp = match direction {
+            LaneChangeDirection::Left => current_wp.left(),
+            LaneChangeDirection::Right => current_wp.right(),
+        };
+
+        if check {
+            // Check if target lane exists by trying to get next waypoint
+            let target_next = target_lane_wp.next(1.0);
+            if target_next.is_empty() {
+                return Vec::new(); // Lane change not possible
+            }
+        }
+
+        // Phase 2: Lane change transition
+        let lane_change_steps = (lane_change_distance / step_distance).ceil() as usize;
+        let road_option = match direction {
+            LaneChangeDirection::Left => RoadOption::ChangeLaneLeft,
+            LaneChangeDirection::Right => RoadOption::ChangeLaneRight,
+        };
+
+        // During lane change, gradually transition to the target lane
+        for i in 0..lane_change_steps {
+            path.push((current_wp.clone(), road_option));
+
+            // Try to move towards target lane
+            let next_wps = current_wp.next(step_distance as f64);
+            if next_wps.is_empty() {
+                return path; // End of road
+            }
+            current_wp = next_wps.get(0).unwrap().clone();
+
+            // Gradually move to target lane during the transition
+            if i == lane_change_steps / 2 {
+                // At midpoint, try to switch to target lane
+                let target_next = target_lane_wp.next((step_distance * (i as f32)) as f64);
+                if !target_next.is_empty() {
+                    current_wp = target_next.get(0).unwrap().clone();
+                }
+            }
+        }
+
+        // Phase 3: Stay in new lane for distance_other_lane
+        let other_lane_steps = (distance_other_lane / step_distance).ceil() as usize;
+        for _ in 0..other_lane_steps {
+            path.push((current_wp.clone(), RoadOption::LaneFollow));
+            let next_wps = current_wp.next(step_distance as f64);
+            if next_wps.is_empty() {
+                break; // End of road
+            }
+            current_wp = next_wps.get(0).unwrap().clone();
+        }
+
+        path
     }
 }
 

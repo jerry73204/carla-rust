@@ -1,7 +1,7 @@
-//! BasicAgent implementation for autonomous navigation.
+//! ConstantVelocityAgent for testing and simple constant-speed scenarios.
 
 use super::{
-    agent_core::{AgentCore, AgentCoreConfig, LaneChangeDirection},
+    agent_core::{AgentCore, AgentCoreConfig},
     global_route_planner::GlobalRoutePlanner,
     local_planner::LocalPlannerConfig,
     types::{Agent, RoadOption},
@@ -14,50 +14,57 @@ use crate::{
 };
 use anyhow::Result;
 
-/// Configuration options for BasicAgent.
+/// Configuration options for ConstantVelocityAgent.
 #[derive(Debug, Clone)]
-pub struct BasicAgentConfig {
-    /// Target speed in km/h
+pub struct ConstantVelocityAgentConfig {
+    /// Target constant speed in m/s
     pub target_speed: f32,
+    /// Whether to use basic behavior when not in constant velocity mode
+    pub use_basic_behavior: bool,
     /// Agent core configuration
     pub core_config: AgentCoreConfig,
     /// Local planner configuration
     pub local_config: LocalPlannerConfig,
 }
 
-impl Default for BasicAgentConfig {
+impl Default for ConstantVelocityAgentConfig {
     fn default() -> Self {
+        let target_speed_mps = 5.0; // 5 m/s = 18 km/h
         Self {
-            target_speed: 20.0,
+            target_speed: target_speed_mps,
+            use_basic_behavior: false,
             core_config: AgentCoreConfig::default(),
             local_config: LocalPlannerConfig {
-                target_speed: 20.0,
+                target_speed: target_speed_mps * 3.6, // Convert to km/h for planner
                 ..Default::default()
             },
         }
     }
 }
 
-/// BasicAgent provides traffic-aware navigation with obstacle and traffic light detection.
+/// ConstantVelocityAgent maintains constant velocity for testing.
+///
+/// This agent is primarily used for testing scenarios where a vehicle needs
+/// to maintain constant speed regardless of traffic conditions. It simplifies
+/// hazard detection compared to BasicAgent and BehaviorAgent.
 ///
 /// # Examples
 /// ```no_run
 /// use carla::{
-///     agents::navigation::{BasicAgent, BasicAgentConfig},
+///     agents::navigation::{ConstantVelocityAgent, ConstantVelocityAgentConfig},
 ///     client::Vehicle,
 ///     geom::Location,
 /// };
 ///
 /// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
-/// let config = BasicAgentConfig::default();
-/// let mut agent = BasicAgent::new(vehicle, config, None, None)?;
+/// let config = ConstantVelocityAgentConfig {
+///     target_speed: 10.0, // 10 m/s
+///     ..Default::default()
+/// };
+/// let mut agent = ConstantVelocityAgent::new(vehicle, config, None, None)?;
 ///
 /// // Set destination
-/// let destination = Location {
-///     x: 100.0,
-///     y: 50.0,
-///     z: 0.3,
-/// };
+/// let destination = Location::new(100.0, 50.0, 0.3);
 /// agent.set_destination(destination, None, true)?;
 ///
 /// // Control loop
@@ -68,13 +75,16 @@ impl Default for BasicAgentConfig {
 /// # Ok(())
 /// # }
 /// ```
-pub struct BasicAgent {
+pub struct ConstantVelocityAgent {
     core: AgentCore,
-    target_speed: f32,
+    use_basic_behavior: bool,
+    target_speed: f32,  // m/s
+    current_speed: f32, // m/s
+    is_constant_velocity_active: bool,
 }
 
-impl BasicAgent {
-    /// Creates a new BasicAgent.
+impl ConstantVelocityAgent {
+    /// Creates a new ConstantVelocityAgent.
     ///
     /// # Arguments
     /// * `vehicle` - The vehicle to control
@@ -83,11 +93,12 @@ impl BasicAgent {
     /// * `grp_inst` - Optional pre-loaded GlobalRoutePlanner instance
     pub fn new(
         vehicle: Vehicle,
-        config: BasicAgentConfig,
+        config: ConstantVelocityAgentConfig,
         map_inst: Option<Map>,
         grp_inst: Option<GlobalRoutePlanner>,
     ) -> Result<Self> {
         let target_speed = config.target_speed;
+        let use_basic_behavior = config.use_basic_behavior;
 
         let core = AgentCore::new(
             vehicle,
@@ -97,13 +108,26 @@ impl BasicAgent {
             config.local_config,
         )?;
 
-        Ok(Self { core, target_speed })
+        Ok(Self {
+            core,
+            use_basic_behavior,
+            target_speed,
+            current_speed: 0.0,
+            is_constant_velocity_active: true,
+        })
     }
 
-    /// Sets the target speed in km/h.
-    pub fn set_target_speed(&mut self, speed: f32) {
+    /// Sets the constant velocity in m/s.
+    pub fn set_constant_velocity(&mut self, speed: f32) {
         self.target_speed = speed;
-        self.core.local_planner.set_speed(speed);
+        // Convert m/s to km/h for local planner
+        self.core.local_planner.set_speed(speed * 3.6);
+        self.is_constant_velocity_active = true;
+    }
+
+    /// Sets the target speed (alias for set_constant_velocity with km/h input).
+    pub fn set_target_speed(&mut self, speed_kmh: f32) {
+        self.set_constant_velocity(speed_kmh / 3.6);
     }
 
     /// Enables or disables speed limit following.
@@ -112,11 +136,6 @@ impl BasicAgent {
     }
 
     /// Sets a navigation destination.
-    ///
-    /// # Arguments
-    /// * `end_location` - Target destination
-    /// * `start_location` - Optional starting location (defaults to vehicle position)
-    /// * `clean_queue` - Whether to clear existing route
     pub fn set_destination(
         &mut self,
         end_location: Location,
@@ -145,13 +164,11 @@ impl BasicAgent {
             crate::geom::Location::from_na_translation(&isometry.translation)
         };
 
-        // Compute route using global planner
         let route = self
             .core
             .global_planner
             .trace_route(start_location, end_location)?;
 
-        // Set route in local planner
         self.core
             .local_planner
             .set_global_plan(route, true, clean_queue);
@@ -183,6 +200,7 @@ impl BasicAgent {
 
         let end_isometry = end_waypoint.transform();
         let end_location = crate::geom::Location::from_na_translation(&end_isometry.translation);
+
         self.core
             .global_planner
             .trace_route(start_location, end_location)
@@ -194,21 +212,47 @@ impl BasicAgent {
     }
 
     /// Executes one navigation step.
-    ///
-    /// # Returns
-    /// VehicleControl command to apply to the vehicle
     pub fn run_step(&mut self) -> Result<VehicleControl> {
-        self.run_step_debug(false)
+        self.run_step_with_debug(false)
     }
 
     /// Executes one navigation step with optional debug output.
-    pub fn run_step_debug(&mut self, debug: bool) -> Result<VehicleControl> {
+    pub fn run_step_with_debug(&mut self, debug: bool) -> Result<VehicleControl> {
+        // Update current speed
+        self.current_speed = get_speed(&self.core.vehicle) / 3.6; // Convert to m/s
+
+        if !self.is_constant_velocity_active && self.use_basic_behavior {
+            // Use basic behavior (simplified hazard detection)
+            return self.run_basic_behavior(debug);
+        }
+
+        // Constant velocity mode - simplified hazard check
+        let mut hazard_speed = self.target_speed * 3.6; // Convert to km/h
+
+        // Simple obstacle check (optional in constant velocity mode)
+        if !self.core.ignore_vehicles {
+            let max_distance = 10.0; // Fixed detection distance
+            let result = self.core.vehicle_obstacle_detected(max_distance)?;
+
+            if result.obstacle_was_found {
+                // Slow down but maintain some speed
+                hazard_speed = (self.target_speed * 0.5) * 3.6; // Half speed in km/h
+                if debug {
+                    println!("ConstantVelocityAgent: Obstacle detected, reducing speed");
+                }
+            }
+        }
+
+        self.core.local_planner.set_speed(hazard_speed);
+        self.core.local_planner.run_step(debug)
+    }
+
+    /// Runs with basic behavior (similar to BasicAgent).
+    fn run_basic_behavior(&mut self, debug: bool) -> Result<VehicleControl> {
         let mut hazard_detected = false;
 
-        // Get vehicle speed
-        let vehicle_speed = get_speed(&self.core.vehicle) / 3.6; // Convert to m/s
-
         // Check for vehicle obstacles
+        let vehicle_speed = get_speed(&self.core.vehicle) / 3.6; // m/s
         let max_vehicle_distance =
             self.core.base_vehicle_threshold + self.core.speed_ratio * vehicle_speed;
         let obstacle_result = self.core.vehicle_obstacle_detected(max_vehicle_distance)?;
@@ -217,7 +261,7 @@ impl BasicAgent {
             hazard_detected = true;
             if debug {
                 println!(
-                    "BasicAgent: Vehicle obstacle detected at {:.1}m",
+                    "ConstantVelocityAgent: Vehicle obstacle at {:.1}m",
                     obstacle_result.distance
                 );
             }
@@ -231,7 +275,7 @@ impl BasicAgent {
         if traffic_light_result.traffic_light_was_found {
             hazard_detected = true;
             if debug {
-                println!("BasicAgent: Red traffic light detected");
+                println!("ConstantVelocityAgent: Red traffic light detected");
             }
         }
 
@@ -240,21 +284,14 @@ impl BasicAgent {
 
         // Apply emergency stop if hazard detected
         if hazard_detected {
-            control = self.add_emergency_stop(control);
+            control.throttle = 0.0;
+            control.brake = self.core.max_brake;
             if debug {
-                println!("BasicAgent: Emergency stop applied");
+                println!("ConstantVelocityAgent: Emergency stop applied");
             }
         }
 
         Ok(control)
-    }
-
-    /// Applies emergency stop to a control.
-    pub fn add_emergency_stop(&self, mut control: VehicleControl) -> VehicleControl {
-        control.throttle = 0.0;
-        control.brake = self.core.max_brake;
-        control.hand_brake = false;
-        control
     }
 
     /// Sets whether to ignore traffic lights.
@@ -271,83 +308,9 @@ impl BasicAgent {
     pub fn ignore_vehicles(&mut self, active: bool) {
         self.core.ignore_vehicles(active);
     }
-
-    /// Gets a reference to the local planner (for advanced use).
-    pub fn local_planner(&self) -> &super::local_planner::LocalPlanner {
-        &self.core.local_planner
-    }
-
-    /// Gets a reference to the global planner (for advanced use).
-    pub fn global_planner(&self) -> &GlobalRoutePlanner {
-        &self.core.global_planner
-    }
-
-    /// Executes a lane change maneuver.
-    ///
-    /// # Arguments
-    /// * `direction` - Direction to change lanes (left or right)
-    /// * `same_lane_time` - Time (seconds) to travel in current lane before starting change
-    /// * `other_lane_time` - Time (seconds) to travel in new lane after completing change
-    /// * `lane_change_time` - Time (seconds) to perform the lane change
-    ///
-    /// # Returns
-    /// Ok(()) if lane change path was generated and applied, Err if not possible
-    pub fn lane_change(
-        &mut self,
-        direction: LaneChangeDirection,
-        same_lane_time: f32,
-        other_lane_time: f32,
-        lane_change_time: f32,
-    ) -> Result<()> {
-        // Get current speed to convert time to distance
-        let speed = get_speed(&self.core.vehicle) / 3.6; // Convert km/h to m/s
-        let speed = speed.max(1.0); // Minimum 1 m/s to avoid division by zero
-
-        // Convert times to distances
-        let distance_same_lane = speed * same_lane_time;
-        let distance_other_lane = speed * other_lane_time;
-        let lane_change_distance = speed * lane_change_time;
-
-        // Get current waypoint
-        let current_waypoint = if let Some((wp, _)) = self
-            .core
-            .local_planner
-            .get_incoming_waypoint_and_direction(0)
-        {
-            wp
-        } else {
-            // Use vehicle location if no waypoint in queue
-            let vehicle_isometry = self.core.vehicle.transform();
-            self.core
-                .map
-                .waypoint(&vehicle_isometry.translation)
-                .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint from vehicle location"))?
-        };
-
-        // Generate lane change path
-        let step_distance = 2.0; // 2 meters between waypoints
-        let path = AgentCore::generate_lane_change_path(
-            &current_waypoint,
-            direction,
-            distance_same_lane,
-            distance_other_lane,
-            lane_change_distance,
-            true, // Check if lane change is possible
-            step_distance,
-        );
-
-        if path.is_empty() {
-            return Err(anyhow::anyhow!("Lane change not possible"));
-        }
-
-        // Apply the lane change path
-        self.set_global_plan(path, true, true);
-
-        Ok(())
-    }
 }
 
-impl Agent for BasicAgent {
+impl Agent for ConstantVelocityAgent {
     fn run_step(&mut self) -> Result<VehicleControl> {
         self.run_step()
     }
@@ -404,30 +367,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_basic_agent_config_default() {
-        let config = BasicAgentConfig::default();
-        assert_eq!(config.target_speed, 20.0);
+    fn test_constant_velocity_agent_config_default() {
+        let config = ConstantVelocityAgentConfig::default();
+        assert_eq!(config.target_speed, 5.0); // 5 m/s
+        assert!(!config.use_basic_behavior);
     }
 
     #[test]
-    fn test_emergency_stop() {
-        // Test emergency stop logic without needing a vehicle
-        let control = VehicleControl {
-            throttle: 0.5,
-            steer: 0.1,
-            brake: 0.0,
-            hand_brake: false,
-            reverse: false,
-            manual_gear_shift: false,
-            gear: 0,
-        };
-
-        let max_brake = 0.5;
-        let mut stopped_control = control;
-        stopped_control.throttle = 0.0;
-        stopped_control.brake = max_brake;
-
-        assert_eq!(stopped_control.throttle, 0.0);
-        assert_eq!(stopped_control.brake, 0.5);
+    fn test_speed_conversion() {
+        let speed_mps = 10.0;
+        let speed_kmh = speed_mps * 3.6;
+        assert_eq!(speed_kmh, 36.0);
     }
 }

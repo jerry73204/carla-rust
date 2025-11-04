@@ -1,5 +1,7 @@
 //! Type definitions for navigation agents.
 
+use crate::{client::Waypoint, geom::Location, rpc::VehicleControl};
+use anyhow::Result;
 use std::{fmt, str::FromStr};
 
 /// Road maneuver options for route planning.
@@ -86,6 +88,84 @@ impl FromStr for RoadOption {
             _ => Err(format!("Invalid RoadOption: {}", s)),
         }
     }
+}
+
+/// Common interface for navigation agents.
+///
+/// This trait defines the core functionality that all agent types must provide,
+/// enabling polymorphic usage of different agent implementations.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{
+///     agents::navigation::{Agent, BasicAgent, BasicAgentConfig},
+///     client::Vehicle,
+///     geom::Location,
+/// };
+///
+/// fn run_agent_loop(agent: &mut dyn Agent) -> anyhow::Result<()> {
+///     while !agent.done() {
+///         let control = agent.run_step()?;
+///         // Apply control to vehicle...
+///     }
+///     Ok(())
+/// }
+/// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
+/// let config = BasicAgentConfig::default();
+/// let mut agent = BasicAgent::new(vehicle, config, None, None)?;
+/// let destination = Location::new(100.0, 50.0, 0.3);
+/// agent.set_destination(destination, None, true)?;
+/// run_agent_loop(&mut agent)?;
+/// # Ok(())
+/// # }
+/// ```
+pub trait Agent {
+    /// Executes one navigation step and returns vehicle control.
+    fn run_step(&mut self) -> Result<VehicleControl>;
+
+    /// Checks if the destination has been reached.
+    fn done(&self) -> bool;
+
+    /// Sets a navigation destination.
+    ///
+    /// # Arguments
+    /// * `end_location` - Target destination
+    /// * `start_location` - Optional starting location (defaults to vehicle position)
+    /// * `clean_queue` - Whether to clear existing route
+    fn set_destination(
+        &mut self,
+        end_location: Location,
+        start_location: Option<Location>,
+        clean_queue: bool,
+    ) -> Result<()>;
+
+    /// Sets the target speed in km/h.
+    fn set_target_speed(&mut self, speed: f32);
+
+    /// Sets a pre-computed global plan.
+    fn set_global_plan(
+        &mut self,
+        plan: Vec<(Waypoint, RoadOption)>,
+        stop_waypoint_creation: bool,
+        clean_queue: bool,
+    );
+
+    /// Computes a route between two waypoints.
+    fn trace_route(
+        &self,
+        start_waypoint: &Waypoint,
+        end_waypoint: &Waypoint,
+    ) -> Result<Vec<(Waypoint, RoadOption)>>;
+
+    /// Sets whether to ignore traffic lights.
+    fn ignore_traffic_lights(&mut self, active: bool);
+
+    /// Sets whether to ignore stop signs.
+    fn ignore_stop_signs(&mut self, active: bool);
+
+    /// Sets whether to ignore vehicles.
+    fn ignore_vehicles(&mut self, active: bool);
 }
 
 #[cfg(test)]
