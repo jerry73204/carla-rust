@@ -13,7 +13,6 @@ use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::{client::FfiActor, traffic_manager::FfiTrafficManager};
 use cxx::{CxxVector, SharedPtr, UniquePtr};
 use derivative::Derivative;
-use nalgebra::Point3;
 use static_assertions::assert_impl_all;
 use std::time::Duration;
 
@@ -64,10 +63,10 @@ impl TrafficManager {
     pub fn set_custom_path<A, P>(&mut self, actor: &A, path: &[P], empty_buffer: bool)
     where
         A: ActorBase,
-        P: AsRef<Point3<f32>>,
+        P: AsRef<Location>,
     {
         let path = path.iter().fold(CxxVector::new_typed(), |mut vec, point| {
-            let point = Location::from_na_point(point.as_ref());
+            let point = point.as_ref();
             vec.pin_mut().push(point.into_ffi());
             vec
         });
@@ -87,10 +86,10 @@ impl TrafficManager {
 
     pub fn update_upload_path<P>(&mut self, actor_id: ActorId, path: &[P])
     where
-        P: AsRef<Point3<f32>>,
+        P: AsRef<Location>,
     {
         let path = path.iter().fold(CxxVector::new_typed(), |mut vec, point| {
-            let point = Location::from_na_point(point.as_ref());
+            let point = point.as_ref();
             vec.pin_mut().push(point.into_ffi());
             vec
         });

@@ -29,7 +29,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor},
-    geom::{Location, Rotation, Vector3D},
+    geom::{Location, Rotation},
     rpc::{AttachmentType, EpisodeSettings},
     sensor::{
         camera::{build_projection_matrix, project_to_2d, world_to_camera},
@@ -49,7 +49,7 @@ const IMAGE_HEIGHT: u32 = 600;
 const FOV: f32 = 90.0;
 const NUM_FRAMES: usize = 50;
 
-type CameraData = Arc<Mutex<Option<(Image, nalgebra::Isometry3<f32>, usize)>>>;
+type CameraData = Arc<Mutex<Option<(Image, carla::geom::Transform, usize)>>>;
 type LidarData = Arc<Mutex<Option<(LidarMeasurement, nalgebra::Isometry3<f32>, usize)>>>;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -180,7 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let camera_data_clone = camera_data.clone();
     camera.listen(move |sensor_data| {
         let frame = sensor_data.frame();
-        let transform = sensor_data.sensor_transform();
+        let transform = carla::geom::Transform::from_na(&sensor_data.sensor_transform());
         if let Ok(image) = Image::try_from(sensor_data) {
             *camera_data_clone.lock().unwrap() = Some((image, transform, frame));
         }
@@ -252,11 +252,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let world_location = Location::from_na_point(&point_world);
 
                 // Transform to camera space and convert to standard camera coordinates
-                let point_camera_na = world_to_camera(&world_location, camera_transform);
-
-                // Convert to Vector3D for project_to_2d
-                let point_camera =
-                    Vector3D::new(point_camera_na.x, point_camera_na.y, point_camera_na.z);
+                let point_camera = world_to_camera(&world_location, camera_transform);
 
                 // Check if point is in front of camera
                 if point_camera.z <= 0.0 {

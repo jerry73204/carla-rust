@@ -7,7 +7,7 @@ use carla_sys::{
     carla::rpc::{GearPhysicsControl, WheelPhysicsControl},
     carla_rust::rpc::FfiVehiclePhysicsControl,
 };
-use nalgebra::{Translation3, Vector2};
+use nalgebra::Vector2;
 
 #[derive(Debug, Clone)]
 pub struct VehiclePhysicsControl {
@@ -24,7 +24,7 @@ pub struct VehiclePhysicsControl {
     pub forward_gears: Vec<GearPhysicsControl>,
     pub mass: f32,
     pub drag_coefficient: f32,
-    pub center_of_mass: Translation3<f32>,
+    pub center_of_mass: Location,
     pub steering_curve: Vec<Vector2<f32>>,
     pub wheels: Vec<WheelPhysicsControl>,
     pub use_sweep_wheel_collision: bool,
@@ -73,7 +73,7 @@ impl VehiclePhysicsControl {
                 )
             })
             .collect_cxx_vector();
-        let mut center_of_mass = Box::pin(Location::from_na_translation(center_of_mass).into_ffi());
+        let mut center_of_mass = Box::pin(center_of_mass.into_ffi());
         let mut forward_gears = forward_gears.iter().cloned().collect_cxx_vector();
         let mut wheels = wheels.iter().cloned().collect_cxx_vector();
 
@@ -126,7 +126,7 @@ impl VehiclePhysicsControl {
             forward_gears: from.forward_gears().iter().cloned().collect(),
             mass: from.mass(),
             drag_coefficient: from.drag_coefficient(),
-            center_of_mass: Location::from_ffi(from.center_of_mass().clone()).to_na_translation(),
+            center_of_mass: Location::from_ffi(from.center_of_mass().clone()),
             steering_curve: from
                 .steering_curve()
                 .iter()

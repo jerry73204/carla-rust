@@ -21,7 +21,7 @@ impl<'a> EnvironmentObjectRef<'a> {
         Transform::from_ffi(self.inner.transform().clone())
     }
 
-    pub fn bounding_box(&self) -> BoundingBox<f32> {
+    pub fn bounding_box(&self) -> BoundingBox {
         let bbox = self.inner.bounding_box();
         BoundingBox::from_native(&bbox)
     }

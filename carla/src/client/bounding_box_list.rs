@@ -24,12 +24,12 @@ impl BoundingBoxList {
         self.len() == 0
     }
 
-    pub fn get(&self, index: usize) -> Option<BoundingBox<f32>> {
+    pub fn get(&self, index: usize) -> Option<BoundingBox> {
         let orig = self.as_slice().get(index)?;
         Some(BoundingBox::from_native(orig))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = BoundingBox<f32>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = BoundingBox> + '_ {
         self.as_slice().iter().map(BoundingBox::from_native)
     }
 

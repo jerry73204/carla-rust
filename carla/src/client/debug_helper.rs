@@ -252,7 +252,7 @@ impl DebugHelper {
     /// ```
     pub fn draw_box(
         &self,
-        bbox: &BoundingBox<f32>,
+        bbox: &BoundingBox,
         rotation: Rotation,
         thickness: f32,
         color: Color,

@@ -8,8 +8,8 @@
 //! These utilities are essential for sensor fusion tasks like projecting
 //! LiDAR points onto camera images.
 
-use crate::geom::{Location, Vector3D};
-use nalgebra::{Matrix3, Vector3};
+use crate::geom::{Location, Transform, Vector3D};
+use nalgebra::Matrix3;
 
 /// Builds a camera projection matrix (intrinsic matrix) using the pinhole camera model.
 ///
@@ -106,15 +106,15 @@ pub fn build_projection_matrix(width: u32, height: u32, fov: f32) -> Matrix3<f32
 /// let camera_transform = camera.get_transform();
 /// let camera_point = camera::world_to_camera(&world_point, &camera_transform);
 /// ```
-pub fn world_to_camera(
-    point: &Location,
-    camera_transform: &nalgebra::Isometry3<f32>,
-) -> Vector3<f32> {
+pub fn world_to_camera(point: &Location, camera_transform: &Transform) -> Vector3D {
+    // Convert Transform to nalgebra for inverse calculation
+    let na_transform = camera_transform.to_na();
+
     // Convert Location to homogeneous coordinates (x, y, z, 1)
     let world_point = nalgebra::Vector4::new(point.x, point.y, point.z, 1.0);
 
     // Get inverse camera transform (world to camera)
-    let world_to_camera = camera_transform.inverse();
+    let world_to_camera = na_transform.inverse();
 
     // Convert Isometry3 to 4x4 transformation matrix
     let world_to_camera_matrix = world_to_camera.to_homogeneous();
@@ -126,7 +126,7 @@ pub fn world_to_camera(
     // UE4: (x=forward, y=right, z=up)
     // Camera: (x=right, y=down, z=forward)
     // Conversion: (x, y, z) -> (y, -z, x)
-    Vector3::new(
+    Vector3D::new(
         camera_point.y,  // right
         -camera_point.z, // down (inverted up)
         camera_point.x,  // forward (depth)
@@ -234,7 +234,11 @@ mod tests {
     #[test]
     fn test_world_to_camera_identity() {
         // Camera at origin with identity rotation
-        let camera_transform = nalgebra::Isometry3::identity();
+        use crate::geom::Rotation;
+        let camera_transform = Transform {
+            location: Location::new(0.0, 0.0, 0.0),
+            rotation: Rotation::new(0.0, 0.0, 0.0),
+        };
         let world_point = Location {
             x: 10.0,
             y: 5.0,
@@ -253,12 +257,16 @@ mod tests {
     #[test]
     fn test_full_pipeline() {
         // Test complete projection pipeline
+        use crate::geom::Rotation;
         let width = 800;
         let height = 600;
         let fov = 90.0;
 
         let k = build_projection_matrix(width, height, fov);
-        let camera_transform = nalgebra::Isometry3::identity();
+        let camera_transform = Transform {
+            location: Location::new(0.0, 0.0, 0.0),
+            rotation: Rotation::new(0.0, 0.0, 0.0),
+        };
 
         // Point 10m ahead of camera at world coordinates
         let world_point = Location {
@@ -268,8 +276,7 @@ mod tests {
         };
 
         // Transform to camera coordinates
-        let camera_point_na = world_to_camera(&world_point, &camera_transform);
-        let camera_point = Vector3D::new(camera_point_na.x, camera_point_na.y, camera_point_na.z);
+        let camera_point = world_to_camera(&world_point, &camera_transform);
 
         // Project to 2D
         let (x, y) = project_to_2d(&camera_point, &k);

@@ -31,7 +31,7 @@ impl Junction {
         unsafe { WaypointPairList::from_cxx(vec).unwrap_unchecked() }
     }
 
-    pub fn bounding_box(&self) -> BoundingBox<f32> {
+    pub fn bounding_box(&self) -> BoundingBox {
         let bbox = self.inner.GetBoundingBox();
         BoundingBox::from_native(&bbox)
     }

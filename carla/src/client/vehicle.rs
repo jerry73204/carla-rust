@@ -244,7 +244,7 @@ impl Vehicle {
     ///
     /// # Returns
     ///
-    /// A `BoundingBox<f32>` representing the vehicle's 3D bounding box
+    /// A `BoundingBox` representing the vehicle's 3D bounding box
     ///
     /// # Example
     ///
@@ -257,7 +257,7 @@ impl Vehicle {
     /// println!("Extent: {:?}", bbox.extent);
     /// println!("Center: {:?}", bbox.transform.translation);
     /// ```
-    pub fn bounding_box(&self) -> BoundingBox<f32> {
+    pub fn bounding_box(&self) -> BoundingBox {
         let bbox = self.inner.GetBoundingBox();
         BoundingBox::from_native(&bbox)
     }

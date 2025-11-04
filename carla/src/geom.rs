@@ -1376,23 +1376,22 @@ impl std::ops::Mul<&Transform> for &Transform {
 /// # Examples
 ///
 /// ```
-/// use carla::geom::BoundingBox;
-/// use nalgebra::{Isometry3, Vector3};
+/// use carla::geom::{BoundingBox, Transform};
 ///
 /// let bbox = BoundingBox {
-///     transform: Isometry3::identity(),
-///     extent: Vector3::new(2.0, 1.0, 0.5), // Half-extents (width, height, depth)
+///     transform: Transform::default(),
+///     extent: Vector3D::new(2.0, 1.0, 0.5), // Half-extents (width, height, depth)
 /// };
 /// ```
 #[derive(Debug, Clone)]
-pub struct BoundingBox<T> {
+pub struct BoundingBox {
     /// The center position and orientation of the bounding box.
-    pub transform: Isometry3<T>,
+    pub transform: Transform,
     /// Half-extents along each axis (half-width, half-height, half-depth).
-    pub extent: Vector3<T>,
+    pub extent: Vector3D,
 }
 
-impl BoundingBox<f32> {
+impl BoundingBox {
     /// Creates a new bounding box with a given center location and half-extents.
     ///
     /// # Arguments
@@ -1409,11 +1408,11 @@ impl BoundingBox<f32> {
     /// ```
     pub fn new(location: Location, extent: Vector3D) -> Self {
         Self {
-            transform: Isometry3 {
-                rotation: UnitQuaternion::identity(),
-                translation: location.to_na_translation(),
+            transform: Transform {
+                location,
+                rotation: Rotation::identity(),
             },
-            extent: extent.to_na(),
+            extent,
         }
     }
 
@@ -1421,9 +1420,9 @@ impl BoundingBox<f32> {
     pub fn to_native(&self) -> NativeBoundingBox {
         let Self { transform, extent } = self;
         NativeBoundingBox {
-            location: Location::from_na_translation(&transform.translation).into_ffi(),
-            rotation: Rotation::from_na(&transform.rotation).into_ffi(),
-            extent: Vector3D::from_na(extent).into_ffi(),
+            location: transform.location.into_ffi(),
+            rotation: transform.rotation.into_ffi(),
+            extent: extent.into_ffi(),
             #[cfg(carla_0916)]
             actor_id: 0,
         }
@@ -1445,11 +1444,11 @@ impl BoundingBox<f32> {
             rotation,
         } = bbox;
         Self {
-            transform: Isometry3 {
-                rotation: Rotation::from_ffi(rotation.clone()).to_na(),
-                translation: Location::from_ffi(location.clone()).to_na_translation(),
+            transform: Transform {
+                location: Location::from_ffi(location.clone()),
+                rotation: Rotation::from_ffi(rotation.clone()),
             },
-            extent: Vector3D::from_ffi(extent.clone()).to_na(),
+            extent: Vector3D::from_ffi(extent.clone()),
         }
     }
 
@@ -1461,13 +1460,11 @@ impl BoundingBox<f32> {
     /// * `in_bbox_to_world_transform` - Transform from bounding box space to world space
     pub fn contains(
         &self,
-        in_world_point: &Translation3<f32>,
-        in_bbox_to_world_transform: &Isometry3<f32>,
+        in_world_point: &Location,
+        in_bbox_to_world_transform: &Transform,
     ) -> bool {
-        self.to_native().Contains(
-            Location::from_na_translation(in_world_point).as_ffi(),
-            Transform::from_na(in_bbox_to_world_transform).as_ffi(),
-        )
+        self.to_native()
+            .Contains(in_world_point.as_ffi(), in_bbox_to_world_transform.as_ffi())
     }
 
     /// Returns the 8 corner vertices in local (bounding box) coordinates.

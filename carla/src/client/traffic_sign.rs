@@ -19,7 +19,7 @@ impl TrafficSign {
         self.inner.GetSignId().to_string()
     }
 
-    pub fn trigger_volume(&self) -> BoundingBox<f32> {
+    pub fn trigger_volume(&self) -> BoundingBox {
         BoundingBox::from_native(self.inner.GetTriggerVolume())
     }
 

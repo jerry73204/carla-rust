@@ -58,9 +58,9 @@ fn main() -> Result<()> {
     println!("    Height: {:.3} m", bbox.extent.z * 2.0);
 
     println!("\n  Center (transform):");
-    println!("    X: {:.3} m", bbox.transform.translation.x);
-    println!("    Y: {:.3} m", bbox.transform.translation.y);
-    println!("    Z: {:.3} m", bbox.transform.translation.z);
+    println!("    X: {:.3} m", bbox.transform.location.x);
+    println!("    Y: {:.3} m", bbox.transform.location.y);
+    println!("    Z: {:.3} m", bbox.transform.location.z);
 
     // Verify bounding box is non-zero
     assert!(
