@@ -318,9 +318,10 @@ impl BasicAgent {
         } else {
             // Use vehicle location if no waypoint in queue
             let vehicle_isometry = self.core.vehicle.transform();
+            let vehicle_location = Location::from_na_translation(&vehicle_isometry.translation);
             self.core
                 .map
-                .waypoint(&vehicle_isometry.translation)
+                .waypoint_at(&vehicle_location)
                 .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint from vehicle location"))?
         };
 

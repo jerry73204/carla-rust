@@ -12,7 +12,7 @@ use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::{FfiMap, FfiTransformList};
 use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
-use nalgebra::{Isometry3, Translation3};
+use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
 /// Represents the map of the simulation, Corresponds to [`carla.Map`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map) in the Python API.
@@ -86,17 +86,35 @@ impl Map {
         unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() }
     }
 
-    /// Finds the nearest waypoint on a driving lane to the given location.
+    /// Finds the nearest waypoint on a driving lane.
     ///
     /// # Arguments
     ///
-    /// * `location` - 3D position to query from
+    /// * `location` - The 3D position to search from
     ///
     /// # Returns
     ///
     /// The nearest waypoint on a driving lane, or `None` if no waypoint is found.
-    pub fn waypoint(&self, location: &Translation3<f32>) -> Option<Waypoint> {
-        self.waypoint_opt(location, true, LaneType::Driving)
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Location;
+    /// let client = Client::default();
+    /// let world = client.world();
+    /// let map = world.map();
+    ///
+    /// let location = Location::new(100.0, 50.0, 0.5);
+    /// if let Some(waypoint) = map.waypoint_at(&location) {
+    ///     println!("Found waypoint at road {}", waypoint.road_id());
+    /// }
+    /// ```
+    pub fn waypoint_at(&self, location: &Location) -> Option<Waypoint> {
+        let ptr = self
+            .inner
+            .GetWaypoint(location.as_ffi(), true, LaneType::Driving as i32);
+        Waypoint::from_cxx(ptr)
     }
 
     /// Finds the nearest waypoint with custom options.
@@ -112,11 +130,10 @@ impl Map {
     /// The nearest waypoint matching the criteria, or `None` if not found.
     pub fn waypoint_opt(
         &self,
-        location: &Translation3<f32>,
+        location: &Location,
         project_to_road: bool,
         lane_type: LaneType,
     ) -> Option<Waypoint> {
-        let location = Location::from_na_translation(location);
         let ptr = self
             .inner
             .GetWaypoint(location.as_ffi(), project_to_road, lane_type as i32);

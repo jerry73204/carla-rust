@@ -212,12 +212,12 @@ impl GlobalRoutePlanner {
         // Get starting and ending waypoints
         let start_wp = self
             .map
-            .waypoint(&origin.to_na_translation())
+            .waypoint_at(&origin)
             .ok_or_else(|| anyhow::anyhow!("Could not find waypoint at origin"))?;
 
         let end_wp = self
             .map
-            .waypoint(&destination.to_na_translation())
+            .waypoint_at(&destination)
             .ok_or_else(|| anyhow::anyhow!("Could not find waypoint at destination"))?;
 
         // Find closest nodes in graph to start and end waypoints

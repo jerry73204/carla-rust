@@ -1,8 +1,8 @@
 use super::{Actor, ActorBase, ActorBlueprint, Sensor, Vehicle, World};
+use crate::geom::Transform;
 use anyhow::{anyhow, ensure, Context, Result};
 use carla_sys::carla::rpc::AttachmentType;
 use itertools::chain;
-use nalgebra::Isometry3;
 
 /// The builder is used to construct an actor with customized options.
 #[derive(Debug)]
@@ -37,13 +37,36 @@ impl<'a> ActorBuilder<'a> {
         Ok(self)
     }
 
-    pub fn spawn_actor(self, transform: &Isometry3<f32>) -> Result<Actor> {
-        self.spawn_actor_opt::<Actor, _>(transform, None, None)
+    /// Spawns an actor at the given transform.
+    ///
+    /// # Arguments
+    ///
+    /// * `transform` - Initial position and rotation for the actor
+    ///
+    /// # Returns
+    ///
+    /// The spawned actor, or an error if spawning failed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Transform;
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// let transform = Transform::default();
+    /// let actor = world
+    ///     .actor_builder("vehicle.tesla.model3")?
+    ///     .spawn(transform)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    pub fn spawn(self, transform: Transform) -> Result<Actor> {
+        self.spawn_opt::<Actor, _>(transform, None, None)
     }
 
-    pub fn spawn_actor_opt<A, T>(
+    pub fn spawn_opt<A, T>(
         self,
-        transform: &Isometry3<f32>,
+        transform: Transform,
         parent: Option<&A>,
         attachment_type: T,
     ) -> Result<Actor>
@@ -52,16 +75,39 @@ impl<'a> ActorBuilder<'a> {
         T: Into<Option<AttachmentType>>,
     {
         self.world
-            .spawn_actor_opt(&self.blueprint, transform, parent, attachment_type)
+            .spawn_actor_opt(&self.blueprint, &transform.to_na(), parent, attachment_type)
     }
 
-    pub fn spawn_vehicle(self, transform: &Isometry3<f32>) -> Result<Vehicle> {
+    /// Spawns a vehicle at the given transform.
+    ///
+    /// # Arguments
+    ///
+    /// * `transform` - Initial position and rotation for the vehicle
+    ///
+    /// # Returns
+    ///
+    /// The spawned vehicle, or an error if spawning failed or the blueprint is not a vehicle.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Transform;
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// let transform = Transform::default();
+    /// let vehicle = world
+    ///     .actor_builder("vehicle.tesla.model3")?
+    ///     .spawn_vehicle(transform)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    pub fn spawn_vehicle(self, transform: Transform) -> Result<Vehicle> {
         self.spawn_vehicle_opt::<Actor, _>(transform, None, None)
     }
 
     pub fn spawn_vehicle_opt<A, T>(
         self,
-        transform: &Isometry3<f32>,
+        transform: Transform,
         parent: Option<&A>,
         attachment_type: T,
     ) -> Result<Vehicle>
@@ -70,18 +116,41 @@ impl<'a> ActorBuilder<'a> {
         T: Into<Option<AttachmentType>>,
     {
         let id = self.blueprint.id();
-        self.spawn_actor_opt(transform, parent, attachment_type)?
+        self.spawn_opt(transform, parent, attachment_type)?
             .try_into()
             .map_err(|_| anyhow!("the blueprint '{}' is not a vehicle", id))
     }
 
-    pub fn spawn_sensor(self, transform: &Isometry3<f32>) -> Result<Sensor> {
+    /// Spawns a sensor at the given transform.
+    ///
+    /// # Arguments
+    ///
+    /// * `transform` - Initial position and rotation for the sensor
+    ///
+    /// # Returns
+    ///
+    /// The spawned sensor, or an error if spawning failed or the blueprint is not a sensor.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::geom::Transform;
+    /// let client = Client::default();
+    /// let mut world = client.world();
+    /// let transform = Transform::default();
+    /// let sensor = world
+    ///     .actor_builder("sensor.camera.rgb")?
+    ///     .spawn_sensor(transform)?;
+    /// # Ok::<(), anyhow::Error>(())
+    /// ```
+    pub fn spawn_sensor(self, transform: Transform) -> Result<Sensor> {
         self.spawn_sensor_opt::<Actor, _>(transform, None, None)
     }
 
     pub fn spawn_sensor_opt<A, T>(
         self,
-        transform: &Isometry3<f32>,
+        transform: Transform,
         parent: Option<&A>,
         attachment_type: T,
     ) -> Result<Sensor>
@@ -90,7 +159,7 @@ impl<'a> ActorBuilder<'a> {
         T: Into<Option<AttachmentType>>,
     {
         let id = self.blueprint.id();
-        self.spawn_actor_opt(transform, parent, attachment_type)?
+        self.spawn_opt(transform, parent, attachment_type)?
             .try_into()
             .map_err(|_| anyhow!("the blueprint '{}' is not a sensor", id))
     }

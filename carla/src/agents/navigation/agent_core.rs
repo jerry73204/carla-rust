@@ -235,9 +235,10 @@ impl AgentCore {
 
         // Get vehicle waypoint
         let vehicle_isometry = self.vehicle.transform();
+        let vehicle_location = Location::from_na_translation(&vehicle_isometry.translation);
         let vehicle_waypoint = self
             .map
-            .waypoint(&vehicle_isometry.translation)
+            .waypoint_at(&vehicle_location)
             .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint for vehicle location"))?;
 
         if let Some(ref lights) = self.lights_list {
