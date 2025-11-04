@@ -94,6 +94,11 @@ public:
 
     carla::rpc::VehicleFailureState GetFailureState() const { return inner_->GetFailureState(); }
 
+    FfiBoundingBox GetBoundingBox() const {
+        auto orig = inner_->GetBoundingBox();
+        return FfiBoundingBox(std::move(orig));
+    }
+
     // SharedPtr<TrafficLight> GetTrafficLight() const {}
 
 #ifdef CARLA_VERSION_0916

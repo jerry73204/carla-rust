@@ -4,10 +4,13 @@
 use super::{Actor, ActorBase};
 #[cfg(carla_0916)]
 use crate::rpc::VehicleTelemetryData;
-use crate::rpc::{
-    AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
-    VehicleDoor, VehicleFailureState, VehicleLightState, VehiclePhysicsControl,
-    VehicleWheelLocation,
+use crate::{
+    geom::BoundingBox,
+    rpc::{
+        AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
+        VehicleDoor, VehicleFailureState, VehicleLightState, VehiclePhysicsControl,
+        VehicleWheelLocation,
+    },
 };
 use autocxx::prelude::*;
 use carla_sys::{
@@ -232,6 +235,31 @@ impl Vehicle {
     /// The failure state (None, Rollover, Engine, or TirePuncture)
     pub fn failure_state(&self) -> VehicleFailureState {
         self.inner.GetFailureState()
+    }
+
+    /// Returns the bounding box of the vehicle.
+    ///
+    /// The bounding box contains the vehicle's extent (half-dimensions) and transform
+    /// (center position and orientation) in world coordinates.
+    ///
+    /// # Returns
+    ///
+    /// A `BoundingBox<f32>` representing the vehicle's 3D bounding box
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use carla::client::{Client, Vehicle};
+    /// # let client = Client::connect("localhost", 2000, 0);
+    /// # let world = client.world();
+    /// # let vehicle: Vehicle = unimplemented!();
+    /// let bbox = vehicle.bounding_box();
+    /// println!("Extent: {:?}", bbox.extent);
+    /// println!("Center: {:?}", bbox.transform.translation);
+    /// ```
+    pub fn bounding_box(&self) -> BoundingBox<f32> {
+        let bbox = self.inner.GetBoundingBox();
+        BoundingBox::from_native(&bbox)
     }
 
     /// Returns detailed vehicle telemetry data including wheel physics.
