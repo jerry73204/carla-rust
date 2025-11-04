@@ -10,7 +10,6 @@ use crate::{
 use carla_sys::carla_rust::{client::FfiActorSnapshot, geom::FfiVector3D};
 use cxx::UniquePtr;
 use derivative::Derivative;
-use nalgebra::Vector3;
 use static_assertions::assert_impl_all;
 
 /// Snapshot of an actor's state at a specific moment in time.
@@ -68,23 +67,20 @@ impl ActorSnapshot {
 
     /// Returns the actor's transform (position and rotation).
     ///
-    /// The transform is returned as a nalgebra `Isometry3<f32>`, which combines
-    /// translation and rotation in a single type.
-    ///
     /// # Examples
     ///
     /// ```no_run
     /// # use carla::client::actor_snapshot::ActorSnapshot;
     /// # let actor_snapshot: ActorSnapshot = todo!();
     /// let transform = actor_snapshot.transform();
-    /// let position = transform.translation.vector;
+    /// let location = transform.location;
     /// println!(
     ///     "Actor position: ({:.1}, {:.1}, {:.1})",
-    ///     position.x, position.y, position.z
+    ///     location.x, location.y, location.z
     /// );
     /// ```
-    pub fn transform(&self) -> nalgebra::Isometry3<f32> {
-        Transform::from_ffi(self.inner.GetTransform()).to_na()
+    pub fn transform(&self) -> Transform {
+        Transform::from_ffi(self.inner.GetTransform())
     }
 
     /// Returns the actor's velocity vector in meters per second.
@@ -95,10 +91,10 @@ impl ActorSnapshot {
     /// # use carla::client::actor_snapshot::ActorSnapshot;
     /// # let actor_snapshot: ActorSnapshot = todo!();
     /// let velocity = actor_snapshot.velocity();
-    /// let speed = velocity.norm();
+    /// let speed = velocity.length();
     /// println!("Actor speed: {:.1} m/s", speed);
     /// ```
-    pub fn velocity(&self) -> Vector3<f32> {
+    pub fn velocity(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
             let cpp_vec = self.inner.GetVelocity();
@@ -106,7 +102,6 @@ impl ActorSnapshot {
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-            .to_na()
         }
     }
 
@@ -118,10 +113,10 @@ impl ActorSnapshot {
     /// # use carla::client::actor_snapshot::ActorSnapshot;
     /// # let actor_snapshot: ActorSnapshot = todo!();
     /// let angular_velocity = actor_snapshot.angular_velocity();
-    /// let rotation_speed = angular_velocity.norm();
+    /// let rotation_speed = angular_velocity.length();
     /// println!("Actor rotation speed: {:.2} rad/s", rotation_speed);
     /// ```
-    pub fn angular_velocity(&self) -> Vector3<f32> {
+    pub fn angular_velocity(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
             let cpp_vec = self.inner.GetAngularVelocity();
@@ -129,7 +124,6 @@ impl ActorSnapshot {
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-            .to_na()
         }
     }
 
@@ -141,10 +135,10 @@ impl ActorSnapshot {
     /// # use carla::client::actor_snapshot::ActorSnapshot;
     /// # let actor_snapshot: ActorSnapshot = todo!();
     /// let acceleration = actor_snapshot.acceleration();
-    /// let accel_magnitude = acceleration.norm();
+    /// let accel_magnitude = acceleration.length();
     /// println!("Actor acceleration: {:.2} m/s²", accel_magnitude);
     /// ```
-    pub fn acceleration(&self) -> Vector3<f32> {
+    pub fn acceleration(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
             let cpp_vec = self.inner.GetAcceleration();
@@ -152,7 +146,6 @@ impl ActorSnapshot {
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-            .to_na()
         }
     }
 

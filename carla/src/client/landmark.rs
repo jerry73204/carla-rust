@@ -8,7 +8,6 @@ use crate::{
 use carla_sys::carla_rust::client::FfiLandmark;
 use cxx::SharedPtr;
 use derivative::Derivative;
-use nalgebra::Isometry3;
 use static_assertions::assert_impl_all;
 
 use super::Waypoint;
@@ -28,8 +27,8 @@ impl Landmark {
         unsafe { Waypoint::from_cxx(ptr).unwrap_unchecked() }
     }
 
-    pub fn transform(&self) -> Isometry3<f32> {
-        Transform::from_ffi(self.inner.GetTransform().clone()).to_na()
+    pub fn transform(&self) -> Transform {
+        Transform::from_ffi(self.inner.GetTransform().clone())
     }
 
     pub fn road_id(&self) -> RoadId {

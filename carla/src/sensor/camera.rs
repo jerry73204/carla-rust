@@ -8,7 +8,7 @@
 //! These utilities are essential for sensor fusion tasks like projecting
 //! LiDAR points onto camera images.
 
-use crate::geom::Location;
+use crate::geom::{Location, Vector3D};
 use nalgebra::{Matrix3, Vector3};
 
 /// Builds a camera projection matrix (intrinsic matrix) using the pinhole camera model.
@@ -154,11 +154,10 @@ pub fn world_to_camera(
 /// # Examples
 ///
 /// ```
-/// use carla::sensor::camera;
-/// use nalgebra::Vector3;
+/// use carla::{geom::Vector3D, sensor::camera};
 ///
 /// let k = camera::build_projection_matrix(800, 600, 90.0);
-/// let camera_point = Vector3::new(2.0, 1.0, 10.0); // x, y, z(depth)
+/// let camera_point = Vector3D::new(2.0, 1.0, 10.0); // x, y, z(depth)
 /// let (x, y) = camera::project_to_2d(&camera_point, &k);
 ///
 /// // Check if point is visible in image
@@ -166,9 +165,12 @@ pub fn world_to_camera(
 ///     println!("Pixel coordinates: ({}, {})", x as u32, y as u32);
 /// }
 /// ```
-pub fn project_to_2d(point_3d: &Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32) {
+pub fn project_to_2d(point_3d: &Vector3D, k_matrix: &Matrix3<f32>) -> (f32, f32) {
+    // Convert to nalgebra for matrix multiplication
+    let na_point = nalgebra::Vector3::new(point_3d.x, point_3d.y, point_3d.z);
+
     // Project 3D point to 2D using projection matrix
-    let projected = k_matrix * point_3d;
+    let projected = k_matrix * na_point;
 
     // Normalize by depth (z-coordinate)
     let x = projected.x / projected.z;
@@ -208,7 +210,7 @@ mod tests {
         let k = build_projection_matrix(800, 600, 90.0);
 
         // Point straight ahead should project to image center
-        let point = Vector3::new(0.0, 0.0, 10.0); // at camera center, 10m ahead
+        let point = Vector3D::new(0.0, 0.0, 10.0); // at camera center, 10m ahead
         let (x, y) = project_to_2d(&point, &k);
 
         assert_relative_eq!(x, 400.0, epsilon = 1.0);
@@ -220,7 +222,7 @@ mod tests {
         let k = build_projection_matrix(800, 600, 90.0);
 
         // Point to the right and up should project accordingly
-        let point = Vector3::new(5.0, -2.0, 10.0); // right=5, up=2 (y is down), depth=10
+        let point = Vector3D::new(5.0, -2.0, 10.0); // right=5, up=2 (y is down), depth=10
         let (x, y) = project_to_2d(&point, &k);
 
         // Should be to the right of center
@@ -266,7 +268,8 @@ mod tests {
         };
 
         // Transform to camera coordinates
-        let camera_point = world_to_camera(&world_point, &camera_transform);
+        let camera_point_na = world_to_camera(&world_point, &camera_transform);
+        let camera_point = Vector3D::new(camera_point_na.x, camera_point_na.y, camera_point_na.z);
 
         // Project to 2D
         let (x, y) = project_to_2d(&camera_point, &k);

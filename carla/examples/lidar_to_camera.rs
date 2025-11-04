@@ -29,7 +29,7 @@
 
 use carla::{
     client::{ActorBase, Client, Sensor},
-    geom::{Location, Rotation},
+    geom::{Location, Rotation, Vector3D},
     rpc::{AttachmentType, EpisodeSettings},
     sensor::{
         camera::{build_projection_matrix, project_to_2d, world_to_camera},
@@ -252,7 +252,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let world_location = Location::from_na_point(&point_world);
 
                 // Transform to camera space and convert to standard camera coordinates
-                let point_camera = world_to_camera(&world_location, camera_transform);
+                let point_camera_na = world_to_camera(&world_location, camera_transform);
+
+                // Convert to Vector3D for project_to_2d
+                let point_camera =
+                    Vector3D::new(point_camera_na.x, point_camera_na.y, point_camera_na.z);
 
                 // Check if point is in front of camera
                 if point_camera.z <= 0.0 {

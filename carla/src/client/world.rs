@@ -139,9 +139,9 @@ impl World {
     /// Returns a random navigable location (on roads/sidewalks).
     ///
     /// Useful for spawning actors at random valid positions.
-    pub fn random_location_from_navigation(&self) -> Translation3<f32> {
+    pub fn random_location_from_navigation(&self) -> Location {
         let cpp_loc = self.inner.GetRandomLocationFromNavigation();
-        Location::from_ffi(cpp_loc.as_ref().unwrap().clone()).to_na_translation()
+        Location::from_ffi(cpp_loc.as_ref().unwrap().clone())
     }
 
     /// Returns the spectator actor (the free-flying camera).

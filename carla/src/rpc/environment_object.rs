@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use carla_sys::carla_rust::rpc::FfiEnvironmentObjectRef;
 use cxx::UniquePtr;
 use derivative::Derivative;
-use nalgebra::Isometry3;
 
 use crate::geom::{BoundingBox, Transform};
 
@@ -18,8 +17,8 @@ pub struct EnvironmentObjectRef<'a> {
 }
 
 impl<'a> EnvironmentObjectRef<'a> {
-    pub fn transform(&self) -> Isometry3<f32> {
-        Transform::from_ffi(self.inner.transform().clone()).to_na()
+    pub fn transform(&self) -> Transform {
+        Transform::from_ffi(self.inner.transform().clone())
     }
 
     pub fn bounding_box(&self) -> BoundingBox<f32> {

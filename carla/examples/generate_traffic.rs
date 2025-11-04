@@ -128,8 +128,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .ok_or("Failed to get walker blueprint")?;
 
         // Get random location from navigation system
-        let translation = world.random_location_from_navigation();
-        let location = Location::from_na_translation(&translation);
+        let location = world.random_location_from_navigation();
         let rotation = carla::geom::Rotation {
             pitch: 0.0,
             yaw: 0.0,
