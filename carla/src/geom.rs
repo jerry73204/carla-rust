@@ -1471,11 +1471,11 @@ impl BoundingBox<f32> {
     }
 
     /// Returns the 8 corner vertices in local (bounding box) coordinates.
-    pub fn local_vertices(&self) -> Vec<Translation3<f32>> {
+    pub fn local_vertices(&self) -> Vec<Location> {
         self.to_native()
             .GetLocalVertices()
             .iter()
-            .map(|loc| Location::from_ffi(loc.clone()).to_na_translation())
+            .map(|loc| Location::from_ffi(loc.clone()))
             .collect()
     }
 
@@ -1483,12 +1483,12 @@ impl BoundingBox<f32> {
     ///
     /// # Arguments
     ///
-    /// * `in_bbox_to_world_tr` - Transform from bounding box space to world space
-    pub fn world_vertices(&self, in_bbox_to_world_tr: &Isometry3<f32>) -> Vec<Translation3<f32>> {
+    /// * `transform` - Transform from bounding box space to world space
+    pub fn world_vertices(&self, transform: &Transform) -> Vec<Location> {
         self.to_native()
-            .GetWorldVertices(Transform::from_na(in_bbox_to_world_tr).as_ffi())
+            .GetWorldVertices(transform.as_ffi())
             .iter()
-            .map(|loc| Location::from_ffi(loc.clone()).to_na_translation())
+            .map(|loc| Location::from_ffi(loc.clone()))
             .collect()
     }
 }
