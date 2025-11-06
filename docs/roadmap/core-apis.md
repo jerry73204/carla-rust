@@ -23,7 +23,7 @@ This document covers the core API development phases (0-9) for the carla-rust pr
 
 **Priority:** Critical
 **Estimated Effort:** 1 week
-**Status:** ✅ **COMPLETE**
+**Status:** [x] **COMPLETE**
 
 ### Work Items
 
@@ -54,15 +54,15 @@ This document covers the core API development phases (0-9) for the carla-rust pr
 ### Examples Created
 
 #### Basic Examples
-- ✅ `connect.rs` - Connect to CARLA and get server version
-- ✅ `world_info.rs` - Get world information (map, spawn points, actors)
-- ✅ `blueprints.rs` - Query and filter blueprint library
+- [x] `connect.rs` - Connect to CARLA and get server version
+- [x] `world_info.rs` - Get world information (map, spawn points, actors)
+- [x] `blueprints.rs` - Query and filter blueprint library
 
 #### Vehicle Examples
-- ✅ `spawn_vehicle.rs` - Spawn single vehicle
-- ✅ `multiple_vehicles.rs` - Spawn multiple vehicles
-- ✅ `vehicle_transform.rs` - Get vehicle transforms and location
-- ✅ `vehicle_attributes.rs` - Access vehicle attributes
+- [x] `spawn_vehicle.rs` - Spawn single vehicle
+- [x] `multiple_vehicles.rs` - Spawn multiple vehicles
+- [x] `vehicle_transform.rs` - Get vehicle transforms and location
+- [x] `vehicle_attributes.rs` - Access vehicle attributes
 
 ### Example Usage Pattern
 
@@ -100,7 +100,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** High
 **Estimated Effort:** 3-4 weeks (includes FFI work)
-**Status:** ✅ **COMPLETE** (Oct 28, 2025)
+**Status:** [x] **COMPLETE** (Oct 28, 2025)
 - Core functionality: 100% complete
 - Advanced features: 60% complete (40% deferred due to FFI limitations)
 - Examples: 2 comprehensive examples passing all tests
@@ -113,23 +113,23 @@ Run with: `cargo run --example spawn_vehicle`
   - Add Walker-specific control methods
 
 - [x] **WalkerAIController** (Partial - 3/5 methods implemented)
-  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+  - **FFI Work (carla-sys):** [x] **COMPLETE**
     - File: `carla-sys/src/bindings.rs` - Added WalkerAIController header
     - File: `carla-sys/csrc/carla_rust/client/walker_ai_controller.hpp` - Created FFI wrapper
     - Generated autocxx bindings for `FfiWalkerAIController`
     - Verified compilation on CARLA 0.9.16
-  - **Rust API (carla):** 🟡 **PARTIAL** (60% complete)
-    - File: `carla/src/client/walker_ai_controller.rs` - Created ✅
-    - Struct `WalkerAIController` wrapping FFI type ✅
+  - **Rust API (carla):** [ ] (PARTIAL) **PARTIAL** (60% complete)
+    - File: `carla/src/client/walker_ai_controller.rs` - Created [x]
+    - Struct `WalkerAIController` wrapping FFI type [x]
     - Implemented methods:
-      - `start(&self)` - Start AI control ✅
-      - `stop(&self)` - Stop AI control ✅
-      - `set_max_speed(&self, speed: f32)` - Set walking speed (m/s) ✅
-      - `go_to_location()` - Deferred (autocxx const reference parameter issues)
-      - `get_random_location()` - Deferred (boost::optional FFI wrapper needed)
-    - Added to `carla/src/client.rs` exports ✅
-    - Module exported in `carla/src/client.rs` ✅
-  - **Tests:** ✅ **COMPLETE**
+      - `start(&self)` - Start AI control [x]
+      - `stop(&self)` - Stop AI control [x]
+      - `set_max_speed(&self, speed: f32)` - Set walking speed (m/s) [x]
+      - [ ] `go_to_location()` - **DEFERRED** - (autocxx const reference parameter issues)
+      - [ ] `get_random_location()` - **DEFERRED** - (boost::optional FFI wrapper needed)
+    - Added to `carla/src/client.rs` exports [x]
+    - Module exported in `carla/src/client.rs` [x]
+  - **Tests:** [x] **COMPLETE**
     - Validated via `walker_integration_demo.rs` example
     - All core methods (start/stop/set_max_speed) verified working
     - AI controller attachment to walker parent verified
@@ -146,7 +146,7 @@ Run with: `cargo run --example spawn_vehicle`
     - `jump: bool` - Jump flag
 
 - [x] **WalkerBoneControl** (Partial - 3/5 methods implemented)
-  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+  - **FFI Work (carla-sys):** [x] **COMPLETE**
     - File: `carla-sys/src/bindings.rs` - Added WalkerBoneControl headers
     - File: `carla-sys/csrc/carla_rust/client/walker.hpp` - Added bone control methods
     - Generated autocxx bindings for:
@@ -155,25 +155,25 @@ Run with: `cargo run --example spawn_vehicle`
       - `carla::rpc::BoneTransformDataIn`
       - `carla::rpc::BoneTransformDataOut`
     - Added methods to FfiWalker wrapper:
-      - `SetBonesTransform(const WalkerBoneControlIn&)` ✅
-      - `GetBonesTransform()` → WalkerBoneControlOut ✅
-      - `BlendPose(float)` ✅
+      - `SetBonesTransform(const WalkerBoneControlIn&)` [x]
+      - `GetBonesTransform()` → WalkerBoneControlOut [x]
+      - `BlendPose(float)` [x]
     - Verified compilation on CARLA 0.9.16
-  - **Rust API (carla):** 🟡 **PARTIAL** (60% complete)
-    - File: `carla/src/rpc/walker_bone_control.rs` - Created ✅
+  - **Rust API (carla):** [ ] (PARTIAL) **PARTIAL** (60% complete)
+    - File: `carla/src/rpc/walker_bone_control.rs` - Created [x]
     - Rust type definitions:
-      - `BoneTransformDataIn` - Input bone transform ✅
-      - `BoneTransformDataOut` - Output bone transform (struct only, no FFI conversion) ✅
-      - `WalkerBoneControlIn` - Input collection ✅
-      - `WalkerBoneControlOut` - Output collection (struct only, no FFI conversion) ✅
+      - `BoneTransformDataIn` - Input bone transform [x]
+      - `BoneTransformDataOut` - Output bone transform (struct only, no FFI conversion) [x]
+      - `WalkerBoneControlIn` - Input collection [x]
+      - `WalkerBoneControlOut` - Output collection (struct only, no FFI conversion) [x]
     - File: `carla/src/client/walker.rs` - Methods implemented:
-      - `blend_pose(&self, blend: f32)` - Blend animation pose (0.0-1.0) ✅
-      - `show_pose(&self)` - Show custom pose (blend=1.0) ✅
-      - `hide_pose(&self)` - Hide custom pose (blend=0.0) ✅
-      - `set_bones()` - Deferred (autocxx moveit wrapper complexity)
-      - `get_bones_transform()` - Deferred (opaque type field access)
-    - Module exported in `carla/src/rpc.rs` ✅
-  - **Tests:** ✅ **COMPLETE**
+      - `blend_pose(&self, blend: f32)` - Blend animation pose (0.0-1.0) [x]
+      - `show_pose(&self)` - Show custom pose (blend=1.0) [x]
+      - `hide_pose(&self)` - Hide custom pose (blend=0.0) [x]
+      - [ ] `set_bones()` - **DEFERRED** - (autocxx moveit wrapper complexity)
+      - [ ] `get_bones_transform()` - **DEFERRED** - (opaque type field access)
+    - Module exported in `carla/src/rpc.rs` [x]
+  - **Tests:** [x] **COMPLETE**
     - Validated via two examples:
       - `walker_bone_control_demo.rs` - Demonstrates data structure creation
       - `walker_integration_demo.rs` - Demonstrates pose blending methods
@@ -187,18 +187,18 @@ Run with: `cargo run --example spawn_vehicle`
 ### Examples Created
 
 #### Walker Examples (Phase 0)
-- ✅ `spawn_walker.rs` - Spawn single walker/pedestrian
-- ✅ `walker_control.rs` - Apply walker movement control (direction, speed)
-- ✅ `walker_directions.rs` - Demonstrate different movement directions
-- ✅ `multiple_walkers.rs` - Spawn multiple walkers
+- [x] `spawn_walker.rs` - Spawn single walker/pedestrian
+- [x] `walker_control.rs` - Apply walker movement control (direction, speed)
+- [x] `walker_directions.rs` - Demonstrate different movement directions
+- [x] `multiple_walkers.rs` - Spawn multiple walkers
 
 #### Walker Advanced Examples (Phase 1)
-- ✅ `walker_bone_control_demo.rs` - Bone transform data structures and manipulation
+- [x] `walker_bone_control_demo.rs` - Bone transform data structures and manipulation
   - Demonstrates BoneTransformDataIn and WalkerBoneControlIn usage
   - Shows bone naming conventions (crl_arm__L, crl_leg__R, etc.)
   - No simulator required (data structure demo)
 
-- ✅ `walker_integration_demo.rs` - Comprehensive walker functionality integration
+- [x] `walker_integration_demo.rs` - Comprehensive walker functionality integration
   - **Demo 1**: Walker spawning and lifecycle
   - **Demo 2**: Walker control (direction, speed, jump)
   - **Demo 3**: Pose blending (blend_pose, show_pose, hide_pose)
@@ -216,54 +216,54 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Medium
 **Estimated Effort:** 2-3 weeks (includes FFI work)
-**Status:** ✅ **COMPLETE**
+**Status:** [x] **COMPLETE**
 
 ### Work Items
 
 - [x] **DebugHelper**
   - **FFI Work (carla-sys):**
-    - ✅ File: `carla-sys/csrc/carla_rust/client/debug_helper.hpp` (custom FFI wrapper using POD types)
-    - ✅ File: `carla-sys/src/bindings.rs` (autocxx generation declarations)
-    - ✅ Implemented all drawing methods using FFI-friendly POD types (FfiLocation, FfiColor, etc.)
-    - ✅ Free functions approach (FfiDebugHelper_DrawPoint, etc.) to work around autocxx limitations
-    - ✅ All methods verified to compile and link
+    - [x] File: `carla-sys/csrc/carla_rust/client/debug_helper.hpp` (custom FFI wrapper using POD types)
+    - [x] File: `carla-sys/src/bindings.rs` (autocxx generation declarations)
+    - [x] Implemented all drawing methods using FFI-friendly POD types (FfiLocation, FfiColor, etc.)
+    - [x] Free functions approach (FfiDebugHelper_DrawPoint, etc.) to work around autocxx limitations
+    - [x] All methods verified to compile and link
   - **Rust API (carla):**
-    - ✅ File: `carla/src/client/debug_helper.rs` (351 lines, fully documented)
-    - ✅ All drawing methods implemented:
+    - [x] File: `carla/src/client/debug_helper.rs` (351 lines, fully documented)
+    - [x] All drawing methods implemented:
       - `draw_point(&self, location, size, color, life_time, persistent_lines)`
       - `draw_line(&self, begin, end, thickness, color, life_time, persistent_lines)`
       - `draw_arrow(&self, begin, end, thickness, arrow_size, color, life_time, persistent_lines)`
       - `draw_box(&self, bbox, rotation, thickness, color, life_time, persistent_lines)`
       - `draw_string(&self, location, text, draw_shadow, color, life_time, persistent_lines)`
-    - ✅ Comprehensive documentation with examples for each method
+    - [x] Comprehensive documentation with examples for each method
 
 - [x] **Color Type**
   - **FFI Work (carla-sys):**
-    - ✅ Existing FfiColor POD type in `carla-sys/csrc/carla_rust/sensor/data/color.hpp`
-    - ✅ Already generated in bindings.rs
+    - [x] Existing FfiColor POD type in `carla-sys/csrc/carla_rust/sensor/data/color.hpp`
+    - [x] Already generated in bindings.rs
   - **Rust API (carla):**
-    - ✅ File: `carla/src/rpc/color.rs` (201 lines)
-    - ✅ `Color` struct with `r, g, b, a` fields (u8 values)
-    - ✅ Implemented `new()`, `new_rgba()` constructors
-    - ✅ 8 predefined color constants: RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA, WHITE, BLACK
-    - ✅ `From<Color> for FfiColor` conversion
-    - ✅ Comprehensive documentation
+    - [x] File: `carla/src/rpc/color.rs` (201 lines)
+    - [x] `Color` struct with `r, g, b, a` fields (u8 values)
+    - [x] Implemented `new()`, `new_rgba()` constructors
+    - [x] 8 predefined color constants: RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA, WHITE, BLACK
+    - [x] `From<Color> for FfiColor` conversion
+    - [x] Comprehensive documentation
 
 - [x] **World Debug Access**
   - **Rust API (carla):**
-    - ✅ File: `carla/src/client/world.rs`
-    - ✅ Added `debug(&mut self) -> DebugHelper` method (line 622)
-    - ✅ C++ bridge in `carla-sys/csrc/carla_rust/client/world.hpp`: `MakeDebugHelper()` method
+    - [x] File: `carla/src/client/world.rs`
+    - [x] Added `debug(&mut self) -> DebugHelper` method (line 622)
+    - [x] C++ bridge in `carla-sys/csrc/carla_rust/client/world.hpp`: `MakeDebugHelper()` method
 
 - [x] **Example Implementation**
-  - ✅ File: `carla/examples/debug_visualization.rs` (220 lines)
-  - ✅ Demonstrates all drawing features: points, lines, arrows, boxes, text
-  - ✅ Uses all 8 predefined colors
-  - ✅ Fully documented with usage instructions
+  - [x] File: `carla/examples/debug_visualization.rs` (220 lines)
+  - [x] Demonstrates all drawing features: points, lines, arrows, boxes, text
+  - [x] Uses all 8 predefined colors
+  - [x] Fully documented with usage instructions
 
 - [x] **Geometry Convenience Methods**
-  - ✅ Added `Location::new()` via `LocationExt` trait
-  - ✅ Added `BoundingBox::new()` for simple construction
+  - [x] Added `Location::new()` via `LocationExt` trait
+  - [x] Added `BoundingBox::new()` for simple construction
 
 ### Test Cases
 
@@ -288,24 +288,24 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Medium
 **Estimated Effort:** 2-3 weeks (includes FFI work)
-**Status:** ✅ Complete
+**Status:** [x] Complete
 
 ### Work Items
 
 - [x] **Client Recording Methods**
   - **FFI Work (carla-sys):**
     - File: `carla-sys/csrc/carla_rust/client/client.hpp`
-    - ✅ Added `FfiClient` wrapper methods:
+    - [x] Added `FfiClient` wrapper methods:
       - `StartRecorder(std::string, bool)` → returns std::string
       - `StopRecorder()`
       - `ShowRecorderFileInfo(std::string, bool)` → returns std::string
       - `ShowRecorderCollisions(std::string, char, char)` → returns std::string
       - `ShowRecorderActorsBlocked(std::string, double, double)` → returns std::string
-    - ✅ Methods auto-generated via `generate_ns!("carla_rust")`
-    - ✅ Tested on CARLA 0.9.16
+    - [x] Methods auto-generated via `generate_ns!("carla_rust")`
+    - [x] Tested on CARLA 0.9.16
   - **Rust API (carla):**
     - File: `carla/src/client/carla_client.rs:298-430`
-    - ✅ Implemented recording methods:
+    - [x] Implemented recording methods:
       - `start_recorder(&mut self, filename: &str, additional_data: bool) -> String`
       - `stop_recorder(&mut self)`
       - `show_recorder_file_info(&mut self, filename: &str, show_all: bool) -> String`
@@ -313,22 +313,22 @@ Run with: `cargo run --example spawn_vehicle`
       - `show_recorder_actors_blocked(&mut self, filename: &str, min_time: f32, min_distance: f32) -> String`
   - **Examples:**
     - File: `carla/examples/recording_playback.rs`
-    - ✅ Comprehensive example demonstrating recording, querying, and replay
+    - [x] Comprehensive example demonstrating recording, querying, and replay
 
 - [x] **Replay Methods**
   - **FFI Work (carla-sys):**
     - File: `carla-sys/csrc/carla_rust/client/client.hpp:85-104`
-    - ✅ Added `FfiClient` wrapper methods:
+    - [x] Added `FfiClient` wrapper methods:
       - `ReplayFile(std::string, double, double, uint32_t, bool)` → returns std::string
         - ℹ️ CARLA 0.9.16 added 6th parameter (geom::Transform offset), handled via `#ifdef CARLA_VERSION_0916`
       - `StopReplayer(bool)`
       - `SetReplayerTimeFactor(double)`
       - `SetReplayerIgnoreHero(bool)`
       - `SetReplayerIgnoreSpectator(bool)` (all versions, no conditional needed)
-    - ✅ Methods auto-generated via `generate_ns!("carla_rust")`
+    - [x] Methods auto-generated via `generate_ns!("carla_rust")`
   - **Rust API (carla):**
     - File: `carla/src/client/carla_client.rs:437-563`
-    - ✅ Implemented replay methods:
+    - [x] Implemented replay methods:
       - `replay_file(&mut self, filename: &str, start_time: f32, duration: f32, follow_id: u32, replay_sensors: bool) -> String`
       - `stop_replayer(&mut self, keep_actors: bool)`
       - `set_replayer_time_factor(&mut self, time_factor: f32)`
@@ -336,16 +336,16 @@ Run with: `cargo run --example spawn_vehicle`
       - `set_replayer_ignore_spectator(&mut self, ignore_spectator: bool)`
         - ℹ️ All versions supported, no cfg needed
   - **Examples:**
-    - ✅ Included in `carla/examples/recording_playback.rs`
+    - [x] Included in `carla/examples/recording_playback.rs`
 
 - [x] **Example and Documentation**
   - File: `carla/examples/recording_playback.rs` (143 lines)
-  - ✅ Demonstrates complete recording and replay workflow:
+  - [x] Demonstrates complete recording and replay workflow:
     - Spawning vehicle
     - Starting/stopping recording
     - Querying recording info (file info, collisions, blocked actors)
     - Replaying with time factor control
-  - ✅ All methods fully documented with examples in rustdoc
+  - [x] All methods fully documented with examples in rustdoc
 
 ### Implementation Notes
 
@@ -389,7 +389,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Low
 **Estimated Effort:** 2-3 weeks (includes FFI work + version handling)
-**Status:** ✅ Complete
+**Status:** [x] Complete
 
 ### Work Items
 
@@ -413,12 +413,12 @@ Run with: `cargo run --example spawn_vehicle`
     - Integration tests: Apply Ackermann control and verify steering
 
 - [x] **Vehicle Failure State** (0.9.14+)
-  - **FFI Work (carla-sys):** ✅ Complete
+  - **FFI Work (carla-sys):** [x] Complete
     - File: `carla-sys/src/ffi.rs`
     - Add `#include "carla/rpc/VehicleFailureState.h"` to includes
     - Add to `generate!` block: `carla::rpc::VehicleFailureState`
     - Add Vehicle method to `safety!` block: `GetFailureState()` → returns VehicleFailureState
-  - **Rust API (carla):** ✅ Complete
+  - **Rust API (carla):** [x] Complete
     - File: `carla/src/rpc/vehicle_failure_state.rs`
     - Re-export C++ enum `VehicleFailureState`: None, Rollover, Engine, TirePuncture
     - File: `carla/src/client/vehicle.rs` - Added method:
@@ -426,7 +426,7 @@ Run with: `cargo run --example spawn_vehicle`
   - **Tests:** N/A (requires simulator)
 
 - [x] **Vehicle Telemetry** (0.9.16+ only)
-  - **FFI Work (carla-sys):** ✅ Complete
+  - **FFI Work (carla-sys):** [x] Complete
     - File: `carla-sys/src/bindings.rs`
     - Added `#[cfg(carla_0916)]` gated includes:
       - `#include "carla/rpc/VehicleTelemetryData.h"`
@@ -434,7 +434,7 @@ Run with: `cargo run --example spawn_vehicle`
     - Created FFI wrapper `FfiVehicleTelemetryData` for opaque type handling
     - Added to `generate!` block: `carla_rust::rpc::FfiVehicleTelemetryData`
     - Added Vehicle method: `GetTelemetryData()` → returns FfiVehicleTelemetryData
-  - **Rust API (carla):** ✅ Complete
+  - **Rust API (carla):** [x] Complete
     - File: `carla/src/rpc/vehicle_telemetry_data.rs`
     - `#[cfg(carla_0916)]` gated structs: `VehicleTelemetryData`, `WheelTelemetryData`
     - File: `carla/src/client/vehicle.rs` - Added method:
@@ -443,10 +443,10 @@ Run with: `cargo run --example spawn_vehicle`
   - **Example:** `carla/examples/vehicle_advanced_features.rs`
 
 - [x] **Wheel Pitch Control** (0.9.16+ only)
-  - **FFI Work (carla-sys):** ✅ Complete (methods already exposed)
+  - **FFI Work (carla-sys):** [x] Complete (methods already exposed)
     - File: `carla-sys/csrc/carla_rust/client/vehicle.hpp`
     - Methods: `SetWheelPitchAngle()`, `GetWheelPitchAngle()`, `RestorePhysXPhysics()`
-  - **Rust API (carla):** ✅ Complete
+  - **Rust API (carla):** [x] Complete
     - File: `carla/src/client/vehicle.rs` - Added methods:
       - `#[cfg(carla_0916)] set_wheel_pitch_angle(&self, wheel: VehicleWheelLocation, degrees: f32)`
       - `#[cfg(carla_0916)] wheel_pitch_angle(&self, wheel: VehicleWheelLocation) -> f32`
@@ -456,11 +456,11 @@ Run with: `cargo run --example spawn_vehicle`
   - **Note:** `GetVehicleBoneWorldTransforms()` deferred - requires autocxx support for `std::vector<Transform>`
 
 - [x] **Vehicle Doors** (0.9.13+)
-  - **FFI Work (carla-sys):** ✅ Complete (methods already exposed)
+  - **FFI Work (carla-sys):** [x] Complete (methods already exposed)
     - File: `carla-sys/csrc/carla_rust/client/vehicle.hpp`
     - `carla::rpc::VehicleDoor` enum already exposed
     - Methods: `OpenDoor()`, `CloseDoor()`
-  - **Rust API (carla):** ✅ Complete
+  - **Rust API (carla):** [x] Complete
     - File: `carla/src/rpc.rs` - Re-export VehicleDoor enum
     - File: `carla/src/client/vehicle.rs` - Added methods:
       - `open_door(&self, door: VehicleDoor)`
@@ -492,52 +492,52 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Medium
 **Estimated Effort:** 3 weeks
-**Status:** ✅ **COMPLETE** (Oct 28, 2025)
+**Status:** [x] **COMPLETE** (Oct 28, 2025)
 
 ### Work Items
 
 - [x] **Command System**
-  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+  - **FFI Work (carla-sys):** [x] **COMPLETE**
     - File: `carla-sys/csrc/carla_rust/client/command_batch.hpp` - Created FfiCommandBatch wrapper
     - File: `carla-sys/csrc/carla_rust/rpc/vehicle_physics_control.hpp` - Added `as_native()` method
     - File: `carla-sys/src/bindings.rs` - Added FFI bindings
     - Implemented 22 Add* methods using autocxx-compatible primitive types (`uint32_t`, `uint8_t`)
     - Used associated function calling convention for autocxx-generated bindings
     - Verified compilation on CARLA 0.9.16
-  - **Rust API (carla):** ✅ **COMPLETE**
+  - **Rust API (carla):** [x] **COMPLETE**
     - File: `carla/src/rpc/command.rs` (362 lines)
     - Enum `Command` with 22 variants:
-      - ✅ `SpawnActor` - Spawn actor with blueprint
-      - ✅ `DestroyActor` - Remove actor
-      - ✅ `ApplyVehicleControl` - Apply vehicle control
-      - ✅ `ApplyVehicleAckermannControl` - Apply Ackermann control
-      - ✅ `ApplyWalkerControl` - Apply walker control
-      - ✅ `ApplyVehiclePhysicsControl` - Set physics control
-      - ✅ `ApplyTransform` - Set actor transform
-      - ✅ `ApplyLocation` - Set location
-      - ✅ `ApplyWalkerState` - Set walker state
-      - ✅ `ApplyTargetVelocity` - Set target velocity
-      - ✅ `ApplyTargetAngularVelocity` - Set angular velocity
-      - ✅ `ApplyImpulse` - Apply impulse
-      - ✅ `ApplyForce` - Apply force
-      - ✅ `ApplyAngularImpulse` - Apply angular impulse
-      - ✅ `ApplyTorque` - Apply torque
-      - ✅ `SetSimulatePhysics` - Enable/disable physics
-      - ✅ `SetEnableGravity` - Enable/disable gravity
-      - ✅ `SetAutopilot` - Enable/disable autopilot
-      - ✅ `ShowDebugTelemetry` - Enable/disable telemetry
-      - ✅ `SetVehicleLightState` - Set vehicle lights
-      - ✅ `ConsoleCommand` - Execute console command
-      - ✅ `SetTrafficLightState` - Set traffic light state
+      - [x] `SpawnActor` - Spawn actor with blueprint
+      - [x] `DestroyActor` - Remove actor
+      - [x] `ApplyVehicleControl` - Apply vehicle control
+      - [x] `ApplyVehicleAckermannControl` - Apply Ackermann control
+      - [x] `ApplyWalkerControl` - Apply walker control
+      - [x] `ApplyVehiclePhysicsControl` - Set physics control
+      - [x] `ApplyTransform` - Set actor transform
+      - [x] `ApplyLocation` - Set location
+      - [x] `ApplyWalkerState` - Set walker state
+      - [x] `ApplyTargetVelocity` - Set target velocity
+      - [x] `ApplyTargetAngularVelocity` - Set angular velocity
+      - [x] `ApplyImpulse` - Apply impulse
+      - [x] `ApplyForce` - Apply force
+      - [x] `ApplyAngularImpulse` - Apply angular impulse
+      - [x] `ApplyTorque` - Apply torque
+      - [x] `SetSimulatePhysics` - Enable/disable physics
+      - [x] `SetEnableGravity` - Enable/disable gravity
+      - [x] `SetAutopilot` - Enable/disable autopilot
+      - [x] `ShowDebugTelemetry` - Enable/disable telemetry
+      - [x] `SetVehicleLightState` - Set vehicle lights
+      - [x] `ConsoleCommand` - Execute console command
+      - [x] `SetTrafficLightState` - Set traffic light state
     - Helper methods: `spawn_actor()`, `destroy_actor()`, `apply_vehicle_control()`, etc.
     - Comprehensive documentation with examples for each variant
 
 - [x] **Batch Processing**
-  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+  - **FFI Work (carla-sys):** [x] **COMPLETE**
     - File: `carla-sys/csrc/carla_rust/client/client.hpp` - Added ApplyBatch/ApplyBatchSync methods
     - Methods use FfiCommandBatch to accumulate commands
     - Return FfiCommandResponse for sync variant
-  - **Rust API (carla):** ✅ **COMPLETE**
+  - **Rust API (carla):** [x] **COMPLETE**
     - File: `carla/src/client/carla_client.rs:596-677`
     - Implemented methods:
       - `apply_batch(&mut self, commands: Vec<Command>, do_tick_cue: bool)` - Fire-and-forget batch
@@ -546,11 +546,11 @@ Run with: `cargo run --example spawn_vehicle`
     - Comprehensive documentation with batch spawn example
 
 - [x] **Command Response**
-  - **FFI Work (carla-sys):** ✅ **COMPLETE**
+  - **FFI Work (carla-sys):** [x] **COMPLETE**
     - File: `carla-sys/csrc/carla_rust/client/command_batch.hpp` - FfiCommandResponse struct
     - Opaque type with accessor methods (HasError, GetErrorMessage, GetActorId)
     - Uses primitive types (`uint32_t`) for autocxx compatibility
-  - **Rust API (carla):** ✅ **COMPLETE**
+  - **Rust API (carla):** [x] **COMPLETE**
     - File: `carla/src/rpc/command_response.rs` (76 lines)
     - Response type with methods:
       - `is_success()` / `has_error()` - Check command result
@@ -582,7 +582,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Medium
 **Estimated Effort:** 2 weeks
-**Status:** ✅ **COMPLETE** (Oct 28, 2025)
+**Status:** [x] **COMPLETE** (Oct 28, 2025)
 - Core functionality: 100% complete (DVS, Optical Flow, Normals)
 - RSS Sensor: Deferred (requires Intel RSS library)
 - GBuffer Access: Deferred for future phase
@@ -610,7 +610,7 @@ Run with: `cargo run --example spawn_vehicle`
   - Verified: Uses existing `Image` sensor type (blueprint: "sensor.camera.normals")
   - RGB values encode surface normal vectors
 
-- [ ] **RSS Sensor** (0.9.7+) - **DEFERRED**
+- [ ] **RSS Sensor** (0.9.7+) - **DEFERRED** ❌
   - File: `carla/src/sensor/data/rss_response.rs`
   - Responsibility-Sensitive Safety sensor
   - **Deferred Reason:** Requires Intel RSS library integration (external dependency, not just FFI work)
@@ -620,7 +620,7 @@ Run with: `cargo run --example spawn_vehicle`
     - Extensive RSS-specific domain knowledge
   - **Note:** Unlike other items in this phase, this is legitimately deferred due to external dependencies, not FFI complexity
 
-- [ ] **GBuffer Access** (0.9.14+) - **DEFERRED**
+- [ ] **GBuffer Access** (0.9.14+) - **DEFERRED** ❌
   - Methods:
     - `Sensor::listen_to_gbuffer(gbuffer_id, callback)` - Access specific GBuffer
   - GBuffer types: SceneColor, SceneDepth, SceneStencil, GBufferA, etc.
@@ -652,7 +652,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Low
 **Estimated Effort:** 2 weeks
-**Status:** ✅ **COMPLETE** (Oct 28, 2025)
+**Status:** [x] **COMPLETE** (Oct 28, 2025)
 - All work items: 100% complete
 - Most APIs were already implemented in earlier phases
 - Added missing methods: `TrafficLight::reset_group()`, `Client::load_world_if_different()`
@@ -662,32 +662,32 @@ Run with: `cargo run --example spawn_vehicle`
 - [x] **Environment Objects**
   - File: `carla/src/client/world.rs`
   - Methods (0.9.11+):
-    - `World::environment_objects(object_type)` - Get objects by type ✅ (already implemented)
-    - `World::enable_environment_objects(env_objects, enable)` - Show/hide objects ✅ (already implemented)
+    - `World::environment_objects(object_type)` - Get objects by type [x] (already implemented)
+    - `World::enable_environment_objects(env_objects, enable)` - Show/hide objects [x] (already implemented)
   - Already has `EnvironmentObject` in RPC
 
 - [x] **Level Layers** (0.9.11+)
   - Methods:
-    - `World::load_level_layer(map_layers)` - Load map layer ✅ (already implemented)
-    - `World::unload_level_layer(map_layers)` - Unload map layer ✅ (already implemented)
+    - `World::load_level_layer(map_layers)` - Load map layer [x] (already implemented)
+    - `World::unload_level_layer(map_layers)` - Unload map layer [x] (already implemented)
   - Already has `MapLayer` enum in RPC
 
 - [x] **Freeze Traffic Lights** (0.9.10+)
   - Methods:
-    - `World::freeze_all_traffic_lights(frozen)` - Freeze all traffic lights ✅ (already implemented)
-    - `World::reset_all_traffic_lights()` - Reset all traffic lights ✅ (already implemented)
-    - `TrafficLight::reset_group()` - Reset traffic light group ✅ (added)
+    - `World::freeze_all_traffic_lights(frozen)` - Freeze all traffic lights [x] (already implemented)
+    - `World::reset_all_traffic_lights()` - Reset all traffic lights [x] (already implemented)
+    - `TrafficLight::reset_group()` - Reset traffic light group [x] (added)
 
 - [x] **Vehicles Light States** (0.9.10+)
   - Methods:
-    - `World::vehicle_light_states()` - Get all vehicle light states at once ✅ (already implemented)
+    - `World::vehicle_light_states()` - Get all vehicle light states at once [x] (already implemented)
   - Batch operation for performance
   - Returns `VehicleLightStateList` for efficient querying
 
 - [x] **Load World If Different** (0.9.15+)
   - Methods:
-    - `Client::load_world_if_different(map_name)` - Conditional map loading ✅ (added)
-    - `Client::load_world_if_different_opt(map_name, reset_settings)` - With options ✅ (added)
+    - `Client::load_world_if_different(map_name)` - Conditional map loading [x] (added)
+    - `Client::load_world_if_different_opt(map_name, reset_settings)` - With options [x] (added)
   - FFI: `carla-sys/csrc/carla_rust/client/client.hpp`
   - Available in CARLA 0.9.16 builds
   - Avoids unnecessary map reloads for better performance
@@ -717,13 +717,13 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** Low
 **Estimated Effort:** 1 week
-**Status:** ✅ Complete
+**Status:** [x] Complete
 
 ### Work Items
 
 - [x] **Waypoint Generation Methods**
   - File: `carla/src/client/waypoint.rs:93-145`
-  - ✅ Verified complete implementation:
+  - [x] Verified complete implementation:
     - `Waypoint::next(distance)` - Get next waypoints at specified distance
     - `Waypoint::previous(distance)` - Get previous waypoints at specified distance
     - `Waypoint::left()` - Get left lane waypoint
@@ -732,22 +732,22 @@ Run with: `cargo run --example spawn_vehicle`
 
 - [x] **Junction Waypoint Navigation**
   - File: `carla/src/client/junction.rs:47-52`
-  - ✅ Verified implementation:
+  - [x] Verified implementation:
     - `Junction::waypoints(lane_type)` - Get junction waypoints filtered by lane type
   - Correctly wraps CARLA's junction waypoint API
 
 - [x] **Map Topology**
   - **FFI Work (carla-sys):**
     - File: `carla-sys/csrc/carla_rust/client/map.hpp:58-66`
-    - ✅ Added `FfiMap::GetTopology()` method
+    - [x] Added `FfiMap::GetTopology()` method
     - Returns `std::vector<FfiWaypointPair>` representing road network connections
     - Reuses existing `FfiWaypointPair` class from junction waypoints
   - **FFI Bindings:**
     - File: `carla-sys/src/bindings.rs:95`
-    - ✅ Added `generate!("carla_rust::client::FfiWaypointPair")` binding
+    - [x] Added `generate!("carla_rust::client::FfiWaypointPair")` binding
   - **Rust API (carla):**
     - File: `carla/src/client/map.rs:206-249`
-    - ✅ Implemented `Map::topology()` method
+    - [x] Implemented `Map::topology()` method
     - Returns `Vec<(Waypoint, Waypoint)>` representing directed connections
     - Each pair `(start, end)` represents a road segment connection
     - Fully documented with usage examples
@@ -771,8 +771,8 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** MEDIUM
 **Estimated Effort:** 3-4 weeks
-**Status:** ✅ COMPLETE - All items finished
-**✅ Completion Date:** 2025-10-29 (Final items completed)
+**Status:** [x] COMPLETE - All items finished
+**[x] Completion Date:** 2025-10-29 (Final items completed)
 **Summary:** All HIGH, MEDIUM, and LOW priority items successfully implemented
 
 **Phase 9 Achievements:**
@@ -784,12 +784,12 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Completed Work Items
 
-- [x] **Actor Destruction API** ✅
+- [x] **Actor Destruction API** [x]
   - **Priority:** HIGH (Required by Phase 10 examples)
-  - **FFI Work (carla-sys):** ✅ Completed
+  - **FFI Work (carla-sys):** [x] Completed
     - File: `carla-sys/csrc/carla_rust/client/actor.hpp:180`
     - Added `FfiActor::Destroy()` method: `bool Destroy() const { return inner_->Destroy(); }`
-  - **Rust API (carla):** ✅ Completed
+  - **Rust API (carla):** [x] Completed
     - File: `carla/src/client/actor_base.rs:230`
     - Added `ActorBase::destroy()` method: `fn destroy(&self) -> bool`
     - Implemented for all actor types (Vehicle, Sensor, Walker, TrafficLight, TrafficSign)
@@ -800,12 +800,12 @@ Run with: `cargo run --example spawn_vehicle`
     - Thread-safe through interior mutability of SharedPtr
   - **Updated examples:** tutorial.rs, vehicle_gallery.rs, vehicle_physics.rs, start_recording.rs
 
-- [x] **Sensor Data Persistence API** ✅
+- [x] **Sensor Data Persistence API** [x]
   - **Priority:** HIGH (Required by tutorial example)
   - **Implementation Approach:** Pure Rust using `image` crate (no FFI required)
     - CARLA C++ library doesn't expose SaveToDisk in client API
     - Implemented directly in Rust for better portability and error handling
-  - **Rust API (carla):** ✅ Completed
+  - **Rust API (carla):** [x] Completed
     - File: `carla/src/sensor/data/image.rs:117`
     - Added `Image::save_to_disk(&self, path: &str) -> std::io::Result<()>`
     - Converts BGRA pixel data to RGBA format
@@ -823,13 +823,13 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Remaining Work Items
 
-- [x] **Actor Attachment Helper** ✅
+- [x] **Actor Attachment Helper** [x]
   - **Priority:** MEDIUM
-  - **Status:** ✅ Complete
+  - **Status:** [x] Complete
   - **Completion Date:** 2025-10-29
   - **Rust API (carla):**
     - File: `carla/src/client/world.rs:387-445`
-    - ✅ `World::spawn_actor_attached()` convenience method
+    - [x] `World::spawn_actor_attached()` convenience method
     - Wraps `spawn_actor_opt()` with clearer API for attaching actors
     - Requires parent parameter (not optional) for type safety
     - Example: `world.spawn_actor_attached(&blueprint, &transform, &parent_actor, AttachmentType::Rigid)`
@@ -839,50 +839,50 @@ Run with: `cargo run --example spawn_vehicle`
     - Parent parameter is required (not optional)
     - Comprehensive documentation with camera sensor example
 
-- [x] **Actor Transform Manipulation** ✅
+- [x] **Actor Transform Manipulation** [x]
   - **Priority:** MEDIUM
-  - **Status:** ✅ Complete (already implemented)
+  - **Status:** [x] Complete (already implemented)
   - **Completion Date:** 2025-10-29 (documentation verified)
   - **Rust API (carla):**
     - File: `carla/src/client/actor_base.rs:117-193`
-    - ✅ `ActorBase::set_location()` - Teleports actor (line 118)
-    - ✅ `ActorBase::set_transform()` - Teleports actor with rotation (line 124)
-    - ✅ `ActorBase::set_target_velocity()` - Sets target velocity for physics (line 130)
-    - ✅ `ActorBase::set_target_angular_velocity()` - Sets target angular velocity (line 136)
-    - ✅ `ActorBase::enable_constant_velocity()` - Enables constant velocity mode (line 142)
-    - ✅ `ActorBase::disable_constant_velocity()` - Disables constant velocity mode (line 148)
-    - ✅ `ActorBase::set_simulate_physics()` - Enables/disables physics simulation (line 186)
-    - ✅ `ActorBase::set_enable_gravity()` - Enables/disables gravity (line 191)
+    - [x] `ActorBase::set_location()` - Teleports actor (line 118)
+    - [x] `ActorBase::set_transform()` - Teleports actor with rotation (line 124)
+    - [x] `ActorBase::set_target_velocity()` - Sets target velocity for physics (line 130)
+    - [x] `ActorBase::set_target_angular_velocity()` - Sets target angular velocity (line 136)
+    - [x] `ActorBase::enable_constant_velocity()` - Enables constant velocity mode (line 142)
+    - [x] `ActorBase::disable_constant_velocity()` - Disables constant velocity mode (line 148)
+    - [x] `ActorBase::set_simulate_physics()` - Enables/disables physics simulation (line 186)
+    - [x] `ActorBase::set_enable_gravity()` - Enables/disables gravity (line 191)
   - **Additional Physics Methods:**
-    - ✅ `ActorBase::velocity()`, `acceleration()`, `angular_velocity()` - Query methods
-    - ✅ `ActorBase::add_impulse()`, `add_force()`, `add_torque()` - Apply forces
+    - [x] `ActorBase::velocity()`, `acceleration()`, `angular_velocity()` - Query methods
+    - [x] `ActorBase::add_impulse()`, `add_force()`, `add_torque()` - Apply forces
   - **Usage:** Advanced actor manipulation for testing and simulation scenarios
   - **Note:** All methods already implemented in ActorBase trait, available on all actor types
 
-- [x] **WorldSnapshot Actor Access** ✅
+- [x] **WorldSnapshot Actor Access** [x]
   - **Priority:** MEDIUM
-  - **Status:** ✅ Complete
+  - **Status:** [x] Complete
   - **Completion Date:** 2025-10-29
-  - **FFI Work (carla-sys):** ✅ Complete
+  - **FFI Work (carla-sys):** [x] Complete
     - File: `carla-sys/csrc/carla_rust/client/world_snapshot.hpp:37-54`
-    - ✅ Added `FfiWorldSnapshot::Find(actor_id)` method
-    - ✅ Added `FfiWorldSnapshot::GetActorSnapshots()` method
+    - [x] Added `FfiWorldSnapshot::Find(actor_id)` method
+    - [x] Added `FfiWorldSnapshot::GetActorSnapshots()` method
     - File: `carla-sys/csrc/carla_rust/client/actor_snapshot.hpp` (NEW - 46 lines)
-    - ✅ Created `FfiActorSnapshot` wrapper class with methods:
+    - [x] Created `FfiActorSnapshot` wrapper class with methods:
       - `GetId()` - Returns FfiActorId
       - `GetTransform()` - Returns FfiTransform (wrapper for carla::geom::Transform)
       - `GetVelocity()`, `GetAngularVelocity()`, `GetAcceleration()` - Return Vector3D
     - File: `carla-sys/csrc/carla_rust/client/actor_snapshot_list.hpp` (NEW - 36 lines)
-    - ✅ Created `FfiActorSnapshotList` wrapper class for iteration
-  - **Rust API (carla):** ✅ Complete
+    - [x] Created `FfiActorSnapshotList` wrapper class for iteration
+  - **Rust API (carla):** [x] Complete
     - File: `carla/src/client/world_snapshot.rs:56-133`
-    - ✅ Added `WorldSnapshot::find(actor_id)` method - Find actor snapshot by ID
-    - ✅ Added `WorldSnapshot::actor_snapshots()` iterator - Iterate all snapshots
-    - ✅ Created `ActorSnapshotIter` implementing Iterator + ExactSizeIterator
+    - [x] Added `WorldSnapshot::find(actor_id)` method - Find actor snapshot by ID
+    - [x] Added `WorldSnapshot::actor_snapshots()` iterator - Iterate all snapshots
+    - [x] Created `ActorSnapshotIter` implementing Iterator + ExactSizeIterator
     - File: `carla/src/client/actor_snapshot.rs` (NEW - 145 lines)
-    - ✅ Created `ActorSnapshot` struct with complete documentation
-    - ✅ Methods: `id()`, `transform()`, `velocity()`, `angular_velocity()`, `acceleration()`
-    - ✅ All methods return nalgebra types (Isometry3, Vector3) via extension traits
+    - [x] Created `ActorSnapshot` struct with complete documentation
+    - [x] Methods: `id()`, `transform()`, `velocity()`, `angular_velocity()`, `acceleration()`
+    - [x] All methods return nalgebra types (Isometry3, Vector3) via extension traits
   - **Resolution:** Fixed by using FfiTransform instead of raw Transform type
     - Issue: GetTransform() was returning carla::geom::Transform directly
     - Solution: Changed to return FfiTransform (carla_rust::geom::FfiTransform)
@@ -899,34 +899,34 @@ Run with: `cargo run --example spawn_vehicle`
     }
     ```
 
-- [x] **Collision and Lane Invasion Sensors** ✅
+- [x] **Collision and Lane Invasion Sensors** [x]
   - **Priority:** MEDIUM
-  - **Status:** ✅ Complete with comprehensive documentation
+  - **Status:** [x] Complete with comprehensive documentation
   - **Completion Date:** 2025-10-29
   - **Rust API (carla):**
     - File: `carla/src/sensor/data/collision_event.rs`
-    - ✅ `CollisionEvent` fully exposed and documented
-    - ✅ Methods: `actor()`, `other_actor()`, `normal_impulse()`
-    - ✅ Complete module-level and method documentation
-    - ✅ Usage examples in doc comments
+    - [x] `CollisionEvent` fully exposed and documented
+    - [x] Methods: `actor()`, `other_actor()`, `normal_impulse()`
+    - [x] Complete module-level and method documentation
+    - [x] Usage examples in doc comments
   - **Rust API (carla):**
     - File: `carla/src/sensor/data/lane_invasion_event.rs`
-    - ✅ `LaneInvasionEvent` fully exposed and documented
-    - ✅ Methods: `actor()`, `crossed_lane_markings()`
-    - ✅ Complete module-level and method documentation
-    - ✅ Usage examples in doc comments
+    - [x] `LaneInvasionEvent` fully exposed and documented
+    - [x] Methods: `actor()`, `crossed_lane_markings()`
+    - [x] Complete module-level and method documentation
+    - [x] Usage examples in doc comments
   - **Usage:** Safety monitoring, collision detection, lane departure warnings
   - **Features:**
     - CollisionEvent provides collision force vector and involved actors
     - LaneInvasionEvent provides crossed lane marking details (type, color, width)
 
-- [x] **Raw Sensor Data Access** ✅
+- [x] **Raw Sensor Data Access** [x]
   - **Priority:** LOW
-  - **Status:** ✅ Complete
+  - **Status:** [x] Complete
   - **Completion Date:** 2025-10-29
   - **Rust API (carla):**
     - File: `carla/src/sensor/data/image.rs:98-105`
-    - ✅ Added `Image::as_raw_bytes()` method for direct memory access
+    - [x] Added `Image::as_raw_bytes()` method for direct memory access
     - Returns `&[u8]` - raw BGRA bytes (zero-copy access)
     - Provides byte-level access for custom processing and ML pipelines
   - **Usage:** Custom image processing, ML pipelines requiring raw byte arrays
@@ -942,22 +942,22 @@ Run with: `cargo run --example spawn_vehicle`
     // Pass directly to ML framework or custom processing
     ```
 
-- [x] **Camera Projection Utilities** ✅
+- [x] **Camera Projection Utilities** [x]
   - **Priority:** MEDIUM (Required for Phase 11 sensor coordination examples)
-  - **Status:** ✅ Complete with comprehensive tests
+  - **Status:** [x] Complete with comprehensive tests
   - **Completion Date:** 2025-10-29
   - **Rust API (carla):**
     - File: `carla/src/sensor/camera.rs` (NEW - 268 lines)
-    - ✅ `build_projection_matrix(width: u32, height: u32, fov: f32) -> Matrix3<f32>`
+    - [x] `build_projection_matrix(width: u32, height: u32, fov: f32) -> Matrix3<f32>`
       - Builds camera intrinsic matrix (K matrix) using pinhole camera model
       - Formula: focal = width / (2.0 * tan(fov * π / 360.0))
-    - ✅ `world_to_camera(point: &Location, camera_transform: &Isometry3<f32>) -> Vector3<f32>`
+    - [x] `world_to_camera(point: &Location, camera_transform: &Isometry3<f32>) -> Vector3<f32>`
       - Transforms 3D world coordinates to camera space
       - Handles UE4 to standard camera coordinate conversion: (x, y, z) -> (y, -z, x)
-    - ✅ `project_to_2d(point_3d: &Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32)`
+    - [x] `project_to_2d(point_3d: &Vector3<f32>, k_matrix: &Matrix3<f32>) -> (f32, f32)`
       - Projects 3D camera coordinates to 2D pixel coordinates
       - Normalizes by depth (z-coordinate)
-  - **Tests:** ✅ 5 comprehensive unit tests passing
+  - **Tests:** [x] 5 comprehensive unit tests passing
     - `test_build_projection_matrix` - Verifies projection matrix structure
     - `test_project_to_2d_center` - Tests center point projection
     - `test_project_to_2d_offset` - Tests offset point projection
@@ -974,17 +974,17 @@ Run with: `cargo run --example spawn_vehicle`
     - Based on CARLA's Python lidar_to_camera.py example
     - Comprehensive documentation with examples
 
-- [ ] **Improved Error Handling**
+- [ ] **Improved Error Handling** - **NOT STARTED** ❌
   - Better error types and messages
   - Custom error enum for CARLA-specific errors
   - Timeout handling and recovery
 
-- [ ] **Async/Await Support**
+- [ ] **Async/Await Support** - **NOT STARTED** ❌
   - Investigate async sensor callbacks
   - Async world tick and operations
   - Tokio integration examples
 
-- [ ] **Example Programs**
+- [ ] **Example Programs** - **PARTIAL** ⚠️
   - File: `carla/examples/`
   - Comprehensive examples for each major feature:
     - `spawn_vehicles.rs` - Basic vehicle spawning
@@ -996,12 +996,12 @@ Run with: `cargo run --example spawn_vehicle`
     - `recording_playback.rs` - Record and replay
     - `batch_operations.rs` - Efficient batch commands
 
-- [ ] **Documentation Improvements**
+- [ ] **Documentation Improvements** - **NOT STARTED** ❌
   - Complete API documentation for all public types
   - Tutorial series in docs/
   - Migration guides from C++/Python
 
-- [ ] **Performance Profiling**
+- [ ] **Performance Profiling** - **NOT STARTED** ❌
   - Benchmark common operations
   - Optimize critical paths
   - Memory usage analysis
@@ -1031,7 +1031,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 **Priority:** HIGH
 **Estimated Effort:** 1-2 weeks
-**Status:** 🔴 Not Started
+**Status:** [ ] (NOT STARTED) Not Started
 **Dependencies:** None (can start immediately)
 **Context:** See `docs/geometry-types-analysis.md` and `docs/transform-composition-analysis.md`
 
@@ -1055,7 +1055,7 @@ Transform composition (multiplication) is critical for sensor mounting, vehicle 
 
 ### Work Items
 
-- [ ] **10.1: Native CARLA Transform Multiplication**
+- [ ] **10.1: Native CARLA Transform Multiplication** - **NOT STARTED** ❌
   - **Priority:** HIGH
   - **Estimated Effort:** 2-3 days
   - **File:** `carla/src/geom.rs`
@@ -1094,7 +1094,7 @@ Transform composition (multiplication) is critical for sensor mounting, vehicle 
     - Type safe: `Transform * Transform → Transform`
     - Correctness guaranteed by tests
 
-- [ ] **10.2: Document Coordinate System Preservation in `to_na()`**
+- [ ] **10.2: Document Coordinate System Preservation in `to_na()`** - **NOT STARTED** ❌
   - **Priority:** HIGH
   - **Estimated Effort:** 1 day
   - **File:** `carla/src/geom.rs`
@@ -1187,7 +1187,7 @@ Transform composition (multiplication) is critical for sensor mounting, vehicle 
     - Examples show both CARLA native and nalgebra approaches
     - Warnings about handedness in cross-products/vector operations
 
-- [ ] **10.3: Audit Existing nalgebra Usage for Handedness Issues**
+- [ ] **10.3: Audit Existing nalgebra Usage for Handedness Issues** - **NOT STARTED** ❌
   - **Priority:** MEDIUM
   - **Estimated Effort:** 3-5 days
   - **Files:** All files in `carla/src/` and `carla/examples/`
