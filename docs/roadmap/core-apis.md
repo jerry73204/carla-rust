@@ -999,10 +999,33 @@ Run with: `cargo run --example spawn_vehicle`
     - Based on CARLA's Python lidar_to_camera.py example
     - Comprehensive documentation with examples
 
-- [ ] **Improved Error Handling** - **NOT STARTED** ❌
-  - Better error types and messages
-  - Custom error enum for CARLA-specific errors
-  - Timeout handling and recovery
+- [x] **Improved Error Handling** - **COMPLETE** ✅
+  - **Status:** Phase 1-3 Complete (Core Infrastructure + High-Priority APIs)
+  - **Completion Date:** 2025-11-07
+  - **Implementation:** 3 phases completed (Planning, Core Types, FFI Classification, API Migration)
+  - **Files:**
+    - `carla/src/error.rs` - Core error type definitions (670+ lines)
+    - `carla/src/error/ffi.rs` - FFI error parsing (320 lines)
+    - `carla-sys/csrc/carla_rust/error.hpp` - C++ error classification (130 lines)
+  - **Features:**
+    - 7 error categories: Connection, Resource, Operation, Validation, Map, Sensor, Internal
+    - Helper methods: `is_connection_error()`, `is_timeout()`, `is_not_found()`, `is_retriable()`
+    - FFI error classification using message parsing and `dynamic_cast`
+    - Smart message parsing: extract timeout durations, resource types, blueprint IDs
+    - Zero-cost error handling using `thiserror` crate
+  - **APIs Migrated:**
+    - `World::spawn_actor()` - `OperationError::SpawnFailed` with spawn details
+    - `World::wait_for_tick()` - `ConnectionError::Timeout` with duration
+    - `ActorBuilder::new()` - `ResourceError::NotFound` for missing blueprints
+    - `ActorBuilder::set_attribute()` - `ValidationError::InvalidConfiguration`
+    - `ActorBuilder::spawn_vehicle()` - `ValidationError::InvalidConfiguration` for type mismatch
+    - `ActorBuilder::spawn_sensor()` - `ValidationError::InvalidConfiguration` for type mismatch
+  - **Tests:** 15 unit tests passing (8 core + 7 FFI tests)
+  - **Documentation:** Comprehensive error handling design in `docs/roadmap/error-handling.md`
+  - **Remaining Work:**
+    - Phase 4: Migrate remaining APIs (agents module, lower priority APIs)
+    - Create comprehensive error handling example
+    - Add async error handling patterns (deferred to async/await phase)
 
 - [ ] **Async/Await Support** - **NOT STARTED** ❌
   - Investigate async sensor callbacks
