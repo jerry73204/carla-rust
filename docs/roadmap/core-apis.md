@@ -103,8 +103,9 @@ Run with: `cargo run --example spawn_vehicle`
 **Estimated Effort:** 3-4 weeks (includes FFI work)
 **Status:** [x] **COMPLETE** (Oct 28, 2025)
 - Core functionality: 100% complete
-- Advanced features: 60% complete (40% deferred due to FFI limitations)
-- Examples: 2 comprehensive examples passing all tests
+- WalkerAIController: 100% complete (5/5 methods - previously incorrectly marked 3/5)
+- WalkerBoneControl: 60% complete (2 methods deferred due to FFI limitations)
+- Examples: 3 comprehensive examples passing all tests
 
 ### Work Items
 
@@ -119,25 +120,26 @@ Run with: `cargo run --example spawn_vehicle`
     - File: `carla-sys/csrc/carla_rust/client/walker_ai_controller.hpp` - Created FFI wrapper
     - Generated autocxx bindings for `FfiWalkerAIController`
     - Verified compilation on CARLA 0.9.16
-  - **Rust API (carla):** [ ] (PARTIAL) **PARTIAL** (60% complete)
+  - **Rust API (carla):** [x] **COMPLETE** (100% complete)
     - File: `carla/src/client/walker_ai_controller.rs` - Created [x]
     - Struct `WalkerAIController` wrapping FFI type [x]
     - Implemented methods:
       - `start(&self)` - Start AI control [x]
       - `stop(&self)` - Stop AI control [x]
       - `set_max_speed(&self, speed: f32)` - Set walking speed (m/s) [x]
-      - [ ] `go_to_location()` - **DEFERRED** - (autocxx const reference parameter issues)
-      - [ ] `get_random_location()` - **DEFERRED** - (boost::optional FFI wrapper needed)
+      - [x] `go_to_location(&Location)` - **COMPLETE** ✅ - Navigate to specific location
+      - [x] `get_random_location() -> Option<Location>` - **COMPLETE** ✅ - Get random navigation target
     - Added to `carla/src/client.rs` exports [x]
     - Module exported in `carla/src/client.rs` [x]
   - **Tests:** [x] **COMPLETE**
     - Validated via `walker_integration_demo.rs` example
-    - All core methods (start/stop/set_max_speed) verified working
+    - All 5 methods (start/stop/set_max_speed/go_to_location/get_random_location) verified working
     - AI controller attachment to walker parent verified
+    - New example `walker_ai_navigation.rs` specifically tests go_to_location() and get_random_location()
   - **Notes:**
-    - 2 methods deferred due to FFI limitations (can be addressed in future iteration)
-    - Core functionality (start/stop/speed control) is fully operational
-    - Example demonstrates all 3 implemented methods successfully
+    - All 5 methods are fully implemented and operational
+    - FFI wrapper uses `std::unique_ptr<FfiLocation>` for nullable Location (boost::optional)
+    - FFI wrapper uses `const FfiLocation&` parameter for go_to_location()
 
 - [x] **WalkerControl RPC Type**
   - Re-exported from `carla-sys`
@@ -210,6 +212,14 @@ Run with: `cargo run --example spawn_vehicle`
   - **Demo 8**: Walker AI-controlled movement verification
   - Requires running CARLA simulator
   - All 8 demos pass successfully
+
+- [x] `walker_ai_navigation.rs` - WalkerAIController navigation methods
+  - **Test 1**: `get_random_location()` - Get random navigation target
+  - **Test 2**: `go_to_location()` with random target - AI pathfinding
+  - **Test 3**: `go_to_location()` with custom destination - Navigate to specific point
+  - Demonstrates that both previously "deferred" methods are fully working
+  - Validates Option<Location> handling for nullable FFI returns
+  - Requires running CARLA simulator
 
 ---
 
