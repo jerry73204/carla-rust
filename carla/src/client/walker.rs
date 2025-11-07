@@ -1,7 +1,8 @@
 //! Walker (pedestrian) actor type for the CARLA client.
 
 use super::{Actor, ActorBase};
-use crate::rpc::WalkerControl;
+use crate::rpc::{WalkerBoneControlIn, WalkerBoneControlOut, WalkerControl};
+use autocxx::WithinBox;
 use carla_sys::carla_rust::client::{FfiActor, FfiWalker};
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -93,16 +94,42 @@ impl Walker {
         self.inner.GetWalkerControl()
     }
 
-    // TODO: Re-enable set_bones() in a future iteration
-    // FFI work is complete but requires additional autocxx type handling for method exposure.
-    // The C++ wrapper (SetBonesTransformFfi) is ready and tested.
-    // See: carla-sys/csrc/carla_rust/rpc/walker_bone_control.hpp
-    //
-    // /// Sets bone transforms for custom walker animations.
-    // pub fn set_bones(&self, bones: &WalkerBoneControlIn) {
-    //     let ffi_bones = bones.to_ffi();
-    //     self.inner.SetBonesTransformFfi(&ffi_bones);
-    // }
+    /// Sets bone transforms for custom walker animations.
+    ///
+    /// Allows direct control over individual bones in the walker's skeleton.
+    ///
+    /// # Arguments
+    ///
+    /// * `bones` - Collection of bone transforms to apply
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let walker: carla::client::Walker = actor.try_into().unwrap();
+    /// use carla::{
+    ///     geom::Transform,
+    ///     rpc::{BoneTransformDataIn, WalkerBoneControlIn},
+    /// };
+    ///
+    /// let bone_control = WalkerBoneControlIn {
+    ///     bone_transforms: vec![BoneTransformDataIn {
+    ///         bone_name: "crl_arm__L".to_string(),
+    ///         transform: Transform::default(),
+    ///     }],
+    /// };
+    /// walker.set_bones(&bone_control);
+    /// ```
+    pub fn set_bones(&self, bones: &WalkerBoneControlIn) {
+        let ffi_bones = bones.to_ffi();
+        self.inner.SetBonesTransformFfi(&ffi_bones);
+    }
 
     /// Blends the current pose with the animation pose.
     ///
@@ -170,16 +197,36 @@ impl Walker {
         self.blend_pose(0.0);
     }
 
-    // TODO: Re-enable get_bones_transform() in a future iteration
-    // FFI work is complete but requires additional autocxx type handling for method exposure.
-    // The C++ wrapper (GetBonesTransformFfi) is ready and tested.
-    // See: carla-sys/csrc/carla_rust/rpc/walker_bone_control.hpp
-    //
-    // /// Gets the current bone transforms.
-    // pub fn get_bones_transform(&self) -> WalkerBoneControlOut {
-    //     let ffi_bones = self.inner.GetBonesTransformFfi();
-    //     WalkerBoneControlOut::from(&ffi_bones)
-    // }
+    /// Gets the current bone transforms.
+    ///
+    /// Returns the transforms of all bones in the walker's skeleton in different
+    /// coordinate spaces (world, component, relative).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # let client = Client::default();
+    /// # let mut world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let walker: carla::client::Walker = actor.try_into().unwrap();
+    /// let bone_transforms = walker.get_bones_transform();
+    ///
+    /// for bone in &bone_transforms.bone_transforms {
+    ///     println!("Bone: {}", bone.bone_name);
+    ///     println!("  World: {:?}", bone.world);
+    ///     println!("  Component: {:?}", bone.component);
+    ///     println!("  Relative: {:?}", bone.relative);
+    /// }
+    /// ```
+    pub fn get_bones_transform(&self) -> WalkerBoneControlOut {
+        let mut ffi_bones = self.inner.GetBonesTransformFfi().within_box();
+        // ffi_bones is now Pin<Box<FfiWalkerBoneControlOut>>
+        WalkerBoneControlOut::from_ffi(ffi_bones.as_mut())
+    }
 
     #[allow(dead_code)]
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiWalker>) -> Option<Self> {

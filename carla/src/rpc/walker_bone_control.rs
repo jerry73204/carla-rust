@@ -4,6 +4,13 @@
 //! for custom animations and poses.
 
 use crate::geom::Transform;
+use autocxx::WithinBox;
+use carla_sys::carla_rust::rpc::{
+    FfiBoneTransformDataOut, FfiBoneTransformDataOut_bone_name, FfiBoneTransformDataOut_component,
+    FfiBoneTransformDataOut_relative_transform, FfiBoneTransformDataOut_world,
+    FfiWalkerBoneControlIn, FfiWalkerBoneControlIn_add_bone, FfiWalkerBoneControlOut,
+    FfiWalkerBoneControlOut_bone_at, FfiWalkerBoneControlOut_bone_count,
+};
 
 /// Input data for a single bone transformation.
 ///
@@ -114,7 +121,57 @@ pub struct WalkerBoneControlOut {
 //     }
 // }
 
-// NOTE: Advanced bone control (set_bones/get_bones_transform) requires additional
-// FFI integration work. The C++ wrapper infrastructure is complete (see carla-sys/csrc/carla_rust/rpc/walker_bone_control.hpp),
-// but exposing these methods through the Rust API requires resolving autocxx type handling limitations.
-// The core pose blending functionality (blend_pose, show_pose, hide_pose) is fully operational.
+/// FFI conversion implementations for WalkerBoneControl types.
+///
+/// These implementations allow converting between Rust types and the FFI wrapper types
+/// that autocxx can handle.
+impl BoneTransformDataOut {
+    /// Converts from FFI type returned by C++.
+    ///
+    /// Uses free functions to access fields from the opaque FFI type.
+    pub(crate) fn from_ffi(mut ffi_bone: std::pin::Pin<&mut FfiBoneTransformDataOut>) -> Self {
+        Self {
+            bone_name: FfiBoneTransformDataOut_bone_name(ffi_bone.as_mut())
+                .to_string_lossy()
+                .into_owned(),
+            world: Transform::from_ffi(FfiBoneTransformDataOut_world(ffi_bone.as_mut())),
+            component: Transform::from_ffi(FfiBoneTransformDataOut_component(ffi_bone.as_mut())),
+            relative: Transform::from_ffi(FfiBoneTransformDataOut_relative_transform(
+                ffi_bone.as_mut(),
+            )),
+        }
+    }
+}
+
+impl WalkerBoneControlIn {
+    /// Converts to FFI type for passing to C++.
+    ///
+    /// Uses free function to populate the opaque FFI type.
+    pub(crate) fn to_ffi(&self) -> FfiWalkerBoneControlIn {
+        let mut ffi = FfiWalkerBoneControlIn::new().within_box();
+        for bone in &self.bone_transforms {
+            cxx::let_cxx_string!(name_cxx = &bone.bone_name);
+            FfiWalkerBoneControlIn_add_bone(ffi.as_mut(), &name_cxx, bone.transform.as_ffi());
+        }
+        // SAFETY: We need to move out of Pin<Box<>> to return the value
+        // This is safe because FfiWalkerBoneControlIn is being consumed
+        unsafe { *Box::from_raw(Box::into_raw(std::pin::Pin::into_inner_unchecked(ffi))) }
+    }
+}
+
+impl WalkerBoneControlOut {
+    /// Converts from FFI type returned by C++.
+    ///
+    /// Uses free functions to access elements from the opaque FFI type.
+    pub(crate) fn from_ffi(mut ffi_control: std::pin::Pin<&mut FfiWalkerBoneControlOut>) -> Self {
+        let bone_count = FfiWalkerBoneControlOut_bone_count(ffi_control.as_mut());
+        let mut bone_transforms = Vec::with_capacity(bone_count);
+
+        for i in 0..bone_count {
+            let mut ffi_bone = FfiWalkerBoneControlOut_bone_at(ffi_control.as_mut(), i);
+            bone_transforms.push(BoneTransformDataOut::from_ffi(ffi_bone.as_mut().unwrap()));
+        }
+
+        Self { bone_transforms }
+    }
+}

@@ -82,6 +82,7 @@ include_cpp! {
 
     // carla_rust
     generate_ns!("carla_rust")
+    generate_ns!("carla_rust::rpc")
     generate!("carla_rust::client::FfiWalker")
     generate!("carla_rust::client::FfiWalkerAIController")
     generate!("carla_rust::client::FfiDebugHelper")
@@ -117,6 +118,7 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiBoneTransformDataOut")
     generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
     generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
+
     generate!("carla_rust::rpc::FfiVehicleTelemetryData")
 
     // carla
