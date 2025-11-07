@@ -4,10 +4,11 @@
 
 This document covers Phases 12-14: GUI Example Implementations with Macroquad. These examples demonstrate interactive CARLA applications with real-time visualization, keyboard controls, and comprehensive feature showcases.
 
-**Last Updated:** 2025-11-05
+**Last Updated:** 2025-11-07
 
 ## Contents
 
+- [Foundation: Error Handling Improvements](#foundation-error-handling-improvements) ✅ COMPLETE
 - [Phase 12: Manual Control - Complete Interactive Example](#phase-12-manual-control---complete-interactive-example) ✅ COMPLETE
 - [Phase 13: Core GUI Examples](#phase-13-core-gui-examples)
   - [13.1: Automatic Control](#phase-131-automatic-control)
@@ -21,6 +22,105 @@ This document covers Phases 12-14: GUI Example Implementations with Macroquad. T
 - [Phase 15: Specialized GUI Examples (Optional)](#phase-15-specialized-gui-examples-optional)
   - [15.1: Steering Wheel Support](#phase-151-steering-wheel-support)
   - [15.2: LiDAR 3D Visualization](#phase-152-lidar-3d-visualization-optional)
+
+---
+
+## Foundation: Error Handling Improvements
+
+**Priority:** HIGH (Foundation for all examples)
+**Status:** ✅ COMPLETE (2025-11-07)
+**Completion:** Phases 1-3 Complete
+**Reference:** See `docs/roadmap/error-handling.md` for full design
+
+### Summary
+
+Implemented structured error handling to replace generic `anyhow` errors with actionable, classified error types. This foundation improves error recovery and diagnostics in all CARLA applications.
+
+### Key Features
+
+✅ **7 Error Categories:**
+- `ConnectionError` - Network issues, timeouts, disconnections
+- `ResourceError` - Blueprint/actor/map not found
+- `OperationError` - Spawn failures, simulation errors
+- `ValidationError` - Invalid configuration, type mismatches
+- `MapError` - Map loading/topology issues
+- `SensorError` - Sensor configuration/data errors
+- `InternalError` - FFI errors, unexpected states
+
+✅ **Helper Methods:**
+- `is_connection_error()` - Detect network/server issues
+- `is_timeout()` - Detect operation timeouts
+- `is_not_found()` - Detect missing resources
+- `is_retriable()` - Determine if retry is appropriate
+- `is_validation_error()` - Detect invalid input
+
+✅ **FFI Error Classification:**
+- Smart C++ exception parsing using message patterns
+- Duration extraction from timeout messages ("5 seconds" → `Duration`)
+- Resource type identification (blueprint, actor, sensor)
+- Blueprint ID extraction from error messages
+
+### Implementation
+
+**Files Created:**
+- `carla/src/error.rs` (670+ lines) - Core error types
+- `carla/src/error/ffi.rs` (320 lines) - FFI parsing
+- `carla-sys/csrc/carla_rust/error.hpp` (130 lines) - C++ classification
+
+**APIs Migrated:**
+- `World::spawn_actor()` → `OperationError::SpawnFailed`
+- `World::wait_for_tick()` → `ConnectionError::Timeout`
+- `ActorBuilder::new()` → `ResourceError::NotFound`
+- `ActorBuilder::set_attribute()` → `ValidationError::InvalidConfiguration`
+- `ActorBuilder::spawn_vehicle/sensor()` → `ValidationError::InvalidConfiguration`
+
+**Example Created:**
+- `carla/examples/error_handling_patterns.rs` - Demonstrates all error patterns
+
+### Benefits for Examples
+
+**Connection Recovery:**
+```rust
+match world.wait_for_tick() {
+    Err(e) if e.is_connection_error() => {
+        // Restart CARLA connection
+        reconnect_to_server();
+    }
+    Err(e) if e.is_retriable() => {
+        // Retry transient failures
+        retry_with_backoff();
+    }
+    Ok(snapshot) => { /* process */ }
+}
+```
+
+**Resource Fallback:**
+```rust
+let blueprint = match world.actor_builder("vehicle.tesla.model3") {
+    Err(e) if e.is_not_found() => {
+        // Try fallback blueprint
+        world.actor_builder("vehicle.audi.a2")?
+    }
+    result => result?
+};
+```
+
+**Better Error Messages:**
+```
+Before: "Error: unable to find blueprint 'vehicle.nonexistent.model'"
+After:  "Resource not found: Blueprint 'vehicle.nonexistent.model'
+         Available blueprints:
+         - vehicle.tesla.model3
+         - vehicle.audi.a2
+         - vehicle.bmw.grandtourer
+         ..."
+```
+
+### Test Results
+
+✅ All 15 unit tests passing (8 core + 7 FFI)
+✅ Build succeeds with zero warnings
+✅ Example compiles and demonstrates all patterns
 
 ---
 
