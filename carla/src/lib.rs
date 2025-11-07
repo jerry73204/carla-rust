@@ -216,12 +216,19 @@
 
 pub mod agents;
 pub mod client;
+pub mod error;
 pub mod geom;
 pub mod road;
 pub mod rpc;
 pub mod sensor;
 pub mod traffic_manager;
 mod utils;
+
+// Re-export error types at crate root for convenience
+pub use error::{
+    CarlaError, ConnectionError, InternalError, MapError, OperationError, ResourceError,
+    ResourceType, Result, SensorError, ValidationError,
+};
 
 /// Convenient re-exports of commonly used traits and extension methods.
 ///

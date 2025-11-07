@@ -7,6 +7,7 @@ use super::{
     Map, Waypoint, WorldSnapshot,
 };
 use crate::{
+    error::{OperationError, Result},
     geom::{Location, Transform, Vector3D},
     road::JuncId,
     rpc::{
@@ -15,7 +16,6 @@ use crate::{
     },
     utils::CxxVectorExt,
 };
-use anyhow::{anyhow, Result};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
@@ -380,8 +380,16 @@ impl World {
                 parent_ptr,
                 attachment_type,
             );
-            Actor::from_cxx(actor)
-                .ok_or_else(|| anyhow!("Unable to spawn an actor with transform {:?}", transform))
+            Actor::from_cxx(actor).ok_or_else(|| {
+                OperationError::SpawnFailed {
+                    blueprint: blueprint.id().to_string(),
+                    transform: format!("{:?}", transform),
+                    reason: "Spawn returned null (likely collision or invalid location)"
+                        .to_string(),
+                    source: None,
+                }
+                .into()
+            })
         }
     }
 
@@ -472,10 +480,12 @@ impl World {
     pub fn wait_for_tick(&self) -> Result<WorldSnapshot> {
         self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)
             .ok_or_else(|| {
-                anyhow!(
-                    "Timed out waiting for tick after {:?}",
-                    DEFAULT_TICK_TIMEOUT
-                )
+                crate::error::ConnectionError::Timeout {
+                    operation: "wait_for_tick".to_string(),
+                    duration: DEFAULT_TICK_TIMEOUT,
+                    source: None,
+                }
+                .into()
             })
     }
 

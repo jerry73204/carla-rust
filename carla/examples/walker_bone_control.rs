@@ -67,19 +67,26 @@ fn main() {
     println!("Found {} bones", bone_transforms.bone_transforms.len());
 
     // Print first few bones as examples
-    for (i, bone) in bone_transforms
-        .bone_transforms
-        .iter()
-        .take(5)
-        .enumerate()
-    {
+    for (i, bone) in bone_transforms.bone_transforms.iter().take(5).enumerate() {
         println!("\nBone {}: {}", i, bone.bone_name);
-        println!("  World: loc({:.2}, {:.2}, {:.2}), rot({:.2}, {:.2}, {:.2})",
-            bone.world.location.x, bone.world.location.y, bone.world.location.z,
-            bone.world.rotation.pitch, bone.world.rotation.yaw, bone.world.rotation.roll);
-        println!("  Component: loc({:.2}, {:.2}, {:.2}), rot({:.2}, {:.2}, {:.2})",
-            bone.component.location.x, bone.component.location.y, bone.component.location.z,
-            bone.component.rotation.pitch, bone.component.rotation.yaw, bone.component.rotation.roll);
+        println!(
+            "  World: loc({:.2}, {:.2}, {:.2}), rot({:.2}, {:.2}, {:.2})",
+            bone.world.location.x,
+            bone.world.location.y,
+            bone.world.location.z,
+            bone.world.rotation.pitch,
+            bone.world.rotation.yaw,
+            bone.world.rotation.roll
+        );
+        println!(
+            "  Component: loc({:.2}, {:.2}, {:.2}), rot({:.2}, {:.2}, {:.2})",
+            bone.component.location.x,
+            bone.component.location.y,
+            bone.component.location.z,
+            bone.component.rotation.pitch,
+            bone.component.rotation.yaw,
+            bone.component.rotation.roll
+        );
     }
 
     // Create custom bone transforms
@@ -112,7 +119,10 @@ fn main() {
     };
 
     walker.set_bones(&custom_bones);
-    println!("Applied custom transforms to {} bones", custom_bones.bone_transforms.len());
+    println!(
+        "Applied custom transforms to {} bones",
+        custom_bones.bone_transforms.len()
+    );
 
     // Show custom pose
     println!("\n=== Showing custom pose ===");
@@ -139,7 +149,10 @@ fn main() {
     // Get transforms again to verify they changed
     println!("\n=== Verifying bone transforms after modifications ===");
     let final_transforms = walker.get_bones_transform();
-    println!("Retrieved {} bones in final state", final_transforms.bone_transforms.len());
+    println!(
+        "Retrieved {} bones in final state",
+        final_transforms.bone_transforms.len()
+    );
 
     // Find and print our modified bones
     for bone_name in &["crl_arm__L", "crl_arm__R"] {
@@ -148,11 +161,13 @@ fn main() {
             .iter()
             .find(|b| b.bone_name == *bone_name)
         {
-            println!("\n{}: rot({:.2}, {:.2}, {:.2})",
+            println!(
+                "\n{}: rot({:.2}, {:.2}, {:.2})",
                 bone_name,
                 bone.world.rotation.pitch,
                 bone.world.rotation.yaw,
-                bone.world.rotation.roll);
+                bone.world.rotation.roll
+            );
         }
     }
 
