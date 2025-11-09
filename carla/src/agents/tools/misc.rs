@@ -1,8 +1,9 @@
 //! Utility functions for agent operations.
 
 use crate::{
-    client::ActorBase,
+    client::{ActorBase, DebugHelper, Waypoint},
     geom::{Location, Transform, Vector3D},
+    rpc::Color,
 };
 
 #[cfg(test)]
@@ -182,6 +183,65 @@ pub fn is_within_distance(
 /// 2D distance in meters
 pub fn distance_vehicle(waypoint_location: &Location, vehicle_transform: &Transform) -> f32 {
     compute_distance_2d(waypoint_location, &vehicle_transform.location)
+}
+
+/// Draws waypoints with directional arrows for debugging and visualization.
+///
+/// This convenience function draws an arrow for each waypoint, oriented in the
+/// direction of the waypoint. Useful for visualizing routes, lane topology,
+/// and navigation paths during development and debugging.
+///
+/// # Arguments
+/// * `debug` - Debug helper instance from `World::debug()`
+/// * `waypoints` - Slice of waypoints to visualize
+/// * `z_offset` - Vertical offset in meters (positive = up, for visibility above ground)
+/// * `life_time` - Duration in seconds the arrows persist (0.0 = one frame)
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{agents::tools::draw_waypoints, client::Client};
+///
+/// # fn example() -> eyre::Result<()> {
+/// let client = Client::new("localhost:2000", 10)?;
+/// let world = client.world();
+/// let map = world.map();
+///
+/// // Get route waypoints
+/// let spawn_points = map.recommended_spawn_points();
+/// let start_loc = spawn_points[0].location;
+/// let waypoint = map.waypoint(&start_loc)?;
+/// let next_waypoints = waypoint.next(5.0);
+///
+/// // Draw waypoints in green for 5 seconds
+/// let debug = world.debug();
+/// draw_waypoints(&debug, &next_waypoints, 0.5, 5.0);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Python API Equivalent
+/// ```python
+/// from agents.tools.misc import draw_waypoints
+/// draw_waypoints(world, waypoints, z=0.5)
+/// ```
+pub fn draw_waypoints(debug: &DebugHelper, waypoints: &[Waypoint], z_offset: f32, life_time: f32) {
+    for waypoint in waypoints {
+        let transform = waypoint.transform();
+        let mut begin = transform.location;
+        begin.z += z_offset;
+
+        // Compute arrow endpoint based on yaw direction
+        let angle_rad = transform.rotation.yaw.to_radians();
+        let end = Location {
+            x: begin.x + angle_rad.cos(),
+            y: begin.y + angle_rad.sin(),
+            z: begin.z,
+        };
+
+        // Draw green arrow with 10cm thickness, 30cm arrowhead
+        debug.draw_arrow(begin, end, 10.0, 30.0, Color::GREEN, life_time, false);
+    }
 }
 
 #[cfg(test)]
