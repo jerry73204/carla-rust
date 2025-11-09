@@ -305,19 +305,20 @@ impl SkeletonVisualizer {
 
             match world.spawn_actor(bp, &walker_transform) {
                 Ok(actor) => {
-                    if let Ok(walker) = Walker::try_from(actor) {
-                        // Enable AI control
+                    if let Ok(walker) = Walker::try_from(actor.clone()) {
+                        // Enable AI control - spawn controller attached to walker
                         let ai_bp = blueprint_library
                             .find("controller.ai.walker")
                             .ok_or_else(|| anyhow::anyhow!("AI controller blueprint not found"))?;
 
-                        if let Ok(controller_actor) = world.spawn_actor(&ai_bp, &walker_transform) {
+                        // Spawn controller attached to walker
+                        if let Ok(controller_actor) =
+                            world.spawn_actor_attached(&ai_bp, &walker_transform, &actor, None)
+                        {
                             if let Ok(controller) =
                                 carla::client::WalkerAIController::try_from(controller_actor)
                             {
                                 controller.start();
-
-                                // Start walker moving forward
                                 controller.set_max_speed(1.4); // Normal walking speed
                             }
                         }
@@ -581,7 +582,7 @@ impl SkeletonVisualizer {
         }
     }
 
-    fn run(&mut self) {
+    async fn run(&mut self) {
         loop {
             if is_key_pressed(KeyCode::Escape) {
                 break;
@@ -596,6 +597,9 @@ impl SkeletonVisualizer {
                 println!("Failed to tick: {}", e);
                 break;
             }
+
+            // IMPORTANT: Must call next_frame().await for macroquad to render
+            next_frame().await;
         }
 
         println!("Shutting down...");
@@ -607,7 +611,7 @@ async fn main() -> anyhow::Result<()> {
     println!("=== CARLA Walker Skeleton Visualization ===\n");
 
     let mut visualizer = SkeletonVisualizer::new()?;
-    visualizer.run();
+    visualizer.run().await;
 
     Ok(())
 }
