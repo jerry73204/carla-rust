@@ -402,41 +402,113 @@ fn test_episode_id_string_conversion(world: &carla::client::World) -> TestResult
 }
 
 fn test_get_client_version() -> TestResult {
-    // CARLA version would be accessed via carla::version() or similar
-    // For now, just verify test framework
+    // Get client version via Client::connect
+    let client = Client::connect("127.0.0.1", 2000, None);
+    let version = client.client_version();
+
+    println!("  Client version: {}", version);
+    assert!(!version.is_empty(), "Client version should not be empty");
     Ok(())
 }
 
 fn test_get_server_version(_world: &carla::client::World) -> TestResult {
-    // Server version would be accessed via world.get_server_version() or similar
-    // For now, just verify test framework
+    // Get server version via client
+    let client = Client::connect("127.0.0.1", 2000, None);
+    let version = client.server_version();
+
+    println!("  Server version: {}", version);
+    assert!(!version.is_empty(), "Server version should not be empty");
     Ok(())
 }
 
 fn test_version_comparison() -> TestResult {
-    // Version comparison logic
-    let version1 = "0.9.16";
-    let version2 = "0.9.14";
+    // Test version comparison using actual client/server versions
+    let client = Client::connect("127.0.0.1", 2000, None);
+    let client_ver = client.client_version();
+    let server_ver = client.server_version();
 
-    assert!(version1 > version2); // Lexicographic comparison
+    println!(
+        "  Comparing: client='{}' vs server='{}'",
+        client_ver, server_ver
+    );
+
+    // In typical setups, client and server versions should match
+    // Just verify we can retrieve and compare them
+    assert!(!client_ver.is_empty());
+    assert!(!server_ver.is_empty());
+
+    // Basic version string format check (should contain digits and dots)
+    assert!(client_ver.contains('.'), "Version should contain '.'");
     Ok(())
 }
 
 fn test_environment_variable_access() -> TestResult {
-    // Test accessing CARLA environment variables
-    // For now, just verify std::env works
-    std::env::var("PATH").ok();
+    // Test accessing environment variables
+    // Check CARLA_VERSION if set, otherwise verify PATH exists
+    match std::env::var("CARLA_VERSION") {
+        Ok(ver) => {
+            println!("  CARLA_VERSION={}", ver);
+            assert!(!ver.is_empty());
+        }
+        Err(_) => {
+            // CARLA_VERSION not set, check PATH instead
+            let path = std::env::var("PATH").expect("PATH should exist");
+            assert!(!path.is_empty());
+            println!("  Environment access working (verified PATH)");
+        }
+    }
     Ok(())
 }
 
 fn test_debug_flag_checking() -> TestResult {
-    // Debug flags would be checked via world or client config
-    // For now, verify test framework
+    // Test checking debug-related environment flags
+    // Check RUST_LOG or similar debug flags
+    match std::env::var("RUST_LOG") {
+        Ok(level) => {
+            println!("  RUST_LOG={}", level);
+        }
+        Err(_) => {
+            println!("  RUST_LOG not set (debug flags can be checked via std::env)");
+        }
+    }
+
+    // Verify we can check debug mode via cfg
+    #[cfg(debug_assertions)]
+    println!("  Running in debug mode");
+
+    #[cfg(not(debug_assertions))]
+    println!("  Running in release mode");
+
     Ok(())
 }
 
 fn test_timeout_config(_client: &Client) -> TestResult {
-    // Timeout configuration would be accessed via client.timeout() or similar
-    // For now, verify test framework
+    // Test timeout configuration access and modification
+    use std::time::Duration;
+
+    let mut client = Client::connect("127.0.0.1", 2000, None);
+
+    // Get current timeout
+    let original_timeout = client.timeout();
+    println!("  Original timeout: {:?}", original_timeout);
+    assert!(
+        original_timeout.as_millis() > 0,
+        "Timeout should be positive"
+    );
+
+    // Set new timeout
+    let new_timeout = Duration::from_secs(10);
+    client.set_timeout(new_timeout);
+
+    // Verify timeout was set
+    let current_timeout = client.timeout();
+    println!("  New timeout: {:?}", current_timeout);
+    assert_eq!(current_timeout, new_timeout, "Timeout should be updated");
+
+    // Restore original timeout
+    client.set_timeout(original_timeout);
+    let restored = client.timeout();
+    assert_eq!(restored, original_timeout, "Timeout should be restored");
+
     Ok(())
 }
