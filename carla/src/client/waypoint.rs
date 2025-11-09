@@ -94,14 +94,14 @@ impl Waypoint {
         unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
     }
 
-    pub fn left(&self) -> Waypoint {
+    pub fn left(&self) -> Option<Waypoint> {
         let ptr = self.inner.GetLeft();
-        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+        Self::from_cxx(ptr)
     }
 
-    pub fn right(&self) -> Waypoint {
+    pub fn right(&self) -> Option<Waypoint> {
         let ptr = self.inner.GetRight();
-        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+        Self::from_cxx(ptr)
     }
 
     pub fn right_lane_marking(&self) -> Option<LaneMarking> {

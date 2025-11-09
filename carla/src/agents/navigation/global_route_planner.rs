@@ -92,8 +92,15 @@ impl GlobalRoutePlanner {
 
         // Phase 2: Create edges between connected waypoints
         for (start_wp, end_wp) in topology.iter() {
-            let start_idx = self.waypoint_to_node[&start_wp.id()];
-            let end_idx = self.waypoint_to_node[&end_wp.id()];
+            // Skip if either node wasn't added (shouldn't happen with new topology filtering)
+            let start_idx = match self.waypoint_to_node.get(&start_wp.id()) {
+                Some(&idx) => idx,
+                None => continue,
+            };
+            let end_idx = match self.waypoint_to_node.get(&end_wp.id()) {
+                Some(&idx) => idx,
+                None => continue,
+            };
 
             // Calculate edge length
             let start_loc = start_wp.transform().location;
@@ -133,25 +140,27 @@ impl GlobalRoutePlanner {
             let waypoint = node.waypoint.clone();
 
             // Check for left lane
-            let left_wp = waypoint.left();
-            if let Some(&left_idx) = self.waypoint_to_node.get(&left_wp.id()) {
-                // Add lane change left edge
-                let edge = RoadEdge {
-                    length: 1.0, // Small cost for lane changes
-                    road_option: RoadOption::ChangeLaneLeft,
-                };
-                edges_to_add.push((node_idx, left_idx, edge));
+            if let Some(left_wp) = waypoint.left() {
+                if let Some(&left_idx) = self.waypoint_to_node.get(&left_wp.id()) {
+                    // Add lane change left edge
+                    let edge = RoadEdge {
+                        length: 1.0, // Small cost for lane changes
+                        road_option: RoadOption::ChangeLaneLeft,
+                    };
+                    edges_to_add.push((node_idx, left_idx, edge));
+                }
             }
 
             // Check for right lane
-            let right_wp = waypoint.right();
-            if let Some(&right_idx) = self.waypoint_to_node.get(&right_wp.id()) {
-                // Add lane change right edge
-                let edge = RoadEdge {
-                    length: 1.0, // Small cost for lane changes
-                    road_option: RoadOption::ChangeLaneRight,
-                };
-                edges_to_add.push((node_idx, right_idx, edge));
+            if let Some(right_wp) = waypoint.right() {
+                if let Some(&right_idx) = self.waypoint_to_node.get(&right_wp.id()) {
+                    // Add lane change right edge
+                    let edge = RoadEdge {
+                        length: 1.0, // Small cost for lane changes
+                        road_option: RoadOption::ChangeLaneRight,
+                    };
+                    edges_to_add.push((node_idx, right_idx, edge));
+                }
             }
         }
 

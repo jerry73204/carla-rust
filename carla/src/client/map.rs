@@ -259,10 +259,12 @@ impl Map {
             let first = pair.first();
             let second = pair.second();
 
-            let start = unsafe { Waypoint::from_cxx(first).unwrap_unchecked() };
-            let end = unsafe { Waypoint::from_cxx(second).unwrap_unchecked() };
-
-            result.push((start, end));
+            // Skip null waypoints in topology
+            if let (Some(start), Some(end)) =
+                (Waypoint::from_cxx(first), Waypoint::from_cxx(second))
+            {
+                result.push((start, end));
+            }
         }
 
         result

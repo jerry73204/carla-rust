@@ -24,7 +24,11 @@ public:
 
     std::shared_ptr<FfiWaypoint> GetWaypoint() const {
         auto orig = inner_->GetWaypoint();
-        return std::make_shared<FfiWaypoint>(std::move(orig));
+        if (orig) {
+            return std::make_shared<FfiWaypoint>(std::move(orig));
+        } else {
+            return nullptr;
+        }
     }
 
     const FfiTransform& GetTransform() const {

@@ -547,6 +547,12 @@ impl AgentCore {
             LaneChangeDirection::Right => current_wp.right(),
         };
 
+        // Check if target lane exists
+        let target_lane_wp = match target_lane_wp {
+            Some(wp) => wp,
+            None => return Vec::new(), // No lane in that direction
+        };
+
         if check {
             // Check if target lane exists by trying to get next waypoint
             let target_next = target_lane_wp.next(1.0);

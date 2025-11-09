@@ -52,7 +52,11 @@ public:
 
     std::shared_ptr<FfiJunction> GetJunction() const {
         auto orig = inner_->GetJunction();
-        return std::make_shared<FfiJunction>(std::move(orig));
+        if (orig) {
+            return std::make_shared<FfiJunction>(std::move(orig));
+        } else {
+            return nullptr;
+        }
     }
 
     double GetLaneWidth() const { return inner_->GetLaneWidth(); }
@@ -81,12 +85,20 @@ public:
 
     std::shared_ptr<FfiWaypoint> GetRight() const {
         auto ptr = inner_->GetRight();
-        return std::make_shared<FfiWaypoint>(std::move(ptr));
+        if (ptr) {
+            return std::make_shared<FfiWaypoint>(std::move(ptr));
+        } else {
+            return nullptr;
+        }
     }
 
     std::shared_ptr<FfiWaypoint> GetLeft() const {
         auto ptr = inner_->GetLeft();
-        return std::make_shared<FfiWaypoint>(std::move(ptr));
+        if (ptr) {
+            return std::make_shared<FfiWaypoint>(std::move(ptr));
+        } else {
+            return nullptr;
+        }
     }
 
     std::unique_ptr<FfiLaneMarking> GetRightLaneMarking() const {

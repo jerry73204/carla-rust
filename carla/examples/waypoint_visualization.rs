@@ -72,17 +72,19 @@ fn main() -> Result<()> {
     if waypoint.left_lane_marking().is_some() {
         println!("  Found left lane marking");
         // Get left lane waypoint and draw it
-        let left_wp = waypoint.left();
-        let left_wps = vec![left_wp];
-        draw_waypoints(&debug, &left_wps, 0.5, 10.0);
+        if let Some(left_wp) = waypoint.left() {
+            let left_wps = vec![left_wp];
+            draw_waypoints(&debug, &left_wps, 0.5, 10.0);
+        }
     }
 
     if waypoint.right_lane_marking().is_some() {
         println!("  Found right lane marking");
         // Get right lane waypoint and draw it
-        let right_wp = waypoint.right();
-        let right_wps = vec![right_wp];
-        draw_waypoints(&debug, &right_wps, 0.5, 10.0);
+        if let Some(right_wp) = waypoint.right() {
+            let right_wps = vec![right_wp];
+            draw_waypoints(&debug, &right_wps, 0.5, 10.0);
+        }
     }
 
     // Example 5: Visualize a path to a destination

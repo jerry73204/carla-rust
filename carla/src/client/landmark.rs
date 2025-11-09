@@ -22,9 +22,9 @@ pub struct Landmark {
 }
 
 impl Landmark {
-    pub fn waypoint(&self) -> Waypoint {
+    pub fn waypoint(&self) -> Option<Waypoint> {
         let ptr = self.inner.GetWaypoint();
-        unsafe { Waypoint::from_cxx(ptr).unwrap_unchecked() }
+        Waypoint::from_cxx(ptr)
     }
 
     pub fn transform(&self) -> Transform {

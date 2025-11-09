@@ -199,12 +199,15 @@ fn main() -> Result<()> {
                 );
 
                 // Get the waypoint where the landmark is effective
-                let lm_waypoint = landmark.waypoint();
-                println!(
-                    "  Effective at: Road {}, Lane {}",
-                    lm_waypoint.road_id(),
-                    lm_waypoint.lane_id()
-                );
+                if let Some(lm_waypoint) = landmark.waypoint() {
+                    println!(
+                        "  Effective at: Road {}, Lane {}",
+                        lm_waypoint.road_id(),
+                        lm_waypoint.lane_id()
+                    );
+                } else {
+                    println!("  Effective waypoint: None");
+                }
 
                 break;
             }

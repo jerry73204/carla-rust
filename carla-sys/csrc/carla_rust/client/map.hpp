@@ -80,7 +80,11 @@ public:
     std::shared_ptr<FfiJunction> GetJunction(const FfiWaypoint& waypoint) const {
         const auto& wp = waypoint.inner();
         auto junction = inner_->GetJunction(*wp.get());
-        return std::make_shared<FfiJunction>(std::move(junction));
+        if (junction) {
+            return std::make_shared<FfiJunction>(std::move(junction));
+        } else {
+            return nullptr;
+        }
     }
 
     // std::vector<std::pair<SharedPtr<Waypoint>, SharedPtr<Waypoint>>>
