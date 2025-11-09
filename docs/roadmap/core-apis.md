@@ -292,20 +292,25 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_color_creation` - Create colors with RGBA values
-- `test_color_constants` - Verify predefined color values
-- `test_color_to_native` - Convert to C++ color type
+#### Tests
 
-#### Integration Tests
-- `test_debug_draw_point` - Draw point and verify visibility
-- `test_debug_draw_line` - Draw line between two points
-- `test_debug_draw_arrow` - Draw arrow with proper direction
-- `test_debug_draw_box` - Draw bounding box
-- `test_debug_draw_string` - Draw text at location
-- `test_debug_shapes_lifetime` - Verify shapes disappear after lifetime
-- `test_debug_multiple_shapes` - Draw multiple shapes simultaneously
-- `test_debug_shape_colors` - Verify shape colors are correct
+> **Note:** These tests should be implemented in `carla/examples/test_debug_draw.rs` (see Phase 10.1).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
+
+##### Unit Tests (to be added to `test_debug_draw.rs`)
+- [ ] `test_color_creation` - Create colors with RGBA values
+- [ ] `test_color_constants` - Verify predefined color values
+- [ ] `test_color_to_native` - Convert to C++ color type
+
+##### Integration Tests (to be added to `test_debug_draw.rs`)
+- [ ] `test_debug_draw_point` - Draw point and verify visibility
+- [ ] `test_debug_draw_line` - Draw line between two points
+- [ ] `test_debug_draw_arrow` - Draw arrow with proper direction
+- [ ] `test_debug_draw_box` - Draw bounding box
+- [ ] `test_debug_draw_string` - Draw text at location
+- [ ] `test_debug_shapes_lifetime` - Verify shapes disappear after lifetime
+- [ ] `test_debug_multiple_shapes` - Draw multiple shapes simultaneously
+- [ ] `test_debug_shape_colors` - Verify shape colors are correct
 
 ---
 
@@ -392,21 +397,26 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_recorder_filename_validation` - Validate recording filenames
-- `test_replay_time_factor_bounds` - Validate time factor range
+#### Tests
 
-#### Integration Tests
-- `test_start_stop_recorder` - Start and stop recording
-- `test_record_simple_scenario` - Record vehicle movement
-- `test_replay_recorded_scenario` - Replay recorded scenario
-- `test_replay_with_follow_camera` - Follow specific actor during replay
-- `test_replay_time_factor` - Speed up/slow down replay
-- `test_recorder_file_info` - Get recording metadata
-- `test_recorder_collision_query` - Query recorded collisions
-- `test_recorder_blocked_actors` - Find actors stuck during recording
-- `test_replay_without_sensors` - Replay without sensor data
-- `test_stop_replayer_keep_actors` - Stop replay, keep spawned actors
+> **Note:** These tests should be implemented in `carla/examples/test_recording.rs` (see Phase 10.2).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
+
+##### Unit Tests (to be added to `test_recording.rs`)
+- [ ] `test_recorder_filename_validation` - Validate recording filenames
+- [ ] `test_replay_time_factor_bounds` - Validate time factor range
+
+##### Integration Tests (to be added to `test_recording.rs`)
+- [ ] `test_start_stop_recorder` - Start and stop recording
+- [ ] `test_record_simple_scenario` - Record vehicle movement
+- [ ] `test_replay_recorded_scenario` - Replay recorded scenario
+- [ ] `test_replay_with_follow_camera` - Follow specific actor during replay
+- [ ] `test_replay_time_factor` - Speed up/slow down replay
+- [ ] `test_recorder_file_info` - Get recording metadata
+- [ ] `test_recorder_collision_query` - Query recorded collisions
+- [ ] `test_recorder_blocked_actors` - Find actors stuck during recording
+- [ ] `test_replay_without_sensors` - Replay without sensor data
+- [ ] `test_stop_replayer_keep_actors` - Stop replay, keep spawned actors
 
 ---
 
@@ -495,21 +505,24 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_ackermann_control_creation` - Create Ackermann control
-- `test_ackermann_settings_validation` - Validate controller settings
-- `test_vehicle_failure_state_enum` - Verify failure state values
-- `test_wheel_location_enum` - Verify wheel location enum
+> **Note:** These tests should be implemented in `carla/examples/test_vehicle_advanced.rs` (see Phase 10.3).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
 
-#### Integration Tests
-- `test_apply_ackermann_control` - Apply Ackermann steering to vehicle
-- `test_ackermann_controller_settings` - Get and set controller settings
-- `test_vehicle_failure_detection` - Trigger and detect rollover failure
-- `test_vehicle_telemetry_0916` - Get telemetry data (0.9.16 only)
-- `test_wheel_pitch_control_0916` - Control wheel pitch (0.9.16 only)
-- `test_vehicle_bone_transforms_0916` - Get bone transforms (0.9.16 only)
-- `test_vehicle_open_close_doors` - Open and close vehicle doors
-- `test_vehicle_door_physics` - Verify door physics simulation
+#### Unit Tests (to be added to `test_vehicle_advanced.rs`)
+- [ ] `test_ackermann_control_creation` - Create Ackermann control
+- [ ] `test_ackermann_settings_validation` - Validate controller settings
+- [ ] `test_vehicle_failure_state_enum` - Verify failure state values
+- [ ] `test_wheel_location_enum` - Verify wheel location enum
+
+#### Integration Tests (to be added to `test_vehicle_advanced.rs`)
+- [ ] `test_apply_ackermann_control` - Apply Ackermann steering to vehicle
+- [ ] `test_ackermann_controller_settings` - Get and set controller settings
+- [ ] `test_vehicle_failure_detection` - Trigger and detect rollover failure
+- [ ] `test_vehicle_telemetry_0916` - Get telemetry data (0.9.16 only)
+- [ ] `test_wheel_pitch_control_0916` - Control wheel pitch (0.9.16 only)
+- [ ] `test_vehicle_bone_transforms_0916` - Get bone transforms (0.9.16 only)
+- [ ] `test_vehicle_open_close_doors` - Open and close vehicle doors
+- [ ] `test_vehicle_door_physics` - Verify door physics simulation
 
 ---
 
@@ -585,21 +598,24 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_command_creation` - Create each command type
-- `test_command_serialization` - Serialize commands for RPC
-- `test_command_response_parsing` - Parse command responses
+> **Note:** These tests should be implemented in `carla/examples/test_batch_commands.rs` (see Phase 10.4).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
 
-#### Integration Tests
-- `test_batch_spawn_actors` - Spawn multiple actors in one batch
-- `test_batch_destroy_actors` - Destroy multiple actors in batch
-- `test_batch_mixed_commands` - Mix spawn, control, and destroy commands
-- `test_batch_sync_vs_async` - Compare sync and async batch execution
-- `test_batch_spawn_response` - Verify spawn command returns actor IDs
-- `test_batch_error_handling` - Handle failed commands in batch
-- `test_batch_vehicle_control` - Control multiple vehicles in batch
-- `test_batch_physics_operations` - Batch physics enable/disable
-- `test_batch_large_scale` - Process 100+ commands in single batch
+#### Unit Tests (to be added to `test_batch_commands.rs`)
+- [ ] `test_command_creation` - Create each command type
+- [ ] `test_command_serialization` - Serialize commands for RPC
+- [ ] `test_command_response_parsing` - Parse command responses
+
+#### Integration Tests (to be added to `test_batch_commands.rs`)
+- [ ] `test_batch_spawn_actors` - Spawn multiple actors in one batch
+- [ ] `test_batch_destroy_actors` - Destroy multiple actors in batch
+- [ ] `test_batch_mixed_commands` - Mix spawn, control, and destroy commands
+- [ ] `test_batch_sync_vs_async` - Compare sync and async batch execution
+- [ ] `test_batch_spawn_response` - Verify spawn command returns actor IDs
+- [ ] `test_batch_error_handling` - Handle failed commands in batch
+- [ ] `test_batch_vehicle_control` - Control multiple vehicles in batch
+- [ ] `test_batch_physics_operations` - Batch physics enable/disable
+- [ ] `test_batch_large_scale` - Process 100+ commands in single batch
 
 ---
 
@@ -653,13 +669,16 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
+> **Note:** These tests should be implemented in `carla/examples/test_sensors_advanced.rs` (see Phase 10.5).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
+
+#### Unit Tests (to be added to `test_sensors_advanced.rs`)
 - [x] `test_optical_flow_pixel_size` - Verify OpticalFlowPixel struct layout
 - [x] `test_flow_to_pixels` - Test flow velocity conversion
 - [ ] `test_dvs_event_creation` - Create DVS events (requires simulator)
 - [ ] `test_gbuffer_id_enum` - Verify GBuffer type enum (deferred)
 
-#### Integration Tests
+#### Integration Tests (to be added to `test_sensors_advanced.rs`)
 - [ ] `test_dvs_camera_events` - Capture DVS events (requires simulator)
 - [ ] `test_dvs_event_stream` - Process continuous event stream (requires simulator)
 - [ ] `test_optical_flow_capture` - Capture optical flow (requires simulator)
@@ -719,19 +738,22 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- [ ] `test_map_layer_enum` - Verify map layer enum values (requires test implementation)
-- [ ] `test_environment_object_type_filter` - Test object type filtering (requires test implementation)
+> **Note:** These tests should be implemented in `carla/examples/test_world_advanced.rs` (see Phase 10.6).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
 
-#### Integration Tests
-- [ ] `test_get_environment_objects` - Query environment objects (requires simulator)
-- [ ] `test_enable_disable_environment_objects` - Show and hide objects (requires simulator)
-- [ ] `test_load_unload_map_layer` - Load and unload opt layers (requires simulator)
-- [ ] `test_freeze_traffic_lights` - Freeze all traffic lights (requires simulator)
-- [ ] `test_unfreeze_traffic_lights` - Unfreeze and verify state changes (requires simulator)
-- [ ] `test_traffic_light_reset_group` - Reset synchronized traffic lights (requires simulator)
-- [ ] `test_get_all_vehicle_lights` - Batch query vehicle light states (requires simulator)
-- [ ] `test_load_world_if_different` - Avoid unnecessary map reload (requires simulator)
+#### Unit Tests (to be added to `test_world_advanced.rs`)
+- [ ] `test_map_layer_enum` - Verify map layer enum values
+- [ ] `test_environment_object_type_filter` - Test object type filtering
+
+#### Integration Tests (to be added to `test_world_advanced.rs`)
+- [ ] `test_get_environment_objects` - Query environment objects
+- [ ] `test_enable_disable_environment_objects` - Show and hide objects
+- [ ] `test_load_unload_map_layer` - Load and unload opt layers
+- [ ] `test_freeze_traffic_lights` - Freeze all traffic lights
+- [ ] `test_unfreeze_traffic_lights` - Unfreeze and verify state changes
+- [ ] `test_traffic_light_reset_group` - Reset synchronized traffic lights
+- [ ] `test_get_all_vehicle_lights` - Batch query vehicle light states
+- [ ] `test_load_world_if_different` - Avoid unnecessary map reload
 - [ ] `test_load_world_if_different_forces_load` - Force load when different (requires simulator)
 
 **Note:** All integration tests require a running CARLA simulator and should be marked with `#[serial]` and `#[ignore]` attributes. The APIs are complete and functional; tests can be added when needed.
@@ -779,16 +801,19 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_waypoint_distance_calculation` - Verify distance between waypoints
+> **Note:** These tests should be implemented in `carla/examples/test_navigation.rs` (see Phase 10.7).
+> They are NOT `#[test]` unit tests, but example programs that connect to CARLA and validate functionality.
 
-#### Integration Tests
-- `test_waypoint_next_generation` - Generate next waypoints
-- `test_waypoint_previous_generation` - Generate previous waypoints
-- `test_waypoint_lane_change` - Change lanes using waypoints
-- `test_waypoint_junction_navigation` - Navigate through junctions
-- `test_map_topology` - Get complete road network topology
-- `test_topology_connectivity` - Verify all road connections
+#### Unit Tests (to be added to `test_navigation.rs`)
+- [ ] `test_waypoint_distance_calculation` - Verify distance between waypoints
+
+#### Integration Tests (to be added to `test_navigation.rs`)
+- [ ] `test_waypoint_next_generation` - Generate next waypoints
+- [ ] `test_waypoint_previous_generation` - Generate previous waypoints
+- [ ] `test_waypoint_lane_change` - Change lanes using waypoints
+- [ ] `test_waypoint_junction_navigation` - Navigate through junctions
+- [ ] `test_map_topology` - Get complete road network topology
+- [ ] `test_topology_connectivity` - Verify all road connections
 
 ---
 
@@ -1056,18 +1081,22 @@ Run with: `cargo run --example spawn_vehicle`
 
 ### Test Cases
 
-#### Unit Tests
-- `test_error_types` - Verify error type conversions
-- `test_timeout_handling` - Handle timeout errors gracefully
+> **Note:** Most utility tests should be implemented in `carla/examples/test_utils.rs` (see Phase 10.8).
+> Integration and performance tests listed here are meta-tests that verify the overall project health.
 
-#### Integration Tests
-- `test_all_examples_compile` - Verify all examples compile
-- `test_example_spawn_vehicles` - Run spawn_vehicles example
-- `test_example_sensor_tutorial` - Run sensor tutorial
-- `test_concurrent_operations` - Multiple clients/threads
-- `test_high_frequency_operations` - Stress test at high rates
+#### Unit Tests (to be added to `test_utils.rs` - see Phase 10.8)
+- [ ] `test_error_types` - Verify error type conversions
+- [ ] `test_timeout_handling` - Handle timeout errors gracefully
+- [ ] See Phase 10.8 for 20 additional transform and utility tests
 
-#### Performance Tests
+#### Integration Tests (meta-tests for project validation)
+- [ ] `test_all_examples_compile` - Verify all examples compile
+- [ ] `test_example_spawn_vehicles` - Run spawn_vehicles example
+- [ ] `test_example_sensor_tutorial` - Run sensor tutorial
+- [ ] `test_concurrent_operations` - Multiple clients/threads
+- [ ] `test_high_frequency_operations` - Stress test at high rates
+
+#### Performance Tests (benchmark tests, not example-based)
 - `bench_spawn_destroy_cycle` - Measure spawn/destroy performance
 - `bench_sensor_throughput` - Measure sensor data throughput
 - `bench_batch_vs_individual` - Compare batch vs individual commands
@@ -1316,23 +1345,23 @@ Transform composition (multiplication) is critical for sensor mounting, vehicle 
 ### Test Cases
 
 #### Unit Tests (10.1 - Transform Multiplication)
-- `test_transform_mul_identity` - Multiply by identity transform
-- `test_transform_mul_translation` - Pure translation composition
-- `test_transform_mul_rotation` - Pure rotation composition (90°, 180°, 270°)
-- `test_transform_mul_combined` - Rotation + translation composition
-- `test_transform_mul_sensor_offset` - Realistic sensor mounting scenario
-- `test_transform_mul_inverse` - Compose with inverse, verify identity
-- `test_transform_mul_associativity` - Verify `(a * b) * c == a * (b * c)`
-- `test_transform_mul_reference` - Test `&Transform * &Transform` variant
+- [ ] `test_transform_mul_identity` - Multiply by identity transform
+- [ ] `test_transform_mul_translation` - Pure translation composition
+- [ ] `test_transform_mul_rotation` - Pure rotation composition (90°, 180°, 270°)
+- [ ] `test_transform_mul_combined` - Rotation + translation composition
+- [ ] `test_transform_mul_sensor_offset` - Realistic sensor mounting scenario
+- [ ] `test_transform_mul_inverse` - Compose with inverse, verify identity
+- [ ] `test_transform_mul_associativity` - Verify `(a * b) * c == a * (b * c)`
+- [ ] `test_transform_mul_reference` - Test `&Transform * &Transform` variant
 
 #### Integration Tests (10.1 - Transform Multiplication)
-- `test_transform_composition_with_simulator` - Compare with CARLA C++ results
-- `test_sensor_world_transform` - Spawn sensor on vehicle, verify transform
-- `test_attachment_transform_chain` - Multiple levels of attachment
+- [ ] `test_transform_composition_with_simulator` - Compare with CARLA C++ results
+- [ ] `test_sensor_world_transform` - Spawn sensor on vehicle, verify transform
+- [ ] `test_attachment_transform_chain` - Multiple levels of attachment
 
 #### Documentation Tests (10.2)
-- `test_doc_examples_compile` - Verify all doc examples compile
-- `test_coordinate_system_docs` - Verify docs explain left-handed system
+- [ ] `test_doc_examples_compile` - Verify all doc examples compile
+- [ ] `test_coordinate_system_docs` - Verify docs explain left-handed system
 
 #### Audit Tests (10.3)
 - Tests added per audit findings
@@ -1380,6 +1409,386 @@ Transform composition (multiplication) is critical for sensor mounting, vehicle 
 - Day 5: Write audit report and fixes
 
 **Total: 8-10 days**
+
+---
+
+## Phase 10: Test Examples Organization
+
+**Priority:** HIGH (enables automated testing)
+**Estimated Effort:** 2-3 weeks
+**Status:** [ ] Planned
+
+### Overview
+
+Organize all unit and integration tests from Phases 2-9 into comprehensive example programs that can be executed by `scripts/run-examples.sh`. Each example connects to CARLA, sets up the necessary scenario, and runs related tests together.
+
+**Rationale:**
+- Tests require a running CARLA server with configured scenarios
+- Cannot run tests in parallel (CARLA server limitation)
+- Examples provide both documentation and automated testing
+- Existing `run-examples.sh` infrastructure can execute tests sequentially
+
+### Test Organization Strategy
+
+Tests are grouped by feature area into comprehensive example programs. Each example:
+1. Connects to CARLA server
+2. Sets up required scenario (spawn vehicles, sensors, etc.)
+3. Runs all related tests for that feature area
+4. Reports results with clear pass/fail status
+5. Cleans up resources
+
+### Work Items
+
+#### 10.1: Debug and Visualization Tests (`test_debug_draw.rs`)
+
+**From Phase 2** - Debug drawing and color utilities (11 tests)
+
+**Setup:**
+- Spawn a vehicle at a spawn point
+- Position spectator camera to view debug shapes
+
+**Tests:**
+- [ ] `test_color_creation` - Create colors with RGBA values
+- [ ] `test_color_constants` - Verify predefined color values
+- [ ] `test_color_to_native` - Convert to C++ color type
+- [ ] `test_debug_draw_point` - Draw point and verify visibility
+- [ ] `test_debug_draw_line` - Draw line between two points
+- [ ] `test_debug_draw_arrow` - Draw arrow with proper direction
+- [ ] `test_debug_draw_box` - Draw bounding box
+- [ ] `test_debug_draw_string` - Draw text at location
+- [ ] `test_debug_shapes_lifetime` - Verify shapes disappear after lifetime
+- [ ] `test_debug_multiple_shapes` - Draw multiple shapes simultaneously
+- [ ] `test_debug_shape_colors` - Verify shape colors are correct
+
+**Success Criteria:**
+- All color operations work correctly
+- Debug shapes render at correct positions
+- Lifetimes respected (shapes disappear when expected)
+
+---
+
+#### 10.2: Recording and Playback Tests (`test_recording.rs`)
+
+**From Phase 3** - Recorder/replayer functionality (12 tests)
+
+**Setup:**
+- Spawn 2-3 vehicles in Town03
+- Drive vehicles for 10 seconds to create interesting scenario
+- Record the scenario
+
+**Tests:**
+- [ ] `test_recorder_filename_validation` - Validate recording filenames
+- [ ] `test_replay_time_factor_bounds` - Validate time factor range
+- [ ] `test_start_stop_recorder` - Start and stop recording
+- [ ] `test_record_simple_scenario` - Record vehicle movement
+- [ ] `test_replay_recorded_scenario` - Replay recorded scenario
+- [ ] `test_replay_with_follow_camera` - Follow specific actor during replay
+- [ ] `test_replay_time_factor` - Speed up/slow down replay
+- [ ] `test_recorder_file_info` - Get recording metadata
+- [ ] `test_recorder_collision_query` - Query recorded collisions
+- [ ] `test_recorder_frame_accuracy` - Verify frame-accurate replay
+- [ ] `test_recorder_actor_bounds` - Query recorded actor movements
+- [ ] `test_replay_pause_resume` - Pause and resume replay
+
+**Success Criteria:**
+- Record and replay scenarios accurately
+- Metadata correctly extracted from recordings
+- Time factor affects replay speed
+- Camera following works during replay
+
+---
+
+#### 10.3: Advanced Vehicle Features Tests (`test_vehicle_advanced.rs`)
+
+**From Phase 4** - Vehicle physics, doors, lights (12 tests)
+
+**Setup:**
+- Spawn a vehicle (Tesla Model 3 or similar)
+- Ensure vehicle has physics enabled
+
+**Tests:**
+- [ ] `test_vehicle_door_open_close` - Open/close individual doors
+- [ ] `test_vehicle_door_states` - Query all door states
+- [ ] `test_vehicle_wheel_count` - Get vehicle wheel count
+- [ ] `test_vehicle_wheel_states` - Query individual wheel states
+- [ ] `test_failure_state_creation` - Create failure states
+- [ ] `test_apply_failure_state` - Apply failure to vehicle
+- [ ] `test_vehicle_with_failures` - Drive with active failures
+- [ ] `test_light_state_creation` - Create light states
+- [ ] `test_light_state_flags` - Verify light state bitflags
+- [ ] `test_apply_light_state` - Apply lights to vehicle
+- [ ] `test_vehicle_light_query` - Query current light states
+- [ ] `test_multiple_light_states` - Combine multiple lights
+
+**Success Criteria:**
+- Doors open/close correctly
+- Wheel states reported accurately
+- Failure states affect vehicle behavior
+- Light states apply and query correctly
+
+---
+
+#### 10.4: Batch Operations Tests (`test_batch_commands.rs`)
+
+**From Phase 5** - Batch command execution (12 tests)
+
+**Setup:**
+- Prepare list of spawn points
+- Have blueprint library ready
+
+**Tests:**
+- [ ] `test_batch_spawn_actors` - Spawn multiple actors in batch
+- [ ] `test_batch_destroy_actors` - Destroy multiple actors in batch
+- [ ] `test_batch_apply_vehicle_control` - Control multiple vehicles
+- [ ] `test_batch_apply_walker_control` - Control multiple walkers
+- [ ] `test_batch_command_response` - Verify individual responses
+- [ ] `test_batch_error_handling` - Handle failed commands in batch
+- [ ] `test_batch_partial_failure` - Some commands succeed, some fail
+- [ ] `test_batch_order_preservation` - Commands execute in order
+- [ ] `test_empty_batch` - Handle empty batch gracefully
+- [ ] `test_large_batch` - Handle 100+ commands
+- [ ] `test_batch_performance` - Verify performance benefit
+- [ ] `test_mixed_command_types` - Mix spawn/destroy/control commands
+
+**Success Criteria:**
+- Batch operations faster than individual commands
+- Partial failures handled gracefully
+- Response order matches command order
+- Large batches (100+) execute successfully
+
+---
+
+#### 10.5: Advanced Sensor Tests (`test_sensors_advanced.rs`)
+
+**From Phase 6** - DVS, optical flow, normals sensors (10 tests)
+
+**Setup:**
+- Spawn vehicle with multiple advanced sensors
+- Drive vehicle through dynamic scene
+
+**Tests:**
+- [ ] `test_dvs_event_creation` - Create DVS events
+- [ ] `test_dvs_camera_events` - Capture DVS events
+- [ ] `test_dvs_event_stream` - Process continuous event stream
+- [ ] `test_optical_flow_capture` - Capture optical flow
+- [ ] `test_optical_flow_visualization` - Convert to RGB for visualization
+- [ ] `test_normals_sensor_capture` - Capture surface normals
+- [ ] `test_normals_world_space` - Verify normals in world space
+- [ ] `test_dvs_high_frequency` - Handle high-frequency events
+- [ ] `test_optical_flow_motion` - Verify flow vectors match motion
+- [ ] `test_sensor_synchronization_advanced` - Sync DVS with RGB camera
+
+**Success Criteria:**
+- DVS events captured during camera motion
+- Optical flow vectors represent scene motion
+- Normals correctly oriented in world space
+- Advanced sensors synchronize with standard cameras
+
+---
+
+#### 10.6: World Operations Tests (`test_world_advanced.rs`)
+
+**From Phase 7** - Traffic lights, landmarks, environment (11 tests)
+
+**Setup:**
+- Load Town03 (has many traffic lights)
+- Spawn vehicle near intersection
+
+**Tests:**
+- [ ] `test_get_traffic_lights` - Query all traffic lights
+- [ ] `test_traffic_light_state_change` - Change traffic light state
+- [ ] `test_traffic_light_timing` - Set green/yellow/red durations
+- [ ] `test_traffic_light_freeze` - Freeze traffic light state
+- [ ] `test_get_landmarks` - Query all landmarks
+- [ ] `test_landmarks_by_type` - Filter landmarks by type
+- [ ] `test_landmark_waypoints` - Get waypoints for landmark
+- [ ] `test_environment_objects_query` - Query environment objects
+- [ ] `test_environment_object_enable_disable` - Toggle object visibility
+- [ ] `test_reset_all_traffic_lights` - Reset all lights to default
+- [ ] `test_world_tick_timeout` - Verify tick timeout behavior
+
+**Success Criteria:**
+- Traffic lights change state correctly
+- Timing parameters respected
+- Landmarks correctly queried and filtered
+- Environment objects can be toggled
+
+---
+
+#### 10.7: Navigation Tests (`test_navigation.rs`)
+
+**From Phase 8** - Waypoint, topology, routing (7 tests)
+
+**Setup:**
+- Load map with complex road network (Town03)
+- Spawn vehicle at starting position
+
+**Tests:**
+- [ ] `test_get_waypoint_at_location` - Find nearest waypoint
+- [ ] `test_waypoint_next` - Get next waypoints
+- [ ] `test_waypoint_lane_change` - Get lane change options
+- [ ] `test_topology_generation` - Generate road topology
+- [ ] `test_route_planning` - Plan route between two points
+- [ ] `test_route_waypoints` - Get waypoints along route
+- [ ] `test_waypoint_transform` - Get transform for waypoint
+
+**Success Criteria:**
+- Waypoints correctly located on roads
+- Next waypoints follow lane geometry
+- Lane changes identified correctly
+- Routes generated between valid points
+
+---
+
+#### 10.8: Utility Functions Tests (`test_utils.rs`)
+
+**From Phase 9** - Transforms, strings, environment vars (20 tests)
+
+**Setup:**
+- Minimal setup, mostly pure functions
+- Spawn one vehicle for transform tests
+
+**Tests:**
+
+**Transform Operations (10 tests):**
+- [ ] `test_transform_multiplication` - Combine transforms
+- [ ] `test_transform_inverse` - Invert transform
+- [ ] `test_transform_point` - Transform point to world space
+- [ ] `test_transform_vector` - Transform vector (no translation)
+- [ ] `test_transform_identity` - Identity transform behavior
+- [ ] `test_transform_chain` - Chain multiple transforms
+- [ ] `test_transform_parent_child` - Parent-child relationships
+- [ ] `test_transform_world_to_local` - World to local conversion
+- [ ] `test_transform_rotation_only` - Rotation-only transforms
+- [ ] `test_transform_translation_only` - Translation-only transforms
+
+**String/Utility Tests (10 tests):**
+- [ ] `test_actor_id_from_string` - Parse actor ID from string
+- [ ] `test_string_to_actor_id_invalid` - Handle invalid ID strings
+- [ ] `test_episode_id_equality` - Compare episode IDs
+- [ ] `test_episode_id_string_conversion` - Convert episode ID to string
+- [ ] `test_get_client_version` - Get CARLA client version string
+- [ ] `test_get_server_version` - Get CARLA server version string
+- [ ] `test_version_comparison` - Compare version strings
+- [ ] `test_environment_variable_access` - Access CARLA env vars
+- [ ] `test_debug_flag_checking` - Check debug flags
+- [ ] `test_timeout_config` - Verify timeout configurations
+
+**Success Criteria:**
+- Transform math matches expected results
+- String parsing handles valid and invalid inputs
+- Version information correctly retrieved
+- Environment configuration accessible
+
+---
+
+### Implementation Guidelines
+
+#### Example Structure Pattern
+
+```rust
+//! <Feature Area> Tests
+//!
+//! Tests for <brief description>
+//!
+//! # Test Categories
+//! - Unit tests: <list>
+//! - Integration tests: <list>
+//!
+//! Run with:
+//! ```bash
+//! cargo run --example test_<name> --profile dev-release
+//! ```
+
+use carla::client::Client;
+use std::time::Duration;
+
+fn main() {
+    println!("=== <Feature> Tests ===\n");
+
+    // Connect to CARLA
+    let client = Client::connect("127.0.0.1", 2000, None);
+    let mut world = client.world();
+
+    // Setup scenario
+    setup_scenario(&mut world);
+
+    // Run tests
+    let mut passed = 0;
+    let mut failed = 0;
+
+    run_test("test_name", || { /* test code */ }, &mut passed, &mut failed);
+
+    // Report results
+    println!("\n=== Results ===");
+    println!("Passed: {}", passed);
+    println!("Failed: {}", failed);
+    std::process::exit(if failed > 0 { 1 } else { 0 });
+}
+
+fn run_test<F>(name: &str, test_fn: F, passed: &mut i32, failed: &mut i32)
+where
+    F: FnOnce() -> Result<(), Box<dyn std::error::Error>>,
+{
+    print!("Testing {}... ", name);
+    match test_fn() {
+        Ok(_) => {
+            println!("✓ PASS");
+            *passed += 1;
+        }
+        Err(e) => {
+            println!("✗ FAIL: {}", e);
+            *failed += 1;
+        }
+    }
+}
+```
+
+#### Test Organization Principles
+
+1. **Group by Feature Area:** Related tests in same example
+2. **Shared Setup:** One scenario setup for all tests in example
+3. **Independent Tests:** Each test should not depend on previous tests
+4. **Clear Output:** Print test name and pass/fail status
+5. **Exit Code:** Exit with code 1 if any test fails (for CI/automation)
+6. **Documentation:** Explain what's being tested and why
+
+#### Benefits
+
+- ✅ Tests run automatically via `scripts/run-examples.sh`
+- ✅ One CARLA connection per feature area (not per test)
+- ✅ Examples serve as both tests and documentation
+- ✅ Clear pass/fail reporting for CI integration
+- ✅ Easy to run individual test suites during development
+- ✅ Scenario setup code shows how to use the API
+
+### Timeline
+
+**Week 1:**
+- Days 1-2: Implement test_debug_draw.rs (10.1)
+- Days 3-4: Implement test_recording.rs (10.2)
+- Day 5: Implement test_vehicle_advanced.rs (10.3)
+
+**Week 2:**
+- Days 1-2: Implement test_batch_commands.rs (10.4)
+- Day 3: Implement test_sensors_advanced.rs (10.5)
+- Days 4-5: Implement test_world_advanced.rs (10.6)
+
+**Week 3:**
+- Days 1-2: Implement test_navigation.rs (10.7)
+- Day 3: Implement test_utils.rs (10.8)
+- Days 4-5: Integration testing, CI setup, documentation
+
+**Total: 13-15 days**
+
+### Success Criteria
+
+- [ ] All 95 tests organized into 8 comprehensive examples
+- [ ] Examples executable via `scripts/run-examples.sh`
+- [ ] Each example exits with code 0 (success) or 1 (failure)
+- [ ] Clear test output shows which tests passed/failed
+- [ ] Documented test patterns for future additions
+- [ ] CI integration ready (all examples can run sequentially)
 
 ---
 
