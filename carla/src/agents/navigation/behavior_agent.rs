@@ -42,10 +42,18 @@ pub enum BehaviorType {
     Normal(BehaviorParams),
     /// Aggressive driving (fast, small safety margins, quick lane changes)
     Aggressive(BehaviorParams),
+    /// Custom user-defined behavior profile
+    Custom(BehaviorParams),
 }
 
 impl BehaviorType {
     /// Creates a cautious behavior profile.
+    ///
+    /// Characteristics:
+    /// - Low max speed (40 km/h)
+    /// - Large safety margins (3s safety time, 12m proximity threshold)
+    /// - Conservative lane changes
+    /// - Never tailgates
     pub fn cautious() -> Self {
         BehaviorType::Cautious(BehaviorParams {
             max_speed: 40.0,
@@ -59,6 +67,11 @@ impl BehaviorType {
     }
 
     /// Creates a normal behavior profile.
+    ///
+    /// Characteristics:
+    /// - Medium max speed (50 km/h)
+    /// - Standard safety margins (2s safety time, 10m proximity threshold)
+    /// - Balanced behavior
     pub fn normal() -> Self {
         BehaviorType::Normal(BehaviorParams {
             max_speed: 50.0,
@@ -72,6 +85,12 @@ impl BehaviorType {
     }
 
     /// Creates an aggressive behavior profile.
+    ///
+    /// Characteristics:
+    /// - High max speed (70 km/h)
+    /// - Tight safety margins (1s safety time, 8m proximity threshold)
+    /// - Quick lane changes
+    /// - Tailgates aggressively
     pub fn aggressive() -> Self {
         BehaviorType::Aggressive(BehaviorParams {
             max_speed: 70.0,
@@ -84,10 +103,71 @@ impl BehaviorType {
         })
     }
 
+    /// Creates a custom user-defined behavior profile.
+    ///
+    /// Allows full control over all behavior parameters.
+    ///
+    /// # Arguments
+    /// * `params` - Custom behavior parameters
+    ///
+    /// # Examples
+    /// ```
+    /// use carla::agents::navigation::{BehaviorParams, BehaviorType};
+    ///
+    /// // Create a "super cautious" profile
+    /// let super_cautious = BehaviorType::custom(BehaviorParams {
+    ///     max_speed: 30.0,
+    ///     speed_lim_dist: 10.0,
+    ///     speed_decrease: 15.0,
+    ///     safety_time: 4.0,
+    ///     min_proximity_threshold: 15.0,
+    ///     braking_distance: 8.0,
+    ///     tailgate_counter: -1,
+    /// });
+    ///
+    /// // Create a "sporty" profile
+    /// let sporty = BehaviorType::custom(BehaviorParams {
+    ///     max_speed: 80.0,
+    ///     speed_lim_dist: 0.5,
+    ///     speed_decrease: 6.0,
+    ///     safety_time: 0.8,
+    ///     min_proximity_threshold: 6.0,
+    ///     braking_distance: 3.0,
+    ///     tailgate_counter: -2,
+    /// });
+    /// ```
+    pub fn custom(params: BehaviorParams) -> Self {
+        BehaviorType::Custom(params)
+    }
+
     /// Gets the behavior parameters.
     pub fn params(&self) -> &BehaviorParams {
         match self {
-            BehaviorType::Cautious(p) | BehaviorType::Normal(p) | BehaviorType::Aggressive(p) => p,
+            BehaviorType::Cautious(p)
+            | BehaviorType::Normal(p)
+            | BehaviorType::Aggressive(p)
+            | BehaviorType::Custom(p) => p,
+        }
+    }
+
+    /// Gets a mutable reference to the behavior parameters.
+    ///
+    /// Allows runtime modification of behavior parameters.
+    ///
+    /// # Examples
+    /// ```
+    /// use carla::agents::navigation::BehaviorType;
+    ///
+    /// let mut behavior = BehaviorType::normal();
+    /// // Temporarily reduce max speed
+    /// behavior.params_mut().max_speed = 30.0;
+    /// ```
+    pub fn params_mut(&mut self) -> &mut BehaviorParams {
+        match self {
+            BehaviorType::Cautious(p)
+            | BehaviorType::Normal(p)
+            | BehaviorType::Aggressive(p)
+            | BehaviorType::Custom(p) => p,
         }
     }
 }
