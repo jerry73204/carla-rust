@@ -8,7 +8,7 @@ use crate::{
 
 #[cfg(test)]
 use crate::geom::Rotation;
-use std::f32::consts::PI;
+use std::{borrow::Borrow, f32::consts::PI};
 
 /// Calculates the speed of a vehicle in km/h.
 ///
@@ -193,7 +193,7 @@ pub fn distance_vehicle(waypoint_location: &Location, vehicle_transform: &Transf
 ///
 /// # Arguments
 /// * `debug` - Debug helper instance from `World::debug()`
-/// * `waypoints` - Slice of waypoints to visualize
+/// * `waypoints` - Iterator or slice of waypoints to visualize
 /// * `z_offset` - Vertical offset in meters (positive = up, for visibility above ground)
 /// * `life_time` - Duration in seconds the arrows persist (0.0 = one frame)
 ///
@@ -207,15 +207,20 @@ pub fn distance_vehicle(waypoint_location: &Location, vehicle_transform: &Transf
 /// let world = client.world();
 /// let map = world.map();
 ///
-/// // Get route waypoints
+/// // Get route waypoints from spawn points
 /// let spawn_points = map.recommended_spawn_points();
-/// let start_loc = spawn_points[0].location;
-/// let waypoint = map.waypoint(&start_loc)?;
+/// let spawn_slice = spawn_points.as_slice();
+/// let start_loc = spawn_slice[0].location;
+/// let waypoint = map.waypoint_at(&start_loc)?;
 /// let next_waypoints = waypoint.next(5.0);
 ///
 /// // Draw waypoints in green for 5 seconds
 /// let debug = world.debug();
-/// draw_waypoints(&debug, &next_waypoints, 0.5, 5.0);
+/// draw_waypoints(&debug, next_waypoints.iter(), 0.5, 5.0);
+///
+/// // Or draw from a Vec
+/// let waypoint_vec = vec![waypoint];
+/// draw_waypoints(&debug, &waypoint_vec, 0.5, 5.0);
 /// # Ok(())
 /// # }
 /// ```
@@ -225,8 +230,13 @@ pub fn distance_vehicle(waypoint_location: &Location, vehicle_transform: &Transf
 /// from agents.tools.misc import draw_waypoints
 /// draw_waypoints(world, waypoints, z=0.5)
 /// ```
-pub fn draw_waypoints(debug: &DebugHelper, waypoints: &[Waypoint], z_offset: f32, life_time: f32) {
+pub fn draw_waypoints<I>(debug: &DebugHelper, waypoints: I, z_offset: f32, life_time: f32)
+where
+    I: IntoIterator,
+    I::Item: Borrow<Waypoint>,
+{
     for waypoint in waypoints {
+        let waypoint = waypoint.borrow();
         let transform = waypoint.transform();
         let mut begin = transform.location;
         begin.z += z_offset;
