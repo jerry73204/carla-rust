@@ -17,6 +17,10 @@ pub struct EnvironmentObjectRef<'a> {
 }
 
 impl<'a> EnvironmentObjectRef<'a> {
+    pub fn id(&self) -> u64 {
+        self.inner.id()
+    }
+
     pub fn transform(&self) -> Transform {
         Transform::from_ffi(self.inner.transform().clone())
     }
