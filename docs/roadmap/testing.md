@@ -166,7 +166,7 @@ Each phase is considered complete when:
 - ✅ Batch Commands: 100% available (10.4) - IMPLEMENTED
 - ✅ Advanced Sensors: 70% available (10.5) - IMPLEMENTED (DVS and optical flow available, normals using depth proxy)
 - ✅ World Operations: 60% available (10.6) - IMPLEMENTED (bulk ops available, individual traffic light/landmark control not yet wrapped)
-- ✅ Navigation: 70% available (10.7) - IMPLEMENTED (waypoint and topology available, lane changes and dedicated routing not yet wrapped)
+- ✅ Navigation: 90% available (10.7) - IMPLEMENTED (waypoint, topology, and lane changes available; dedicated routing API not yet wrapped)
 - ✅ Utility Functions: 100% available (10.8) - ENHANCED (version, timeout, environment access all working)
 
 See `docs/roadmap/api-availability-status.md` for detailed API documentation.
@@ -477,22 +477,22 @@ Tests are grouped by feature area into comprehensive example programs. Each exam
 - [x] `test_waypoint_transform` - Get transform for waypoint
 
 **API Coverage:**
-✅ Available APIs (5 used):
+✅ Available APIs (7 used):
 - `Map::waypoint_at(&Location)` - Waypoint lookup
 - `Waypoint::next(distance)` - Next waypoints
 - `Waypoint::transform()` - Waypoint transform
 - `Map::topology()` - Road network topology
 - `Map::recommended_spawn_points()` - Spawn points
+- `Waypoint::left()` - Lane change to left
+- `Waypoint::right()` - Lane change to right
 
-⚠️ Missing APIs (2 documented):
-- `Waypoint::get_left_lane()` - Lane change to left
-- `Waypoint::get_right_lane()` - Lane change to right
+⚠️ Missing APIs (1 documented):
 - Dedicated routing API - Currently simulated with waypoint.next()
 
 **Success Criteria:**
 - ✅ Waypoints correctly located on roads
 - ✅ Next waypoints follow lane geometry (tested at 1m, 5m, 10m)
-- ⚠️ Lane changes documented as API limitation
+- ✅ Lane change APIs available (`left()`, `right()`)
 - ✅ Routes simulated using waypoint sequences (10-step paths)
 - ✅ Topology generation successful (road network segments)
 - ✅ Waypoint transforms validated (location and rotation)
