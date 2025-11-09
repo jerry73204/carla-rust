@@ -23,10 +23,10 @@ fn main() {
     let client = Client::connect("localhost", 2000, None);
     println!("Connected!");
 
-    // Load map
-    println!("\nLoading map: Town10HD_Opt...");
-    let mut world = client.load_world("Town10HD_Opt");
-    println!("Map loaded!");
+    // Get the current world
+    println!("\nGetting current world...");
+    let mut world = client.world();
+    println!("World ready!");
 
     // Get debug helper
     let debug = world.debug();

@@ -18,10 +18,10 @@ fn main() {
     let client = Client::connect("localhost", 2000, None);
     println!("Connected!");
 
-    // Load default map for clean world state
-    println!("\nLoading map: Town10HD_Opt...");
-    let world = client.load_world("Town10HD_Opt");
-    println!("Map loaded!");
+    // Get the current world
+    println!("\nGetting current world...");
+    let world = client.world();
+    println!("World ready!");
 
     // Get map information
     let map = world.map();

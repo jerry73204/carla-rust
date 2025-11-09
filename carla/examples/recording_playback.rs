@@ -25,10 +25,10 @@ fn main() {
     let mut client = Client::connect("localhost", 2000, None);
     println!("Connected!\n");
 
-    // Get world and spawn a vehicle
-    println!("Loading map: Town10HD_Opt...");
-    let mut world = client.load_world("Town10HD_Opt");
-    println!("Map loaded!\n");
+    // Get the current world
+    println!("Getting current world...");
+    let mut world = client.world();
+    println!("World ready!\n");
 
     // Spawn a vehicle
     println!("Spawning vehicle...");
