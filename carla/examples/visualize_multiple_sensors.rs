@@ -33,7 +33,7 @@
 //! ```
 
 use carla::{
-    client::{ActorBase, Client, Sensor, Vehicle},
+    client::{Client, Sensor, Vehicle},
     geom::{Location, Rotation, Transform},
     rpc::AttachmentType,
     sensor::data::{Image, LidarMeasurement},
@@ -80,14 +80,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("Tesla Model 3 blueprint not found")?;
 
     let spawn_points = world.map().recommended_spawn_points();
-    let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
+    if spawn_points.is_empty() {
+        return Err("No spawn points available".into());
+    }
 
-    let vehicle_actor = world
-        .spawn_actor(&vehicle_bp, spawn_point)
-        .map_err(|e| format!("Failed to spawn vehicle: {:?}", e))?;
-    let vehicle = Vehicle::try_from(vehicle_actor).map_err(|_| "Failed to convert to vehicle")?;
-    vehicle.set_autopilot(true);
-    println!(" Vehicle spawned with autopilot\n");
+    // Try multiple spawn points in case some are occupied
+    let mut vehicle = None;
+    for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
+        match world.spawn_actor(&vehicle_bp, spawn_point) {
+            Ok(vehicle_actor) => match Vehicle::try_from(vehicle_actor) {
+                Ok(v) => {
+                    println!(" Vehicle spawned at spawn point {} with autopilot", i);
+                    v.set_autopilot(true);
+                    vehicle = Some(v);
+                    break;
+                }
+                Err(_) => continue,
+            },
+            Err(_) => {
+                // Spawn point occupied, try next one
+                continue;
+            }
+        }
+    }
+
+    let vehicle = vehicle.ok_or("Failed to spawn vehicle at any of the first 10 spawn points. Try running scripts/clean-carla-world.py")?;
+    println!();
 
     // Define sensor mount position (front hood)
     let sensor_transform = Transform {
@@ -256,11 +274,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     semantic_sensor.stop();
     lidar_sensor.stop();
 
-    rgb_sensor.destroy();
-    depth_sensor.destroy();
-    semantic_sensor.destroy();
-    lidar_sensor.destroy();
-    vehicle.destroy();
+    // Note: Explicit destroy() calls are omitted to avoid race conditions.
+    // CARLA automatically cleans up actors when the client disconnects.
 
     println!(" Cleanup complete\n");
 
