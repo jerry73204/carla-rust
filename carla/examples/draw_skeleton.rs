@@ -583,6 +583,11 @@ impl SkeletonVisualizer {
     }
 
     async fn run(&mut self) {
+        // Check if world is in synchronous mode
+        let settings = self.world.settings();
+        let is_sync = settings.synchronous_mode;
+
+        let mut frame_count = 0;
         loop {
             if is_key_pressed(KeyCode::Escape) {
                 break;
@@ -592,14 +597,23 @@ impl SkeletonVisualizer {
             self.update();
             self.draw();
 
-            // Tick simulation
-            if let Err(e) = self.world.wait_for_tick() {
-                println!("Failed to tick: {}", e);
-                break;
-            }
-
-            // IMPORTANT: Must call next_frame().await for macroquad to render
+            // IMPORTANT: Must call next_frame().await BEFORE blocking operations
             next_frame().await;
+
+            // Handle CARLA ticking based on synchronous mode
+            frame_count += 1;
+            if frame_count % 2 == 0 {
+                if is_sync {
+                    // In synchronous mode, we must call tick() to advance simulation
+                    self.world.tick();
+                } else {
+                    // In asynchronous mode, wait for next tick
+                    if let Err(e) = self.world.wait_for_tick() {
+                        println!("Failed to wait for tick: {}", e);
+                        break;
+                    }
+                }
+            }
         }
 
         println!("Shutting down...");
