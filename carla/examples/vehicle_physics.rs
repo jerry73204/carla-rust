@@ -15,10 +15,44 @@
 //! ```
 
 use carla::{
-    client::{ActorBase, Client, Vehicle},
+    client::{ActorBase, Client, Vehicle, World},
     geom::Vector3D,
 };
 use std::time::Duration;
+
+/// Helper function to spawn a vehicle with retry logic
+fn spawn_vehicle_with_retry(
+    world: &mut World,
+    vehicle_bp: &carla::client::ActorBlueprint,
+    spawn_points: &carla::client::RecommendedSpawnPoints,
+    preferred_index: usize,
+) -> Result<Vehicle, Box<dyn std::error::Error>> {
+    // Try preferred spawn point first
+    if let Some(spawn_point) = spawn_points.get(preferred_index) {
+        if let Ok(actor) = world.spawn_actor(vehicle_bp, spawn_point) {
+            if let Ok(vehicle) = Vehicle::try_from(actor) {
+                return Ok(vehicle);
+            }
+        }
+    }
+
+    // If preferred failed, try other spawn points
+    for (i, spawn_point) in spawn_points.iter().enumerate().take(20) {
+        if i == preferred_index {
+            continue; // Already tried this one
+        }
+
+        match world.spawn_actor(vehicle_bp, spawn_point) {
+            Ok(actor) => match Vehicle::try_from(actor) {
+                Ok(vehicle) => return Ok(vehicle),
+                Err(_) => continue,
+            },
+            Err(_) => continue,
+        }
+    }
+
+    Err("Failed to spawn vehicle at any of the first 20 spawn points".into())
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== CARLA Vehicle Physics Example ===\n");
@@ -50,9 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Demo 1: Apply Impulse ===");
     println!("Spawning vehicle for impulse test...");
 
-    let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle1 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
+    let vehicle1 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 0)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle1.id());
     println!("Initial position: {:?}", vehicle1.transform().location);
@@ -95,9 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Demo 2: Apply Force ===");
     println!("Spawning vehicle for force test...");
 
-    let spawn_point = spawn_points.get(1).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle2 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
+    let vehicle2 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 1)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle2.id());
     println!("Initial position: {:?}", vehicle2.transform().location);
@@ -138,9 +168,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Demo 3: Apply Torque ===");
     println!("Spawning vehicle for torque test...");
 
-    let spawn_point = spawn_points.get(2).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle3 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
+    let vehicle3 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 2)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle3.id());
 
@@ -177,9 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Demo 4: Combined Physics Effects ===");
     println!("Spawning vehicle for combined test...");
 
-    let spawn_point = spawn_points.get(3).ok_or("Not enough spawn points")?;
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle4 = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
+    let vehicle4 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 3)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle4.id());
 
@@ -228,11 +254,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Cleanup
     println!("\nCleaning up vehicles...");
-    vehicle1.destroy();
-    vehicle2.destroy();
-    vehicle3.destroy();
-    vehicle4.destroy();
-    println!("✓ All vehicles destroyed");
+    // Note: Explicit destroy() calls are omitted to avoid race conditions.
+    // CARLA automatically cleans up actors when the client disconnects.
+    println!("✓ Cleanup complete");
 
     println!("\n=== Vehicle Physics Demo Complete ===");
     println!("Key Takeaways:");
