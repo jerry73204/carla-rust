@@ -176,15 +176,19 @@ fn setup_scenario(world: &mut carla::client::World) -> Vehicle {
         .expect("Vehicle blueprint not found");
 
     let spawn_points = world.map().recommended_spawn_points();
-    let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
-    let vehicle_actor = world
-        .spawn_actor(&vehicle_bp, spawn_point)
-        .expect("Failed to spawn vehicle");
+    // Try multiple spawn points in case some are occupied
+    for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
+        if let Ok(vehicle_actor) = world.spawn_actor(&vehicle_bp, spawn_point) {
+            if let Ok(vehicle) = Vehicle::try_from(vehicle_actor) {
+                println!("Vehicle spawned at spawn point {}", i);
+                println!("Scenario setup complete\n");
+                return vehicle;
+            }
+        }
+    }
 
-    let vehicle = Vehicle::try_from(vehicle_actor).expect("Failed to cast to Vehicle");
-    println!("Scenario setup complete\n");
-    vehicle
+    panic!("Failed to spawn vehicle at any of the first 10 spawn points. Try running scripts/clean-carla-world.py");
 }
 
 fn run_test<F>(name: &str, test_fn: F, passed: &mut i32, failed: &mut i32)
@@ -437,8 +441,17 @@ fn test_version_comparison() -> TestResult {
     assert!(!client_ver.is_empty());
     assert!(!server_ver.is_empty());
 
-    // Basic version string format check (should contain digits and dots)
-    assert!(client_ver.contains('.'), "Version should contain '.'");
+    // Version string format check
+    // Client version may be semantic (0.9.16) or git hash (7a0b5709a)
+    // Server version is typically semantic (0.9.16)
+    assert!(
+        client_ver.contains('.') || client_ver.len() >= 8,
+        "Client version should be semantic (with '.') or git hash (8+ chars)"
+    );
+    assert!(
+        server_ver.contains('.'),
+        "Server version should contain '.'"
+    );
     Ok(())
 }
 
