@@ -1,218 +1,529 @@
-//! Synchronous Mode Example
+//! Synchronous Mode GUI - Fixed Timestep Simulation Demo
 //!
-//! This example demonstrates synchronous simulation mode with multiple sensors.
-//! In synchronous mode, the simulation waits for tick() calls, enabling
-//! deterministic sensor data collection and precise control.
+//! Demonstrates CARLA's synchronous mode with frame-perfect simulation timing.
+//! Shows dual camera view (RGB + semantic segmentation blend) with waypoint following.
 //!
-//! Prerequisites:
-//! - CARLA simulator must be running
+//! # Features
+//! - Synchronous mode with fixed 30 FPS simulation
+//! - Dual camera display (RGB base + semantic overlay)
+//! - Frame counter and timing statistics
+//! - Simple waypoint following (teleport-based)
+//! - Pause/resume capability
 //!
-//! Run with:
+//! # Controls
+//! - **Space**: Pause/unpause simulation
+//! - **R**: Reset vehicle to spawn point
+//! - **H**: Toggle help overlay
+//! - **ESC/Q**: Quit
+//!
+//! # Usage
 //! ```bash
-//! cargo run --example synchronous_mode
+//! cargo run --example synchronous_mode_gui --profile dev-release
 //! ```
 
+use anyhow::Result;
 use carla::{
-    client::{ActorBase, Client, Sensor, Vehicle},
-    geom::{Location, Rotation},
-    rpc::AttachmentType,
-    sensor::data::Image,
+    client::{ActorBase, Client, Sensor, Vehicle, World as CarlaWorld},
+    geom::Location,
+    rpc::{EpisodeSettings, WeatherParameters},
+    sensor::data::Image as CarlaImage,
 };
+use macroquad::prelude::*;
 use std::{
     sync::{Arc, Mutex},
-    thread,
     time::Duration,
 };
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== CARLA Synchronous Mode Example ===\n");
+const WINDOW_WIDTH: u32 = 800;
+const WINDOW_HEIGHT: u32 = 600;
+const CAMERA_WIDTH: u32 = 800;
+const CAMERA_HEIGHT: u32 = 600;
+const FIXED_DELTA_SECONDS: f32 = 1.0 / 30.0; // 30 FPS simulation
+
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "CARLA - Synchronous Mode Demo".to_owned(),
+        window_width: WINDOW_WIDTH as i32,
+        window_height: WINDOW_HEIGHT as i32,
+        window_resizable: false,
+        ..Default::default()
+    }
+}
+
+struct CameraManager {
+    rgb_sensor: Sensor,
+    semantic_sensor: Sensor,
+    texture: Texture2D,
+    latest_rgb: Arc<Mutex<Option<CarlaImage>>>,
+    latest_semantic: Arc<Mutex<Option<CarlaImage>>>,
+}
+
+impl CameraManager {
+    fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
+        let blueprint_library = world.blueprint_library();
+
+        // Create RGB camera
+        let rgb_bp = blueprint_library
+            .find("sensor.camera.rgb")
+            .ok_or_else(|| anyhow::anyhow!("RGB camera blueprint not found"))?;
+
+        let mut rgb_bp = rgb_bp;
+        let _ = rgb_bp.set_attribute("image_size_x", &CAMERA_WIDTH.to_string());
+        let _ = rgb_bp.set_attribute("image_size_y", &CAMERA_HEIGHT.to_string());
+        let _ = rgb_bp.set_attribute("fov", "110");
+
+        // Create semantic segmentation camera
+        let semantic_bp = blueprint_library
+            .find("sensor.camera.semantic_segmentation")
+            .ok_or_else(|| anyhow::anyhow!("Semantic camera blueprint not found"))?;
+
+        let mut semantic_bp = semantic_bp;
+        let _ = semantic_bp.set_attribute("image_size_x", &CAMERA_WIDTH.to_string());
+        let _ = semantic_bp.set_attribute("image_size_y", &CAMERA_HEIGHT.to_string());
+        let _ = semantic_bp.set_attribute("fov", "110");
+
+        // Camera transform (rear view)
+        let mut camera_transform = carla::geom::Transform {
+            location: Location::new(0.0, 0.0, 0.0),
+            rotation: carla::geom::Rotation::new(0.0, 0.0, 0.0),
+        };
+        camera_transform.location.x = -5.5;
+        camera_transform.location.z = 2.5;
+
+        // Spawn cameras
+        let rgb_camera = world.spawn_actor_attached(
+            &rgb_bp,
+            &camera_transform,
+            vehicle,
+            carla::rpc::AttachmentType::SpringArm,
+        )?;
+
+        let semantic_camera = world.spawn_actor_attached(
+            &semantic_bp,
+            &camera_transform,
+            vehicle,
+            carla::rpc::AttachmentType::SpringArm,
+        )?;
+
+        let rgb_sensor = Sensor::try_from(rgb_camera)
+            .map_err(|_| anyhow::anyhow!("Failed to cast to Sensor"))?;
+        let semantic_sensor = Sensor::try_from(semantic_camera)
+            .map_err(|_| anyhow::anyhow!("Failed to cast to Sensor"))?;
+
+        // Create texture
+        let texture = Texture2D::from_rgba8(
+            CAMERA_WIDTH as u16,
+            CAMERA_HEIGHT as u16,
+            &vec![0u8; (CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize],
+        );
+        texture.set_filter(FilterMode::Linear);
+
+        // Setup listeners
+        let latest_rgb = Arc::new(Mutex::new(None));
+        let latest_rgb_clone = Arc::clone(&latest_rgb);
+
+        let latest_semantic = Arc::new(Mutex::new(None));
+        let latest_semantic_clone = Arc::clone(&latest_semantic);
+
+        rgb_sensor.listen(move |data| {
+            if let Ok(image) = CarlaImage::try_from(data) {
+                if let Ok(mut img) = latest_rgb_clone.lock() {
+                    *img = Some(image);
+                }
+            }
+        });
+
+        semantic_sensor.listen(move |data| {
+            if let Ok(image) = CarlaImage::try_from(data) {
+                if let Ok(mut img) = latest_semantic_clone.lock() {
+                    *img = Some(image);
+                }
+            }
+        });
+
+        Ok(Self {
+            rgb_sensor,
+            semantic_sensor,
+            texture,
+            latest_rgb,
+            latest_semantic,
+        })
+    }
+
+    fn update(&mut self) -> bool {
+        let rgb_opt = self.latest_rgb.lock().ok().and_then(|mut img| img.take());
+        let semantic_opt = self
+            .latest_semantic
+            .lock()
+            .ok()
+            .and_then(|mut img| img.take());
+
+        if let (Some(rgb), Some(semantic)) = (rgb_opt, semantic_opt) {
+            // Blend RGB with semantic segmentation
+            let rgb_data = rgb.as_slice();
+            let semantic_data = semantic.as_slice();
+            let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+
+            for i in 0..(CAMERA_WIDTH * CAMERA_HEIGHT) as usize {
+                let rgb_color = &rgb_data[i];
+                let sem_color = &semantic_data[i];
+
+                // Blend: 70% RGB + 30% semantic
+                let r = ((rgb_color.r as f32 * 0.7) + (sem_color.r as f32 * 0.3)) as u8;
+                let g = ((rgb_color.g as f32 * 0.7) + (sem_color.g as f32 * 0.3)) as u8;
+                let b = ((rgb_color.b as f32 * 0.7) + (sem_color.b as f32 * 0.3)) as u8;
+
+                rgba_data.push(r);
+                rgba_data.push(g);
+                rgba_data.push(b);
+                rgba_data.push(255);
+            }
+
+            self.texture =
+                Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+            self.texture.set_filter(FilterMode::Linear);
+            return true;
+        }
+
+        false
+    }
+
+    fn render(&self) {
+        draw_texture_ex(
+            &self.texture,
+            0.0,
+            0.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32)),
+                ..Default::default()
+            },
+        );
+    }
+}
+
+struct Hud {
+    show: bool,
+}
+
+impl Hud {
+    fn new() -> Self {
+        Self { show: true }
+    }
+
+    fn toggle(&mut self) {
+        self.show = !self.show;
+    }
+
+    fn render(
+        &self,
+        frame_count: u64,
+        simulated_fps: f32,
+        vehicle: &Vehicle,
+        paused: bool,
+        waypoint_info: &str,
+    ) {
+        if !self.show {
+            return;
+        }
+
+        let y_offset = 20.0;
+        let line_height = 20.0;
+        let mut y = y_offset;
+
+        // Get vehicle data
+        let transform = vehicle.transform();
+        let location = transform.location;
+        let velocity = vehicle.velocity();
+        let speed_ms = velocity.length();
+        let speed_kmh = speed_ms * 3.6;
+
+        let real_fps = get_fps();
+
+        let texts = vec![
+            "CARLA - Synchronous Mode Demo".to_string(),
+            "".to_string(),
+            format!("Frame: {}", frame_count),
+            format!("Real FPS: {:.1}", real_fps),
+            format!("Simulated FPS: {:.1}", simulated_fps),
+            format!("Status: {}", if paused { "PAUSED" } else { "Running" }),
+            "".to_string(),
+            format!("Speed: {:.1} km/h", speed_kmh),
+            format!(
+                "Location: ({:.1}, {:.1}, {:.1})",
+                location.x, location.y, location.z
+            ),
+            format!("Waypoint: {}", waypoint_info),
+            "".to_string(),
+            "Controls:".to_string(),
+            "  Space - Pause/Resume".to_string(),
+            "  R - Reset".to_string(),
+            "  H - Toggle HUD".to_string(),
+            "  ESC/Q - Quit".to_string(),
+        ];
+
+        for text in texts {
+            let text_width = measure_text(&text, None, 20, 1.0).width;
+            draw_rectangle(
+                10.0,
+                y - 15.0,
+                text_width + 10.0,
+                line_height,
+                Color::from_rgba(0, 0, 0, 180),
+            );
+            draw_text(&text, 15.0, y, 20.0, WHITE);
+            y += line_height;
+        }
+    }
+}
+
+struct HelpOverlay {
+    show: bool,
+}
+
+impl HelpOverlay {
+    fn new() -> Self {
+        Self { show: false }
+    }
+
+    fn toggle(&mut self) {
+        self.show = !self.show;
+    }
+
+    fn render(&self) {
+        if !self.show {
+            return;
+        }
+
+        draw_rectangle(
+            0.0,
+            0.0,
+            WINDOW_WIDTH as f32,
+            WINDOW_HEIGHT as f32,
+            Color::from_rgba(0, 0, 0, 200),
+        );
+
+        let center_x = WINDOW_WIDTH as f32 / 2.0;
+        let start_y = 100.0;
+        let line_height = 30.0;
+
+        let help_text = vec![
+            ("SYNCHRONOUS MODE DEMO", 30.0),
+            ("", 20.0),
+            (
+                "This demo shows CARLA's synchronous mode with fixed timestep simulation.",
+                20.0,
+            ),
+            (
+                "The simulation runs at exactly 30 FPS (33.3ms per frame).",
+                20.0,
+            ),
+            ("", 20.0),
+            ("CONTROLS:", 25.0),
+            ("", 20.0),
+            ("Space          Pause/Resume simulation", 20.0),
+            ("R              Reset vehicle to spawn point", 20.0),
+            ("H              Toggle this help overlay", 20.0),
+            ("ESC / Q        Quit application", 20.0),
+            ("", 20.0),
+            ("VISUALIZATION:", 25.0),
+            ("", 20.0),
+            ("• RGB camera view blended with semantic segmentation", 20.0),
+            ("• Frame counter shows simulation frames", 20.0),
+            ("• Real FPS vs Simulated FPS comparison", 20.0),
+            ("• Vehicle follows waypoints along the road", 20.0),
+            ("", 20.0),
+            ("Press H to close this help", 20.0),
+        ];
+
+        let mut y = start_y;
+        for (text, size) in help_text {
+            let text_dims = measure_text(text, None, size as u16, 1.0);
+            let x = center_x - text_dims.width / 2.0;
+            draw_text(text, x, y, size, WHITE);
+            y += line_height;
+        }
+    }
+}
+
+#[macroquad::main(window_conf)]
+async fn main() -> Result<()> {
+    println!("Synchronous Mode GUI - Connecting to CARLA...");
 
     // Connect to CARLA
-    println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, 0);
     let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+
+    println!("Connected! Enabling synchronous mode...");
 
     // Enable synchronous mode
-    println!("Configuring synchronous mode...");
-    let mut settings = world.settings();
-    settings.synchronous_mode = true;
-    settings.fixed_delta_seconds = Some(0.05); // 20 FPS
-    world.apply_settings(&settings, Duration::from_secs(5));
-    println!("✓ Synchronous mode enabled (fixed_delta: 0.05s, 20 FPS)\n");
+    let settings = EpisodeSettings {
+        synchronous_mode: true,
+        fixed_delta_seconds: Some(FIXED_DELTA_SECONDS as f64),
+        ..Default::default()
+    };
+    world.apply_settings(&settings, Duration::from_secs(2));
 
-    // Spawn a vehicle with autopilot
-    println!("Spawning vehicle with autopilot...");
+    println!("Synchronous mode enabled (30 FPS fixed timestep)");
+
+    // Set weather (clear noon)
+    let weather = WeatherParameters {
+        cloudiness: 0.0,
+        precipitation: 0.0,
+        precipitation_deposits: 0.0,
+        wind_intensity: 0.0,
+        sun_azimuth_angle: 0.0,
+        sun_altitude_angle: 70.0,
+        fog_density: 0.0,
+        fog_distance: 0.0,
+        wetness: 0.0,
+        fog_falloff: 0.0,
+        scattering_intensity: 0.0,
+        mie_scattering_scale: 0.0,
+        rayleigh_scattering_scale: 0.0331,
+        dust_storm: 0.0,
+    };
+    world.set_weather(&weather);
+
+    // Get spawn points
+    let map = world.map();
+    let spawn_points = map.recommended_spawn_points();
+
+    if spawn_points.is_empty() {
+        return Err(anyhow::anyhow!("No spawn points available"));
+    }
+
+    // Spawn vehicle
     let blueprint_library = world.blueprint_library();
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
-        .ok_or("Tesla Model 3 blueprint not found")?;
+        .filter("vehicle.*")
+        .iter()
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
 
-    let spawn_points = world.map().recommended_spawn_points();
-    let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
+    let spawn_point = &spawn_points.as_slice()[0];
+    let vehicle_actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
+    let vehicle = Vehicle::try_from(vehicle_actor)
+        .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
 
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
-    vehicle.set_autopilot(true);
-    println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());
+    // Disable physics for smooth waypoint following
+    vehicle.set_simulate_physics(false);
 
-    // Spawn RGB camera
-    println!("Spawning sensors...");
-    let mut camera_rgb_bp = blueprint_library
-        .find("sensor.camera.rgb")
-        .ok_or("RGB camera blueprint not found")?;
-    if !camera_rgb_bp.set_attribute("image_size_x", "800") {
-        return Err("Failed to set RGB camera image_size_x".into());
-    }
-    if !camera_rgb_bp.set_attribute("image_size_y", "600") {
-        return Err("Failed to set RGB camera image_size_y".into());
-    }
-    if !camera_rgb_bp.set_attribute("fov", "90.0") {
-        return Err("Failed to set RGB camera fov".into());
-    }
+    println!("Vehicle spawned: {}", vehicle.type_id());
 
-    let camera_transform = carla::geom::Transform {
-        location: Location::new(-5.0, 0.0, 3.0), // Behind and above vehicle
-        rotation: Rotation::new(-0.15_f32.to_degrees(), 0.0, 0.0), // Slight downward angle
-    };
+    // Create camera
+    let mut camera = CameraManager::new(&mut world, &vehicle)?;
+    println!("Cameras attached (RGB + Semantic)");
 
-    let camera_rgb_actor = world.spawn_actor_opt(
-        &camera_rgb_bp,
-        &camera_transform,
-        Some(&vehicle),
-        AttachmentType::SpringArm,
-    )?;
-    let camera_rgb =
-        Sensor::try_from(camera_rgb_actor).map_err(|_| "Failed to convert to sensor")?;
+    // Create UI
+    let mut hud = Hud::new();
+    let mut help = HelpOverlay::new();
 
-    // Spawn semantic segmentation camera
-    let mut camera_seg_bp = blueprint_library
-        .find("sensor.camera.semantic_segmentation")
-        .ok_or("Semantic camera blueprint not found")?;
-    if !camera_seg_bp.set_attribute("image_size_x", "800") {
-        return Err("Failed to set semantic camera image_size_x".into());
-    }
-    if !camera_seg_bp.set_attribute("image_size_y", "600") {
-        return Err("Failed to set semantic camera image_size_y".into());
-    }
-    if !camera_seg_bp.set_attribute("fov", "90.0") {
-        return Err("Failed to set semantic camera fov".into());
-    }
+    // Simulation state
+    let mut frame_count: u64 = 0;
+    let mut paused = false;
+    let mut simulated_fps = 30.0;
+    let mut last_frame_time = get_time();
 
-    let camera_seg_actor = world.spawn_actor_opt(
-        &camera_seg_bp,
-        &camera_transform,
-        Some(&vehicle),
-        AttachmentType::SpringArm,
-    )?;
-    let camera_seg =
-        Sensor::try_from(camera_seg_actor).map_err(|_| "Failed to convert to sensor")?;
+    // Get initial waypoint
+    let initial_transform = vehicle.transform();
+    let mut current_waypoint = map
+        .waypoint_at(&initial_transform.location)
+        .ok_or_else(|| anyhow::anyhow!("No waypoint at spawn location"))?;
 
-    println!("✓ RGB camera spawned (ID: {})", camera_rgb.id());
-    println!("✓ Semantic camera spawned (ID: {})\n", camera_seg.id());
+    println!("Starting main loop...");
+    println!("Press H for help");
 
-    // Setup sensor data collection
-    let rgb_frame_count = Arc::new(Mutex::new(0));
-    let seg_frame_count = Arc::new(Mutex::new(0));
+    // Tick once to start
+    world.tick();
 
-    let rgb_count_clone = Arc::clone(&rgb_frame_count);
-    camera_rgb.listen(move |sensor_data| {
-        if let Ok(_image) = Image::try_from(sensor_data) {
-            let mut count = rgb_count_clone.lock().unwrap();
-            *count += 1;
-        }
-    });
-
-    let seg_count_clone = Arc::clone(&seg_frame_count);
-    camera_seg.listen(move |sensor_data| {
-        if let Ok(_image) = Image::try_from(sensor_data) {
-            let mut count = seg_count_clone.lock().unwrap();
-            *count += 1;
-        }
-    });
-
-    println!("✓ Sensors listening\n");
-
-    // Run simulation for 100 ticks (5 seconds at 20 FPS)
-    println!("Running synchronized simulation...");
-    println!("┌──────┬────────────────────────────┬────────────┬──────────────┐");
-    println!("│ Tick │      Vehicle Location      │ Speed      │ Sensor Data  │");
-    println!("├──────┼────────────────────────────┼────────────┼──────────────┤");
-
-    for tick in 0..100 {
-        // Tick the world (advance simulation by one frame)
-        world.tick();
-
-        // Display status every 10 ticks
-        if tick % 10 == 0 {
-            let location = vehicle.transform().location;
-            let velocity = vehicle.velocity();
-            let speed = (velocity.x.powi(2) + velocity.y.powi(2) + velocity.z.powi(2)).sqrt();
-            let rgb_frames = *rgb_frame_count.lock().unwrap();
-            let seg_frames = *seg_frame_count.lock().unwrap();
-
-            println!(
-                "│ {:>4} │ ({:>7.1}, {:>7.1}, {:>5.1}) │ {:>5.1} km/h │ RGB:{:>3} SEG:{:>3} │",
-                tick,
-                location.x,
-                location.y,
-                location.z,
-                speed * 3.6,
-                rgb_frames,
-                seg_frames
-            );
+    loop {
+        // Handle input
+        if is_key_pressed(KeyCode::Escape) || is_key_pressed(KeyCode::Q) {
+            break;
         }
 
-        // Small sleep to prevent busy-waiting
-        thread::sleep(Duration::from_millis(10));
+        if is_key_pressed(KeyCode::H) {
+            help.toggle();
+        }
+
+        if is_key_pressed(KeyCode::F1) {
+            hud.toggle();
+        }
+
+        if is_key_pressed(KeyCode::Space) {
+            paused = !paused;
+            println!("Simulation {}", if paused { "PAUSED" } else { "RESUMED" });
+        }
+
+        if is_key_pressed(KeyCode::R) {
+            println!("Resetting vehicle...");
+            vehicle.set_transform(spawn_point);
+            current_waypoint = map
+                .waypoint_at(&spawn_point.location)
+                .ok_or_else(|| anyhow::anyhow!("No waypoint at spawn location"))?;
+        }
+
+        // Simulation tick
+        if !paused {
+            // Follow waypoints
+            let next_waypoints = current_waypoint.next(1.5);
+            if !next_waypoints.is_empty() {
+                // Pick random next waypoint
+                let idx = (rand::gen_range(0, next_waypoints.len() as i32)) as usize;
+                current_waypoint = next_waypoints.get(idx).unwrap().clone();
+
+                // Teleport vehicle to waypoint
+                vehicle.set_transform(&current_waypoint.transform());
+            }
+
+            // Tick world
+            world.tick();
+            frame_count += 1;
+
+            // Calculate simulated FPS
+            let current_time = get_time();
+            let delta = current_time - last_frame_time;
+            if delta > 0.0 {
+                simulated_fps = 1.0 / delta as f32;
+            }
+            last_frame_time = current_time;
+        }
+
+        // Update camera
+        camera.update();
+
+        // Prepare waypoint info
+        let waypoint_info = format!(
+            "Road {}, Lane {}",
+            current_waypoint.road_id(),
+            current_waypoint.lane_id()
+        );
+
+        // Render
+        clear_background(BLACK);
+        camera.render();
+        hud.render(frame_count, simulated_fps, &vehicle, paused, &waypoint_info);
+        help.render();
+
+        next_frame().await;
     }
 
-    println!("└──────┴────────────────────────────┴────────────┴──────────────┘");
-
-    // Final statistics
-    let final_rgb_frames = *rgb_frame_count.lock().unwrap();
-    let final_seg_frames = *seg_frame_count.lock().unwrap();
-
-    println!("\n=== Synchronous Mode Statistics ===");
-    println!("Total ticks: 100");
-    println!("Fixed delta: 0.05s (20 FPS)");
-    println!("Simulated time: 5.0 seconds");
-    println!("RGB camera frames: {}", final_rgb_frames);
-    println!("Semantic camera frames: {}", final_seg_frames);
-    println!(
-        "Frame synchronization: {}",
-        if final_rgb_frames == final_seg_frames {
-            "✓ Perfect"
-        } else {
-            "⚠ Drift detected"
-        }
-    );
+    println!("Cleaning up...");
 
     // Restore asynchronous mode
-    println!("\nRestoring asynchronous mode...");
-    camera_rgb.stop();
-    camera_seg.stop();
+    let settings = EpisodeSettings {
+        synchronous_mode: false,
+        fixed_delta_seconds: None,
+        ..Default::default()
+    };
+    world.apply_settings(&settings, Duration::from_secs(2));
 
-    settings.synchronous_mode = false;
-    settings.fixed_delta_seconds = None;
-    world.apply_settings(&settings, Duration::from_secs(5));
-    println!("✓ Asynchronous mode restored");
-
-    // Cleanup
-    println!("\nCleaning up...");
-    camera_rgb.destroy();
-    camera_seg.destroy();
     vehicle.destroy();
-    println!("✓ All actors destroyed");
+    camera.rgb_sensor.destroy();
+    camera.semantic_sensor.destroy();
 
-    println!("\n=== Synchronous Mode Demo Complete ===");
-    println!("\nKey Features Demonstrated:");
-    println!("  • Synchronous mode configuration");
-    println!("  • Fixed timestep simulation (deterministic)");
-    println!("  • Multiple synchronized sensors");
-    println!("  • Tick-based simulation control");
-    println!("  • Frame synchronization verification");
-    println!("  • Mode restoration and cleanup");
+    println!("Done!");
 
     Ok(())
 }

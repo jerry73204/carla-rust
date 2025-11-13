@@ -1,145 +1,473 @@
-//! Automatic Control Example
+//! Automatic Control GUI - BasicAgent Navigation Demo
 //!
-//! This example demonstrates autopilot control and vehicle monitoring.
-//! A vehicle drives autonomously while displaying real-time telemetry.
+//! Demonstrates autonomous vehicle control using BasicAgent with a real-time GUI.
+//! The agent navigates to random destinations while avoiding obstacles and following traffic rules.
 //!
-//! Prerequisites:
-//! - CARLA simulator must be running
+//! # Features
+//! - BasicAgent autonomous navigation
+//! - Real-time camera feed from vehicle
+//! - HUD showing speed, location, destination distance
+//! - Agent status display
+//! - Manual override capability
+//! - Automatic respawn with new destinations
 //!
-//! Run with:
+//! # Controls
+//! - **P**: Toggle agent on/off (manual override - autopilot mode)
+//! - **R**: Respawn at new location with new destination
+//! - **H**: Toggle help overlay
+//! - **ESC/Q**: Quit
+//!
+//! # Usage
 //! ```bash
-//! cargo run --example automatic_control
+//! cargo run --example automatic_control_gui --profile dev-release
 //! ```
 
+use anyhow::Result;
 use carla::{
-    client::{ActorBase, Client, Vehicle},
-    rpc::VehicleControl,
+    agents::navigation::{BasicAgent, BasicAgentConfig},
+    client::{ActorBase, Client, Sensor, Vehicle, World as CarlaWorld},
+    geom::Location,
+    sensor::data::Image as CarlaImage,
 };
-use std::{thread, time::Duration};
+use macroquad::prelude::*;
+use std::sync::{Arc, Mutex};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== CARLA Automatic Control Example ===\n");
+const WINDOW_WIDTH: u32 = 1280;
+const WINDOW_HEIGHT: u32 = 720;
+const CAMERA_WIDTH: u32 = 1280;
+const CAMERA_HEIGHT: u32 = 720;
 
-    // Connect to CARLA
-    println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "CARLA - Automatic Control (BasicAgent)".to_owned(),
+        window_width: WINDOW_WIDTH as i32,
+        window_height: WINDOW_HEIGHT as i32,
+        window_resizable: false,
+        ..Default::default()
+    }
+}
 
-    // Spawn a vehicle
-    println!("Spawning vehicle...");
-    let blueprint_library = world.blueprint_library();
-    let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
-        .ok_or("Tesla Model 3 blueprint not found")?;
+struct CameraManager {
+    sensor: Sensor,
+    texture: Texture2D,
+    latest_image: Arc<Mutex<Option<CarlaImage>>>,
+}
 
-    let spawn_points = world.map().recommended_spawn_points();
-    let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
+impl CameraManager {
+    fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
+        // Create RGB camera
+        let blueprint_library = world.blueprint_library();
+        let camera_bp = blueprint_library
+            .find("sensor.camera.rgb")
+            .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
-    let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
-    let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
+        // Set camera attributes
+        let mut camera_bp = camera_bp;
+        let _ = camera_bp.set_attribute("image_size_x", &CAMERA_WIDTH.to_string());
+        let _ = camera_bp.set_attribute("image_size_y", &CAMERA_HEIGHT.to_string());
+        let _ = camera_bp.set_attribute("fov", "110");
 
-    println!("✓ Vehicle spawned (ID: {})", vehicle.id());
-    println!("✓ Type: {}\n", vehicle.type_id());
+        // Spawn camera behind vehicle
+        let mut camera_transform = carla::geom::Transform {
+            location: Location::new(0.0, 0.0, 0.0),
+            rotation: carla::geom::Rotation::new(0.0, 0.0, 0.0),
+        };
+        camera_transform.location.x = -5.5;
+        camera_transform.location.z = 2.5;
 
-    // Enable autopilot
-    println!("Enabling autopilot...");
-    vehicle.set_autopilot(true);
-    println!("✓ Autopilot enabled\n");
+        let camera = world.spawn_actor_attached(
+            &camera_bp,
+            &camera_transform,
+            vehicle,
+            carla::rpc::AttachmentType::SpringArm,
+        )?;
 
-    // Monitor vehicle for 60 seconds
-    println!("Monitoring vehicle telemetry (60 seconds)...\n");
-    println!(
-        "┌─────────┬──────────────────────────┬────────────────────────────┬──────────────────┐"
-    );
-    println!(
-        "│  Time   │        Location          │         Velocity           │    Control       │"
-    );
-    println!(
-        "├─────────┼──────────────────────────┼────────────────────────────┼──────────────────┤"
-    );
+        let sensor =
+            Sensor::try_from(camera).map_err(|_| anyhow::anyhow!("Failed to cast to Sensor"))?;
 
-    for i in 0..60 {
-        thread::sleep(Duration::from_secs(1));
+        // Create texture
+        let texture = Texture2D::from_rgba8(
+            CAMERA_WIDTH as u16,
+            CAMERA_HEIGHT as u16,
+            &vec![0u8; (CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize],
+        );
+        texture.set_filter(FilterMode::Linear);
 
-        // Get vehicle state
+        // Setup listener
+        let latest_image = Arc::new(Mutex::new(None));
+        let latest_image_clone = Arc::clone(&latest_image);
+
+        sensor.listen(move |data| {
+            if let Ok(image) = CarlaImage::try_from(data) {
+                if let Ok(mut img) = latest_image_clone.lock() {
+                    *img = Some(image);
+                }
+            }
+        });
+
+        Ok(Self {
+            sensor,
+            texture,
+            latest_image,
+        })
+    }
+
+    fn update(&mut self) -> bool {
+        if let Ok(mut img_opt) = self.latest_image.lock() {
+            if let Some(image) = img_opt.take() {
+                // Convert CARLA Color format to RGBA
+                let raw_data = image.as_slice();
+                let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+
+                for color in raw_data {
+                    rgba_data.push(color.r); // R
+                    rgba_data.push(color.g); // G
+                    rgba_data.push(color.b); // B
+                    rgba_data.push(color.a); // A
+                }
+
+                // Create new texture from RGBA data
+                self.texture =
+                    Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+                self.texture.set_filter(FilterMode::Linear);
+                return true;
+            }
+        }
+        false
+    }
+
+    fn render(&self) {
+        draw_texture_ex(
+            &self.texture,
+            0.0,
+            0.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32)),
+                ..Default::default()
+            },
+        );
+    }
+}
+
+struct Hud {
+    show: bool,
+}
+
+impl Hud {
+    fn new() -> Self {
+        Self { show: true }
+    }
+
+    fn toggle(&mut self) {
+        self.show = !self.show;
+    }
+
+    fn render(
+        &self,
+        vehicle: &Vehicle,
+        agent: &BasicAgent,
+        dest_location: &Location,
+        agent_enabled: bool,
+    ) {
+        if !self.show {
+            return;
+        }
+
+        let y_offset = 20.0;
+        let line_height = 20.0;
+        let mut y = y_offset;
+
+        // Get vehicle data
         let transform = vehicle.transform();
         let location = transform.location;
         let velocity = vehicle.velocity();
-        let speed = (velocity.x.powi(2) + velocity.y.powi(2) + velocity.z.powi(2)).sqrt();
-        let control = vehicle.control();
+        let speed_ms = velocity.length();
+        let speed_kmh = speed_ms * 3.6;
 
-        // Display telemetry every 2 seconds
-        if i % 2 == 0 {
-            println!(
-                "│ {:>5}s  │ ({:>7.1}, {:>7.1}, {:>5.1}) │ Speed: {:>5.1} km/h          │ T:{:>4.2} S:{:>5.2} │",
-                i + 1,
-                location.x,
-                location.y,
-                location.z,
-                speed * 3.6, // m/s to km/h
-                control.throttle,
-                control.steer
+        // Calculate distance to destination
+        let dx = dest_location.x - location.x;
+        let dy = dest_location.y - location.y;
+        let dz = dest_location.z - location.z;
+        let distance = (dx * dx + dy * dy + dz * dz).sqrt();
+
+        // Agent status
+        let agent_status = if agent_enabled {
+            if agent.done() {
+                "Destination Reached"
+            } else {
+                "Navigating"
+            }
+        } else {
+            "Manual (Autopilot)"
+        };
+
+        // Render HUD elements with semi-transparent background
+        let texts = vec![
+            format!("CARLA - Automatic Control (BasicAgent)"),
+            format!(""),
+            format!("Agent Status: {}", agent_status),
+            format!("Speed: {:.1} km/h", speed_kmh),
+            format!(
+                "Location: ({:.1}, {:.1}, {:.1})",
+                location.x, location.y, location.z
+            ),
+            format!(
+                "Destination: ({:.1}, {:.1}, {:.1})",
+                dest_location.x, dest_location.y, dest_location.z
+            ),
+            format!("Distance to Dest: {:.1} m", distance),
+            format!(""),
+            format!("Controls:"),
+            format!("  P - Toggle Agent / Autopilot"),
+            format!("  R - Respawn with new destination"),
+            format!("  H - Toggle this HUD"),
+            format!("  ESC/Q - Quit"),
+        ];
+
+        for text in texts {
+            // Semi-transparent background
+            let text_width = measure_text(&text, None, 20, 1.0).width;
+            draw_rectangle(
+                10.0,
+                y - 15.0,
+                text_width + 10.0,
+                line_height,
+                Color::from_rgba(0, 0, 0, 180),
             );
-        }
 
-        // Print status updates every 10 seconds
-        if i % 10 == 0 && i > 0 {
-            println!("├─────────┼──────────────────────────┼────────────────────────────┼──────────────────┤");
+            // Text
+            draw_text(&text, 15.0, y, 20.0, WHITE);
+            y += line_height;
         }
     }
+}
+
+struct HelpOverlay {
+    show: bool,
+}
+
+impl HelpOverlay {
+    fn new() -> Self {
+        Self { show: false }
+    }
+
+    fn toggle(&mut self) {
+        self.show = !self.show;
+    }
+
+    fn render(&self) {
+        if !self.show {
+            return;
+        }
+
+        // Full screen semi-transparent background
+        draw_rectangle(
+            0.0,
+            0.0,
+            WINDOW_WIDTH as f32,
+            WINDOW_HEIGHT as f32,
+            Color::from_rgba(0, 0, 0, 200),
+        );
+
+        let center_x = WINDOW_WIDTH as f32 / 2.0;
+        let start_y = 100.0;
+        let line_height = 30.0;
+
+        let help_text = vec![
+            ("AUTOMATIC CONTROL - BASICAGENT", 30.0),
+            ("", 20.0),
+            (
+                "The vehicle is controlled by an autonomous agent that navigates",
+                20.0,
+            ),
+            (
+                "to random destinations while avoiding obstacles and following traffic rules.",
+                20.0,
+            ),
+            ("", 20.0),
+            ("CONTROLS:", 25.0),
+            ("", 20.0),
+            (
+                "P              Toggle Agent On/Off (Manual Override with Autopilot)",
+                20.0,
+            ),
+            (
+                "R              Respawn at new location with new destination",
+                20.0,
+            ),
+            ("H              Toggle this help overlay", 20.0),
+            ("ESC / Q        Quit application", 20.0),
+            ("", 20.0),
+            ("AGENT FEATURES:", 25.0),
+            ("", 20.0),
+            ("• Autonomous navigation to destination", 20.0),
+            ("• Obstacle detection and avoidance", 20.0),
+            ("• Traffic light compliance", 20.0),
+            ("• Speed limit following", 20.0),
+            ("• Smooth path following with PID control", 20.0),
+            ("", 20.0),
+            ("Press H to close this help", 20.0),
+        ];
+
+        let mut y = start_y;
+        for (text, size) in help_text {
+            let text_dims = measure_text(text, None, size as u16, 1.0);
+            let x = center_x - text_dims.width / 2.0;
+            draw_text(text, x, y, size, WHITE);
+            y += line_height;
+        }
+    }
+}
+
+#[macroquad::main(window_conf)]
+async fn main() -> Result<()> {
+    println!("Automatic Control GUI - Connecting to CARLA...");
+
+    // Connect to CARLA
+    let client = Client::connect("localhost", 2000, 0);
+    let mut world = client.world();
+
+    println!("Connected! Setting up scene...");
+
+    // Get spawn points
+    let map = world.map();
+    let spawn_points = map.recommended_spawn_points();
+
+    if spawn_points.len() < 2 {
+        return Err(anyhow::anyhow!("Need at least 2 spawn points"));
+    }
+
+    // Spawn vehicle
+    let blueprint_library = world.blueprint_library();
+    let vehicle_bp = blueprint_library
+        .filter("vehicle.*")
+        .iter()
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
+
+    let spawn_point = &spawn_points.as_slice()[0];
+    let vehicle_actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
+    let vehicle = Vehicle::try_from(vehicle_actor)
+        .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
+
+    println!("Vehicle spawned: {}", vehicle.type_id());
+
+    // Create camera
+    let mut camera = CameraManager::new(&mut world, &vehicle)?;
+    println!("Camera attached");
+
+    // Create BasicAgent
+    let config = BasicAgentConfig::default();
+    let mut agent = BasicAgent::new(vehicle.clone(), config, None, None)?;
+
+    // Set initial destination
+    let dest_transform = &spawn_points.as_slice()[1];
+    let dest_isometry = dest_transform.to_na();
+    let mut destination = Location::from_na_translation(&dest_isometry.translation);
 
     println!(
-        "└─────────┴──────────────────────────┴────────────────────────────┴──────────────────┘"
+        "Setting destination to ({:.1}, {:.1}, {:.1})",
+        destination.x, destination.y, destination.z
     );
+    agent.set_destination(destination, None, true)?;
 
-    // Final statistics
-    let final_location = vehicle.transform().location;
-    let final_velocity = vehicle.velocity();
-    let final_speed =
-        (final_velocity.x.powi(2) + final_velocity.y.powi(2) + final_velocity.z.powi(2)).sqrt();
+    // Create UI
+    let mut hud = Hud::new();
+    let mut help = HelpOverlay::new();
+    let mut agent_enabled = true;
 
-    println!("\n=== Session Summary ===");
-    println!("Duration: 60 seconds");
-    println!(
-        "Final location: ({:.1}, {:.1}, {:.1})",
-        final_location.x, final_location.y, final_location.z
-    );
-    println!("Final speed: {:.1} km/h", final_speed * 3.6);
+    println!("Starting main loop...");
+    println!("Press H for help");
 
-    // Test manual control override
-    println!("\nTesting manual control override...");
-    vehicle.set_autopilot(false);
-    println!("✓ Autopilot disabled");
+    loop {
+        // Handle input
+        if is_key_pressed(KeyCode::Escape) || is_key_pressed(KeyCode::Q) {
+            break;
+        }
 
-    let manual_control = VehicleControl {
-        throttle: 0.5,
-        steer: 0.0,
-        brake: 0.0,
-        hand_brake: false,
-        reverse: false,
-        manual_gear_shift: false,
-        gear: 0,
-    };
+        if is_key_pressed(KeyCode::H) {
+            help.toggle();
+        }
 
-    vehicle.apply_control(&manual_control);
-    println!("✓ Applied manual control (throttle: 0.5)");
+        if is_key_pressed(KeyCode::F1) {
+            hud.toggle();
+        }
 
-    thread::sleep(Duration::from_secs(3));
-    println!("✓ Manual control test complete");
+        if is_key_pressed(KeyCode::P) {
+            agent_enabled = !agent_enabled;
+            if agent_enabled {
+                println!("Agent enabled");
+            } else {
+                println!("Agent disabled - switching to autopilot");
+                vehicle.set_autopilot(true);
+            }
+        }
 
-    // Cleanup
-    println!("\nCleaning up...");
+        if is_key_pressed(KeyCode::R) {
+            // Respawn at new location
+            println!("Respawning...");
+            let new_spawn_idx = (rand::gen_range(0, spawn_points.len())) as usize;
+            let new_dest_idx = (rand::gen_range(0, spawn_points.len())) as usize;
+
+            let new_spawn = &spawn_points.as_slice()[new_spawn_idx];
+            vehicle.set_transform(new_spawn);
+
+            let dest_transform = &spawn_points.as_slice()[new_dest_idx];
+            let dest_isometry = dest_transform.to_na();
+            destination = Location::from_na_translation(&dest_isometry.translation);
+
+            println!(
+                "New destination: ({:.1}, {:.1}, {:.1})",
+                destination.x, destination.y, destination.z
+            );
+
+            // Reset agent
+            let config = BasicAgentConfig::default();
+            agent = BasicAgent::new(vehicle.clone(), config, None, None)?;
+            agent.set_destination(destination, None, true)?;
+            agent_enabled = true;
+        }
+
+        // Update agent
+        if agent_enabled {
+            if agent.done() {
+                println!("Destination reached! Respawning...");
+                // Auto-respawn with new destination
+                let new_dest_idx = (rand::gen_range(0, spawn_points.len())) as usize;
+                let dest_transform = &spawn_points.as_slice()[new_dest_idx];
+                let dest_isometry = dest_transform.to_na();
+                destination = Location::from_na_translation(&dest_isometry.translation);
+
+                println!(
+                    "New destination: ({:.1}, {:.1}, {:.1})",
+                    destination.x, destination.y, destination.z
+                );
+
+                agent.set_destination(destination, None, true)?;
+            } else {
+                // Get control from agent
+                let control = agent.run_step()?;
+                vehicle.apply_control(&control);
+            }
+        }
+
+        // Update camera
+        camera.update();
+
+        // Render
+        clear_background(BLACK);
+        camera.render();
+        hud.render(&vehicle, &agent, &destination, agent_enabled);
+        help.render();
+
+        next_frame().await;
+    }
+
+    println!("Cleaning up...");
     vehicle.destroy();
-    println!("✓ Vehicle destroyed");
-
-    println!("\n=== Automatic Control Demo Complete ===");
-    println!("\nKey Features Demonstrated:");
-    println!("  • Autopilot control (vehicle.set_autopilot)");
-    println!("  • Real-time telemetry monitoring");
-    println!("  • Vehicle state queries (location, velocity, control)");
-    println!("  • Manual control override");
-    println!("  • Actor cleanup");
+    camera.sensor.destroy();
+    println!("Done!");
 
     Ok(())
 }
