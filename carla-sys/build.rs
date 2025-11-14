@@ -147,6 +147,9 @@ fn main() -> Result<()> {
 
         builder.flag_if_supported("-std=c++14");
 
+        // Suppress warnings from external libraries (msgpack)
+        builder.flag_if_supported("-Wno-class-memaccess");
+
         // Also define for the final compilation
         if matches!(version, CarlaVersion::V0_9_16) {
             builder.define("CARLA_VERSION_0916", None);

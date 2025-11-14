@@ -32,8 +32,14 @@ public:
     // Convert to image for visualization (blue for positive, red for negative)
     std::vector<FfiColor> ToImage() const {
         auto img = inner_->ToImage();
-        // Reinterpret Color as FfiColor (same memory layout)
-        return reinterpret_cast<std::vector<FfiColor>&>(img);
+        // Convert Color to FfiColor (same memory layout)
+        // Use move + reserve to avoid reinterpret_cast strict-aliasing issues
+        std::vector<FfiColor> result;
+        result.reserve(img.size());
+        for (auto& color : img) {
+            result.push_back(*reinterpret_cast<FfiColor*>(&color));
+        }
+        return result;
     }
 
 private:

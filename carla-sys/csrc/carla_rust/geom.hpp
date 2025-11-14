@@ -24,6 +24,8 @@ public:
     float y;
     float z;
 
+    FfiLocation() : x(0.0f), y(0.0f), z(0.0f) {}
+
     FfiLocation(Location&& base) { *this = std::move(reinterpret_cast<FfiLocation&&>(base)); }
 
     const Location& as_native() const { return reinterpret_cast<const Location&>(*this); }
@@ -45,6 +47,8 @@ public:
     float pitch;
     float yaw;
     float roll;
+
+    FfiRotation() : pitch(0.0f), yaw(0.0f), roll(0.0f) {}
 
     FfiRotation(Rotation&& base) { *this = std::move(reinterpret_cast<FfiRotation&&>(base)); }
 
@@ -81,15 +85,20 @@ public:
     FfiLocation location;
     FfiRotation rotation;
 
+    FfiTransform() : location(), rotation() {}
+
     FfiTransform(Transform&& base)
         : location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),
           rotation(reinterpret_cast<FfiRotation&&>(std::move(base.rotation)))
 
     {}
 
-    FfiTransform(const Transform& base)
-        : location(reinterpret_cast<const FfiLocation&>(base.location)),
-          rotation(reinterpret_cast<const FfiRotation&>(base.rotation)) {}
+    FfiTransform(const Transform& base) {
+        // Use memcpy to avoid strict-aliasing warnings
+        // This is safe because we've verified layout compatibility via static_assert
+        std::memcpy(&location, &base.location, sizeof(FfiLocation));
+        std::memcpy(&rotation, &base.rotation, sizeof(FfiRotation));
+    }
 
     const Transform& as_native() const { return reinterpret_cast<const Transform&>(*this); }
 };
@@ -121,6 +130,8 @@ public:
     float x;
     float y;
     float z;
+
+    FfiVector3D() : x(0.0f), y(0.0f), z(0.0f) {}
 
     FfiVector3D(Vector3D&& base) { *this = std::move(reinterpret_cast<FfiVector3D&&>(base)); }
 
@@ -211,14 +222,15 @@ public:
     }
 
     FfiBoundingBox(const BoundingBox& base)
-        : location(reinterpret_cast<const FfiLocation&>(base.location)),
-          extent(reinterpret_cast<const FfiVector3D&>(base.extent)),
-          rotation(reinterpret_cast<const FfiRotation&>(base.rotation))
 #ifdef CARLA_VERSION_0916
-          ,
-          actor_id(base.actor_id)
+        : actor_id(base.actor_id)
 #endif
     {
+        // Use memcpy to avoid strict-aliasing warnings
+        // This is safe because we've verified layout compatibility via static_assert
+        std::memcpy(&location, &base.location, sizeof(FfiLocation));
+        std::memcpy(&extent, &base.extent, sizeof(FfiVector3D));
+        std::memcpy(&rotation, &base.rotation, sizeof(FfiRotation));
     }
 
     bool Contains(const FfiLocation& in_world_point,

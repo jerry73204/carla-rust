@@ -68,8 +68,12 @@ public:
 
     float drag_coefficient() const { return inner_.drag_coefficient; }
 
-    const FfiLocation& center_of_mass() const {
-        return reinterpret_cast<const FfiLocation&>(inner_.center_of_mass);
+    FfiLocation center_of_mass() const {
+        // Safe conversion: FfiLocation and Location have identical memory layout (verified by
+        // static_assert)
+        FfiLocation result;
+        std::memcpy(&result, &inner_.center_of_mass, sizeof(FfiLocation));
+        return result;
     }
 
     const std::vector<Vector2D>& steering_curve() const { return inner_.steering_curve; }

@@ -48,9 +48,21 @@ public:
 
     // Getters for Rust access - return values directly
     std::unique_ptr<std::string> bone_name() { return std::make_unique<std::string>(bone_name_); }
-    FfiTransform world() { return *reinterpret_cast<const FfiTransform*>(&world_); }
-    FfiTransform component() { return *reinterpret_cast<const FfiTransform*>(&component_); }
-    FfiTransform relative_transform() { return *reinterpret_cast<const FfiTransform*>(&relative_); }
+    FfiTransform world() {
+        FfiTransform result;
+        std::memcpy(&result, &world_, sizeof(FfiTransform));
+        return result;
+    }
+    FfiTransform component() {
+        FfiTransform result;
+        std::memcpy(&result, &component_, sizeof(FfiTransform));
+        return result;
+    }
+    FfiTransform relative_transform() {
+        FfiTransform result;
+        std::memcpy(&result, &relative_, sizeof(FfiTransform));
+        return result;
+    }
 
 private:
     std::string bone_name_;
