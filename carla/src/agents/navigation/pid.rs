@@ -196,9 +196,33 @@ impl PIDLateralController {
         let waypoint_vec_x = waypoint_x - vehicle_x;
         let waypoint_vec_y = waypoint_y - vehicle_y;
 
-        // Compute cross-track error (perpendicular distance)
-        // Using cross product to get signed distance
-        let error = forward_x * waypoint_vec_y - forward_y * waypoint_vec_x;
+        // Compute angle error (matches Python implementation)
+        // Python uses: _dot = math.acos(np.clip(np.dot(w_vec, v_vec) / (wv_linalg), -1.0, 1.0))
+        let waypoint_vec_len =
+            (waypoint_vec_x * waypoint_vec_x + waypoint_vec_y * waypoint_vec_y).sqrt();
+        let forward_vec_len = (forward_x * forward_x + forward_y * forward_y).sqrt();
+
+        let wv_linalg = waypoint_vec_len * forward_vec_len;
+        let error = if wv_linalg < 1e-6 {
+            // If vectors are too small, no steering needed
+            0.0
+        } else {
+            // Compute dot product and normalize
+            let dot_product = waypoint_vec_x * forward_x + waypoint_vec_y * forward_y;
+            let normalized_dot = (dot_product / wv_linalg).clamp(-1.0, 1.0);
+
+            // Compute angle in radians
+            let mut angle = normalized_dot.acos();
+
+            // Use cross product to determine sign (left vs right)
+            // cross = v_vec × w_vec, check z component
+            let cross_z = forward_x * waypoint_vec_y - forward_y * waypoint_vec_x;
+            if cross_z < 0.0 {
+                angle *= -1.0;
+            }
+
+            angle
+        };
 
         // Add error to buffer
         self.error_buffer.push_back(error);

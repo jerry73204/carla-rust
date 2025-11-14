@@ -297,6 +297,117 @@ impl AgentCore {
 
         let vehicle_list = self.world.actors().filter("*vehicle*");
 
+        let ego_transform = self.vehicle.transform();
+        let ego_location = ego_transform.location;
+        let ego_waypoint = self.map.waypoint_at(&ego_location);
+
+        if ego_waypoint.is_none() {
+            // Can't determine lane, fall back to simple distance check
+            return self.simple_vehicle_obstacle_detected(max_distance, &vehicle_list);
+        }
+
+        let ego_waypoint = ego_waypoint.unwrap();
+
+        // Get the next waypoint from the plan (look ahead 3 steps)
+        let next_waypoint = self
+            .local_planner
+            .get_incoming_waypoint_and_direction(3)
+            .map(|(wp, _)| wp);
+
+        // Get ego vehicle's front transform (add bounding box extent)
+        let ego_extent = 2.5; // Approximate vehicle length in meters
+        let ego_forward = ego_transform.rotation.forward_vector();
+        let ego_front_location = Location {
+            x: ego_location.x + ego_extent * ego_forward.x,
+            y: ego_location.y + ego_extent * ego_forward.y,
+            z: ego_location.z,
+        };
+
+        for actor in vehicle_list.iter() {
+            // Skip self
+            if actor.id() == self.vehicle.id() {
+                continue;
+            }
+
+            let target_transform = actor.transform();
+            let target_location = target_transform.location;
+
+            // Check max distance first
+            let dx = target_location.x - ego_location.x;
+            let dy = target_location.y - ego_location.y;
+            let distance = (dx * dx + dy * dy).sqrt();
+
+            if distance > max_distance {
+                continue;
+            }
+
+            // Get target waypoint
+            let target_waypoint = self.map.waypoint_at(&target_location);
+            if target_waypoint.is_none() {
+                continue;
+            }
+            let target_waypoint = target_waypoint.unwrap();
+
+            // Check if target is in same lane or in next waypoint's lane
+            let mut in_same_lane = target_waypoint.road_id() == ego_waypoint.road_id()
+                && target_waypoint.lane_id() == ego_waypoint.lane_id();
+
+            if !in_same_lane {
+                if let Some(ref next_wp) = next_waypoint {
+                    in_same_lane = target_waypoint.road_id() == next_wp.road_id()
+                        && target_waypoint.lane_id() == next_wp.lane_id();
+                }
+            }
+
+            if !in_same_lane {
+                continue;
+            }
+
+            // Get target vehicle's rear position
+            let target_extent = 2.5; // Approximate vehicle length
+            let target_forward = target_transform.rotation.forward_vector();
+            let target_rear_location = Location {
+                x: target_location.x - target_extent * target_forward.x,
+                y: target_location.y - target_extent * target_forward.y,
+                z: target_location.z,
+            };
+
+            // Check if target rear is within angular range from ego front (0-90 degrees)
+            // This ensures the vehicle is ahead and roughly aligned
+            let rear_dx = target_rear_location.x - ego_front_location.x;
+            let rear_dy = target_rear_location.y - ego_front_location.y;
+            let rear_distance = (rear_dx * rear_dx + rear_dy * rear_dy).sqrt();
+
+            if rear_distance > max_distance {
+                continue;
+            }
+
+            // Check angle: dot product with forward vector
+            let rear_dot = rear_dx * ego_forward.x + rear_dy * ego_forward.y;
+            let rear_angle = (rear_dot / rear_distance).acos().to_degrees();
+
+            if rear_angle <= 90.0 && rear_dot > 0.0 {
+                return Ok(ObstacleDetectionResult {
+                    obstacle_was_found: true,
+                    obstacle_id: Some(actor.id()),
+                    distance,
+                });
+            }
+        }
+
+        Ok(ObstacleDetectionResult {
+            obstacle_was_found: false,
+            obstacle_id: None,
+            distance: -1.0,
+        })
+    }
+
+    /// Simple vehicle obstacle detection without lane checking (fallback method)
+    fn simple_vehicle_obstacle_detected(
+        &self,
+        max_distance: f32,
+        vehicle_list: &crate::client::ActorList,
+    ) -> Result<ObstacleDetectionResult> {
         let vehicle_transform = self.vehicle.transform();
         let vehicle_location = vehicle_transform.location;
         let vehicle_forward = vehicle_transform.rotation.forward_vector();
@@ -318,14 +429,17 @@ impl AgentCore {
                 continue;
             }
 
-            // Check if in front (dot product > 0)
+            // Check if in front (dot product > 0 and within 60 degrees)
             let dot = dx * vehicle_forward.x + dy * vehicle_forward.y;
             if dot > 0.0 {
-                return Ok(ObstacleDetectionResult {
-                    obstacle_was_found: true,
-                    obstacle_id: Some(actor.id()),
-                    distance,
-                });
+                let angle = (dot / distance).acos().to_degrees();
+                if angle <= 60.0 {
+                    return Ok(ObstacleDetectionResult {
+                        obstacle_was_found: true,
+                        obstacle_id: Some(actor.id()),
+                        distance,
+                    });
+                }
             }
         }
 

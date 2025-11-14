@@ -2,6 +2,7 @@
 
 use super::{controller::VehiclePIDController, pid::PIDParams, types::RoadOption};
 use crate::{
+    agents::tools::get_speed,
     client::{ActorBase, Vehicle, Waypoint},
     rpc::VehicleControl,
 };
@@ -63,6 +64,8 @@ pub struct LocalPlanner {
     target_speed: f32,
     sampling_radius: f32,
     follow_speed_limits: bool,
+    base_min_distance: f32,
+    distance_ratio: f32,
 }
 
 impl LocalPlanner {
@@ -85,6 +88,8 @@ impl LocalPlanner {
             target_speed: config.target_speed,
             sampling_radius: config.sampling_radius,
             follow_speed_limits: false,
+            base_min_distance: 3.0,
+            distance_ratio: 0.5,
         }
     }
 
@@ -147,6 +152,37 @@ impl LocalPlanner {
 
     /// Executes one planning step and returns vehicle control.
     pub fn run_step(&mut self, debug: bool) -> Result<VehicleControl> {
+        // Purge waypoints queue of obsolete waypoints (passed waypoints)
+        let vehicle_location = self.vehicle.transform().location;
+        let vehicle_speed = get_speed(&self.vehicle) / 3.6; // Convert km/h to m/s
+        let min_distance = self.base_min_distance + self.distance_ratio * vehicle_speed;
+
+        let mut num_waypoint_removed = 0;
+        for (waypoint, _) in &self.waypoints_queue {
+            // Keep at least one waypoint (last waypoint requires distance < 1m to remove)
+            let min_dist_threshold = if self.waypoints_queue.len() - num_waypoint_removed == 1 {
+                1.0
+            } else {
+                min_distance
+            };
+
+            let waypoint_location = waypoint.transform().location;
+            let distance = ((vehicle_location.x - waypoint_location.x).powi(2)
+                + (vehicle_location.y - waypoint_location.y).powi(2))
+            .sqrt();
+
+            if distance < min_dist_threshold {
+                num_waypoint_removed += 1;
+            } else {
+                break;
+            }
+        }
+
+        // Remove obsolete waypoints
+        for _ in 0..num_waypoint_removed {
+            self.waypoints_queue.pop_front();
+        }
+
         if self.waypoints_queue.is_empty() {
             // No more waypoints, stop the vehicle
             return Ok(VehicleControl {
@@ -161,36 +197,6 @@ impl LocalPlanner {
         }
 
         // Get current target waypoint
-        let (target_waypoint, _) = &self.waypoints_queue[0];
-
-        // Check if we need to advance to next waypoint
-        let vehicle_location = self.vehicle.transform().location;
-        let waypoint_location = target_waypoint.transform().location;
-
-        let distance = ((vehicle_location.x - waypoint_location.x).powi(2)
-            + (vehicle_location.y - waypoint_location.y).powi(2)
-            + (vehicle_location.z - waypoint_location.z).powi(2))
-        .sqrt();
-
-        if distance < self.sampling_radius {
-            // Move to next waypoint
-            self.waypoints_queue.pop_front();
-
-            if self.waypoints_queue.is_empty() {
-                // Reached destination
-                return Ok(VehicleControl {
-                    throttle: 0.0,
-                    steer: 0.0,
-                    brake: 1.0,
-                    hand_brake: false,
-                    reverse: false,
-                    manual_gear_shift: false,
-                    gear: 0,
-                });
-            }
-        }
-
-        // Get target waypoint (might be updated after pop)
         let (target_waypoint, _) = &self.waypoints_queue[0];
         let target_location = target_waypoint.transform().location;
 
