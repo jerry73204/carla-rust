@@ -54,14 +54,17 @@ lint-cpp-format:
 
 .PHONY: lint-cpp-tidy
 lint-cpp-tidy:
-	@CARLA_INCLUDE=$$(find target/debug/build/carla-sys-*/out/libcarla_client/*/include -type d 2>/dev/null | head -1); \
+	@CARLA_INCLUDE=$$(find target/dev-release/build/carla-sys-*/out/libcarla_client/*/include -type d 2>/dev/null | head -1); \
 	if [ -z "$$CARLA_INCLUDE" ]; then \
-		echo "Warning: CARLA headers not found. Run 'cargo build' first."; \
-		echo "Running clang-tidy without CARLA includes..."; \
-		find carla-sys/csrc \( -name "*.hpp" -o -name "*.cpp" \) -print0 | xargs -0 -I {} clang-tidy {} -- -std=c++17 -Icarla-sys/csrc; \
+		CARLA_INCLUDE=$$(find target/debug/build/carla-sys-*/out/libcarla_client/*/include -type d 2>/dev/null | head -1); \
+	fi; \
+	if [ -z "$$CARLA_INCLUDE" ]; then \
+		echo "Error: CARLA headers not found. Run 'make build' first."; \
+		exit 1; \
 	else \
 		echo "Using CARLA headers from: $$CARLA_INCLUDE"; \
-		find carla-sys/csrc \( -name "*.hpp" -o -name "*.cpp" \) -print0 | xargs -0 -I {} clang-tidy {} -- -std=c++17 -Icarla-sys/csrc -I$$CARLA_INCLUDE; \
+		echo "Running clang-tidy on all files..."; \
+		clang-tidy $$(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=c++14 -Icarla-sys/csrc -I$$CARLA_INCLUDE; \
 	fi
 
 .PHONY: clean

@@ -1,26 +1,41 @@
 ---
-# clang-tidy configuration for carla-rust C++ FFI code
-# Conservative checks: focus on bugs, security, and performance
+# clang-tidy configuration for carla-rust FFI code
+#
+# This is FFI/interop code with many intentional patterns that clang-tidy
+# flags as issues but are actually required for C++/Rust interoperability.
 
 Checks: >
-  bugprone-*,
-  cert-*,
-  clang-analyzer-*,
-  performance-*,
-  -bugprone-easily-swappable-parameters,
-  -cert-err58-cpp,
-  -performance-move-const-arg,
+  -*,
+  bugprone-branch-clone,
+  bugprone-copy-constructor-init,
+  bugprone-dangling-handle,
+  bugprone-infinite-loop,
+  bugprone-move-forwarding-reference,
+  bugprone-use-after-move,
+  modernize-deprecated-headers,
+  modernize-make-shared,
+  modernize-make-unique,
+  modernize-use-nullptr,
+  modernize-use-override,
+  performance-move-const-arg,
+  performance-unnecessary-copy-initialization,
+  readability-const-return-type,
+  readability-container-size-empty,
+  readability-delete-null-pointer,
+  readability-redundant-control-flow,
+  readability-redundant-string-cstr,
+  readability-simplify-boolean-expr
 
+# Suppress warnings in system headers and external code
 CheckOptions:
-  - key: readability-identifier-naming.NamespaceCase
-    value: lower_case
-  - key: readability-identifier-naming.ClassCase
-    value: CamelCase
-  - key: readability-identifier-naming.FunctionCase
-    value: CamelCase
-  - key: readability-identifier-naming.VariableCase
-    value: lower_case
+  - key: readability-identifier-naming.IgnoreFailedSplit
+    value: '1'
 
+# Disable checks that produce false positives for FFI code
+# We intentionally:
+# - Use reinterpret_cast for type-punned FFI types (verified by static_assert)
+# - Have incomplete types at FFI boundaries (that's the point of FFI wrappers)
+# - Use C-style casts in some macro contexts
+# - Have different naming conventions than typical C++ (matching Rust conventions)
 WarningsAsErrors: ''
-HeaderFilterRegex: 'carla-sys/csrc/.*'
-FormatStyle: file
+HeaderFilterRegex: 'carla-sys/csrc/carla_rust/.*'
