@@ -1,11 +1,13 @@
 #pragma once
 
 #include "carla/sensor/data/SemanticLidarData.h"
+#include "carla_rust/geom.hpp"
 
 namespace carla_rust {
 namespace sensor {
 namespace data {
 using carla::sensor::data::SemanticLidarDetection;
+using carla_rust::geom::FfiLocation;
 
 // SemanticLidarDetection
 class FfiSemanticLidarDetection {

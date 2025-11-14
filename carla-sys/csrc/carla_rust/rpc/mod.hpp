@@ -7,5 +7,7 @@
 #include "light_state.hpp"
 #include "vehicle_light_state_list.hpp"
 #include "vehicle_physics_control.hpp"
+#ifdef CARLA_VERSION_0916
 #include "vehicle_telemetry_data.hpp"
+#endif
 #include "walker_bone_control.hpp"

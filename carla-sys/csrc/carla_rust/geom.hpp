@@ -7,10 +7,12 @@
 #include "carla/geom/Vector2D.h"
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/BoundingBox.h"
+#include "carla/geom/GeoLocation.h"
 
 namespace carla_rust {
 namespace geom {
 using carla::geom::BoundingBox;
+using carla::geom::GeoLocation;
 using carla::geom::Location;
 using carla::geom::Rotation;
 using carla::geom::Transform;

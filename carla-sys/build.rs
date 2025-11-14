@@ -137,8 +137,8 @@ fn main() -> Result<()> {
         // Set version-specific compiler flags before autocxx processes headers
         let extra_clang_args = match version {
             CarlaVersion::V0_9_16 => vec!["-DCARLA_VERSION_0916"],
-            CarlaVersion::V0_9_15 => vec![],
-            CarlaVersion::V0_9_14 => vec![],
+            CarlaVersion::V0_9_15 => vec!["-DCARLA_VERSION_0915"],
+            CarlaVersion::V0_9_14 => vec!["-DCARLA_VERSION_0914"],
         };
 
         let mut builder = autocxx_build::Builder::new("src/bindings.rs", &include_dirs)
@@ -151,9 +151,11 @@ fn main() -> Result<()> {
         builder.flag_if_supported("-Wno-class-memaccess");
 
         // Also define for the final compilation
-        if matches!(version, CarlaVersion::V0_9_16) {
-            builder.define("CARLA_VERSION_0916", None);
-        }
+        match version {
+            CarlaVersion::V0_9_16 => builder.define("CARLA_VERSION_0916", None),
+            CarlaVersion::V0_9_15 => builder.define("CARLA_VERSION_0915", None),
+            CarlaVersion::V0_9_14 => builder.define("CARLA_VERSION_0914", None),
+        };
 
         builder.compile("carla_rust");
 

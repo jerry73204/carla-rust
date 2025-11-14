@@ -589,6 +589,8 @@ impl Client {
 
     /// Controls whether the spectator is ignored during replay.
     ///
+    /// Available in CARLA 0.9.15+
+    ///
     /// # Arguments
     ///
     /// * `ignore_spectator` - If true, the spectator's recorded movements are not replayed
@@ -602,6 +604,7 @@ impl Client {
     /// client.replay_file("test.log", 0.0, 0.0, 0, false);
     /// client.set_replayer_ignore_spectator(true); // Skip spectator replay
     /// ```
+    #[cfg(any(carla_version_0915, carla_version_0916))]
     pub fn set_replayer_ignore_spectator(&mut self, ignore_spectator: bool) {
         self.inner
             .pin_mut()

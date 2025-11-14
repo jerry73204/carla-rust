@@ -8,6 +8,7 @@
 #include "carla/rpc/Transform.h"
 #include "carla/rpc/WalkerBoneControlIn.h"
 #include "carla/rpc/WalkerBoneControlOut.h"
+#include "carla_rust/geom.hpp"
 
 namespace carla_rust {
 namespace rpc {

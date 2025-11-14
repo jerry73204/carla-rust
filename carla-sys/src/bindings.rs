@@ -38,8 +38,8 @@ include_cpp! {
     #include "carla/rpc/WeatherParameters.h"
     #include "carla/rpc/ObjectLabel.h"
     #include "carla/rpc/VehicleFailureState.h"
-    #include "carla/rpc/VehicleTelemetryData.h"
-    #include "carla/rpc/WheelTelemetryData.h"
+    // Note: VehicleTelemetryData.h and WheelTelemetryData.h are included
+    // via vehicle_telemetry_data.hpp which has proper version guards
 
     #include "carla/trafficmanager/Constants.h"
     #include "carla/trafficmanager/TrafficManager.h"
@@ -119,6 +119,9 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
     generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
 
+    // NOTE: VehicleTelemetryData is 0.9.16-only. This generate! call will fail for 0.9.14/0.9.15
+    // because the type doesn't exist (guarded by #ifdef CARLA_VERSION_0916 in C++ headers).
+    // TODO: Implement conditional binding generation via build.rs for multi-version support.
     generate!("carla_rust::rpc::FfiVehicleTelemetryData")
 
     // carla
@@ -165,6 +168,9 @@ include_cpp! {
     generate_pod!("carla::rpc::ActorState")
     generate_pod!("carla::rpc::LightId")
     generate_pod!("carla::rpc::VehicleFailureState")
+    // NOTE: WheelTelemetryData is 0.9.16-only. This generate_pod! call will fail for 0.9.14/0.9.15
+    // because the type doesn't exist (guarded by #ifdef CARLA_VERSION_0916 in C++ headers).
+    // TODO: Implement conditional binding generation via build.rs for multi-version support.
     generate_pod!("carla::rpc::WheelTelemetryData")
 
     // carla::client

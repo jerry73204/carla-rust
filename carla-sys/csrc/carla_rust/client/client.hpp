@@ -111,9 +111,11 @@ public:
 
     void SetReplayerIgnoreHero(bool ignore_hero) { inner_.SetReplayerIgnoreHero(ignore_hero); }
 
+#if defined(CARLA_VERSION_0915) || defined(CARLA_VERSION_0916)
     void SetReplayerIgnoreSpectator(bool ignore_spectator) {
         inner_.SetReplayerIgnoreSpectator(ignore_spectator);
     }
+#endif
 
     // Batch operations
     void ApplyBatch(FfiCommandBatch& batch, bool do_tick_cue) {
