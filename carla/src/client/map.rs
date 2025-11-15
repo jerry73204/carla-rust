@@ -14,7 +14,9 @@ use cxx::{SharedPtr, UniquePtr};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// Represents the map of the simulation, Corresponds to [`carla.Map`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map) in the Python API.
+/// Represents the map of the simulation.
+///
+/// Corresponds to [`carla.Map`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map) in the Python API.
 ///
 /// The [`Map`] provides access to the road network based on the OpenDRIVE standard.
 /// It allows you to query waypoints, spawn points, landmarks, and road topology.
@@ -66,6 +68,9 @@ pub struct Map {
 
 impl Map {
     /// Returns the name of the map (e.g., "Town01", "Town02").
+    ///
+    /// See [carla.Map.name](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.name)
+    /// in the Python API.
     pub fn name(&self) -> String {
         self.inner.GetName().to_string()
     }
@@ -73,6 +78,9 @@ impl Map {
     /// Returns the raw OpenDRIVE XML description of the map.
     ///
     /// OpenDRIVE is the standard format for road network descriptions.
+    ///
+    /// See [carla.Map.to_opendrive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.to_opendrive)
+    /// in the Python API.
     pub fn to_open_drive(&self) -> String {
         self.inner.GetOpenDrive().to_string()
     }
@@ -80,12 +88,18 @@ impl Map {
     /// Returns recommended spawn points for vehicles.
     ///
     /// These are predefined locations suitable for spawning vehicles without collisions.
+    ///
+    /// See [carla.Map.get_spawn_points](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_spawn_points)
+    /// in the Python API.
     pub fn recommended_spawn_points(&self) -> RecommendedSpawnPoints {
         let ptr = self.inner.GetRecommendedSpawnPoints().within_unique_ptr();
         unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() }
     }
 
     /// Finds the nearest waypoint on a driving lane.
+    ///
+    /// See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -118,6 +132,9 @@ impl Map {
 
     /// Finds the nearest waypoint with custom options.
     ///
+    /// See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)
+    /// in the Python API.
+    ///
     /// # Arguments
     ///
     /// * `location` - 3D position to query from
@@ -141,6 +158,9 @@ impl Map {
 
     /// Gets a waypoint by OpenDRIVE coordinates.
     ///
+    /// See [carla.Map.get_waypoint_xodr](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint_xodr)
+    /// in the Python API.
+    ///
     /// # Arguments
     ///
     /// * `road_id` - Road identifier from OpenDRIVE
@@ -158,6 +178,9 @@ impl Map {
 
     /// Generates a grid of waypoints covering the entire road network.
     ///
+    /// See [carla.Map.generate_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.generate_waypoints)
+    /// in the Python API.
+    ///
     /// # Arguments
     ///
     /// * `distance` - Approximate distance between waypoints (meters)
@@ -172,6 +195,9 @@ impl Map {
 
     /// Gets the junction associated with a waypoint.
     ///
+    /// See [carla.Map.get_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_junction)
+    /// in the Python API.
+    ///
     /// # Arguments
     ///
     /// * `waypoint` - Waypoint to query (should be inside a junction)
@@ -181,12 +207,18 @@ impl Map {
     }
 
     /// Returns all landmarks in the map (traffic signs, lights, etc.).
+    ///
+    /// See [carla.Map.get_all_landmarks](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks)
+    /// in the Python API.
     pub fn all_landmarks(&self) -> LandmarkList {
         let ptr = self.inner.GetAllLandmarks().within_unique_ptr();
         unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     /// Finds landmarks by their OpenDRIVE ID.
+    ///
+    /// See [carla.Map.get_landmark_from_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_from_id)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -198,6 +230,9 @@ impl Map {
 
     /// Finds all landmarks of a specific type.
     ///
+    /// See [carla.Map.get_all_landmarks_of_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks_of_type)
+    /// in the Python API.
+    ///
     /// # Arguments
     ///
     /// * `type_` - Landmark type (e.g., "1000001" for speed limit signs)
@@ -207,6 +242,9 @@ impl Map {
     }
 
     /// Gets all landmarks in the same group as the given landmark.
+    ///
+    /// See [carla.Map.get_landmark_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_group)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -224,6 +262,9 @@ impl Map {
     /// The topology describes the connectivity of the road network, where each
     /// pair represents a connection from one waypoint to another. This is useful
     /// for path planning and understanding the road network structure.
+    ///
+    /// See [carla.Map.get_topology](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_topology)
+    /// in the Python API.
     ///
     /// # Returns
     ///
