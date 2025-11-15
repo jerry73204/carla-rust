@@ -30,7 +30,7 @@ use static_assertions::assert_impl_all;
 /// - Light and door control
 /// - Ackermann steering configuration
 ///
-/// Corresponds to [`carla.Vehicle`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Vehicle) in the Python API
+/// Corresponds to [`carla.Vehicle`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle) in the Python API
 ///
 /// # Examples
 ///
@@ -66,6 +66,9 @@ pub struct Vehicle {
 impl Vehicle {
     /// Enables or disables autopilot using the default Traffic Manager port.
     ///
+    /// See [carla.Vehicle.set_autopilot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_autopilot)
+    /// in the Python API.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -84,16 +87,25 @@ impl Vehicle {
     }
 
     /// Enables or disables autopilot with a specific Traffic Manager port.
+    ///
+    /// See [carla.Vehicle.set_autopilot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_autopilot)
+    /// in the Python API.
     pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) {
         self.inner.SetAutopilot(enabled, tm_port);
     }
 
     /// Enables or disables debug telemetry display.
+    ///
+    /// See [carla.Vehicle.show_debug_telemetry](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.show_debug_telemetry)
+    /// in the Python API.
     pub fn show_debug_telemetry(&self, enabled: bool) {
         self.inner.ShowDebugTelemetry(enabled);
     }
 
     /// Applies vehicle control (throttle, steering, braking, etc.).
+    ///
+    /// See [carla.Vehicle.apply_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_control)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -117,6 +129,9 @@ impl Vehicle {
     }
 
     /// Returns the current vehicle control state.
+    ///
+    /// See [carla.Vehicle.get_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_control)
+    /// in the Python API.
     pub fn control(&self) -> VehicleControl {
         self.inner.GetControl()
     }
@@ -124,42 +139,66 @@ impl Vehicle {
     /// Applies physics control parameters (mass, drag, torque curve, etc.).
     ///
     /// Use this to tune vehicle handling characteristics.
+    ///
+    /// See [carla.Vehicle.apply_physics_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_physics_control)
+    /// in the Python API.
     pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
         let control = control.to_cxx();
         self.inner.ApplyPhysicsControl(&control);
     }
 
     /// Returns the current physics control parameters.
+    ///
+    /// See [carla.Vehicle.get_physics_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_physics_control)
+    /// in the Python API.
     pub fn physics_control(&self) -> VehiclePhysicsControl {
         VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
     }
 
     /// Applies Ackermann steering control (used for bicycle-like steering models).
+    ///
+    /// See [carla.Vehicle.apply_ackermann_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_ackermann_control)
+    /// in the Python API.
     pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) {
         self.inner.ApplyAckermannControl(control);
     }
 
     /// Configures Ackermann controller settings.
+    ///
+    /// See [carla.Vehicle.apply_ackermann_controller_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_ackermann_controller_settings)
+    /// in the Python API.
     pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) {
         self.inner.ApplyAckermannControllerSettings(settings)
     }
 
     /// Returns the current Ackermann controller settings.
+    ///
+    /// See [carla.Vehicle.get_ackermann_controller_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_ackermann_controller_settings)
+    /// in the Python API.
     pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
         self.inner.GetAckermannControllerSettings()
     }
 
     /// Opens a vehicle door.
+    ///
+    /// See [carla.Vehicle.open_door](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.open_door)
+    /// in the Python API.
     pub fn open_door(&self, door: VehicleDoor) {
         self.inner.OpenDoor(door);
     }
 
     /// Closes a vehicle door.
+    ///
+    /// See [carla.Vehicle.close_door](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.close_door)
+    /// in the Python API.
     pub fn close_door(&self, door: VehicleDoor) {
         self.inner.CloseDoor(door);
     }
 
     /// Sets the vehicle light state (headlights, brake lights, turn signals, etc.).
+    ///
+    /// See [carla.Vehicle.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_light_state)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -183,16 +222,25 @@ impl Vehicle {
     }
 
     /// Sets the steering angle for a specific wheel (in degrees).
+    ///
+    /// See [carla.Vehicle.set_wheel_steer_direction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_wheel_steer_direction)
+    /// in the Python API.
     pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
         self.inner.SetWheelSteerDirection(wheel_location, degrees);
     }
 
     /// Returns the steering angle for a specific wheel (in degrees).
+    ///
+    /// See [carla.Vehicle.get_wheel_steer_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_wheel_steer_angle)
+    /// in the Python API.
     pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         self.inner.GetWheelSteerAngle(wheel_location)
     }
 
     /// Returns the current light state.
+    ///
+    /// See [carla.Vehicle.get_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_light_state)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -217,11 +265,17 @@ impl Vehicle {
     }
 
     /// Returns the state of the traffic light affecting this vehicle.
+    ///
+    /// See [carla.Vehicle.get_traffic_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_traffic_light_state)
+    /// in the Python API.
     pub fn traffic_light_state(&self) -> TrafficLightState {
         self.inner.GetTrafficLightState()
     }
 
     /// Returns whether the vehicle is currently at a traffic light.
+    ///
+    /// See [carla.Vehicle.is_at_traffic_light](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.is_at_traffic_light)
+    /// in the Python API.
     pub fn is_at_traffic_light(&self) -> bool {
         self.inner.IsAtTrafficLight()
     }
@@ -229,6 +283,9 @@ impl Vehicle {
     /// Returns the vehicle's current failure state.
     ///
     /// Available since CARLA 0.9.14+
+    ///
+    /// See [carla.Vehicle.get_failure_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_failure_state)
+    /// in the Python API.
     ///
     /// # Returns
     ///
@@ -241,6 +298,9 @@ impl Vehicle {
     ///
     /// The bounding box contains the vehicle's extent (half-dimensions) and transform
     /// (center position and orientation) in world coordinates.
+    ///
+    /// See [carla.Vehicle.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.bounding_box)
+    /// in the Python API.
     ///
     /// # Returns
     ///
@@ -268,6 +328,9 @@ impl Vehicle {
     ///
     /// Provides comprehensive physics data including speed, steering, engine RPM,
     /// gear, drag, and per-wheel telemetry (friction, slip, forces, torque).
+    ///
+    /// See [carla.Vehicle.get_telemetry_data](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_telemetry_data)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -299,6 +362,9 @@ impl Vehicle {
     /// Sets the pitch angle for a specific wheel (in degrees).
     ///
     /// **Available only in CARLA 0.9.16+**
+    ///
+    /// See [carla.Vehicle.set_wheel_pitch_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_wheel_pitch_angle)
+    /// in the Python API.
     #[cfg(carla_0916)]
     pub fn set_wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
         self.inner.SetWheelPitchAngle(wheel_location, degrees);
@@ -307,6 +373,9 @@ impl Vehicle {
     /// Returns the pitch angle for a specific wheel (in degrees).
     ///
     /// **Available only in CARLA 0.9.16+**
+    ///
+    /// See [carla.Vehicle.get_wheel_pitch_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_wheel_pitch_angle)
+    /// in the Python API.
     #[cfg(carla_0916)]
     pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         self.inner.GetWheelPitchAngle(wheel_location)
@@ -349,17 +418,26 @@ impl Vehicle {
     /// Restores PhysX physics simulation (after using Chrono or CarSim).
     ///
     /// **Available only in CARLA 0.9.16+**
+    ///
+    /// See [carla.Vehicle.restore_physx_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.restore_physx_physics)
+    /// in the Python API.
     #[cfg(carla_0916)]
     pub fn restore_phys_x_physics(&self) {
         self.inner.RestorePhysXPhysics();
     }
 
     /// Enables CarSim physics simulation with the given configuration file.
+    ///
+    /// See [carla.Vehicle.enable_carsim](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.enable_carsim)
+    /// in the Python API.
     pub fn enable_car_sim(&self, simfile_path: &str) {
         self.inner.EnableCarSim(simfile_path)
     }
 
     /// Enables or disables using the CarSim road for physics.
+    ///
+    /// See [carla.Vehicle.use_carsim_road](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.use_carsim_road)
+    /// in the Python API.
     pub fn use_car_sim_road(&self, enabled: bool) {
         self.inner.UseCarSimRoad(enabled);
     }
@@ -367,6 +445,9 @@ impl Vehicle {
     /// Enables Chrono physics engine for high-fidelity vehicle simulation.
     ///
     /// Chrono provides more accurate tire and suspension modeling than the default physics.
+    ///
+    /// See [carla.Vehicle.enable_chrono_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.enable_chrono_physics)
+    /// in the Python API.
     pub fn enable_chrono_physics(
         &self,
         max_substeps: u64,

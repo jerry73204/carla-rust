@@ -38,7 +38,7 @@ const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 /// - Traffic light management
 /// - World snapshots for state inspection
 ///
-/// Corresponds to [`carla.World`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.World) in the Python API
+/// Corresponds to [`carla.World`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World) in the Python API
 ///
 /// # Thread Safety
 ///
@@ -78,6 +78,9 @@ impl World {
     /// Returns the unique ID of this world/episode.
     ///
     /// The ID changes whenever the world is reloaded or a new map is loaded.
+    ///
+    /// See [carla.World.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.id)
+    /// in the Python API.
     pub fn id(&self) -> u64 {
         self.inner.GetId()
     }
@@ -85,12 +88,18 @@ impl World {
     /// Returns the map associated with this world.
     ///
     /// The map contains the road network, spawn points, and navigation information.
+    ///
+    /// See [carla.World.get_map](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_map)
+    /// in the Python API.
     pub fn map(&self) -> Map {
         let ptr = self.inner.GetMap();
         unsafe { Map::from_cxx(ptr).unwrap_unchecked() }
     }
 
     /// Returns the light manager for controlling street lights and vehicle lights.
+    ///
+    /// See [carla.World.get_lightmanager](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_lightmanager)
+    /// in the Python API.
     pub fn light_manager(&self) -> LightManager {
         unsafe { LightManager::from_cxx(self.inner.GetLightManager()).unwrap_unchecked() }
     }
@@ -98,11 +107,17 @@ impl World {
     /// Loads a map layer (e.g., buildings, props, roads).
     ///
     /// Use this to dynamically load/unload parts of the map for performance.
+    ///
+    /// See [carla.World.load_map_layer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.load_map_layer)
+    /// in the Python API.
     pub fn load_level_layer(&self, map_layers: MapLayer) {
         self.inner.LoadLevelLayer(map_layers as u16);
     }
 
     /// Unloads a map layer.
+    ///
+    /// See [carla.World.unload_map_layer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.unload_map_layer)
+    /// in the Python API.
     pub fn unload_level_layer(&self, map_layers: MapLayer) {
         self.inner.UnloadLevelLayer(map_layers as u16);
     }
@@ -110,6 +125,9 @@ impl World {
     /// Returns the blueprint library containing all available actor blueprints.
     ///
     /// Blueprints are templates for spawning actors (vehicles, sensors, pedestrians, etc.).
+    ///
+    /// See [carla.World.get_blueprint_library](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_blueprint_library)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -130,6 +148,9 @@ impl World {
     }
 
     /// Returns the light state of all vehicles in the world.
+    ///
+    /// See [carla.World.get_vehicles_light_states](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_vehicles_light_states)
+    /// in the Python API.
     pub fn vehicle_light_states(&self) -> VehicleLightStateList {
         let ptr = self.inner.GetVehiclesLightStates().within_unique_ptr();
         unsafe { VehicleLightStateList::from_cxx(ptr).unwrap_unchecked() }
@@ -138,6 +159,9 @@ impl World {
     /// Returns a random navigable location (on roads/sidewalks).
     ///
     /// Useful for spawning actors at random valid positions.
+    ///
+    /// See [carla.World.get_random_location_from_navigation](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_random_location_from_navigation)
+    /// in the Python API.
     pub fn random_location_from_navigation(&self) -> Location {
         let cpp_loc = self.inner.GetRandomLocationFromNavigation();
         Location::from_ffi(cpp_loc.as_ref().unwrap().clone())
@@ -146,6 +170,9 @@ impl World {
     /// Returns the spectator actor (the free-flying camera).
     ///
     /// Move the spectator to change the view in the CARLA window.
+    ///
+    /// See [carla.World.get_spectator](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_spectator)
+    /// in the Python API.
     pub fn spectator(&self) -> Actor {
         let actor = self.inner.GetSpectator();
         unsafe { Actor::from_cxx(actor).unwrap_unchecked() }
@@ -154,6 +181,9 @@ impl World {
     /// Returns the current simulation settings.
     ///
     /// Settings include synchronous mode, fixed time step, rendering options, etc.
+    ///
+    /// See [carla.World.get_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_settings)
+    /// in the Python API.
     pub fn settings(&self) -> EpisodeSettings {
         let ptr = self.inner.GetSettings().within_unique_ptr();
         EpisodeSettings::from_cxx(&ptr)
@@ -162,12 +192,18 @@ impl World {
     /// Returns a snapshot of the current world state.
     ///
     /// Snapshots contain actor transforms, velocities, and simulation timestamp.
+    ///
+    /// See [carla.World.get_snapshot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_snapshot)
+    /// in the Python API.
     pub fn snapshot(&self) -> WorldSnapshot {
         let ptr = self.inner.GetSnapshot();
         unsafe { WorldSnapshot::from_cxx(ptr).unwrap_unchecked() }
     }
 
     /// Returns names of all environment objects in the world.
+    ///
+    /// See [carla.World.get_names_of_all_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_names_of_all_objects)
+    /// in the Python API.
     pub fn names_of_all_objects(&self) -> Vec<String> {
         self.inner
             .GetNamesOfAllObjects()
@@ -179,12 +215,18 @@ impl World {
     /// Finds an actor by its ID.
     ///
     /// Returns `None` if the actor doesn't exist or has been destroyed.
+    ///
+    /// See [carla.World.get_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actor)
+    /// in the Python API.
     pub fn actor(&self, actor_id: ActorId) -> Option<Actor> {
         let ptr = self.inner.GetActor(actor_id);
         Actor::from_cxx(ptr)
     }
 
     /// Returns a list of all actors currently in the world.
+    ///
+    /// See [carla.World.get_actors](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actors)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -202,6 +244,9 @@ impl World {
     }
 
     /// Returns a list of actors matching the given IDs.
+    ///
+    /// See [carla.World.get_actors](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actors)
+    /// in the Python API.
     pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
         let mut vec = CxxVector::new_typed();
         ids.iter().cloned().for_each(|id| {
@@ -212,6 +257,14 @@ impl World {
         unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns traffic lights affecting a waypoint within a certain distance.
+    ///
+    /// # Arguments
+    /// * `waypoint` - The waypoint to check from
+    /// * `distance` - Maximum distance to search for traffic lights
+    ///
+    /// See [carla.World.get_traffic_lights_from_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_lights_from_waypoint)
+    /// in the Python API.
     pub fn traffic_lights_from_waypoint(&self, waypoint: &Waypoint, distance: f64) -> ActorVec {
         let ptr = self
             .inner
@@ -220,6 +273,13 @@ impl World {
         unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Returns all traffic lights in a junction.
+    ///
+    /// # Arguments
+    /// * `junc_id` - Junction ID to query
+    ///
+    /// See [carla.World.get_traffic_lights_in_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_lights_in_junction)
+    /// in the Python API.
     pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> ActorVec {
         let ptr = self
             .inner
@@ -231,6 +291,9 @@ impl World {
     /// Applies new simulation settings.
     ///
     /// Use this to change synchronous mode, time step, rendering options, etc.
+    ///
+    /// See [carla.World.apply_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.apply_settings)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -262,6 +325,9 @@ impl World {
     }
 
     /// Spawns an actor in the world.
+    ///
+    /// See [carla.World.spawn_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.spawn_actor)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -461,6 +527,9 @@ impl World {
     /// In synchronous mode, the server waits for this call before advancing the simulation.
     /// In asynchronous mode, this returns when the next tick completes.
     ///
+    /// See [carla.World.wait_for_tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.wait_for_tick)
+    /// in the Python API.
+    ///
     /// # Errors
     ///
     /// Returns an error if the operation times out (default: 60 seconds).
@@ -523,11 +592,17 @@ impl World {
     /// Advances the simulation by one tick (synchronous mode only).
     ///
     /// Uses the default timeout of 60 seconds.
+    ///
+    /// See [carla.World.tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.tick)
+    /// in the Python API.
     pub fn tick(&mut self) -> u64 {
         self.tick_or_timeout(DEFAULT_TICK_TIMEOUT)
     }
 
     /// Sets the percentage of pedestrians that will cross roads.
+    ///
+    /// See [carla.World.set_pedestrians_cross_factor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_pedestrians_cross_factor)
+    /// in the Python API.
     ///
     /// # Arguments
     ///
@@ -537,12 +612,18 @@ impl World {
     }
 
     /// Sets the random seed for pedestrian behavior.
+    ///
+    /// See [carla.World.set_pedestrians_seed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_pedestrians_seed)
+    /// in the Python API.
     pub fn set_pedestrians_seed(&mut self, seed: usize) {
         let seed = c_uint(seed as std::os::raw::c_uint);
         self.inner.pin_mut().SetPedestriansSeed(seed);
     }
 
     /// Returns the traffic sign actor at the given landmark location.
+    ///
+    /// See [carla.World.get_traffic_sign](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_sign)
+    /// in the Python API.
     pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
         // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
         let ptr = self
@@ -551,6 +632,10 @@ impl World {
         Actor::from_cxx(ptr)
     }
 
+    /// Returns the traffic light actor at the given landmark location.
+    ///
+    /// See [carla.World.get_traffic_light](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_light)
+    /// in the Python API.
     pub fn traffic_light_at(&self, landmark: &Landmark) -> Option<Actor> {
         // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
         let ptr = self
@@ -559,31 +644,53 @@ impl World {
         Actor::from_cxx(ptr)
     }
 
+    /// Returns the traffic light actor with the given OpenDRIVE sign ID.
+    ///
+    /// See [carla.World.get_traffic_light_from_opendrive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_light_from_opendrive)
+    /// in the Python API.
     pub fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
         let_cxx_string!(sign_id = sign_id);
         let ptr = self.inner.GetTrafficLightFromOpenDRIVE(&sign_id);
         Actor::from_cxx(ptr)
     }
 
+    /// Freezes or unfreezes all traffic lights in the world.
+    ///
+    /// See [carla.World.freeze_all_traffic_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.freeze_all_traffic_lights)
+    /// in the Python API.
     pub fn freeze_all_traffic_lights(&mut self, frozen: bool) {
         self.inner.pin_mut().FreezeAllTrafficLights(frozen);
     }
 
+    /// Resets all traffic lights to their initial state.
+    ///
+    /// See [carla.World.reset_all_traffic_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.reset_all_traffic_lights)
+    /// in the Python API.
     pub fn reset_all_traffic_lights(&mut self) {
         self.inner.pin_mut().ResetAllTrafficLights();
     }
 
+    /// Returns bounding boxes for environment objects matching the queried tag.
+    ///
+    /// See [carla.World.get_level_bbs](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_level_bbs)
+    /// in the Python API.
     pub fn level_bounding_boxes(&self, queried_tag: u8) -> BoundingBoxList {
         let ptr = self.inner.GetLevelBBs(queried_tag);
         unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
     }
 
     /// Returns the current weather parameters.
+    ///
+    /// See [carla.World.get_weather](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_weather)
+    /// in the Python API.
     pub fn weather(&self) -> WeatherParameters {
         self.inner.GetWeather()
     }
 
     /// Sets the weather parameters (sun, clouds, precipitation, fog, etc.).
+    ///
+    /// See [carla.World.set_weather](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_weather)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -602,6 +709,10 @@ impl World {
         self.inner.pin_mut().SetWeather(weather)
     }
 
+    /// Returns environment objects matching the queried tag.
+    ///
+    /// See [carla.World.get_environment_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_environment_objects)
+    /// in the Python API.
     pub fn environment_objects(&self, queried_tag: u8) -> EnvironmentObjectList {
         let ptr = self
             .inner
@@ -610,6 +721,10 @@ impl World {
         unsafe { EnvironmentObjectList::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Enables or disables environment objects by their IDs.
+    ///
+    /// See [carla.World.enable_environment_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.enable_environment_objects)
+    /// in the Python API.
     pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) {
         let ptr = ids.as_ptr();
         let len = ids.len();
