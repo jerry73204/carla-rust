@@ -18,7 +18,7 @@ use static_assertions::assert_impl_all;
 /// Generated when an actor with a lane invasion sensor crosses one or more lane markings.
 /// Useful for implementing lane departure warnings and autonomous driving assistance.
 ///
-/// Corresponds to [`carla.LaneInvasionEvent`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LaneInvasionEvent) in the Python API.
+/// Corresponds to [`carla.LaneInvasionEvent`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LaneInvasionEvent) in the Python API.
 ///
 /// # Examples
 ///
@@ -79,6 +79,9 @@ impl LaneInvasionEvent {
     ///
     /// This is the actor that crossed the lane markings and has the sensor attached.
     ///
+    /// See [carla.LaneInvasionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LaneInvasionEvent.actor)
+    /// in the Python API.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -95,6 +98,9 @@ impl LaneInvasionEvent {
     ///
     /// Each [`LaneMarking`] contains information about the type (solid, broken, etc.),
     /// color (white, yellow, etc.), and width of the marking.
+    ///
+    /// See [carla.LaneInvasionEvent.crossed_lane_markings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LaneInvasionEvent.crossed_lane_markings)
+    /// in the Python API.
     ///
     /// # Examples
     ///

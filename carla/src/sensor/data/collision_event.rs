@@ -17,7 +17,7 @@ use static_assertions::assert_impl_all;
 /// Generated when an actor with a collision sensor attached collides with another actor.
 /// Contains information about the collision force and the actors involved.
 ///
-/// Corresponds to [`carla.CollisionEvent`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.CollisionEvent) in the Python API.
+/// Corresponds to [`carla.CollisionEvent`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent) in the Python API.
 ///
 /// # Examples
 ///
@@ -73,6 +73,9 @@ impl CollisionEvent {
     ///
     /// This is the actor that experienced the collision and has the sensor attached.
     ///
+    /// See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.actor)
+    /// in the Python API.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -88,6 +91,9 @@ impl CollisionEvent {
     /// Returns the actor that was hit in the collision, if any.
     ///
     /// Returns `None` if the collision was with a static object (like a building or the ground).
+    ///
+    /// See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.other_actor)
+    /// in the Python API.
     ///
     /// # Examples
     ///
@@ -110,6 +116,9 @@ impl CollisionEvent {
     /// The magnitude indicates collision severity, and the direction shows the impact vector.
     ///
     /// Units: Newton-seconds (N·s)
+    ///
+    /// See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.normal_impulse)
+    /// in the Python API.
     ///
     /// # Examples
     ///

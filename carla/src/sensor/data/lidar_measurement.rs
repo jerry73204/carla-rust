@@ -6,6 +6,47 @@ use derivative::Derivative;
 use static_assertions::assert_impl_all;
 use std::slice;
 
+/// LiDAR point cloud measurement data.
+///
+/// This type represents point cloud data from a LiDAR sensor. Each point contains
+/// 3D coordinates and intensity information. LiDAR sensors are commonly used for
+/// object detection, mapping, and localization in autonomous driving.
+///
+/// Corresponds to [`carla.LidarMeasurement`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{
+///     client::{ActorBase, Client},
+///     sensor::data::LidarMeasurement,
+/// };
+///
+/// let client = Client::default();
+/// let mut world = client.world();
+///
+/// # let bp_lib = world.blueprint_library();
+/// # let lidar_bp = bp_lib.filter("sensor.lidar.ray_cast").get(0).unwrap();
+/// # let spawn_points = world.map().recommended_spawn_points();
+/// # let lidar = world.spawn_actor(&lidar_bp, spawn_points.get(0).unwrap()).unwrap();
+/// # let sensor: carla::client::Sensor = lidar.try_into().unwrap();
+///
+/// sensor.listen(|sensor_data| {
+///     if let Ok(lidar_data) = LidarMeasurement::try_from(sensor_data) {
+///         println!("Received {} points", lidar_data.len());
+///         println!("Horizontal angle: {}°", lidar_data.horizontal_angle());
+///         println!("Channels: {}", lidar_data.channel_count());
+///
+///         // Access point cloud data
+///         for point in lidar_data.as_slice().iter().take(10) {
+///             println!(
+///                 "Point: ({}, {}, {}) intensity={}",
+///                 point.x, point.y, point.z, point.intensity
+///             );
+///         }
+///     }
+/// });
+/// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -15,18 +56,62 @@ pub struct LidarMeasurement {
 }
 
 impl LidarMeasurement {
+    /// Returns the horizontal angle of the LiDAR measurement in degrees.
+    ///
+    /// This represents the current rotation angle of the LiDAR sensor.
+    ///
+    /// See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.horizontal_angle)
+    /// in the Python API.
     pub fn horizontal_angle(&self) -> f32 {
         self.inner.GetHorizontalAngle()
     }
 
+    /// Returns the number of points detected in the specified channel.
+    ///
+    /// Returns `None` if the channel index is out of bounds.
+    ///
+    /// See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.get_point_count)
+    /// in the Python API.
     pub fn point_count(&self, channel: usize) -> Option<usize> {
         (channel < self.channel_count()).then(|| self.inner.GetPointCount(channel) as usize)
     }
 
+    /// Returns the number of channels (laser beams) in the LiDAR sensor.
+    ///
+    /// See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.channels)
+    /// in the Python API.
     pub fn channel_count(&self) -> usize {
         self.inner.GetChannelCount() as usize
     }
 
+    /// Returns the point cloud data as a slice of LidarDetection points.
+    ///
+    /// This provides zero-copy access to all detected points. Each point contains
+    /// 3D coordinates (x, y, z) and intensity information.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::sensor::data::LidarMeasurement;
+    /// # let client = Client::default();
+    /// # let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let lidar_bp = bp_lib.filter("sensor.lidar.ray_cast").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let lidar = world.spawn_actor(&lidar_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let sensor: carla::client::Sensor = lidar.try_into().unwrap();
+    /// sensor.listen(|sensor_data| {
+    ///     if let Ok(lidar_data) = LidarMeasurement::try_from(sensor_data) {
+    ///         let points = lidar_data.as_slice();
+    ///         // Process point cloud
+    ///         for point in points {
+    ///             let distance = (point.x * point.x + point.y * point.y + point.z * point.z).sqrt();
+    ///             println!("Point at distance: {:.2}m", distance);
+    ///         }
+    ///     }
+    /// });
+    /// ```
     pub fn as_slice(&self) -> &[LidarDetection] {
         let ptr = self.inner.data();
         let len = self.len();
@@ -40,10 +125,12 @@ impl LidarMeasurement {
         unsafe { slice::from_raw_parts(ptr, len) }
     }
 
+    /// Returns the total number of detected points in the measurement.
     pub fn len(&self) -> usize {
         self.inner.size()
     }
 
+    /// Returns true if no points were detected.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0

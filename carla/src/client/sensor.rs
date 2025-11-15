@@ -12,7 +12,9 @@ use std::mem;
 
 type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 
-/// Represents a sensor in the simulation, Corresponds to [`carla.Sensor`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Sensor) in the Python API.
+/// Represents a sensor in the simulation.
+///
+/// Corresponds to [`carla.Sensor`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor) in the Python API.
 ///
 /// Sensors collect data from the simulation (cameras, LiDAR, collision detectors, etc.).
 /// Attach sensors to vehicles or place them in the world to gather information.
@@ -64,11 +66,17 @@ impl Sensor {
     /// Stops the sensor from generating data.
     ///
     /// The sensor can be restarted with [`listen()`](Self::listen).
+    ///
+    /// See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.stop)
+    /// in the Python API.
     pub fn stop(&self) {
         self.inner.Stop();
     }
 
     /// Returns whether the sensor is currently listening (generating data).
+    ///
+    /// See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.is_listening)
+    /// in the Python API.
     pub fn is_listening(&self) -> bool {
         self.inner.IsListening()
     }
@@ -77,6 +85,9 @@ impl Sensor {
     ///
     /// The callback is invoked each time the sensor generates new data. It runs on
     /// a separate thread, so use appropriate synchronization if sharing state.
+    ///
+    /// See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.listen)
+    /// in the Python API.
     ///
     /// # Arguments
     ///

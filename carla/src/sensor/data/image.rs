@@ -10,6 +10,49 @@ use ndarray::ArrayView2;
 use static_assertions::assert_impl_all;
 use std::slice;
 
+/// Image data from RGB, depth, or semantic segmentation cameras.
+///
+/// This type represents image data captured by CARLA camera sensors. Images are stored
+/// in BGRA format (32 bits per pixel) and provide multiple access methods for different
+/// use cases: slice access, array views, and raw bytes.
+///
+/// Corresponds to [`carla.Image`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{
+///     client::{ActorBase, Client},
+///     sensor::data::Image,
+/// };
+///
+/// let client = Client::default();
+/// let mut world = client.world();
+///
+/// # let bp_lib = world.blueprint_library();
+/// # let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+/// # let spawn_points = world.map().recommended_spawn_points();
+/// # let camera = world.spawn_actor(&camera_bp, spawn_points.get(0).unwrap()).unwrap();
+/// # let sensor: carla::client::Sensor = camera.try_into().unwrap();
+///
+/// sensor.listen(|sensor_data| {
+///     if let Ok(image) = Image::try_from(sensor_data) {
+///         println!("Received {}x{} image", image.width(), image.height());
+///         println!("FOV: {}°", image.fov_angle());
+///
+///         // Access pixels
+///         let pixels = image.as_slice();
+///         let first_pixel = &pixels[0];
+///         println!(
+///             "First pixel: R={}, G={}, B={}",
+///             first_pixel.r, first_pixel.g, first_pixel.b
+///         );
+///
+///         // Save to disk
+///         image.save_to_disk("output/frame.png").ok();
+///     }
+/// });
+/// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -19,27 +62,67 @@ pub struct Image {
 }
 
 impl Image {
+    /// Returns the image height in pixels.
+    ///
+    /// See [carla.Image.height](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.height)
+    /// in the Python API.
     pub fn height(&self) -> usize {
         self.inner.GetHeight()
     }
 
+    /// Returns the image width in pixels.
+    ///
+    /// See [carla.Image.width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.width)
+    /// in the Python API.
     pub fn width(&self) -> usize {
         self.inner.GetWidth()
     }
 
+    /// Returns the total number of pixels in the image (width × height).
     pub fn len(&self) -> usize {
         self.inner.size()
     }
 
+    /// Returns true if the image has no pixels.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Returns the horizontal field of view of the camera in degrees.
+    ///
+    /// See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.fov)
+    /// in the Python API.
     pub fn fov_angle(&self) -> f32 {
         self.inner.GetFOVAngle()
     }
 
+    /// Returns the image data as a slice of Color pixels.
+    ///
+    /// This provides zero-copy access to the pixel data. Each pixel is a Color
+    /// struct with BGRA components (blue, green, red, alpha).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::sensor::data::Image;
+    /// # let client = Client::default();
+    /// # let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let camera = world.spawn_actor(&camera_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let sensor: carla::client::Sensor = camera.try_into().unwrap();
+    /// sensor.listen(|sensor_data| {
+    ///     if let Ok(image) = Image::try_from(sensor_data) {
+    ///         let pixels = image.as_slice();
+    ///         for pixel in pixels.iter().take(10) {
+    ///             println!("RGB: ({}, {}, {})", pixel.r, pixel.g, pixel.b);
+    ///         }
+    ///     }
+    /// });
+    /// ```
     pub fn as_slice(&self) -> &[Color] {
         let ptr = self.inner.data();
         let len = self.len();
@@ -104,6 +187,39 @@ impl Image {
         unsafe { slice::from_raw_parts(ptr, byte_len) }
     }
 
+    /// Returns the image data as a 2D array view (width × height).
+    ///
+    /// This provides a convenient ndarray view for image processing operations.
+    /// The array is indexed as `array[[x, y]]` where x is the column (width)
+    /// and y is the row (height).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the image dimensions don't match the data length.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::sensor::data::Image;
+    /// # let client = Client::default();
+    /// # let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let camera = world.spawn_actor(&camera_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let sensor: carla::client::Sensor = camera.try_into().unwrap();
+    /// sensor.listen(|sensor_data| {
+    ///     if let Ok(image) = Image::try_from(sensor_data) {
+    ///         let array = image.as_array();
+    ///         let center_pixel = &array[[image.width() / 2, image.height() / 2]];
+    ///         println!(
+    ///             "Center pixel: RGB({}, {}, {})",
+    ///             center_pixel.r, center_pixel.g, center_pixel.b
+    ///         );
+    ///     }
+    /// });
+    /// ```
     pub fn as_array(&self) -> ArrayView2<'_, Color> {
         let width = self.width();
         let height = self.height();
@@ -123,6 +239,31 @@ impl Image {
             .expect("Failed to create array view with validated dimensions")
     }
 
+    /// Returns a reference to the pixel at the specified index.
+    ///
+    /// Returns `None` if the index is out of bounds. The image is stored in
+    /// row-major order (left-to-right, top-to-bottom).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # use carla::sensor::data::Image;
+    /// # let client = Client::default();
+    /// # let world = client.world();
+    /// # let bp_lib = world.blueprint_library();
+    /// # let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
+    /// # let spawn_points = world.map().recommended_spawn_points();
+    /// # let camera = world.spawn_actor(&camera_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let sensor: carla::client::Sensor = camera.try_into().unwrap();
+    /// sensor.listen(|sensor_data| {
+    ///     if let Ok(image) = Image::try_from(sensor_data) {
+    ///         if let Some(pixel) = image.get(0) {
+    ///             println!("First pixel: RGB({}, {}, {})", pixel.r, pixel.g, pixel.b);
+    ///         }
+    ///     }
+    /// });
+    /// ```
     pub fn get(&self, index: usize) -> Option<&Color> {
         if index < self.inner.size() {
             Some(self.inner.at(index))
@@ -135,6 +276,9 @@ impl Image {
     ///
     /// The file format is determined by the file extension (e.g., ".png", ".jpg").
     /// CARLA images are in BGRA format and are converted to RGBA before saving.
+    ///
+    /// See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.save_to_disk)
+    /// in the Python API.
     ///
     /// # Examples
     ///
