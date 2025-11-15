@@ -5,8 +5,31 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// Represents a traffic sign in the simulation, corresponding to
-/// `carla.TrafficSign` in Python API.
+/// Represents a traffic sign in the simulation.
+///
+/// Traffic signs provide information to drivers about road rules, warnings,
+/// and directions. They are static actors in the world.
+///
+/// Corresponds to [`carla.TrafficSign`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficSign) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::client::{ActorBase, Client};
+///
+/// let client = Client::default();
+/// let world = client.world();
+///
+/// // Get all actors in the world
+/// let actors = world.actors();
+/// for actor in actors.iter() {
+///     // Try to convert to traffic sign
+///     if let Ok(sign) = carla::client::TrafficSign::try_from(actor.clone()) {
+///         println!("Traffic sign at: {:?}", sign.location());
+///         println!("Sign ID: {}", sign.sign_id());
+///     }
+/// }
+/// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct TrafficSign {
@@ -15,10 +38,18 @@ pub struct TrafficSign {
 }
 
 impl TrafficSign {
+    /// Returns the OpenDRIVE sign ID.
+    ///
+    /// See [carla.TrafficSign.get_opendrive_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficSign) in the Python API.
     pub fn sign_id(&self) -> SignId {
         self.inner.GetSignId().to_string()
     }
 
+    /// Returns the trigger volume bounding box.
+    ///
+    /// See [carla.TrafficSign.get_trigger_volume](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficSign) in the Python API.
+    ///
+    /// The trigger volume is the area where the sign affects vehicles.
     pub fn trigger_volume(&self) -> BoundingBox {
         BoundingBox::from_native(self.inner.GetTriggerVolume())
     }

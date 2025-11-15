@@ -12,7 +12,38 @@ use static_assertions::assert_impl_all;
 
 use super::Waypoint;
 
-/// Represents a junction in the simulation.
+/// Represents a junction (intersection) in the simulation.
+///
+/// Junctions are areas where multiple roads meet. They provide information about
+/// the possible paths through the intersection and can be used for navigation
+/// and traffic management.
+///
+/// Corresponds to [`carla.Junction`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{client::Client, road::LaneType};
+///
+/// let client = Client::default();
+/// let world = client.world();
+/// let map = world.map();
+///
+/// # let spawn_points = map.recommended_spawn_points();
+/// # let waypoint = map.waypoint_at(&spawn_points.get(0).unwrap().location);
+/// // Check if a waypoint is in a junction
+/// if let Some(wp) = waypoint {
+///     if wp.is_junction() {
+///         if let Some(junction) = wp.junction() {
+///             println!("Junction ID: {}", junction.id());
+///
+///             // Get waypoint pairs for driving lanes
+///             let pairs = junction.waypoints(LaneType::Driving);
+///             println!("Junction has {} waypoint pairs", pairs.len());
+///         }
+///     }
+/// }
+/// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -22,15 +53,30 @@ pub struct Junction {
 }
 
 impl Junction {
+    /// Returns the junction ID.
+    ///
+    /// See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.id)
+    /// in the Python API.
     pub fn id(&self) -> JuncId {
         self.inner.GetId()
     }
 
+    /// Returns pairs of waypoints defining possible paths through the junction.
+    ///
+    /// See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.get_waypoints)
+    /// in the Python API.
+    ///
+    /// # Arguments
+    /// * `type_` - Lane type filter (e.g., `LaneType::Driving`)
     pub fn waypoints(&self, type_: LaneType) -> WaypointPairList {
         let vec = self.inner.GetWaypoints(type_);
         unsafe { WaypointPairList::from_cxx(vec).unwrap_unchecked() }
     }
 
+    /// Returns the bounding box enclosing the junction.
+    ///
+    /// See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.bounding_box)
+    /// in the Python API.
     pub fn bounding_box(&self) -> BoundingBox {
         let bbox = self.inner.GetBoundingBox();
         BoundingBox::from_native(&bbox)
