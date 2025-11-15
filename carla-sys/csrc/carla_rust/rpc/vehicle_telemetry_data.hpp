@@ -1,13 +1,19 @@
 #pragma once
 
-#ifdef CARLA_VERSION_0916
+#include <vector>
+#include <cstdint>
 
+#ifdef CARLA_VERSION_0916
 #include "carla/rpc/VehicleTelemetryData.h"
 #include "carla/rpc/WheelTelemetryData.h"
-#include <vector>
+#else
+#include "carla_rust/rpc/wheel_telemetry_data_stub.hpp"
+#endif
 
 namespace carla_rust {
 namespace rpc {
+
+#ifdef CARLA_VERSION_0916
 
 using carla::rpc::VehicleTelemetryData;
 using carla::rpc::WheelTelemetryData;
@@ -31,7 +37,17 @@ private:
     VehicleTelemetryData data_;
 };
 
-}  // namespace rpc
-}  // namespace carla_rust
+#else  // Not CARLA_VERSION_0916 - create stub types for autocxx
+
+// Stub type for versions < 0.9.16
+// This allows autocxx to see the type name without failing,
+// but the type won't be used since it's not exposed in the API
+struct FfiVehicleTelemetryData {
+    // Empty stub - never instantiated
+    uint8_t _unused;
+};
 
 #endif  // CARLA_VERSION_0916
+
+}  // namespace rpc
+}  // namespace carla_rust

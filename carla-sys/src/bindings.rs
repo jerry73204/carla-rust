@@ -119,9 +119,9 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
     generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
 
-    // NOTE: VehicleTelemetryData is 0.9.16-only. This generate! call will fail for 0.9.14/0.9.15
-    // because the type doesn't exist (guarded by #ifdef CARLA_VERSION_0916 in C++ headers).
-    // TODO: Implement conditional binding generation via build.rs for multi-version support.
+    // NOTE: VehicleTelemetryData is 0.9.16-only, but we provide a stub type for older versions
+    // so autocxx can generate bindings without failing. The actual implementation is guarded
+    // by #ifdef CARLA_VERSION_0916 in C++, and the Rust API is guarded by #[cfg(carla_0916)].
     generate!("carla_rust::rpc::FfiVehicleTelemetryData")
 
     // carla
@@ -168,9 +168,8 @@ include_cpp! {
     generate_pod!("carla::rpc::ActorState")
     generate_pod!("carla::rpc::LightId")
     generate_pod!("carla::rpc::VehicleFailureState")
-    // NOTE: WheelTelemetryData is 0.9.16-only. This generate_pod! call will fail for 0.9.14/0.9.15
-    // because the type doesn't exist (guarded by #ifdef CARLA_VERSION_0916 in C++ headers).
-    // TODO: Implement conditional binding generation via build.rs for multi-version support.
+    // NOTE: WheelTelemetryData is 0.9.16-only, but we provide a stub type for older versions
+    // (via wheel_telemetry_data_stub.hpp) so autocxx can generate bindings without failing.
     generate_pod!("carla::rpc::WheelTelemetryData")
 
     // carla::client
