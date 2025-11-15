@@ -14,7 +14,7 @@
 //! research. This crate wraps the C++ client library, providing a type-safe and
 //! ergonomic Rust interface.
 //!
-//! **Supported CARLA Version:** 0.9.14
+//! **Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
 //!
 //! # Quick Start
 //!

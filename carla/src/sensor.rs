@@ -1,6 +1,9 @@
 //! Sensor data types for processing sensor measurements.
 //!
-//! This module provides types for handling data from CARLA sensors:
+//! This module provides types for handling data from CARLA sensors. It corresponds
+//! to the `carla.sensor` namespace in the Python API.
+//!
+//! # Key Types
 //! - [`SensorData`] - Base type for all sensor data
 //! - [`SensorDataBase`] - Trait providing common sensor data methods
 //! - [`data`] - Specific sensor data types (images, LiDAR, collision, etc.)
@@ -9,12 +12,29 @@
 //! # Sensor Data Types
 //!
 //! The [`data`] submodule contains specialized types for each sensor:
-//! - **Cameras**: [`data::Image`] - RGB, depth, semantic segmentation
-//! - **LiDAR**: [`data::LidarMeasurement`] - Point cloud data
-//! - **Collision**: [`data::CollisionEvent`] - Collision detection
-//! - **GNSS**: [`data::GnssMeasurement`] - GPS coordinates
-//! - **IMU**: [`data::ImuMeasurement`] - Accelerometer and gyroscope
+//!
+//! ## Vision Sensors
+//! - **RGB Camera**: [`data::Image`] - Color images
+//! - **Depth Camera**: [`data::Image`] - Depth maps
+//! - **Semantic Segmentation**: [`data::Image`] - Semantic class labels per pixel
+//!
+//! ## 3D Sensors
+//! - **LiDAR**: [`data::LidarMeasurement`] - 3D point cloud data
+//! - **Semantic LiDAR**: [`data::SemanticLidarMeasurement`] - Point cloud with semantic labels
+//! - **Radar**: [`data::RadarMeasurement`] - Radar detection points
+//!
+//! ## Physics Sensors
+//! - **Collision Detector**: [`data::CollisionEvent`] - Collision detection and impulse
 //! - **Lane Invasion**: [`data::LaneInvasionEvent`] - Lane crossing detection
+//! - **Obstacle Detector**: [`data::ObstacleDetectionEvent`] - Proximity detection
+//!
+//! ## Navigation Sensors
+//! - **GNSS**: [`data::GnssMeasurement`] - GPS coordinates (latitude, longitude, altitude)
+//! - **IMU**: [`data::ImuMeasurement`] - Accelerometer, gyroscope, compass
+//!
+//! ## Advanced Sensors
+//! - **DVS Camera**: [`data::DVSEventArray`] - Event-based vision sensor
+//! - **Optical Flow**: [`data::OpticalFlowImage`] - Motion vectors
 //!
 //! # Camera Utilities
 //!
@@ -23,7 +43,14 @@
 //! - [`camera::world_to_camera`] - Transform world coordinates to camera space
 //! - [`camera::project_to_2d`] - Project 3D points to 2D image coordinates
 //!
+//! # Python API Reference
+//!
+//! See the [carla.sensor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla-sensor)
+//! documentation for the Python equivalent types.
+//!
 //! # Examples
+//!
+//! ## RGB Camera
 //!
 //! ```no_run
 //! use carla::{

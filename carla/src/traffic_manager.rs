@@ -2,7 +2,9 @@
 //!
 //! The [`TrafficManager`] provides fine-grained control over groups of vehicles
 //! in autopilot mode, enabling realistic urban traffic simulation with customizable
-//! behaviors.
+//! behaviors. This module corresponds to the
+//! [carla.TrafficManager](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager)
+//! class in the Python API.
 //!
 //! # Key Features
 //!
@@ -12,6 +14,11 @@
 //! - **Traffic rules**: Ignore pedestrians/vehicles, run red lights (probabilistic)
 //! - **Routing**: Custom paths and imported routes
 //! - **Performance**: Hybrid physics mode for large-scale simulations
+//!
+//! # Python API Reference
+//!
+//! See the [carla.TrafficManager](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager)
+//! documentation for the Python equivalent.
 //!
 //! # Examples
 //!

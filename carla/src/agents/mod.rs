@@ -1,6 +1,12 @@
-//! CARLA navigation agents system.
+//! CARLA navigation agents system for autonomous vehicle control.
 //!
-//! This module provides autonomous vehicle control through a layered architecture:
+//! This module provides autonomous vehicle control through a layered architecture,
+//! corresponding to the Python API's
+//! [agents](https://carla.readthedocs.io/en/0.9.16/adv_agents/)
+//! package.
+//!
+//! # Key Components
+//!
 //! - **Navigation**: High-level route planning and trajectory following
 //! - **Tools**: Utility functions for agent operations
 //!
@@ -15,6 +21,11 @@
 //!     ├─ PIDLongitudinalController (throttle/brake)
 //!     └─ PIDLateralController (steering)
 //! ```
+//!
+//! # Python API Reference
+//!
+//! See the [CARLA Agents](https://carla.readthedocs.io/en/0.9.16/adv_agents/)
+//! documentation for the Python equivalent.
 //!
 //! ## Usage Example
 //!
