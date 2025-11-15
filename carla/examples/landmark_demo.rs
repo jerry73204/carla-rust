@@ -183,7 +183,7 @@ fn main() -> Result<()> {
                 println!("  Road ID: {}", landmark.road_id());
                 println!("  Is Dynamic: {}", landmark.is_dynamic());
                 // Note: orientation() returns C++ enum without Display/Debug trait
-                println!("  Z-Offset: {}", landmark.z_offet());
+                println!("  Z-Offset: {}", landmark.z_offset());
                 println!("  Country: {}", landmark.country());
                 println!("  Height: {}", landmark.height());
                 println!("  Width: {}", landmark.width());
