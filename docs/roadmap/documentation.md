@@ -4,39 +4,54 @@ This document tracks the documentation improvement plan for the carla crate, ens
 
 ## Progress Tracking
 
-Last Updated: 2025-11-15
+Last Updated: 2025-11-16
 
-| Phase | Status | Completion | Priority | Est. Time |
-|-------|--------|------------|----------|-----------|
-| Phase 1: Crate & Module Docs | Not Started | 0% | Critical | 4-6 hours |
-| Phase 2: Core Types (World, Client, Vehicle) | Partial | 60% | Critical | 8-10 hours |
-| Phase 3: Waypoint & Navigation | Not Started | 0% | High | 10-12 hours |
-| Phase 4: Walker Ecosystem | Not Started | 0% | High | 6-8 hours |
-| Phase 5: Traffic & Sensors | Not Started | 0% | Medium | 8-10 hours |
-| Phase 6: Advanced Features | Not Started | 0% | Medium | 6-8 hours |
-| Phase 7: Completeness Pass | Not Started | 0% | Low | 10-15 hours |
+| Phase                                        | Status      | Completion | Priority | Est. Time   | Actual Time |
+|----------------------------------------------|-------------|------------|----------|-------------|-------------|
+| Phase 1: Crate & Module Docs                 | ✅ Done     | 100%       | Critical | 4-6 hours   | ~3 hours    |
+| Phase 2: Core Types (World, Client, Vehicle) | ✅ Done     | 100%       | Critical | 8-10 hours  | ~10 hours   |
+| Phase 3: Waypoint & Navigation               | ✅ Done     | 100%       | High     | 10-12 hours | ~8 hours    |
+| Phase 4: Walker Ecosystem                    | ✅ Done     | 100%       | High     | 6-8 hours   | ~4 hours    |
+| Phase 5: Traffic & Sensors                   | ✅ Done     | 100%       | Medium   | 8-10 hours  | ~6 hours    |
+| Phase 6: Advanced Features                   | ✅ Done     | 100%       | Medium   | 6-8 hours   | ~5 hours    |
+| Phase 7: Version-Aware Python API Links      | Not Started | 0%         | Medium   | 15-20 hours | -           |
+| Phase 8: Completeness Pass                   | Not Started | 0%         | Low      | 10-15 hours | -           |
 
-**Overall Completion**: ~15% (rough estimate based on type coverage)
+**Overall Completion**: ~85% (Phases 1-6 complete, ~250+ methods documented with Python API cross-references)
+
+**Time Invested**: ~36 hours across Phases 1-6
+**Remaining Work**: Phases 7-8 (~25-35 hours estimated)
+
+### Recent Progress (2025-11-16)
+- ✅ Completed Phase 2: All core types (World, Client, Vehicle, Actor) fully documented
+- ✅ Completed Phase 3: Waypoint & Navigation (Map, Waypoint) fully documented
+- ✅ Completed Phase 4: Walker Ecosystem (Walker, WalkerAIController, WalkerBoneControl) fully documented
+- ✅ Completed Phase 5 Traffic: All traffic types (TrafficLight, TrafficSign, Junction, Landmark) - 44 methods
+- ✅ Completed Phase 5 Sensors: All sensor data types (Image, Lidar, Radar, Collision, GNSS, IMU, LaneInvasion) - ~30 methods
+- ✅ Completed Phase 6 Physics: VehiclePhysicsControl and VehicleTelemetryData fully documented
+- ✅ Completed Phase 6 Lighting: Light/LightMut and LightManager fully documented - 25 methods
+- ✅ Completed Phase 6 TrafficManager: All 35+ methods documented with Python API links
+- 📋 Added Phase 7: Version-Aware Python API Links (use cfg_attr to respect CARLA_VERSION)
 
 ## Current State Analysis
 
 ### Crate-Level Documentation
 - ✅ Excellent overview with examples
-- ⚠️ Version number needs update (currently shows 0.9.15, should be 0.9.16 or dynamic)
+- ✅ Version updated to show all supported versions (0.9.14, 0.9.15, 0.9.16)
 - ✅ Good architecture explanation
 - ✅ Multi-version support documented
 
 ### Module-Level Documentation
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| `client` | ⚠️ Partial | Module doc exists but needs expansion |
-| `geom` | ✅ Good | Well-documented with examples |
-| `rpc` | ❌ Missing | No module-level docs |
-| `sensor` | ❌ Missing | No module-level docs |
-| `traffic_manager` | ❌ Missing | No module-level docs |
-| `road` | ❌ Missing | No module-level docs |
-| `agents` | ❌ Missing | No module-level docs |
+| Module            | Status   | Notes                                            |
+|-------------------|----------|--------------------------------------------------|
+| `client`          | ✅ Good  | Comprehensive with type overview + Python refs   |
+| `geom`            | ✅ Good  | Well-documented with examples                    |
+| `rpc`             | ✅ Good  | Complete with type categorization + Python refs  |
+| `sensor`          | ✅ Good  | Categorized sensor types + Python refs           |
+| `traffic_manager` | ✅ Good  | Feature overview + Python refs                   |
+| `road`            | ✅ Good  | OpenDRIVE concepts explained + Python refs       |
+| `agents`          | ✅ Good  | Component hierarchy diagram + Python refs        |
 
 ### Type Coverage Matrix
 
@@ -47,84 +62,84 @@ Last Updated: 2025-11-15
 
 #### client Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| Client | ✅ | ✅ | ✅ All 15 methods | Done |
-| World | ✅ | ✅ | ⚠️ ~50% methods | P1 - High |
-| Vehicle | ✅ | ✅ | ⚠️ ~60% methods | P1 - High |
-| Actor | ⚠️ | ✅ | ⚠️ 15/30 methods | P2 - High |
-| ActorBlueprint | ✅ | ✅ | ✅ All methods | Done |
-| BlueprintLibrary | ✅ | ✅ | ✅ All methods | Done |
-| **Waypoint** | ⚠️ | ❌ | ❌ **0/85+ methods** | **P3 - Critical** |
-| Walker | ❌ | ❌ | ❌ All methods | P4 - High |
-| WalkerAIController | ❌ | ❌ | ❌ All methods | P4 - High |
-| TrafficLight | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| TrafficSign | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| Junction | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| Landmark | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| Light | ❌ | ❌ | ❌ All methods | P6 - Medium |
-| LightManager | ❌ | ❌ | ❌ All methods | P6 - Medium |
-| Map | ⚠️ | ⚠️ | ⚠️ ~40% methods | P3 - High |
-| Sensor | ⚠️ | ⚠️ | ❌ Most methods | P5 - Medium |
-| WorldSnapshot | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| Timestamp | ❌ | ❌ | ❌ All methods | P5 - Medium |
+| Type               | Docs | Python Ref | Methods              | Status |
+|--------------------|------|------------|----------------------|--------|
+| Client             | ✅   | ✅         | ✅ All 15 methods    | ✅ Done |
+| World              | ✅   | ✅         | ✅ All 33 methods    | ✅ Done |
+| Vehicle            | ✅   | ✅         | ✅ All 25 methods    | ✅ Done |
+| Actor              | ✅   | ✅         | ✅ All 20 methods    | ✅ Done |
+| ActorBlueprint     | ✅   | ✅         | ✅ All methods       | ✅ Done |
+| BlueprintLibrary   | ✅   | ✅         | ✅ All methods       | ✅ Done |
+| Waypoint           | ✅   | ✅         | ✅ All ~20 methods   | ✅ Done |
+| Walker             | ✅   | ✅         | ✅ All 6 methods     | ✅ Done |
+| WalkerAIController | ✅   | ✅         | ✅ All 4 methods     | ✅ Done |
+| TrafficLight       | ✅   | ✅         | ✅ All 17 methods    | ✅ Done |
+| TrafficSign        | ✅   | ✅         | ✅ All 2 methods     | ✅ Done |
+| Junction           | ✅   | ✅         | ✅ All 3 methods     | ✅ Done |
+| Landmark           | ✅   | ✅         | ✅ All 22 methods    | ✅ Done |
+| Light/LightMut     | ✅   | ✅         | ✅ All 14 methods    | ✅ Done |
+| LightManager       | ✅   | ✅         | ✅ All 11 methods    | ✅ Done |
+| Map                | ✅   | ✅         | ✅ All 13 methods    | ✅ Done |
+| Sensor             | ✅   | ✅         | ✅ All 3 methods     | ✅ Done |
+| WorldSnapshot      | ⚠️    | ⚠️          | ⚠️ Partial          | Phase 8 |
+| Timestamp          | ⚠️    | ⚠️          | ⚠️ Partial          | Phase 8 |
 
 #### geom Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| Location | ✅ | ✅ | ✅ All methods | Done |
-| Rotation | ✅ | ✅ | ✅ All methods | Done |
-| Transform | ✅ | ✅ | ✅ All methods | Done |
-| Vector2D | ✅ | ✅ | ✅ All methods | Done |
-| Vector3D | ✅ | ✅ | ✅ All methods | Done |
-| BoundingBox | ✅ | ✅ | ✅ All methods | Done |
-| GeoLocation | ✅ | ✅ | ✅ All methods | Done |
+| Type | Docs | Python Ref | Methods | Status |
+|------|------|------------|---------|--------|
+| Location | ✅ | ✅ | ✅ All methods | ✅ Done |
+| Rotation | ✅ | ✅ | ✅ All methods | ✅ Done |
+| Transform | ✅ | ✅ | ✅ All methods | ✅ Done |
+| Vector2D | ✅ | ✅ | ✅ All methods | ✅ Done |
+| Vector3D | ✅ | ✅ | ✅ All methods | ✅ Done |
+| BoundingBox | ✅ | ✅ | ✅ All methods | ✅ Done |
+| GeoLocation | ✅ | ✅ | ✅ All methods | ✅ Done |
 
 #### rpc Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| VehicleControl | ✅ | ✅ | ✅ All fields | Done |
-| WeatherParameters | ✅ | ✅ | ✅ All fields | Done |
-| VehiclePhysicsControl | ⚠️ | ⚠️ | ⚠️ Some fields | P6 - Medium |
-| WalkerControl | ❌ | ❌ | ❌ All fields | P4 - High |
-| WalkerBoneControlIn | ❌ | ❌ | ❌ All fields | P6 - Low |
-| VehicleTelemetryData | ❌ | ❌ | ❌ All fields | P6 - Medium |
-| TrafficLightState | ❌ | ❌ | N/A (enum) | P5 - Medium |
-| AttachmentType | ❌ | ❌ | N/A (enum) | P7 - Low |
+| Type | Docs | Python Ref | Methods | Status |
+|------|------|------------|---------|--------|
+| VehicleControl | ✅ | ✅ | ✅ All fields | ✅ Done |
+| WeatherParameters | ✅ | ✅ | ✅ All fields | ✅ Done |
+| VehiclePhysicsControl | ✅ | ✅ | ✅ All 18 fields | ✅ Done |
+| WalkerControl | ✅ | ✅ | ✅ All fields (FFI re-export) | ✅ Done |
+| WalkerBoneControlIn | ✅ | ✅ | ✅ All fields | ✅ Done |
+| VehicleTelemetryData | ✅ | ✅ | ✅ All fields (0.9.16+) | ✅ Done |
+| TrafficLightState | ⚠️ | ⚠️ | N/A (enum) | Phase 8 |
+| AttachmentType | ⚠️ | ⚠️ | N/A (enum) | Phase 8 |
 
 #### sensor Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| Image | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| LidarMeasurement | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| RadarMeasurement | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| CollisionEvent | ❌ | ❌ | ❌ All methods | P5 - Medium |
-| GnssMeasurement | ❌ | ❌ | ❌ All methods | P6 - Low |
-| IMUMeasurement | ❌ | ❌ | ❌ All methods | P6 - Low |
-| LaneInvasionEvent | ❌ | ❌ | ❌ All methods | P6 - Low |
+| Type              | Docs | Python Ref | Methods        | Status  |
+|-------------------|------|------------|----------------|---------|
+| Image             | ✅   | ✅         | ✅ All 8 methods | ✅ Done |
+| LidarMeasurement  | ✅   | ✅         | ✅ All 5 methods | ✅ Done |
+| RadarMeasurement  | ✅   | ✅         | ✅ All 3 methods | ✅ Done |
+| CollisionEvent    | ✅   | ✅         | ✅ All 3 methods | ✅ Done |
+| GnssMeasurement   | ✅   | ✅         | ✅ All 4 methods | ✅ Done |
+| IMUMeasurement    | ✅   | ✅         | ✅ All 3 methods | ✅ Done |
+| LaneInvasionEvent | ✅   | ✅         | ✅ All 2 methods | ✅ Done |
 
 #### traffic_manager Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| TrafficManager | ❌ | ❌ | ❌ All methods | P6 - Medium |
+| Type           | Docs | Python Ref | Methods          | Status  |
+|----------------|------|------------|------------------|---------|
+| TrafficManager | ✅   | ✅         | ✅ All 35+ methods | ✅ Done |
 
 #### road Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| LaneMarking | ❌ | ❌ | ❌ All methods | P7 - Low |
-| LaneType | ❌ | ❌ | N/A (enum) | P7 - Low |
+| Type        | Docs | Python Ref | Methods        | Status  |
+|-------------|------|------------|----------------|---------|
+| LaneMarking | ⚠️    | ⚠️          | ⚠️ Partial     | Phase 8 |
+| LaneType    | ⚠️    | ⚠️          | N/A (enum)     | Phase 8 |
 
 #### agents Module
 
-| Type | Docs | Python Ref | Methods | Priority |
-|------|------|------------|---------|----------|
-| LocalPlanner | ❌ | ❌ | ❌ All methods | P6 - Low |
-| VehiclePIDController | ❌ | ❌ | ❌ All methods | P6 - Low |
+| Type                 | Docs | Python Ref | Methods        | Status  |
+|----------------------|------|------------|----------------|---------|
+| LocalPlanner         | ⚠️    | ⚠️          | ⚠️ Partial     | Phase 8 |
+| VehiclePIDController | ⚠️    | ⚠️          | ⚠️ Partial     | Phase 8 |
 
 ## Documentation Guidelines
 
@@ -208,152 +223,259 @@ pub struct VehicleTelemetryData { ... }
 
 ## Implementation Plan
 
-### Phase 1: Crate & Module Documentation (Critical Priority)
-**Est. Time**: 4-6 hours
+### Phase 1: Crate & Module Documentation ✅ COMPLETED
+**Est. Time**: 4-6 hours | **Actual Time**: ~3 hours
 
-- [ ] Update crate-level doc version number (0.9.15 → 0.9.16 or dynamic)
-- [ ] Add module docs for `rpc`
-- [ ] Add module docs for `sensor`
-- [ ] Add module docs for `traffic_manager`
-- [ ] Add module docs for `road`
-- [ ] Add module docs for `agents`
-- [ ] Expand `client` module docs with key type overview
+- [x] Update crate-level doc version number (0.9.15 → 0.9.16 or dynamic)
+- [x] Add module docs for `rpc`
+- [x] Add module docs for `sensor`
+- [x] Add module docs for `traffic_manager`
+- [x] Add module docs for `road`
+- [x] Add module docs for `agents`
+- [x] Expand `client` module docs with key type overview
 
-**Completion Criteria**: All modules have comprehensive module-level documentation with Python API links.
+**Completion Criteria**: All modules have comprehensive module-level documentation with Python API links. ✅
 
-### Phase 2: Complete Core Types (Critical Priority)
-**Est. Time**: 8-10 hours
+**Results**:
+- Crate-level docs updated to show all supported versions (0.9.14, 0.9.15, 0.9.16)
+- All 7 modules now have comprehensive documentation with Python API cross-references
+- `client` module includes detailed type categorization (Connection, Actors, Blueprints, Navigation, Lighting, State/Snapshots, Utilities)
+- `sensor` module categorizes sensors by type (Vision, 3D, Physics, Navigation, Advanced)
+- `rpc` module organizes types by functionality (Vehicle Control, Walker Control, Simulation Settings, Telemetry, etc.)
+- `road` module explains OpenDRIVE hierarchy concepts
+- `agents` module includes component hierarchy diagram
+- `traffic_manager` module highlights key features
 
-Focus on completing documentation for partially-documented high-usage types:
+### Phase 2: Complete Core Types (Critical Priority) ✅ COMPLETED
+**Est. Time**: 8-10 hours | **Actual Time**: ~10 hours
 
-- [ ] **World**: Document remaining ~50% of methods
-  - [ ] `spawn_actor()`, `try_spawn_actor()`
-  - [ ] `get_actors()`, `get_actor()`
-  - [ ] `get_spectator()`, `get_settings()`, `apply_settings()`
-  - [ ] `tick()`, `wait_for_tick()`
-  - [ ] `on_tick()`, `remove_on_tick()`
-  - [ ] Add Python API links to all methods
+**Completed**:
+- ✅ World: All 33 methods documented with Python API links
+- ✅ Vehicle: All 25 methods documented with Python API links
+- ✅ Actor: All 20 methods documented with Python API links
+- ✅ Client: All 15 methods documented with Python API links
+- ✅ ActorBlueprint: Complete with Python API links
+- ✅ BlueprintLibrary: Complete with Python API links
 
-- [ ] **Vehicle**: Document remaining ~40% of methods
-  - [ ] `apply_physics_control()`, `get_physics_control()`
-  - [ ] `set_light_state()`, `get_light_state()`
-  - [ ] `open_door()`, `close_door()`
-  - [ ] `set_wheel_steer_direction()`
-  - [ ] `get_traffic_light_state()`
-  - [ ] Add Python API links to all methods
+- [x] **World**: All methods documented with Python API links
+  - [x] Spawn methods: `spawn_actor()`, `spawn_actor_opt()`, `spawn_actor_attached()`
+  - [x] Tick methods: `tick()`, `wait_for_tick()`, `tick_or_timeout()`
+  - [x] `get_spectator()`, `get_settings()`, `apply_settings()`
+  - [x] `on_tick()`, `remove_on_tick()`
+  - [x] All Python API links added
 
-- [ ] **Actor**: Document remaining ~50% of methods
-  - [ ] `get_world()`, `get_location()`, `get_transform()`
-  - [ ] `get_velocity()`, `get_angular_velocity()`, `get_acceleration()`
-  - [ ] `set_target_velocity()`, `set_target_angular_velocity()`
-  - [ ] `enable_constant_velocity()`, `disable_constant_velocity()`
-  - [ ] `add_impulse()`, `add_force()`, `add_angular_impulse()`, `add_torque()`
-  - [ ] Add Python API links to all methods
+- [x] **Vehicle**: All methods documented
+  - [x] `apply_physics_control()`, `get_physics_control()`
+  - [x] `set_light_state()`, `get_light_state()`
+  - [x] `open_door()`, `close_door()`
+  - [x] `set_wheel_steer_direction()`
+  - [x] `get_traffic_light_state()`
+  - [x] All Python API links added
 
-**Completion Criteria**: World, Vehicle, and Actor types have 100% method documentation with Python refs.
+- [x] **Actor**: All methods documented
+  - [x] `get_world()`, `get_location()`, `get_transform()`
+  - [x] `get_velocity()`, `get_angular_velocity()`, `get_acceleration()`
+  - [x] `set_target_velocity()`, `set_target_angular_velocity()`
+  - [x] `enable_constant_velocity()`, `disable_constant_velocity()`
+  - [x] `add_impulse()`, `add_force()`, `add_angular_impulse()`, `add_torque()`
+  - [x] All Python API links added
 
-### Phase 3: Waypoint & Navigation (High Priority)
-**Est. Time**: 10-12 hours
+**Completion Criteria**: ✅ World, Vehicle, and Actor types have 100% method documentation with Python refs.
 
-**Critical Gap**: Waypoint has 85+ undocumented methods.
+### Phase 3: Waypoint & Navigation (High Priority) ✅ COMPLETED
+**Est. Time**: 10-12 hours | **Actual Time**: ~8 hours
 
-- [ ] Add type-level documentation for `Waypoint` with Python API link
-- [ ] Document navigation methods:
-  - [ ] `next()`, `previous()`, `next_until_lane_end()`, `previous_until_lane_start()`
-  - [ ] `get_left_lane()`, `get_right_lane()`
-  - [ ] `get_junction()`
-  - [ ] `get_landmarks()`, `get_landmarks_of_type()`
-- [ ] Document properties/getters:
-  - [ ] `id()`, `transform()`, `road_id()`, `section_id()`, `lane_id()`
-  - [ ] `s()`, `is_junction()`, `lane_width()`, `lane_change()`
-  - [ ] `lane_type()`, `right_lane_marking()`, `left_lane_marking()`
-- [ ] Document all remaining methods with Python API links
-- [ ] Complete `Map` documentation:
-  - [ ] `get_spawn_points()`
-  - [ ] `get_waypoint()`, `get_waypoint_xodr()`
-  - [ ] `get_topology()`
-  - [ ] `generate_waypoints()`
-  - [ ] `get_all_landmarks()`, `get_all_landmarks_of_type()`
+**Completed**:
+- ✅ Waypoint: All ~20 methods documented with Python API links
+- ✅ Map: All 13 methods documented with Python API links
 
-**Completion Criteria**: Waypoint and Map types have 100% method documentation.
+- [x] Add type-level documentation for `Waypoint` with Python API link
+- [x] Document navigation methods:
+  - [x] `next()`, `previous()`, `next_until_lane_end()`, `previous_until_lane_start()`
+  - [x] `get_left_lane()`, `get_right_lane()`
+  - [x] `get_junction()`
+  - [x] `get_landmarks()`, `get_landmarks_of_type()`
+- [x] Document properties/getters:
+  - [x] `id()`, `transform()`, `road_id()`, `section_id()`, `lane_id()`
+  - [x] `s()`, `is_junction()`, `lane_width()`, `lane_change()`
+  - [x] `lane_type()`, `right_lane_marking()`, `left_lane_marking()`
+- [x] Document all remaining methods with Python API links
+- [x] Complete `Map` documentation:
+  - [x] `get_spawn_points()`
+  - [x] `get_waypoint()`, `get_waypoint_xodr()`
+  - [x] `get_topology()`
+  - [x] `generate_waypoints()`
+  - [x] `get_all_landmarks()`, `get_all_landmarks_of_type()`
 
-### Phase 4: Walker Ecosystem (High Priority)
-**Est. Time**: 6-8 hours
+**Completion Criteria**: ✅ Waypoint and Map types have 100% method documentation.
 
-Document the pedestrian/walker API:
+### Phase 4: Walker Ecosystem (High Priority) ✅ COMPLETED
+**Est. Time**: 6-8 hours | **Actual Time**: ~4 hours
 
-- [ ] **Walker**:
-  - [ ] Add type-level docs with Python API link
-  - [ ] Document `apply_control()`
-  - [ ] Document `get_control()`
-  - [ ] Document bone control methods (if exposed)
-  - [ ] Add usage examples
+**Completed**:
+- ✅ Walker: All 6 methods documented with Python API links
+- ✅ WalkerAIController: All 4 methods documented with Python API links
+- ✅ WalkerControl: All fields documented with Python API links
+- ✅ WalkerBoneControlIn: All types documented with Python API links
 
-- [ ] **WalkerAIController**:
-  - [ ] Add type-level docs with Python API link
-  - [ ] Document `start()`, `stop()`, `go_to_location()`
-  - [ ] Document `set_max_speed()`
-  - [ ] Add usage examples
+- [x] **Walker**:
+  - [x] Add type-level docs with Python API link
+  - [x] Document `apply_control()`
+  - [x] Document `get_control()`
+  - [x] Document bone control methods
+  - [x] Add usage examples
 
-- [ ] **WalkerControl** (rpc):
-  - [ ] Document all fields
-  - [ ] Add Python API link
-  - [ ] Add usage examples
+- [x] **WalkerAIController**:
+  - [x] Add type-level docs with Python API link
+  - [x] Document `start()`, `stop()`, `go_to_location()`
+  - [x] Document `set_max_speed()`
+  - [x] Add usage examples
 
-- [ ] **WalkerBoneControlIn** (rpc):
-  - [ ] Document all fields
-  - [ ] Add Python API link
-  - [ ] Note version availability
+- [x] **WalkerControl** (rpc):
+  - [x] Document all fields
+  - [x] Add Python API link
+  - [x] Add usage examples
 
-**Completion Criteria**: Complete walker ecosystem documentation with examples.
+- [x] **WalkerBoneControlIn** (rpc):
+  - [x] Document all fields
+  - [x] Add Python API link
+  - [x] Note version availability
 
-### Phase 5: Traffic & Sensors (Medium Priority)
-**Est. Time**: 8-10 hours
+**Completion Criteria**: ✅ Complete walker ecosystem documentation with examples.
 
-- [ ] **Traffic Types**:
-  - [ ] `TrafficLight`: All methods + Python refs
-  - [ ] `TrafficSign`: All methods + Python refs
-  - [ ] `Junction`: All methods + Python refs
-  - [ ] `Landmark`: All methods + Python refs
-  - [ ] `TrafficLightState` enum
+### Phase 5: Traffic & Sensors (Medium Priority) ✅ COMPLETED
+**Est. Time**: 8-10 hours | **Actual Time**: ~6 hours
 
-- [ ] **Sensor Data Types**:
-  - [ ] `Image`: Document pixel access, save methods
-  - [ ] `LidarMeasurement`: Document point cloud access
-  - [ ] `RadarMeasurement`: Document detection access
-  - [ ] `CollisionEvent`: Document collision data
-  - [ ] `GnssMeasurement`, `IMUMeasurement`, `LaneInvasionEvent`
+**Completed**:
+- ✅ TrafficLight: All 17 methods documented with Python API links
+- ✅ TrafficSign: All 2 methods documented with Python API links
+- ✅ Junction: All 3 methods documented with Python API links
+- ✅ Landmark: All 22 methods documented with Python API links
+- ✅ Sensor: All 3 methods documented with Python API links
+- ✅ Image: All 8 methods documented with Python API links
+- ✅ LidarMeasurement: All 5 methods documented with Python API links
+- ✅ RadarMeasurement: All 3 methods documented with Python API links
+- ✅ CollisionEvent: All 3 methods documented with Python API links
+- ✅ GnssMeasurement: All 4 methods documented with Python API links
+- ✅ IMUMeasurement: All 3 methods documented with Python API links
+- ✅ LaneInvasionEvent: All 2 methods documented with Python API links
 
-- [ ] **Sensor Base**:
-  - [ ] Complete `Sensor` documentation
-  - [ ] Document listening/callback patterns
+- [x] **Traffic Types**:
+  - [x] `TrafficLight`: All methods + Python refs
+  - [x] `TrafficSign`: All methods + Python refs
+  - [x] `Junction`: All methods + Python refs
+  - [x] `Landmark`: All methods + Python refs
+  - [ ] `TrafficLightState` enum (deferred to Phase 8)
 
-**Completion Criteria**: All traffic and sensor types fully documented.
+- [x] **Sensor Data Types**:
+  - [x] `Image`: Document pixel access, save methods
+  - [x] `LidarMeasurement`: Document point cloud access
+  - [x] `RadarMeasurement`: Document detection access
+  - [x] `CollisionEvent`: Document collision data
+  - [x] `GnssMeasurement`, `IMUMeasurement`, `LaneInvasionEvent`
 
-### Phase 6: Advanced Features (Medium Priority)
-**Est. Time**: 6-8 hours
+- [x] **Sensor Base**:
+  - [x] Complete `Sensor` documentation
+  - [x] Document listening/callback patterns
 
-- [ ] **Physics & Control**:
-  - [ ] Complete `VehiclePhysicsControl` documentation
-  - [ ] Document `VehicleTelemetryData` (0.9.16+)
-  - [ ] Document `WheelPhysicsControl`
+**Completion Criteria**: ✅ All traffic and sensor types fully documented.
 
-- [ ] **Lighting**:
-  - [ ] `Light`: All methods + Python refs
-  - [ ] `LightManager`: All methods + Python refs
-  - [ ] `VehicleLightState`
+### Phase 6: Advanced Features (Medium Priority) ✅ COMPLETED
+**Est. Time**: 6-8 hours | **Actual Time**: ~5 hours
 
-- [ ] **Traffic Manager**:
-  - [ ] `TrafficManager`: All methods + Python refs
-  - [ ] Document auto-lane-change, collision detection, etc.
+**Completed**:
+- ✅ VehiclePhysicsControl: All 18 fields documented with Python API links
+- ✅ VehicleTelemetryData: Complete with examples (0.9.16+)
+- ✅ WheelTelemetryData: Complete (0.9.16+)
+- ✅ Light/LightMut: All 14 methods documented with Python API links
+- ✅ LightManager: All 11 methods documented with Python API links
+- ✅ TrafficManager: All 35+ methods documented with Python API links
 
-- [ ] **Agents** (if exposing to users):
+- [x] **Physics & Control**:
+  - [x] Complete `VehiclePhysicsControl` documentation
+  - [x] Document `VehicleTelemetryData` (0.9.16+)
+  - [x] Document `WheelPhysicsControl`
+
+- [x] **Lighting**:
+  - [x] `Light`: All methods + Python refs
+  - [x] `LightManager`: All methods + Python refs
+  - [ ] `VehicleLightState` (deferred to Phase 8)
+
+- [x] **Traffic Manager**:
+  - [x] `TrafficManager`: All methods + Python refs
+  - [x] Document auto-lane-change, collision detection, etc.
+
+- [ ] **Agents** (deferred to Phase 8):
   - [ ] `LocalPlanner`
   - [ ] `VehiclePIDController`
 
-**Completion Criteria**: All advanced features documented.
+**Completion Criteria**: ✅ All advanced features documented (agents deferred to Phase 8).
 
-### Phase 7: Completeness Pass (Low Priority)
+### Phase 7: Version-Aware Python API Links (Medium Priority)
+**Est. Time**: 15-20 hours
+
+Implement conditional Python API documentation links that respect CARLA_VERSION.
+
+**Background**: Currently, all Python API links hardcode version 0.9.16. This creates incorrect links when building documentation for CARLA 0.9.14 or 0.9.15.
+
+**Solution**: Use Rust's `cfg_attr` to conditionally include version-specific Python API links based on the `carla_version_0916`, `carla_version_0915`, and `carla_version_0914` feature flags.
+
+**Tasks**:
+- [ ] **Create Documentation Macro or Helper Pattern** (~2 hours)
+  - Design reusable pattern for version-aware doc links
+  - Consider creating a proc macro if manual approach is too verbose
+  - Document the pattern in CONTRIBUTING.md or similar
+
+- [ ] **Update All Python API Links** (~10-15 hours)
+  - [ ] Core types (World, Client, Vehicle, Actor) - ~80 methods
+  - [ ] Navigation (Waypoint, Map) - ~35 methods
+  - [ ] Walkers (Walker, WalkerAIController) - ~10 methods
+  - [ ] Traffic (TrafficLight, Junction, Landmark) - ~45 methods
+  - [ ] Sensors (Image, Lidar, Radar, etc.) - ~30 methods
+  - [ ] Physics (VehiclePhysicsControl, Telemetry) - ~20 fields
+  - [ ] Lighting (Light, LightManager) - ~25 methods
+  - [ ] TrafficManager - ~35 methods
+  - [ ] RPC types (VehicleControl, WeatherParameters) - ~20 types
+
+- [ ] **Add Build System Support** (~1 hour)
+  - Ensure `carla_version_0914` and `carla_version_0915` are properly declared
+  - Update build.rs to emit all three version flags
+
+- [ ] **Testing & Verification** (~2 hours)
+  - Build docs with CARLA_VERSION=0.9.14
+  - Build docs with CARLA_VERSION=0.9.15
+  - Build docs with CARLA_VERSION=0.9.16
+  - Verify Python API links point to correct version
+  - Test on docs.rs build (defaults to 0.9.16)
+
+**Implementation Pattern**:
+
+For regular methods available in all versions:
+```rust
+/// Method description here.
+///
+#[cfg_attr(carla_version_0916, doc = " See [carla.Type.method](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Type.method)")]
+#[cfg_attr(carla_version_0915, doc = " See [carla.Type.method](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Type.method)")]
+#[cfg_attr(carla_version_0914, doc = " See [carla.Type.method](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Type.method)")]
+#[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+pub fn method(&self) { ... }
+```
+
+For version-specific features:
+```rust
+/// Method only available in 0.9.16+.
+///
+/// **Available in CARLA 0.9.16+ only.**
+///
+#[cfg_attr(carla_version_0916, doc = " See [carla.Type.new_method](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Type.new_method)")]
+#[cfg_attr(carla_version_0916, doc = " in the Python API.")]
+#[cfg(carla_0916)]
+pub fn new_method(&self) { ... }
+```
+
+**Completion Criteria**: All Python API links respect CARLA_VERSION and point to the correct version of the documentation.
+
+### Phase 8: Completeness Pass (Low Priority)
 **Est. Time**: 10-15 hours
 
 - [ ] Audit all types for missing Python API links
@@ -383,21 +505,55 @@ These are small, independent tasks that can be completed quickly:
 
 ## Metrics & Tracking
 
-### Current Coverage Estimates
+### Current Coverage (Phases 1-6 Complete)
 
-- **Crate-level docs**: 90% (needs version update)
-- **Module-level docs**: 30% (2/7 modules)
-- **Type-level docs**: 25% (~40/~150 types)
-- **Method-level docs**: 15% (~100/~700 methods)
-- **Python API cross-refs**: 20% (~30/~150 types)
+- **Crate-level docs**: ✅ 100% (comprehensive with multi-version support)
+- **Module-level docs**: ✅ 100% (all 7 modules documented)
+- **Type-level docs**: ✅ ~85% (all major public types documented)
+- **Method-level docs**: ✅ ~85% (~250+ methods with Python API cross-refs)
+- **Python API cross-refs**: ✅ ~85% (all Phase 1-6 types have version 0.9.16 links)
 
-### Target Coverage
+### Coverage Breakdown by Category
 
-- **Crate-level docs**: 100%
-- **Module-level docs**: 100%
-- **Type-level docs**: 95%+ (excluding internal/unstable types)
-- **Method-level docs**: 90%+ (excluding obvious getters/setters)
-- **Python API cross-refs**: 95%+ (all public types)
+**Fully Documented** (✅):
+- Core types: Client, World, Vehicle, Actor, ActorBlueprint, BlueprintLibrary
+- Navigation: Waypoint, Map
+- Geometry: Location, Rotation, Transform, Vector2D, Vector3D, BoundingBox, GeoLocation
+- Walkers: Walker, WalkerAIController, WalkerControl, WalkerBoneControl
+- Traffic: TrafficLight, TrafficSign, Junction, Landmark
+- Sensors: Sensor, Image, LidarMeasurement, RadarMeasurement, CollisionEvent, GnssMeasurement, IMUMeasurement, LaneInvasionEvent
+- Physics: VehiclePhysicsControl, VehicleTelemetryData, WheelTelemetryData
+- Lighting: Light/LightMut, LightManager
+- Traffic Management: TrafficManager (35+ methods)
+- RPC: VehicleControl, WeatherParameters, WalkerBoneControlIn
+
+**Partially Documented** (⚠️ - for Phase 8):
+- WorldSnapshot, Timestamp
+- Road types: LaneMarking, LaneType
+- Agents: LocalPlanner, VehiclePIDController
+- Enums: TrafficLightState, AttachmentType
+
+### Remaining Work
+
+**Phase 7** (Version-Aware Python API Links):
+- Convert ~250+ hardcoded 0.9.16 links to conditional cfg_attr-based links
+- Ensures correct Python API version links for 0.9.14, 0.9.15, and 0.9.16 builds
+
+**Phase 8** (Completeness Pass):
+- Document remaining partially-documented types
+- Add cross-references between related types
+- Verify all Python API links work
+- Add "See also" sections
+- Polish and consistency review
+
+### Target Coverage (After Phase 8)
+
+- **Crate-level docs**: 100% ✅
+- **Module-level docs**: 100% ✅
+- **Type-level docs**: 95%+ (all public types)
+- **Method-level docs**: 95%+ (comprehensive coverage)
+- **Python API cross-refs**: 95%+ (version-aware for all types)
+- **Version-aware links**: 100% (respects CARLA_VERSION)
 
 ## Notes
 
@@ -407,6 +563,14 @@ For features only available in specific CARLA versions:
 1. Use `#[cfg(carla_0916)]` attribute on types/methods
 2. Add "**Available in CARLA 0.9.16+ only**" note in docs
 3. Link to version-specific Python API docs (e.g., `/en/0.9.16/`)
+
+**Build System Feature Flags**:
+- `carla_version_0916` - Set by carla-sys build.rs when CARLA_VERSION=0.9.16
+- `carla_version_0915` - Set by carla-sys build.rs when CARLA_VERSION=0.9.15
+- `carla_version_0914` - Set by carla-sys build.rs when CARLA_VERSION=0.9.14
+- `carla_0916` - Set by carla build.rs when CARLA_VERSION=0.9.16 (for version-specific APIs)
+
+**Note**: The `carla_version_*` flags are defined in carla-sys, while `carla_0916` is defined in the carla crate. Both can be used for conditional compilation, but `carla_version_*` is preferred for documentation as it covers all three supported versions.
 
 ### Python API URL Format
 
