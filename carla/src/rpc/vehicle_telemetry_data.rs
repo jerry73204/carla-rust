@@ -1,8 +1,11 @@
 /// Telemetry data for a single vehicle wheel.
 ///
-/// Available in CARLA 0.9.16+
+/// **Available in CARLA 0.9.16+ only**
 ///
 /// Provides detailed physics information about a wheel including friction, slip, forces, and torque.
+/// This data is useful for advanced vehicle dynamics analysis and control.
+///
+/// Corresponds to [`carla.WheelTelemetryData`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WheelTelemetryData) in the Python API.
 #[cfg(carla_0916)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct WheelTelemetryData {
@@ -51,9 +54,43 @@ impl From<carla_sys::carla::rpc::WheelTelemetryData> for WheelTelemetryData {
 
 /// Complete vehicle telemetry data including all wheels.
 ///
-/// Available in CARLA 0.9.16+
+/// **Available in CARLA 0.9.16+ only**
 ///
-/// Provides detailed physics and control state information for a vehicle.
+/// Provides detailed physics and control state information for a vehicle, including
+/// speed, control inputs (steering, throttle, brake), engine state, and per-wheel
+/// telemetry. This is useful for analyzing vehicle behavior, tuning physics parameters,
+/// and implementing advanced control systems.
+///
+/// Corresponds to [`carla.VehicleTelemetryData`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehicleTelemetryData) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::client::{ActorBase, Client};
+///
+/// let client = Client::default();
+/// let world = client.world();
+///
+/// # let bp_lib = world.blueprint_library();
+/// # let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
+/// # let spawn_points = world.map().recommended_spawn_points();
+/// # let actor = world.spawn_actor(&vehicle_bp, spawn_points.get(0).unwrap()).unwrap();
+/// let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
+///
+/// // Get telemetry data
+/// let telemetry = vehicle.telemetry_data();
+/// println!("Speed: {} m/s", telemetry.speed);
+/// println!("Engine RPM: {}", telemetry.engine_rpm);
+/// println!("Current gear: {}", telemetry.gear);
+///
+/// // Check wheel data
+/// for (i, wheel) in telemetry.wheels.iter().enumerate() {
+///     println!(
+///         "Wheel {}: slip={:.2}, torque={:.2}",
+///         i, wheel.long_slip, wheel.torque
+///     );
+/// }
+/// ```
 #[cfg(carla_0916)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct VehicleTelemetryData {

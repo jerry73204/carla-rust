@@ -8,24 +8,75 @@ use carla_sys::{
     carla_rust::rpc::FfiVehiclePhysicsControl,
 };
 
+/// Vehicle physics control parameters.
+///
+/// This type contains all the physical parameters that define how a vehicle behaves,
+/// including engine characteristics, transmission, mass properties, aerodynamics,
+/// and wheel physics. These parameters can be queried from a vehicle and modified
+/// to create custom vehicle physics.
+///
+/// Corresponds to [`carla.VehiclePhysicsControl`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehiclePhysicsControl) in the Python API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::client::{ActorBase, Client};
+///
+/// let client = Client::default();
+/// let world = client.world();
+///
+/// # let bp_lib = world.blueprint_library();
+/// # let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
+/// # let spawn_points = world.map().recommended_spawn_points();
+/// # let actor = world.spawn_actor(&vehicle_bp, spawn_points.get(0).unwrap()).unwrap();
+/// let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
+///
+/// // Get current physics control
+/// let mut physics = vehicle.physics_control();
+///
+/// // Modify physics parameters
+/// physics.mass = 1500.0; // Set mass to 1500 kg
+/// physics.drag_coefficient = 0.3; // Reduce drag
+/// physics.max_rpm = 6000.0; // Increase max RPM
+///
+/// // Apply modified physics
+/// vehicle.apply_physics_control(&physics);
+/// ```
 #[derive(Debug, Clone)]
 pub struct VehiclePhysicsControl {
+    /// Engine torque curve as pairs of (RPM, Torque in Nm)
     pub torque_curve: Vec<Vector2D>,
+    /// Maximum RPM of the engine
     pub max_rpm: f32,
+    /// Moment of inertia of the engine (kg·m²)
     pub moi: f32,
+    /// Damping rate when throttle is at maximum
     pub damping_rate_full_throttle: f32,
+    /// Damping rate with no throttle and clutch engaged
     pub damping_rate_zero_throttle_clutch_engaged: f32,
+    /// Damping rate with no throttle and clutch disengaged
     pub damping_rate_zero_throttle_clutch_disengaged: f32,
+    /// If true, the vehicle will have automatic transmission
     pub use_gear_autobox: bool,
+    /// Time it takes to switch gears (seconds)
     pub gear_switch_time: f32,
+    /// Clutch strength (higher = faster gear changes)
     pub clutch_strength: f32,
+    /// Final drive ratio
     pub final_ratio: f32,
+    /// List of gear ratios for forward gears
     pub forward_gears: Vec<GearPhysicsControl>,
+    /// Vehicle mass in kilograms
     pub mass: f32,
+    /// Drag coefficient (lower = more aerodynamic)
     pub drag_coefficient: f32,
+    /// Center of mass location relative to vehicle origin
     pub center_of_mass: Location,
+    /// Steering curve as pairs of (Speed in km/h, Steering angle)
     pub steering_curve: Vec<Vector2D>,
+    /// List of wheel physics parameters (one per wheel)
     pub wheels: Vec<WheelPhysicsControl>,
+    /// If true, uses sweep-based wheel collision detection (more accurate but slower)
     pub use_sweep_wheel_collision: bool,
 }
 
