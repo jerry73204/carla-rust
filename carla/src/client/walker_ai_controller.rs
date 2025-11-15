@@ -14,7 +14,7 @@ use derivative::Derivative;
 /// - Setting maximum walking speed
 /// - Getting random navigation targets
 ///
-/// Corresponds to [`carla.WalkerAIController`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WalkerAIController) in the Python API
+/// Corresponds to [`carla.WalkerAIController`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController) in the Python API
 ///
 /// # Examples
 ///
@@ -62,6 +62,9 @@ pub struct WalkerAIController {
 impl WalkerAIController {
     /// Starts the AI controller.
     ///
+    /// See [carla.WalkerAIController.start](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.start)
+    /// in the Python API.
+    ///
     /// The walker will begin autonomous navigation behavior.
     ///
     /// # Examples
@@ -83,6 +86,9 @@ impl WalkerAIController {
 
     /// Stops the AI controller.
     ///
+    /// See [carla.WalkerAIController.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.stop)
+    /// in the Python API.
+    ///
     /// The walker will stop autonomous navigation.
     ///
     /// # Examples
@@ -103,6 +109,9 @@ impl WalkerAIController {
     }
 
     /// Gets a random navigation location.
+    ///
+    /// See [carla.WalkerAIController.get_random_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.get_random_location)
+    /// in the Python API.
     ///
     /// Returns a random point within the map's navigation mesh,
     /// or `None` if no valid location is available.
@@ -134,6 +143,9 @@ impl WalkerAIController {
 
     /// Directs the walker to navigate to a specific location.
     ///
+    /// See [carla.WalkerAIController.go_to_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.go_to_location)
+    /// in the Python API.
+    ///
     /// The AI controller will pathfind to the destination using the navigation mesh.
     ///
     /// # Arguments
@@ -164,6 +176,9 @@ impl WalkerAIController {
     }
 
     /// Sets the maximum walking speed.
+    ///
+    /// See [carla.WalkerAIController.set_max_speed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.set_max_speed)
+    /// in the Python API.
     ///
     /// # Arguments
     ///

@@ -1,7 +1,64 @@
 //! Walker bone control types for custom animations.
 //!
-//! These types allow control over individual bones in a walker's skeleton
-//! for custom animations and poses.
+//! These types allow precise control over individual bones in a walker's skeleton,
+//! enabling custom animations and poses. This is useful for creating realistic
+//! character animations, gestures, and poses that go beyond the default walking
+//! animations.
+//!
+//! # Overview
+//!
+//! The bone control system works with input and output types:
+//!
+//! - **Input types** ([`BoneTransformDataIn`], [`WalkerBoneControlIn`]) - Used to set custom bone transforms
+//! - **Output types** ([`BoneTransformDataOut`], [`WalkerBoneControlOut`]) - Used to read current bone transforms
+//!
+//! # Python API Reference
+//!
+//! These types correspond to the bone control types in the
+//! [carla.WalkerBoneControl](https://carla.readthedocs.io/en/0.9.16/python_api/#carlawalkerbone) Python API.
+//!
+//! # Examples
+//!
+//! ```no_run
+//! use carla::{
+//!     client::{ActorBase, Client},
+//!     geom::Transform,
+//!     rpc::{BoneTransformDataIn, WalkerBoneControlIn},
+//! };
+//!
+//! let client = Client::default();
+//! let world = client.world();
+//!
+//! # let bp_lib = world.blueprint_library();
+//! # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
+//! # let spawn_points = world.map().recommended_spawn_points();
+//! # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+//! let walker: carla::client::Walker = actor.try_into().unwrap();
+//!
+//! // Create custom bone transforms
+//! let bone_control = WalkerBoneControlIn {
+//!     bone_transforms: vec![
+//!         BoneTransformDataIn {
+//!             bone_name: "crl_arm__L".to_string(),
+//!             transform: Transform::default(),
+//!         },
+//!         BoneTransformDataIn {
+//!             bone_name: "crl_arm__R".to_string(),
+//!             transform: Transform::default(),
+//!         },
+//!     ],
+//! };
+//!
+//! // Apply the bone transforms
+//! walker.set_bones(&bone_control);
+//!
+//! // Read back the current bone transforms
+//! let current_bones = walker.get_bones_transform();
+//! for bone in &current_bones.bone_transforms {
+//!     println!("Bone: {}", bone.bone_name);
+//!     println!("  World: {:?}", bone.world);
+//! }
+//! ```
 
 use crate::geom::Transform;
 use autocxx::WithinBox;
@@ -14,7 +71,10 @@ use carla_sys::carla_rust::rpc::{
 
 /// Input data for a single bone transformation.
 ///
-/// Corresponds to [`carla.BoneTransformDataIn`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.BoneTransformDataIn) in the Python API
+/// Allows setting custom transforms for individual bones in a walker's skeleton.
+/// This is useful for creating custom animations and poses.
+///
+/// Corresponds to [`carla.BoneTransformDataIn`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataIn) in the Python API
 ///
 /// # Examples
 ///
@@ -28,7 +88,7 @@ use carla_sys::carla_rust::rpc::{
 /// ```
 #[derive(Debug, Clone)]
 pub struct BoneTransformDataIn {
-    /// Name of the bone to transform
+    /// Name of the bone to transform (e.g., "crl_arm__L", "crl_leg__R")
     pub bone_name: String,
     /// Transform to apply to the bone
     pub transform: Transform,
@@ -37,17 +97,19 @@ pub struct BoneTransformDataIn {
 /// Output data for a single bone transformation.
 ///
 /// Contains the bone name and its transforms in different coordinate spaces.
+/// The different coordinate spaces allow you to work with bone transforms
+/// relative to the world, the walker component, or the bone's parent.
 ///
-/// Corresponds to [`carla.BoneTransformDataOut`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.BoneTransformDataOut) in the Python API
+/// Corresponds to [`carla.BoneTransformDataOut`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataOut) in the Python API
 #[derive(Debug, Clone)]
 pub struct BoneTransformDataOut {
-    /// Name of the bone
+    /// Name of the bone (e.g., "crl_arm__L", "crl_leg__R")
     pub bone_name: String,
-    /// World-space transform
+    /// Transform in world coordinate space
     pub world: Transform,
-    /// Component-space transform
+    /// Transform in component (walker) coordinate space
     pub component: Transform,
-    /// Relative transform
+    /// Transform relative to the bone's parent
     pub relative: Transform,
 }
 
@@ -67,7 +129,7 @@ pub struct BoneTransformDataOut {
 ///
 /// Used to set custom bone poses on a walker actor.
 ///
-/// Corresponds to [`carla.WalkerBoneControlIn`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WalkerBoneControlIn) in the Python API
+/// Corresponds to [`carla.WalkerBoneControlIn`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlIn) in the Python API
 ///
 /// # Examples
 ///
@@ -100,7 +162,7 @@ pub struct WalkerBoneControlIn {
 ///
 /// Contains the current transforms of all bones in a walker's skeleton.
 ///
-/// Corresponds to [`carla.WalkerBoneControlOut`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WalkerBoneControlOut) in the Python API
+/// Corresponds to [`carla.WalkerBoneControlOut`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlOut) in the Python API
 #[derive(Debug, Clone, Default)]
 pub struct WalkerBoneControlOut {
     /// Vector of bone transformations
