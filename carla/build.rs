@@ -61,20 +61,28 @@ fn main() -> Result<()> {
         version.as_str()
     );
 
-    // Declare the custom cfg
+    // Declare the custom cfg flags
     println!("cargo:rustc-check-cfg=cfg(carla_0916)");
+
+    // Declare cfg flags from carla-sys for version-aware documentation
+    println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
+    println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
+    println!("cargo:rustc-check-cfg=cfg(carla_version_0914)");
 
     // Set up cfg flags for version-specific code
     match version {
         CarlaVersion::V0_9_16 => {
             println!("cargo:rustc-cfg=carla_0916");
-            eprintln!("Setting carla_0916 cfg flag");
+            println!("cargo:rustc-cfg=carla_version_0916");
+            eprintln!("Setting carla_0916 and carla_version_0916 cfg flags");
         }
         CarlaVersion::V0_9_15 => {
-            // No special cfg flag for 0.9.15
+            println!("cargo:rustc-cfg=carla_version_0915");
+            eprintln!("Setting carla_version_0915 cfg flag");
         }
         CarlaVersion::V0_9_14 => {
-            // No special cfg flag for 0.9.14
+            println!("cargo:rustc-cfg=carla_version_0914");
+            eprintln!("Setting carla_version_0914 cfg flag");
         }
     }
 
