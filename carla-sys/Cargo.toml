@@ -29,7 +29,8 @@ zstd = { version = "0.13.0", features = ["zstdmt"] }
 
 [features]
 docs-only = []
-build-prebuilt = []
+build-prebuilt = ["save-bindings"]
+save-bindings = []
 
 [package.metadata.docs.rs]
 no-default-features = true

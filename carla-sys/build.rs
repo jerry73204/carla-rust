@@ -159,8 +159,8 @@ fn main() -> Result<()> {
 
         builder.compile("carla_rust");
 
-        // Save generated bindings
-        #[cfg(feature = "build-prebuilt")]
+        // Save generated bindings if requested
+        #[cfg(feature = "save-bindings")]
         save_bindings()?;
 
         Ok(())
@@ -231,7 +231,7 @@ fn extract_tarball(tarball: &Path, tgt_dir: &Path) -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
+#[cfg(feature = "save-bindings")]
 fn save_bindings() -> Result<()> {
     let src_file = OUT_DIR.join("autocxx-build-dir/rs/autocxx-ffi-default-gen.rs");
     let tgt_dir = CARGO_MANIFEST_DIR.join("generated");
@@ -241,7 +241,11 @@ fn save_bindings() -> Result<()> {
 
     let tgt_file = tgt_dir.join(format!("bindings.{}.rs", version.as_str()));
     fs::create_dir_all(&tgt_dir)?;
-    fs::copy(src_file, tgt_file)?;
+    fs::copy(&src_file, &tgt_file)?;
+
+    eprintln!("Saved generated bindings to: {}", tgt_file.display());
+    eprintln!("Source: {}", src_file.display());
+
     Ok(())
 }
 
