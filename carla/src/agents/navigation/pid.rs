@@ -7,13 +7,49 @@
 use std::collections::VecDeque;
 
 /// PID controller parameters.
+///
+/// Defines the gains for a PID (Proportional-Integral-Derivative) controller.
+/// These parameters determine how the controller responds to errors:
+///
+/// - **K_P (Proportional)**: Responds to current error magnitude. Higher values
+///   produce stronger correction but may cause overshooting.
+/// - **K_I (Integral)**: Responds to accumulated error over time. Eliminates
+///   steady-state error but may cause oscillation if too high.
+/// - **K_D (Derivative)**: Responds to rate of error change. Provides damping
+///   and reduces overshoot.
+///
+/// # Tuning Guidelines
+///
+/// 1. Start with K_I = K_D = 0, increase K_P until system oscillates
+/// 2. Add K_D to dampen oscillations
+/// 3. Add K_I if steady-state error remains
+///
+/// # Examples
+///
+/// ```
+/// use carla::agents::navigation::pid::PIDParams;
+///
+/// // Aggressive controller (fast response, may overshoot)
+/// let aggressive = PIDParams {
+///     k_p: 2.0,
+///     k_i: 0.5,
+///     k_d: 0.1,
+/// };
+///
+/// // Conservative controller (slow response, stable)
+/// let conservative = PIDParams {
+///     k_p: 0.5,
+///     k_i: 0.1,
+///     k_d: 0.05,
+/// };
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct PIDParams {
-    /// Proportional gain
+    /// Proportional gain (responds to current error)
     pub k_p: f32,
-    /// Integral gain
+    /// Integral gain (responds to accumulated error)
     pub k_i: f32,
-    /// Derivative gain
+    /// Derivative gain (responds to rate of change)
     pub k_d: f32,
 }
 

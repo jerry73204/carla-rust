@@ -5,8 +5,54 @@ use cxx::UniquePtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 
-/// Provides information for every actor at a certain moment of time,
-/// Corresponds to [`carla.WorldSnapshot`](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WorldSnapshot) in the Python API.
+/// Snapshot of the world state at a specific simulation frame.
+///
+/// A `WorldSnapshot` captures the state of all actors in the world at a single moment in time.
+/// It provides information about each actor's position, velocity, acceleration, and other state
+/// without querying the simulation. This is useful for:
+/// - Analyzing the state of all actors simultaneously
+/// - Getting consistent data for multiple actors at the same frame
+/// - Avoiding race conditions when reading actor states
+///
+/// Snapshots are typically obtained from [`World::wait_for_tick()`](crate::client::World::wait_for_tick).
+#[cfg_attr(
+    carla_version_0916,
+    doc = " See [carla.WorldSnapshot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WorldSnapshot) in the Python API."
+)]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " See [carla.WorldSnapshot](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.WorldSnapshot) in the Python API."
+)]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " See [carla.WorldSnapshot](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WorldSnapshot) in the Python API."
+)]
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::client::Client;
+///
+/// let client = Client::default();
+/// let world = client.world();
+///
+/// // Wait for next tick and get snapshot
+/// let snapshot = world.wait_for_tick();
+///
+/// println!(
+///     "Frame: {}, Time: {:.2}s",
+///     snapshot.frame(),
+///     snapshot.timestamp().elapsed_seconds
+/// );
+///
+/// // Check all actor velocities
+/// for actor_snapshot in snapshot.actor_snapshots() {
+///     let speed = actor_snapshot.velocity().norm();
+///     if speed > 0.1 {
+///         println!("Actor {} moving at {:.1} m/s", actor_snapshot.id(), speed);
+///     }
+/// }
+/// ```
 #[derive(Derivative)]
 #[derivative(Debug)]
 #[repr(transparent)]
@@ -16,18 +62,52 @@ pub struct WorldSnapshot {
 }
 
 impl WorldSnapshot {
+    /// Returns the unique identifier for this snapshot.
+    ///
+    /// Each snapshot has a unique ID that increments with each simulation tick.
     pub fn id(&self) -> u64 {
         self.inner.GetId()
     }
 
+    /// Returns the simulation frame number.
+    ///
+    /// The frame number starts at 0 and increments by 1 for each simulation tick.
+    /// This is useful for tracking simulation progress and synchronizing data.
     pub fn frame(&self) -> usize {
         self.inner.GetFrame()
     }
 
+    /// Returns the timestamp information for this snapshot.
+    ///
+    /// The timestamp contains:
+    /// - Frame number
+    /// - Elapsed simulation time
+    /// - Delta time since last tick
+    /// - Platform timestamp
+    ///
+    /// See [`Timestamp`] for more details.
     pub fn timestamp(&self) -> &Timestamp {
         self.inner.GetTimestamp()
     }
 
+    /// Checks if an actor exists in this snapshot.
+    ///
+    /// Returns `true` if the actor was present in the simulation at the time
+    /// of this snapshot, `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use carla::client::Client;
+    /// # let client = Client::default();
+    /// # let world = client.world();
+    /// let snapshot = world.wait_for_tick();
+    /// let actor_id = 42;
+    ///
+    /// if snapshot.contains(actor_id) {
+    ///     println!("Actor {} exists", actor_id);
+    /// }
+    /// ```
     pub fn contains(&self, actor_id: ActorId) -> bool {
         self.inner.Contains(actor_id)
     }

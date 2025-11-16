@@ -56,7 +56,59 @@ impl Default for LocalPlannerConfig {
     }
 }
 
-/// Local planner that follows a waypoint queue using PID control.
+/// Local planner for autonomous waypoint following using PID control.
+///
+/// The `LocalPlanner` manages a queue of waypoints and uses a PID controller to
+/// generate vehicle control commands that smoothly follow the planned path. It handles:
+/// - Waypoint queue management (adding, removing passed waypoints)
+/// - Speed control (target speed or speed limits)
+/// - Lateral control (steering to follow path)
+/// - Distance-based waypoint pruning
+///
+/// This corresponds to the Python API's local planner functionality used in the
+/// basic agent implementations.
+///
+/// # Examples
+///
+/// ```no_run
+/// use carla::{
+///     agents::navigation::{LocalPlanner, LocalPlannerConfig},
+///     client::Client,
+///     prelude::*,
+/// };
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let client = Client::default();
+/// let world = client.world();
+/// let map = world.map();
+///
+/// // Spawn vehicle
+/// let blueprint = world
+///     .blueprint_library()
+///     .filter("vehicle.tesla.model3")?
+///     .next()
+///     .expect("Tesla Model 3 blueprint");
+/// let spawn_point = world.map().recommended_spawn_points()[0];
+/// let vehicle = world.spawn_actor(&blueprint, &spawn_point)?.vehicle()?;
+///
+/// // Create local planner
+/// let config = LocalPlannerConfig::default();
+/// let mut planner = LocalPlanner::new(vehicle, config);
+///
+/// // Set target speed
+/// planner.set_speed(30.0); // 30 km/h
+///
+/// // Main control loop
+/// loop {
+///     let control = planner.run_step(false)?;
+///     // Apply control to vehicle...
+///     if planner.done() {
+///         break; // Reached destination
+///     }
+/// }
+/// # Ok(())
+/// # }
+/// ```
 pub struct LocalPlanner {
     vehicle: Vehicle,
     controller: VehiclePIDController,
@@ -69,7 +121,14 @@ pub struct LocalPlanner {
 }
 
 impl LocalPlanner {
-    /// Creates a new LocalPlanner.
+    /// Creates a new `LocalPlanner` for the given vehicle.
+    ///
+    /// Initializes the PID controller with the provided configuration parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `vehicle` - The vehicle to control
+    /// * `config` - Configuration parameters for planning and control
     pub fn new(vehicle: Vehicle, config: LocalPlannerConfig) -> Self {
         let controller = VehiclePIDController::new(
             config.lateral_control_dict,
@@ -109,6 +168,14 @@ impl LocalPlanner {
     }
 
     /// Sets a global plan (list of waypoints with road options).
+    ///
+    /// This replaces or extends the current waypoint queue with a new path to follow.
+    ///
+    /// # Arguments
+    ///
+    /// * `plan` - Vector of (waypoint, road_option) tuples defining the path
+    /// * `stop_waypoint_creation` - Currently unused (reserved for future use)
+    /// * `clean_queue` - If true, clears existing waypoints before adding new ones
     pub fn set_global_plan(
         &mut self,
         plan: Vec<(Waypoint, RoadOption)>,
@@ -151,6 +218,25 @@ impl LocalPlanner {
     }
 
     /// Executes one planning step and returns vehicle control.
+    ///
+    /// This is the main method called each frame to:
+    /// 1. Remove passed waypoints from the queue
+    /// 2. Get the current target waypoint
+    /// 3. Run the PID controller to compute steering, throttle, and brake
+    ///
+    /// # Arguments
+    ///
+    /// * `debug` - If true, prints debug information about planning state
+    ///
+    /// # Returns
+    ///
+    /// Vehicle control commands to follow the path, or an error if control computation fails.
+    ///
+    /// # Behavior
+    ///
+    /// - Returns brake=1.0 when waypoint queue is empty (destination reached)
+    /// - Automatically removes waypoints as the vehicle passes them
+    /// - Uses distance-based pruning that scales with vehicle speed
     pub fn run_step(&mut self, debug: bool) -> Result<VehicleControl> {
         // Purge waypoints queue of obsolete waypoints (passed waypoints)
         let vehicle_location = self.vehicle.transform().location;
