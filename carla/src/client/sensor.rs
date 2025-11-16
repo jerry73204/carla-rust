@@ -66,7 +66,6 @@ impl Sensor {
     /// Stops the sensor from generating data.
     ///
     /// The sensor can be restarted with [`listen()`](Self::listen).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.stop)"
@@ -88,7 +87,6 @@ impl Sensor {
     }
 
     /// Returns whether the sensor is currently listening (generating data).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.is_listening)"
@@ -113,7 +111,6 @@ impl Sensor {
     ///
     /// The callback is invoked each time the sensor generates new data. It runs on
     /// a separate thread, so use appropriate synchronization if sharing state.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.listen)"

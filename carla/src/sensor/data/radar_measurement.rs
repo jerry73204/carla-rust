@@ -70,7 +70,6 @@ pub struct RadarMeasurement {
 
 impl RadarMeasurement {
     /// Returns the number of objects detected by the radar.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.RadarMeasurement.get_detection_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.RadarMeasurement.get_detection_count)"

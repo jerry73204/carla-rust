@@ -50,7 +50,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the unique actor ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.id)"
@@ -72,7 +71,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor blueprint type ID (e.g., "vehicle.tesla.model3").
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.type_id)"
@@ -104,7 +102,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns semantic segmentation tags for this actor.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.semantic_tags)"
@@ -126,7 +123,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the parent actor, if attached to one.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_parent)"
@@ -148,7 +144,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's blueprint attributes (color, role_name, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.attributes)"
@@ -171,7 +166,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the world this actor belongs to.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_world)"
@@ -193,7 +187,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's current location (position only).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_location)"
@@ -215,7 +208,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's current transform (position and rotation).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_transform)"
@@ -237,7 +229,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's velocity vector in m/s.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_velocity)"
@@ -266,7 +257,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's acceleration vector in m/s².
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_acceleration)"
@@ -295,7 +285,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns the actor's angular velocity in radians/s.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_angular_velocity)"
@@ -324,7 +313,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Teleports the actor to a new location.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_location)"
@@ -346,7 +334,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Teleports the actor to a new transform (position and rotation).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_transform)"
@@ -368,7 +355,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Sets the target velocity for physics simulation (m/s).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_velocity)"
@@ -395,7 +381,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Sets the target angular velocity for physics simulation (rad/s).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_angular_velocity)"
@@ -422,7 +407,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Enables constant velocity mode (actor moves at fixed velocity regardless of physics).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.enable_constant_velocity)"
@@ -449,7 +433,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Disables constant velocity mode.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.disable_constant_velocity)"
@@ -471,7 +454,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Applies an impulse (instantaneous velocity change) to the actor's center of mass.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_impulse)"
@@ -510,7 +492,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Applies a continuous force to the actor's center of mass.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_force)"
@@ -549,7 +530,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Applies an angular impulse (instantaneous rotation change).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_angular_impulse)"
@@ -576,7 +556,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Applies a continuous torque (rotational force).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_torque)"
@@ -603,7 +582,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Enables or disables physics simulation for this actor.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_simulate_physics)"
@@ -625,7 +603,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Enables or disables gravity for this actor.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_enable_gravity)"
@@ -647,7 +624,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns whether the actor still exists in the simulation.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_alive)"
@@ -669,7 +645,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns whether the actor is currently dormant (inactive/sleeping).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_dormant)"
@@ -691,7 +666,6 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns whether the actor is currently active.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_active)"

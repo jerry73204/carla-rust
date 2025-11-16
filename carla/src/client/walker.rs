@@ -71,7 +71,6 @@ pub struct Walker {
 
 impl Walker {
     /// Applies walker control (direction, speed, jump).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.apply_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.apply_control)"
@@ -120,7 +119,6 @@ impl Walker {
     }
 
     /// Gets the current walker control state.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.get_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_control)"
@@ -144,7 +142,6 @@ impl Walker {
     }
 
     /// Sets bone transforms for custom walker animations.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.set_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.set_bones)"
@@ -198,7 +195,6 @@ impl Walker {
     }
 
     /// Blends the current pose with the animation pose.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.blend_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.blend_pose)"
@@ -239,7 +235,6 @@ impl Walker {
     }
 
     /// Shows the custom pose (blend factor 1.0).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.show_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.show_pose)"
@@ -277,7 +272,6 @@ impl Walker {
     }
 
     /// Hides the custom pose (blend factor 0.0).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.hide_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.hide_pose)"
@@ -315,7 +309,6 @@ impl Walker {
     }
 
     /// Gets the current bone transforms.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Walker.get_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_bones)"

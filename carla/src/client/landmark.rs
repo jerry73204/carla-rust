@@ -50,7 +50,6 @@ pub struct Landmark {
 
 impl Landmark {
     /// Returns the waypoint closest to the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.waypoint)"
@@ -73,7 +72,6 @@ impl Landmark {
     }
 
     /// Returns the transform (position and rotation) of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.transform)"
@@ -95,7 +93,6 @@ impl Landmark {
     }
 
     /// Returns the OpenDRIVE road ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.road_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.road_id)"
@@ -117,7 +114,6 @@ impl Landmark {
     }
 
     /// Returns the distance from the beginning of the road.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.distance](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.distance)"
@@ -139,7 +135,6 @@ impl Landmark {
     }
 
     /// Returns the s coordinate in the OpenDRIVE specification.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.s](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.s)"
@@ -163,7 +158,6 @@ impl Landmark {
     }
 
     /// Returns the t coordinate in the OpenDRIVE specification.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.t](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.t)"
@@ -187,7 +181,6 @@ impl Landmark {
     }
 
     /// Returns the unique identifier of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.id)"
@@ -209,7 +202,6 @@ impl Landmark {
     }
 
     /// Returns the name of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.name](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.name)"
@@ -231,7 +223,6 @@ impl Landmark {
     }
 
     /// Returns whether the landmark is dynamic.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.is_dynamic](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.is_dynamic)"
@@ -255,7 +246,6 @@ impl Landmark {
     }
 
     /// Returns the orientation of the signal.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.orientation](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.orientation)"
@@ -277,7 +267,6 @@ impl Landmark {
     }
 
     /// Returns the Z offset of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.z_offset](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.z_offset)"
@@ -299,7 +288,6 @@ impl Landmark {
     }
 
     /// Returns the country code of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.country](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.country)"
@@ -321,7 +309,6 @@ impl Landmark {
     }
 
     /// Returns the type of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.type)"
@@ -345,7 +332,6 @@ impl Landmark {
     }
 
     /// Returns the subtype of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.sub_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.sub_type)"
@@ -367,7 +353,6 @@ impl Landmark {
     }
 
     /// Returns the value of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.value](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.value)"
@@ -391,7 +376,6 @@ impl Landmark {
     }
 
     /// Returns the unit of the landmark's value.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.unit](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.unit)"
@@ -415,7 +399,6 @@ impl Landmark {
     }
 
     /// Returns the height of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.height](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.height)"
@@ -437,7 +420,6 @@ impl Landmark {
     }
 
     /// Returns the width of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.width)"
@@ -459,7 +441,6 @@ impl Landmark {
     }
 
     /// Returns the text content of the landmark.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.text](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.text)"
@@ -481,7 +462,6 @@ impl Landmark {
     }
 
     /// Returns the horizontal offset.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.h_offset](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.h_offset)"
@@ -503,7 +483,6 @@ impl Landmark {
     }
 
     /// Returns the pitch angle.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.pitch](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.pitch)"
@@ -525,7 +504,6 @@ impl Landmark {
     }
 
     /// Returns the roll angle.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Landmark.roll](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Landmark.roll)"

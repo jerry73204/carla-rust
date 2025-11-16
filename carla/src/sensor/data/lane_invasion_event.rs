@@ -93,7 +93,6 @@ impl LaneInvasionEvent {
     /// Returns the actor that owns the lane invasion sensor.
     ///
     /// This is the actor that crossed the lane markings and has the sensor attached.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LaneInvasionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LaneInvasionEvent.actor)"
@@ -127,7 +126,6 @@ impl LaneInvasionEvent {
     ///
     /// Each [`LaneMarking`] contains information about the type (solid, broken, etc.),
     /// color (white, yellow, etc.), and width of the marking.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LaneInvasionEvent.crossed_lane_markings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LaneInvasionEvent.crossed_lane_markings)"

@@ -54,7 +54,6 @@ pub struct Junction {
 
 impl Junction {
     /// Returns the junction ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.id)"
@@ -76,7 +75,6 @@ impl Junction {
     }
 
     /// Returns pairs of waypoints defining possible paths through the junction.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.get_waypoints)"
@@ -102,7 +100,6 @@ impl Junction {
     }
 
     /// Returns the bounding box enclosing the junction.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.bounding_box)"

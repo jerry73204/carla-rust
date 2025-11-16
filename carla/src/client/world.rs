@@ -93,7 +93,6 @@ impl World {
     /// Returns the unique ID of this world/episode.
     ///
     /// The ID changes whenever the world is reloaded or a new map is loaded.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.id)"
@@ -117,7 +116,6 @@ impl World {
     /// Returns the map associated with this world.
     ///
     /// The map contains the road network, spawn points, and navigation information.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_map](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_map)"
@@ -140,7 +138,6 @@ impl World {
     }
 
     /// Returns the light manager for controlling street lights and vehicle lights.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_lightmanager](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_lightmanager)"
@@ -164,7 +161,6 @@ impl World {
     /// Loads a map layer (e.g., buildings, props, roads).
     ///
     /// Use this to dynamically load/unload parts of the map for performance.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.load_map_layer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.load_map_layer)"
@@ -186,7 +182,6 @@ impl World {
     }
 
     /// Unloads a map layer.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.unload_map_layer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.unload_map_layer)"
@@ -210,7 +205,6 @@ impl World {
     /// Returns the blueprint library containing all available actor blueprints.
     ///
     /// Blueprints are templates for spawning actors (vehicles, sensors, pedestrians, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_blueprint_library](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_blueprint_library)"
@@ -247,7 +241,6 @@ impl World {
     }
 
     /// Returns the light state of all vehicles in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_vehicles_light_states](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_vehicles_light_states)"
@@ -272,7 +265,6 @@ impl World {
     /// Returns a random navigable location (on roads/sidewalks).
     ///
     /// Useful for spawning actors at random valid positions.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_random_location_from_navigation](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_random_location_from_navigation)"
@@ -297,7 +289,6 @@ impl World {
     /// Returns the spectator actor (the free-flying camera).
     ///
     /// Move the spectator to change the view in the CARLA window.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_spectator](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_spectator)"
@@ -322,7 +313,6 @@ impl World {
     /// Returns the current simulation settings.
     ///
     /// Settings include synchronous mode, fixed time step, rendering options, etc.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_settings)"
@@ -347,7 +337,6 @@ impl World {
     /// Returns a snapshot of the current world state.
     ///
     /// Snapshots contain actor transforms, velocities, and simulation timestamp.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_snapshot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_snapshot)"
@@ -370,7 +359,6 @@ impl World {
     }
 
     /// Returns names of all environment objects in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_names_of_all_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_names_of_all_objects)"
@@ -398,7 +386,6 @@ impl World {
     /// Finds an actor by its ID.
     ///
     /// Returns `None` if the actor doesn't exist or has been destroyed.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actor)"
@@ -421,7 +408,6 @@ impl World {
     }
 
     /// Returns a list of all actors currently in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_actors](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actors)"
@@ -455,7 +441,6 @@ impl World {
     }
 
     /// Returns a list of actors matching the given IDs.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_actors](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_actors)"
@@ -487,7 +472,6 @@ impl World {
     /// # Arguments
     /// * `waypoint` - The waypoint to check from
     /// * `distance` - Maximum distance to search for traffic lights
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_traffic_lights_from_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_lights_from_waypoint)"
@@ -516,7 +500,6 @@ impl World {
     ///
     /// # Arguments
     /// * `junc_id` - Junction ID to query
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_traffic_lights_in_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_lights_in_junction)"
@@ -544,7 +527,6 @@ impl World {
     /// Applies new simulation settings.
     ///
     /// Use this to change synchronous mode, time step, rendering options, etc.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.apply_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.apply_settings)"
@@ -592,7 +574,6 @@ impl World {
     }
 
     /// Spawns an actor in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.spawn_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.spawn_actor)"
@@ -807,7 +788,6 @@ impl World {
     ///
     /// In synchronous mode, the server waits for this call before advancing the simulation.
     /// In asynchronous mode, this returns when the next tick completes.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.wait_for_tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.wait_for_tick)"
@@ -887,7 +867,6 @@ impl World {
     /// Advances the simulation by one tick (synchronous mode only).
     ///
     /// Uses the default timeout of 60 seconds.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.tick)"
@@ -909,7 +888,6 @@ impl World {
     }
 
     /// Sets the percentage of pedestrians that will cross roads.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.set_pedestrians_cross_factor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_pedestrians_cross_factor)"
@@ -935,7 +913,6 @@ impl World {
     }
 
     /// Sets the random seed for pedestrian behavior.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.set_pedestrians_seed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_pedestrians_seed)"
@@ -958,7 +935,6 @@ impl World {
     }
 
     /// Returns the traffic sign actor at the given landmark location.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_traffic_sign](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_sign)"
@@ -984,7 +960,6 @@ impl World {
     }
 
     /// Returns the traffic light actor at the given landmark location.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_traffic_light](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_light)"
@@ -1010,7 +985,6 @@ impl World {
     }
 
     /// Returns the traffic light actor with the given OpenDRIVE sign ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_traffic_light_from_opendrive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_traffic_light_from_opendrive)"
@@ -1034,7 +1008,6 @@ impl World {
     }
 
     /// Freezes or unfreezes all traffic lights in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.freeze_all_traffic_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.freeze_all_traffic_lights)"
@@ -1056,7 +1029,6 @@ impl World {
     }
 
     /// Resets all traffic lights to their initial state.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.reset_all_traffic_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.reset_all_traffic_lights)"
@@ -1078,7 +1050,6 @@ impl World {
     }
 
     /// Returns bounding boxes for environment objects matching the queried tag.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_level_bbs](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_level_bbs)"
@@ -1101,7 +1072,6 @@ impl World {
     }
 
     /// Returns the current weather parameters.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_weather](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_weather)"
@@ -1123,7 +1093,6 @@ impl World {
     }
 
     /// Sets the weather parameters (sun, clouds, precipitation, fog, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.set_weather](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.set_weather)"
@@ -1159,7 +1128,6 @@ impl World {
     }
 
     /// Returns environment objects matching the queried tag.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.get_environment_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.get_environment_objects)"
@@ -1185,7 +1153,6 @@ impl World {
     }
 
     /// Enables or disables environment objects by their IDs.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.World.enable_environment_objects](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.World.enable_environment_objects)"

@@ -78,7 +78,6 @@ pub struct Image {
 
 impl Image {
     /// Returns the image height in pixels.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Image.height](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.height)"
@@ -100,7 +99,6 @@ impl Image {
     }
 
     /// Returns the image width in pixels.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Image.width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.width)"
@@ -133,7 +131,6 @@ impl Image {
     }
 
     /// Returns the horizontal field of view of the camera in degrees.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.fov)"
@@ -333,7 +330,6 @@ impl Image {
     ///
     /// The file format is determined by the file extension (e.g., ".png", ".jpg").
     /// CARLA images are in BGRA format and are converted to RGBA before saving.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.save_to_disk)"

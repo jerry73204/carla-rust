@@ -52,7 +52,6 @@ pub struct TrafficLight {
 
 impl TrafficLight {
     /// Returns the OpenDRIVE sign ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_opendrive_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_opendrive_id)"
@@ -74,7 +73,6 @@ impl TrafficLight {
     }
 
     /// Returns the trigger volume bounding box.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_trigger_volume](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_trigger_volume)"
@@ -98,7 +96,6 @@ impl TrafficLight {
     }
 
     /// Returns the current state of the traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_state)"
@@ -120,7 +117,6 @@ impl TrafficLight {
     }
 
     /// Sets the state of the traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.set_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.set_state)"
@@ -142,7 +138,6 @@ impl TrafficLight {
     }
 
     /// Returns the duration of the green light phase in seconds.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_green_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_green_time)"
@@ -164,7 +159,6 @@ impl TrafficLight {
     }
 
     /// Returns the duration of the yellow light phase in seconds.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_yellow_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_yellow_time)"
@@ -186,7 +180,6 @@ impl TrafficLight {
     }
 
     /// Returns the duration of the red light phase in seconds.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_red_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_red_time)"
@@ -208,7 +201,6 @@ impl TrafficLight {
     }
 
     /// Sets the duration of the green light phase.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.set_green_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.set_green_time)"
@@ -233,7 +225,6 @@ impl TrafficLight {
     }
 
     /// Sets the duration of the yellow light phase.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.set_yellow_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.set_yellow_time)"
@@ -258,7 +249,6 @@ impl TrafficLight {
     }
 
     /// Sets the duration of the red light phase.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.set_red_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.set_red_time)"
@@ -283,7 +273,6 @@ impl TrafficLight {
     }
 
     /// Returns the time elapsed since the current phase started.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_elapsed_time](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_elapsed_time)"
@@ -305,7 +294,6 @@ impl TrafficLight {
     }
 
     /// Freezes or unfreezes the traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.freeze](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.freeze)"
@@ -332,7 +320,6 @@ impl TrafficLight {
     }
 
     /// Returns whether the traffic light is frozen.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.is_frozen](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.is_frozen)"
@@ -354,7 +341,6 @@ impl TrafficLight {
     }
 
     /// Returns the index of the pole in the traffic light group.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_pole_index](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_pole_index)"
@@ -376,7 +362,6 @@ impl TrafficLight {
     }
 
     /// Returns all traffic lights in the same synchronization group.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_group_traffic_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_group_traffic_lights)"
@@ -399,7 +384,6 @@ impl TrafficLight {
     }
 
     /// Resets the state of the entire traffic light group.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.reset_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.reset_group)"
@@ -424,7 +408,6 @@ impl TrafficLight {
     }
 
     /// Returns waypoints affected by this traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_affected_lane_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_affected_lane_waypoints)"
@@ -449,7 +432,6 @@ impl TrafficLight {
     }
 
     /// Returns the bounding boxes of the light bulbs.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_light_boxes](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_light_boxes)"
@@ -472,7 +454,6 @@ impl TrafficLight {
     }
 
     /// Returns the OpenDRIVE ID of this traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_opendrive_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_opendrive_id)"
@@ -494,7 +475,6 @@ impl TrafficLight {
     }
 
     /// Returns waypoints where vehicles should stop for this traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficLight.get_stop_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficLight.get_stop_waypoints)"

@@ -74,7 +74,6 @@ impl LidarMeasurement {
     /// Returns the horizontal angle of the LiDAR measurement in degrees.
     ///
     /// This represents the current rotation angle of the LiDAR sensor.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.horizontal_angle)"
@@ -98,7 +97,6 @@ impl LidarMeasurement {
     /// Returns the number of points detected in the specified channel.
     ///
     /// Returns `None` if the channel index is out of bounds.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.get_point_count)"
@@ -120,7 +118,6 @@ impl LidarMeasurement {
     }
 
     /// Returns the number of channels (laser beams) in the LiDAR sensor.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.channels)"

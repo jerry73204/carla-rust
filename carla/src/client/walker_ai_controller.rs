@@ -76,7 +76,6 @@ pub struct WalkerAIController {
 
 impl WalkerAIController {
     /// Starts the AI controller.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.WalkerAIController.start](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.start)"
@@ -114,7 +113,6 @@ impl WalkerAIController {
     }
 
     /// Stops the AI controller.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.WalkerAIController.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.stop)"
@@ -152,7 +150,6 @@ impl WalkerAIController {
     }
 
     /// Gets a random navigation location.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.WalkerAIController.get_random_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.get_random_location)"
@@ -199,7 +196,6 @@ impl WalkerAIController {
     }
 
     /// Directs the walker to navigate to a specific location.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.WalkerAIController.go_to_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.go_to_location)"
@@ -247,7 +243,6 @@ impl WalkerAIController {
     }
 
     /// Sets the maximum walking speed.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.WalkerAIController.set_max_speed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerAIController.set_max_speed)"

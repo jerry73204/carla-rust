@@ -64,7 +64,6 @@ pub struct TrafficManager {
 
 impl TrafficManager {
     /// Returns the port used by this traffic manager instance.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.get_port](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.get_port)"
@@ -91,7 +90,6 @@ impl TrafficManager {
     }
 
     /// Enables or disables OSM (OpenStreetMap) mode.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_osm_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_osm_mode)"
@@ -113,7 +111,6 @@ impl TrafficManager {
     }
 
     /// Sets a custom path for a vehicle to follow.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_path](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_path)"
@@ -170,7 +167,6 @@ impl TrafficManager {
     }
 
     /// Sets an imported route for a vehicle to follow.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_imported_route](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_imported_route)"
@@ -220,7 +216,6 @@ impl TrafficManager {
     }
 
     /// Enables or disables respawning of dormant vehicles.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_respawn_dormant_vehicles)"
@@ -242,7 +237,6 @@ impl TrafficManager {
     }
 
     /// Sets the boundaries for respawning dormant vehicles.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_boundaries_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_boundaries_respawn_dormant_vehicles)"
@@ -273,7 +267,6 @@ impl TrafficManager {
     /// Enables or disables hybrid physics mode for performance optimization.
     ///
     /// In hybrid physics mode, only vehicles near the ego vehicle use full physics simulation.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_hybrid_physics_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_mode)"
@@ -297,7 +290,6 @@ impl TrafficManager {
     /// Sets the radius for hybrid physics mode.
     ///
     /// Vehicles within this radius of the ego vehicle will use full physics simulation.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_hybrid_physics_radius](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_radius)"
@@ -348,7 +340,6 @@ impl TrafficManager {
     ///
     /// A positive percentage makes the vehicle drive slower, negative makes it faster.
     /// For example, 20 means the vehicle will drive at 80% of the speed limit.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.vehicle_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.vehicle_percentage_speed_difference)"
@@ -379,7 +370,6 @@ impl TrafficManager {
     ///
     /// A positive offset makes the vehicle drive to the right of the lane center,
     /// negative makes it drive to the left.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)"
@@ -416,7 +406,6 @@ impl TrafficManager {
     /// Sets the percentage difference from the speed limit for all vehicles.
     ///
     /// A positive percentage makes vehicles drive slower, negative makes them faster.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.global_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.global_percentage_speed_difference)"
@@ -451,7 +440,6 @@ impl TrafficManager {
     ///
     /// When enabled, the traffic manager automatically updates the vehicle's lights
     /// based on the situation (brake lights, turn signals, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)"
@@ -478,7 +466,6 @@ impl TrafficManager {
     /// Enables or disables collision detection between two vehicles.
     ///
     /// When disabled, the reference vehicle will ignore collisions with the other vehicle.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.collision_detection](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.collision_detection)"
@@ -511,7 +498,6 @@ impl TrafficManager {
     /// Forces a lane change for a vehicle.
     ///
     /// The direction parameter indicates which direction to change: true for left, false for right.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.force_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.force_lane_change)"
@@ -538,7 +524,6 @@ impl TrafficManager {
     /// Enables or disables automatic lane changes for a vehicle.
     ///
     /// When enabled, the vehicle can autonomously change lanes when appropriate.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.auto_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.auto_lane_change)"
@@ -565,7 +550,6 @@ impl TrafficManager {
     /// Sets the minimum distance to maintain from the leading vehicle in meters.
     ///
     /// This controls the safe following distance for the vehicle.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.distance_to_leading_vehicle)"
@@ -592,7 +576,6 @@ impl TrafficManager {
     /// Sets the percentage chance for a vehicle to ignore pedestrians.
     ///
     /// A value of 100 means the vehicle will always ignore pedestrians, 0 means it will always respect them.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.ignore_walkers_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_walkers_percentage)"
@@ -619,7 +602,6 @@ impl TrafficManager {
     /// Sets the percentage chance for a vehicle to ignore other vehicles.
     ///
     /// A value of 100 means the vehicle will always ignore other vehicles, 0 means it will always respect them.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.ignore_vehicles_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_vehicles_percentage)"
@@ -646,7 +628,6 @@ impl TrafficManager {
     /// Sets the percentage chance for a vehicle to run red lights.
     ///
     /// A value of 100 means the vehicle will always run red lights, 0 means it will always stop.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.ignore_lights_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_lights_percentage)"
@@ -673,7 +654,6 @@ impl TrafficManager {
     /// Enables or disables synchronous mode for the traffic manager.
     ///
     /// In synchronous mode, the traffic manager waits for a tick before updating.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_synchronous_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_synchronous_mode)"
@@ -717,7 +697,6 @@ impl TrafficManager {
     /// Executes one tick in synchronous mode.
     ///
     /// Returns true if the tick was successful.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.tick)"
@@ -741,7 +720,6 @@ impl TrafficManager {
     /// Sets the minimum distance to maintain from the leading vehicle for all vehicles.
     ///
     /// This controls the safe following distance globally.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_global_distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_global_distance_to_leading_vehicle)"
@@ -780,7 +758,6 @@ impl TrafficManager {
     /// Sets the percentage chance for a vehicle to randomly change to the left lane.
     ///
     /// Higher values increase the likelihood of random left lane changes.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.random_left_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_left_lanechange_percentage)"
@@ -811,7 +788,6 @@ impl TrafficManager {
     /// Sets the percentage chance for a vehicle to randomly change to the right lane.
     ///
     /// Higher values increase the likelihood of random right lane changes.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.random_right_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_right_lanechange_percentage)"
@@ -842,7 +818,6 @@ impl TrafficManager {
     /// Sets the random seed for the traffic manager's random number generator.
     ///
     /// This allows for reproducible traffic behavior across runs.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.set_random_device_seed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_random_device_seed)"
@@ -864,7 +839,6 @@ impl TrafficManager {
     }
 
     /// Shuts down the traffic manager and releases all resources.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.TrafficManager.shut_down](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.shut_down)"

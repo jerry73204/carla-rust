@@ -67,7 +67,6 @@ pub struct GnssMeasurement {
 
 impl GnssMeasurement {
     /// Returns the geographic location as a GeoLocation struct.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.GnssMeasurement.transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.transform)"
@@ -96,7 +95,6 @@ impl GnssMeasurement {
     }
 
     /// Returns the longitude in degrees (WGS84 coordinate system).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.GnssMeasurement.longitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.longitude)"
@@ -118,7 +116,6 @@ impl GnssMeasurement {
     }
 
     /// Returns the latitude in degrees (WGS84 coordinate system).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.GnssMeasurement.latitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.latitude)"
@@ -140,7 +137,6 @@ impl GnssMeasurement {
     }
 
     /// Returns the altitude in meters above sea level (WGS84 coordinate system).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.GnssMeasurement.altitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.altitude)"

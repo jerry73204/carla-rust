@@ -68,7 +68,6 @@ pub struct LightMut<'a> {
 
 impl<'a> LightMut<'a> {
     /// Returns the color of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.color)"
@@ -90,7 +89,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns the unique identifier of this light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.id)"
@@ -112,7 +110,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns the intensity of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.intensity)"
@@ -134,7 +131,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns the location of the light in the world.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.location)"
@@ -156,7 +152,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns the group that this light belongs to.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.light_group)"
@@ -178,7 +173,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns the current state of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.light_state)"
@@ -200,7 +194,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns true if the light is currently on.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.is_on](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.is_on)"
@@ -222,7 +215,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Returns true if the light is currently off.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.is_off](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.is_off)"
@@ -244,7 +236,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Sets the color of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.set_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.set_color)"
@@ -266,7 +257,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Sets the intensity of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.set_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.set_intensity)"
@@ -288,7 +278,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Sets the group that this light belongs to.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.set_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.set_light_group)"
@@ -310,7 +299,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Sets the complete state of the light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.set_light_state)"
@@ -332,7 +320,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Turns the light on.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.turn_on](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.turn_on)"
@@ -354,7 +341,6 @@ impl<'a> LightMut<'a> {
     }
 
     /// Turns the light off.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Light.turn_off](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Light.turn_off)"

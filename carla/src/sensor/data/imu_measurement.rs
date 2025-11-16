@@ -77,7 +77,6 @@ impl ImuMeasurement {
     /// - x: forward/backward
     /// - y: left/right
     /// - z: up/down
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.IMUMeasurement.accelerometer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.accelerometer)"
@@ -105,7 +104,6 @@ impl ImuMeasurement {
     /// Returns the compass heading in radians.
     ///
     /// The compass value represents the orientation relative to north (0 radians).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.IMUMeasurement.compass](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.compass)"
@@ -132,7 +130,6 @@ impl ImuMeasurement {
     /// - x: roll rate (rotation around forward axis)
     /// - y: pitch rate (rotation around lateral axis)
     /// - z: yaw rate (rotation around vertical axis)
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.IMUMeasurement.gyroscope](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.gyroscope)"

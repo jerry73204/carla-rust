@@ -87,7 +87,6 @@ impl CollisionEvent {
     /// Returns the actor that owns the collision sensor.
     ///
     /// This is the actor that experienced the collision and has the sensor attached.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.actor)"
@@ -120,7 +119,6 @@ impl CollisionEvent {
     /// Returns the actor that was hit in the collision, if any.
     ///
     /// Returns `None` if the collision was with a static object (like a building or the ground).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.other_actor)"
@@ -159,7 +157,6 @@ impl CollisionEvent {
     /// The magnitude indicates collision severity, and the direction shows the impact vector.
     ///
     /// Units: Newton-seconds (N·s)
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.normal_impulse)"

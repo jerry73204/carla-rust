@@ -60,7 +60,6 @@ pub struct Waypoint {
 
 impl Waypoint {
     /// Returns the unique identifier of this waypoint.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.id)"
@@ -82,7 +81,6 @@ impl Waypoint {
     }
 
     /// Returns the OpenDRIVE road ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.road_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.road_id)"
@@ -104,7 +102,6 @@ impl Waypoint {
     }
 
     /// Returns the OpenDRIVE section ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.section_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.section_id)"
@@ -126,7 +123,6 @@ impl Waypoint {
     }
 
     /// Returns the OpenDRIVE lane ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.lane_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.lane_id)"
@@ -150,7 +146,6 @@ impl Waypoint {
     /// Returns the distance from the beginning of the road to this waypoint (in meters).
     ///
     /// This is the "s" coordinate in the OpenDRIVE specification.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.s](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.s)"
@@ -172,7 +167,6 @@ impl Waypoint {
     }
 
     /// Returns the transform (position and rotation) of this waypoint.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.transform)"
@@ -194,7 +188,6 @@ impl Waypoint {
     }
 
     /// Returns the OpenDRIVE junction ID (or -1 if not in a junction).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.junction_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.junction_id)"
@@ -216,7 +209,6 @@ impl Waypoint {
     }
 
     /// Returns `true` if this waypoint is inside a junction.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.is_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.is_junction)"
@@ -238,7 +230,6 @@ impl Waypoint {
     }
 
     /// Returns the junction this waypoint belongs to (if any).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.get_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.get_junction)"
@@ -261,7 +252,6 @@ impl Waypoint {
     }
 
     /// Returns the width of the lane in meters.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.lane_width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.lane_width)"
@@ -283,7 +273,6 @@ impl Waypoint {
     }
 
     /// Returns the lane type (Driving, Sidewalk, Shoulder, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.lane_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.lane_type)"
@@ -307,7 +296,6 @@ impl Waypoint {
     /// Returns waypoints at a specified distance in the forward direction.
     ///
     /// Returns all possible waypoints at the given distance (e.g., branching at junctions).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.next](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.next)"
@@ -335,7 +323,6 @@ impl Waypoint {
     /// Returns waypoints at a specified distance in the backward direction.
     ///
     /// Returns all possible waypoints at the given distance (e.g., branching at junctions).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.previous](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.previous)"
@@ -361,7 +348,6 @@ impl Waypoint {
     }
 
     /// Returns waypoints at a specified distance ahead until reaching the end of the lane.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.next_until_lane_end](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.next_until_lane_end)"
@@ -387,7 +373,6 @@ impl Waypoint {
     }
 
     /// Returns waypoints at a specified distance backward until reaching the start of the lane.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.previous_until_lane_start](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.previous_until_lane_start)"
@@ -418,7 +403,6 @@ impl Waypoint {
     /// Returns the waypoint to the left lane, if available.
     ///
     /// Checks if a lane change to the left is possible based on lane markings.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.get_left_lane](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.get_left_lane)"
@@ -443,7 +427,6 @@ impl Waypoint {
     /// Returns the waypoint to the right lane, if available.
     ///
     /// Checks if a lane change to the right is possible based on lane markings.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.get_right_lane](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.get_right_lane)"
@@ -466,7 +449,6 @@ impl Waypoint {
     }
 
     /// Returns the lane marking on the right side of the lane.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.right_lane_marking](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.right_lane_marking)"
@@ -489,7 +471,6 @@ impl Waypoint {
     }
 
     /// Returns the lane marking on the left side of the lane.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.left_lane_marking](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.left_lane_marking)"
@@ -514,7 +495,6 @@ impl Waypoint {
     /// Returns the lane change permission for this waypoint.
     ///
     /// Indicates which lane changes are allowed (left, right, both, or none).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.lane_change)"
@@ -576,7 +556,6 @@ impl Waypoint {
     /// Python-compatible alias for `all_landmarks_in_distance()`.
     ///
     /// Returns all landmarks from the current waypoint until the specified distance.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.get_landmarks](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.get_landmarks)"
@@ -605,7 +584,6 @@ impl Waypoint {
     /// Python-compatible alias for `landmarks_of_type_in_distance()`.
     ///
     /// Returns landmarks of a specific type from the current waypoint until the specified distance.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Waypoint.get_landmarks_of_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Waypoint.get_landmarks_of_type)"

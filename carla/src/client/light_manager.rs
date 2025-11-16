@@ -74,7 +74,6 @@ pub struct LightManager {
 
 impl LightManager {
     /// Returns a list of lights belonging to the specified group.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.get_all_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_all_lights)"
@@ -97,7 +96,6 @@ impl LightManager {
     }
 
     /// Returns the color of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.get_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_color)"
@@ -119,7 +117,6 @@ impl LightManager {
     }
 
     /// Returns the intensity of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.get_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_intensity)"
@@ -141,7 +138,6 @@ impl LightManager {
     }
 
     /// Returns the state of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.get_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_state)"
@@ -163,7 +159,6 @@ impl LightManager {
     }
 
     /// Returns the group of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.get_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_group)"
@@ -185,7 +180,6 @@ impl LightManager {
     }
 
     /// Returns true if the light with the given ID is active (on).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.is_active)"
@@ -207,7 +201,6 @@ impl LightManager {
     }
 
     /// Sets whether the light with the given ID is active (on/off).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.set_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_active)"
@@ -229,7 +222,6 @@ impl LightManager {
     }
 
     /// Sets the color of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.set_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_color)"
@@ -251,7 +243,6 @@ impl LightManager {
     }
 
     /// Sets the intensity of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.set_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_intensity)"
@@ -273,7 +264,6 @@ impl LightManager {
     }
 
     /// Sets the complete state of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_state)"
@@ -295,7 +285,6 @@ impl LightManager {
     }
 
     /// Sets the group of the light with the given ID.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.LightManager.set_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_group)"

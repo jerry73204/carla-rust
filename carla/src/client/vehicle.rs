@@ -80,7 +80,6 @@ pub struct Vehicle {
 
 impl Vehicle {
     /// Enables or disables autopilot using the default Traffic Manager port.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.set_autopilot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_autopilot)"
@@ -116,7 +115,6 @@ impl Vehicle {
     }
 
     /// Enables or disables autopilot with a specific Traffic Manager port.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.set_autopilot](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_autopilot)"
@@ -138,7 +136,6 @@ impl Vehicle {
     }
 
     /// Enables or disables debug telemetry display.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.show_debug_telemetry](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.show_debug_telemetry)"
@@ -160,7 +157,6 @@ impl Vehicle {
     }
 
     /// Applies vehicle control (throttle, steering, braking, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.apply_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_control)"
@@ -200,7 +196,6 @@ impl Vehicle {
     }
 
     /// Returns the current vehicle control state.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_control)"
@@ -224,7 +219,6 @@ impl Vehicle {
     /// Applies physics control parameters (mass, drag, torque curve, etc.).
     ///
     /// Use this to tune vehicle handling characteristics.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.apply_physics_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_physics_control)"
@@ -247,7 +241,6 @@ impl Vehicle {
     }
 
     /// Returns the current physics control parameters.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_physics_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_physics_control)"
@@ -269,7 +262,6 @@ impl Vehicle {
     }
 
     /// Applies Ackermann steering control (used for bicycle-like steering models).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.apply_ackermann_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_ackermann_control)"
@@ -291,7 +283,6 @@ impl Vehicle {
     }
 
     /// Configures Ackermann controller settings.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.apply_ackermann_controller_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.apply_ackermann_controller_settings)"
@@ -313,7 +304,6 @@ impl Vehicle {
     }
 
     /// Returns the current Ackermann controller settings.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_ackermann_controller_settings](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_ackermann_controller_settings)"
@@ -335,7 +325,6 @@ impl Vehicle {
     }
 
     /// Opens a vehicle door.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.open_door](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.open_door)"
@@ -357,7 +346,6 @@ impl Vehicle {
     }
 
     /// Closes a vehicle door.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.close_door](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.close_door)"
@@ -379,7 +367,6 @@ impl Vehicle {
     }
 
     /// Sets the vehicle light state (headlights, brake lights, turn signals, etc.).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_light_state)"
@@ -419,7 +406,6 @@ impl Vehicle {
     }
 
     /// Sets the steering angle for a specific wheel (in degrees).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.set_wheel_steer_direction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_wheel_steer_direction)"
@@ -441,7 +427,6 @@ impl Vehicle {
     }
 
     /// Returns the steering angle for a specific wheel (in degrees).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_wheel_steer_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_wheel_steer_angle)"
@@ -463,7 +448,6 @@ impl Vehicle {
     }
 
     /// Returns the current light state.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_light_state)"
@@ -504,7 +488,6 @@ impl Vehicle {
     }
 
     /// Returns the state of the traffic light affecting this vehicle.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_traffic_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_traffic_light_state)"
@@ -526,7 +509,6 @@ impl Vehicle {
     }
 
     /// Returns whether the vehicle is currently at a traffic light.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.is_at_traffic_light](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.is_at_traffic_light)"
@@ -550,7 +532,6 @@ impl Vehicle {
     /// Returns the vehicle's current failure state.
     ///
     /// Available since CARLA 0.9.14+
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_failure_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_failure_state)"
@@ -579,7 +560,6 @@ impl Vehicle {
     ///
     /// The bounding box contains the vehicle's extent (half-dimensions) and transform
     /// (center position and orientation) in world coordinates.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.bounding_box)"
@@ -623,7 +603,6 @@ impl Vehicle {
     ///
     /// Provides comprehensive physics data including speed, steering, engine RPM,
     /// gear, drag, and per-wheel telemetry (friction, slip, forces, torque).
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_telemetry_data](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_telemetry_data)"
@@ -671,7 +650,6 @@ impl Vehicle {
     /// Sets the pitch angle for a specific wheel (in degrees).
     ///
     /// **Available only in CARLA 0.9.16+**
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.set_wheel_pitch_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.set_wheel_pitch_angle)"
@@ -696,7 +674,6 @@ impl Vehicle {
     /// Returns the pitch angle for a specific wheel (in degrees).
     ///
     /// **Available only in CARLA 0.9.16+**
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.get_wheel_pitch_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.get_wheel_pitch_angle)"
@@ -755,7 +732,6 @@ impl Vehicle {
     /// Restores PhysX physics simulation (after using Chrono or CarSim).
     ///
     /// **Available only in CARLA 0.9.16+**
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.restore_physx_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.restore_physx_physics)"
@@ -778,7 +754,6 @@ impl Vehicle {
     }
 
     /// Enables CarSim physics simulation with the given configuration file.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.enable_carsim](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.enable_carsim)"
@@ -800,7 +775,6 @@ impl Vehicle {
     }
 
     /// Enables or disables using the CarSim road for physics.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.use_carsim_road](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.use_carsim_road)"
@@ -824,7 +798,6 @@ impl Vehicle {
     /// Enables Chrono physics engine for high-fidelity vehicle simulation.
     ///
     /// Chrono provides more accurate tire and suspension modeling than the default physics.
-    ///
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Vehicle.enable_chrono_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Vehicle.enable_chrono_physics)"
