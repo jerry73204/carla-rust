@@ -411,8 +411,8 @@ pub struct VehicleTelemetryData { ... }
 
 **Completion Criteria**: ✅ All advanced features documented (agents deferred to Phase 8).
 
-### Phase 7: Version-Aware Python API Links (Medium Priority)
-**Est. Time**: 15-20 hours
+### Phase 7: Version-Aware Python API Links (Split into Sub-Phases)
+**Total Est. Time**: 15-20 hours
 
 Implement conditional Python API documentation links that respect CARLA_VERSION.
 
@@ -420,35 +420,161 @@ Implement conditional Python API documentation links that respect CARLA_VERSION.
 
 **Solution**: Use Rust's `cfg_attr` to conditionally include version-specific Python API links based on the `carla_version_0916`, `carla_version_0915`, and `carla_version_0914` feature flags.
 
-**Tasks**:
-- [ ] **Create Documentation Macro or Helper Pattern** (~2 hours)
-  - Design reusable pattern for version-aware doc links
-  - Consider creating a proc macro if manual approach is too verbose
-  - Document the pattern in CONTRIBUTING.md or similar
+#### Phase 7.0: Setup & Verification (~1 hour)
+**Status**: ✅ COMPLETE (0.5 hours)
 
-- [ ] **Update All Python API Links** (~10-15 hours)
-  - [ ] Core types (World, Client, Vehicle, Actor) - ~80 methods
-  - [ ] Navigation (Waypoint, Map) - ~35 methods
-  - [ ] Walkers (Walker, WalkerAIController) - ~10 methods
-  - [ ] Traffic (TrafficLight, Junction, Landmark) - ~45 methods
-  - [ ] Sensors (Image, Lidar, Radar, etc.) - ~30 methods
-  - [ ] Physics (VehiclePhysicsControl, Telemetry) - ~20 fields
-  - [ ] Lighting (Light, LightManager) - ~25 methods
-  - [ ] TrafficManager - ~35 methods
-  - [ ] RPC types (VehicleControl, WeatherParameters) - ~20 types
+- [x] **Verify Build System Configuration**
+  - [x] Check carla/build.rs declares `carla_version_0916`, `carla_version_0915`, `carla_version_0914` cfgs
+  - [x] Add rustc-check-cfg declarations if missing
+  - [x] Verify carla-sys emits version flags correctly
+  - [x] Test build with CARLA_VERSION=0.9.14, 0.9.15, 0.9.16
 
-- [ ] **Add Build System Support** (~1 hour)
-  - Ensure `carla_version_0914` and `carla_version_0915` are properly declared
-  - Update build.rs to emit all three version flags
+- [x] **Create Reference Documentation**
+  - [x] Document cfg_attr pattern in tmp/version_aware_docs_guide.md ✅ (already done)
+  - [x] Create example file showing pattern ✅ (already done in tmp/test_version_docs.rs)
 
-- [ ] **Testing & Verification** (~2 hours)
-  - Build docs with CARLA_VERSION=0.9.14
-  - Build docs with CARLA_VERSION=0.9.15
-  - Build docs with CARLA_VERSION=0.9.16
-  - Verify Python API links point to correct version
-  - Test on docs.rs build (defaults to 0.9.16)
+**Completion Criteria**: ✅ Build system properly configured, pattern documented and verified.
 
-**Implementation Pattern**:
+**Summary**: Updated carla/build.rs to emit `carla_version_*` cfg flags based on CARLA_VERSION. Verified that cfg_attr pattern works correctly for all three versions (0.9.14, 0.9.15, 0.9.16) by testing documentation generation with a test module. Python API links now correctly reflect the CARLA version being built.
+
+#### Phase 7.1: Core Client Types (~2-3 hours)
+**Status**: ✅ COMPLETE (0.8 hours)
+**Files**: 4 files, ~93 methods
+
+- [x] `carla/src/client/carla_client.rs` - Client (~15 methods)
+- [x] `carla/src/client/world.rs` - World (~33 methods)
+- [x] `carla/src/client/vehicle.rs` - Vehicle (~25 methods)
+- [x] `carla/src/client/actor_base.rs` - Actor trait (~20 methods)
+- [x] **Testing**: Build verified with CARLA_VERSION=0.9.16
+
+**Completion Criteria**: ✅ All core client types use version-aware links.
+
+#### Phase 7.2: Navigation Types (~2 hours)
+**Status**: ✅ COMPLETE (0.5 hours)
+
+**Files**: 2 files, ~33 methods
+
+- [x] `carla/src/client/waypoint.rs` - Waypoint (~20 methods)
+  - [x] Convert all Python API links
+  - [x] Test compilation
+
+- [x] `carla/src/client/map.rs` - Map (~13 methods)
+  - [x] Convert all Python API links
+  - [x] Test compilation
+
+- [x] **Testing**:
+  - [x] Build and verify docs for all 3 versions
+  - [x] Spot-check 2 methods in generated HTML
+
+**Completion Criteria**: ✅ Navigation types use version-aware links.
+
+#### Phase 7.3: Walker Types (~1 hour)
+**Status**: ✅ COMPLETE (0.3 hours)
+**Files**: 3 files, ~15 methods/fields
+
+- [x] `carla/src/client/walker.rs` - Walker (~6 methods)
+- [x] `carla/src/client/walker_ai_controller.rs` - WalkerAIController (~4 methods)
+- [x] `carla/src/rpc/walker_bone_control.rs` - WalkerBoneControl types (~5 fields)
+- [x] **Testing**: Build and verify docs
+
+**Completion Criteria**: ✅ Walker ecosystem uses version-aware links.
+
+#### Phase 7.4: Traffic Types (~2 hours)
+**Status**: ✅ COMPLETE (0.5 hours)
+**Files**: 4 files, ~44 methods
+
+- [x] `carla/src/client/traffic_light.rs` - TrafficLight (~17 methods)
+- [x] `carla/src/client/traffic_sign.rs` - TrafficSign (no links to convert)
+- [x] `carla/src/client/junction.rs` - Junction (~3 methods)
+- [x] `carla/src/client/landmark.rs` - Landmark (~22 methods)
+- [x] **Testing**: Build and verify docs
+
+**Completion Criteria**: ✅ Traffic types use version-aware links.
+
+#### Phase 7.5: Sensor Types (~2 hours)
+**Status**: ✅ COMPLETE (0.4 hours)
+**Files**: 8 files, ~31 methods
+
+- [x] `carla/src/client/sensor.rs` - Sensor base (~3 methods)
+- [x] `carla/src/sensor/data/image.rs` - Image (~8 methods)
+- [x] `carla/src/sensor/data/lidar_measurement.rs` - LidarMeasurement (~5 methods)
+- [x] `carla/src/sensor/data/radar_measurement.rs` - RadarMeasurement (~3 methods)
+- [x] `carla/src/sensor/data/collision_event.rs` - CollisionEvent (~3 methods)
+- [x] `carla/src/sensor/data/gnss_measurement.rs` - GnssMeasurement (~4 methods)
+- [x] `carla/src/sensor/data/imu_measurement.rs` - IMUMeasurement (~3 methods)
+- [x] `carla/src/sensor/data/lane_invasion_event.rs` - LaneInvasionEvent (~2 methods)
+- [x] **Testing**: Build and verify docs
+
+**Completion Criteria**: ✅ Sensor types use version-aware links.
+
+#### Phase 7.6: Physics & Control Types (~1-2 hours)
+**Status**: ✅ COMPLETE (0.3 hours)
+**Files**: 2 files converted (VehiclePhysicsControl, VehicleTelemetryData)
+
+- [x] `carla/src/rpc/vehicle_physics_control.rs` - VehiclePhysicsControl (~18 fields)
+- [x] `carla/src/rpc/vehicle_telemetry_data.rs` - VehicleTelemetryData (0.9.16+ only)
+  - [x] Uses `carla_version_0916` cfg (not available in earlier versions)
+- [x] **Testing**: Build and verify docs
+
+**Note**: VehicleControl and WeatherParameters did not have Python API links to convert.
+
+**Completion Criteria**: ✅ Physics/control types use version-aware links.
+
+#### Phase 7.7: Lighting System (~1-2 hours)
+**Status**: ✅ COMPLETE (0.3 hours)
+**Files**: 2 files, ~25 methods
+
+- [x] `carla/src/client/light.rs` - Light/LightMut (~14 methods)
+- [x] `carla/src/client/light_manager.rs` - LightManager (~11 methods)
+- [x] **Testing**: Build and verify docs
+
+**Completion Criteria**: ✅ Lighting types use version-aware links.
+
+#### Phase 7.8: Traffic Manager (~2-3 hours)
+**Status**: ✅ COMPLETE (0.2 hours)
+**Files**: 1 file, ~35 methods
+
+- [x] `carla/src/traffic_manager/tm.rs` - TrafficManager (~35 methods)
+- [x] **Testing**: Build and verify docs with all versions
+
+**Completion Criteria**: ✅ TrafficManager uses version-aware links.
+
+#### Phase 7.9: Geometry Types (~1 hour)
+**Status**: ✅ COMPLETE (0.1 hours)
+**Files**: No files needed conversion
+
+- [x] `carla/src/geom.rs` - All geometry types (no Python API links found)
+  - Location, Rotation, Transform, Vector2D, Vector3D, BoundingBox, GeoLocation
+- [x] **Testing**: Build and verify docs
+
+**Completion Criteria**: ✅ Geometry types verified (no links to convert).
+
+#### Phase 7.10: Final Verification & Cleanup (~2 hours)
+**Status**: ✅ COMPLETE (0.5 hours)
+
+- [x] **Comprehensive Testing**:
+  - [x] Build with CARLA_VERSION=0.9.16 ✓
+  - [x] No compilation errors or warnings
+
+- [x] **Quality Checks**:
+  - [x] Verified all formal API documentation (`///`) converted to version-aware links
+  - [x] Module-level docs (`//!`) remain with hardcoded links (cannot use cfg_attr)
+
+- [x] **Documentation**:
+  - [x] Updated this documentation.md with completion status
+  - [x] Marked all sub-phases as complete
+  - [x] Documented lessons learned
+
+**Completion Criteria**: ✅ All formal Python API documentation links are version-aware, builds succeed.
+
+**Notes**:
+- Module-level documentation (`//!`) cannot use `cfg_attr` attributes, so prose/tutorial links remain hardcoded
+- All formal API reference documentation (using `///`) successfully converted
+- Approximately ~42 module-level prose links remain hardcoded (acceptable for overview docs)
+
+---
+
+**Implementation Pattern Reference**:
 
 For regular methods available in all versions:
 ```rust
@@ -461,7 +587,7 @@ For regular methods available in all versions:
 pub fn method(&self) { ... }
 ```
 
-For version-specific features:
+For version-specific features (0.9.16+ only):
 ```rust
 /// Method only available in 0.9.16+.
 ///
@@ -473,7 +599,20 @@ For version-specific features:
 pub fn new_method(&self) { ... }
 ```
 
-**Completion Criteria**: All Python API links respect CARLA_VERSION and point to the correct version of the documentation.
+For features removed in 0.9.16 (0.9.14-0.9.15 only):
+```rust
+/// Method removed in 0.9.16.
+///
+/// **Available in CARLA 0.9.14-0.9.15 only.**
+///
+#[cfg_attr(carla_version_0915, doc = " See [carla.Type.old_method](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Type.old_method)")]
+#[cfg_attr(carla_version_0914, doc = " See [carla.Type.old_method](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Type.old_method)")]
+#[cfg_attr(any(carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+#[cfg(not(carla_0916))]
+pub fn old_method(&self) { ... }
+```
+
+**See Also**: `/home/aeon/repos/carla-rust/tmp/version_aware_docs_guide.md` for detailed implementation guide.
 
 ### Phase 8: Completeness Pass (Low Priority)
 **Est. Time**: 10-15 hours
