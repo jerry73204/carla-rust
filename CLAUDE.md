@@ -44,7 +44,7 @@ Examples serve dual purposes:
 vim carla/examples/my_feature_demo.rs
 
 # 2. Build with dev-release profile
-make build
+just build
 
 # 3. Test manually
 cargo run --example my_feature_demo --profile dev-release
@@ -78,11 +78,11 @@ mod tests {
 
 **❌ DO NOT use `cargo build` directly**
 
-**✅ DO use `make build` or add `--profile dev-release`**
+**✅ DO use `just build` or add `--profile dev-release`**
 
 ```bash
 # Recommended
-make build
+just build
 
 # If using cargo directly, always add --profile dev-release
 cargo build --all-targets --profile dev-release
@@ -101,7 +101,7 @@ Always run linting before committing code:
 
 ```bash
 # Run Rust linting (fmt + clippy)
-make lint-rust
+just lint-rust
 
 # Or run individual checks
 cargo +nightly fmt --check
@@ -571,15 +571,15 @@ sha256sum carla-sys/generated/*.tar.zstd
 
 ### Build System
 
-**IMPORTANT:** Use `make build` for development builds, or add `--profile dev-release` when using cargo directly.
+**IMPORTANT:** Use `just build` for development builds, or add `--profile dev-release` when using cargo directly.
 
-The Makefile provides consistent build configuration:
+The justfile provides consistent build configuration:
 
 ```bash
 # Build all crates, tests, and examples (RECOMMENDED)
-make build
+just build
 
-# Equivalent cargo command (if not using make):
+# Equivalent cargo command (if not using just):
 cargo build --all-targets --profile dev-release
 ```
 
