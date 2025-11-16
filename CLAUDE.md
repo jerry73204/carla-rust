@@ -24,6 +24,26 @@ This is a Rust client library for the CARLA simulator. The project uses FFI bind
 
 **Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
 
+### Build System: justfile
+
+This project uses [just](https://github.com/casey/just) as a command runner for common development tasks. The `justfile` provides a consistent interface for building, testing, formatting, and linting code.
+
+**Key advantages over Makefiles:**
+- Simpler, more readable syntax
+- Better error messages
+- No implicit rules or tab requirements
+- Recipe arguments and validation
+
+**Install just:**
+```bash
+cargo install just
+```
+
+**See all available commands:**
+```bash
+just --list
+```
+
 ## Best Practices
 
 ### Testing Strategy
@@ -539,35 +559,60 @@ CARLA_VERSION=0.9.14 cargo build
 
 #### Creating Prebuilt Libraries
 
-To create new prebuilt library distributions:
+To create new prebuilt library distributions, use the justfile recipes:
 
-1. Build from CARLA source with `build-prebuilt` feature:
+**Build prebuilt package from CARLA source:**
 ```bash
-export CARLA_DIR=/path/to/carla
-CARLA_VERSION=0.9.16 cargo build -p carla-sys --features build-prebuilt
+# Build for a specific version (requires CARLA source directory)
+just build-prebuilt /path/to/carla/source 0.9.16
+
+# This generates:
+# - carla-sys/generated/libcarla_client.{VERSION}-{TARGET}.tar.zstd
+# - carla-sys/generated/bindings.{VERSION}.rs
 ```
 
-2. This generates tarball in `carla-sys/generated/`:
-```
-libcarla_client.{VERSION}-{TARGET}.tar.zstd
-```
-
-3. Calculate SHA256 and upload to GitHub releases:
+**Regenerate bindings only (uses prebuilt packages):**
 ```bash
-sha256sum carla-sys/generated/*.tar.zstd
+# Regenerate bindings for all versions (downloads prebuilt packages if needed)
+just regen-bindings
+
+# This downloads prebuilt packages for each version and saves:
+# - carla-sys/generated/bindings.0.9.14.rs
+# - carla-sys/generated/bindings.0.9.15.rs
+# - carla-sys/generated/bindings.0.9.16.rs
 ```
 
+**Publication workflow:**
+1. Build prebuilt package: `just build-prebuilt /path/to/carla/source 0.9.16`
+2. Calculate SHA256: `sha256sum carla-sys/generated/*.tar.zstd`
+3. Upload tarball to GitHub releases
 4. Update `carla-sys/index.json5` with URL and SHA256 hash
 
 **Build time comparison:**
 - From source with `build-prebuilt`: 15-20 minutes
 - Download prebuilt: 30-40 seconds
+- Regenerate bindings only: 30-40 seconds
 
 **Supported versions:** 0.9.14, 0.9.15, 0.9.16
 
 **See also:** `PREBUILT_COMPARISON.md` for build reproducibility verification
 
 ## Development Commands
+
+### Quick Reference
+
+**IMPORTANT:** Use `just` commands for development tasks. They provide consistent configuration and handle common pitfalls.
+
+```bash
+# Most common commands
+just build          # Build all crates with dev-release profile
+just test           # Run unit tests
+just format         # Format Rust and C++ code
+just lint           # Run all linters
+just doc            # Build and open documentation
+```
+
+See the [Other Commands](#other-commands) section below for the complete list.
 
 ### Build System
 
@@ -620,15 +665,58 @@ Common issues:
 
 ### Other Commands
 
+**Using justfile (Recommended):**
+```bash
+# Build all crates
+just build
+
+# Run unit tests
+just test
+
+# Format Rust and C++ code
+just format
+
+# Format Rust only
+just format-rust
+
+# Format C++ only
+just format-cpp
+
+# Run all lints (Rust + C++)
+just lint
+
+# Run Rust lints only
+just lint-rust
+
+# Run C++ lints only
+just lint-cpp
+
+# Build documentation
+just doc
+
+# Simulate docs.rs build (CARLA 0.9.16)
+just doc-docsrs
+
+# Clean build artifacts
+just clean
+
+# Regenerate bindings for all versions
+just regen-bindings
+
+# Build prebuilt package
+just build-prebuilt /path/to/carla/source 0.9.16
+```
+
+**Using cargo directly:**
 ```bash
 # Check without building
 cargo check
 
 # Run clippy
-cargo clippy
+cargo clippy --all-targets -- -D warnings
 
 # Format code
-cargo fmt
+cargo +nightly fmt
 
 # Build documentation
 cargo doc --no-deps --open
