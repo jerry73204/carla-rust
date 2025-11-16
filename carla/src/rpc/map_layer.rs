@@ -30,12 +30,6 @@
 /// // Unload foliage for better visibility
 /// world.unload_map_layer(MapLayer::Foliage as u16);
 /// ```
-///
-/// # Performance Considerations
-///
-/// - Disabling layers can significantly improve performance, especially `Foliage` and `Particles`
-/// - Useful for headless simulations where visuals aren't needed
-/// - Can help identify which visual elements impact frame rate
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum MapLayer {

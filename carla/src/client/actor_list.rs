@@ -1,6 +1,3 @@
-// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
-// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
-
 use crate::rpc::ActorId;
 use carla_sys::carla_rust::client::FfiActorList;
 use cxx::{let_cxx_string, SharedPtr};

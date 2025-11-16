@@ -91,31 +91,16 @@
 //!
 //! See the individual type documentation for specific thread safety guarantees.
 //!
-//! # Performance Considerations
+//! # Simulation Modes
 //!
-//! - **Synchronous vs Asynchronous Mode**: CARLA can run in synchronous mode
-//!   (stepped by client) or asynchronous mode (free-running). Use synchronous
-//!   mode for deterministic simulations.
+//! CARLA can run in two modes:
 //!
-//! - **Sensor Data**: Sensor callbacks may receive large amounts of data (e.g.,
-//!   high-resolution images). Consider processing data on separate threads.
+//! - **Synchronous Mode**: The simulation is stepped by the client, providing deterministic
+//!   behavior. Use [`World::tick()`] to advance the simulation.
+//! - **Asynchronous Mode**: The simulation runs freely at the server's pace. The client
+//!   receives updates as they occur.
 //!
-//! - **Unwrap Optimizations**: This crate uses `unwrap_unchecked()` in many
-//!   places where the C++ API guarantees non-null returns, eliminating runtime
-//!   overhead. See `UNWRAP_REPLACEMENTS.md` for details.
-//!
-//! # Safety and FFI
-//!
-//! This crate uses FFI (Foreign Function Interface) to communicate with the
-//! CARLA C++ library. The public API is safe, but internally uses `unsafe`
-//! blocks that have been carefully audited. Key safety guarantees:
-//!
-//! - All public APIs are safe to use
-//! - Null pointer checks are performed where necessary
-//! - Memory is properly managed across the FFI boundary
-//! - SharedPtr semantics are preserved
-//!
-//! See `AUDIT.md` for a comprehensive safety audit.
+//! For deterministic simulations and precise control, use synchronous mode.
 //!
 //! # Python API Correspondence
 //!
@@ -515,8 +500,6 @@ pub mod road;
 /// control.steer = -0.2;
 /// vehicle.apply_control(&control);
 /// ```
-///
-/// Most types are re-exported from the C++ library via FFI.
 pub mod rpc;
 
 /// Sensor data types for processing sensor measurements.

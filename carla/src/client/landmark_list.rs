@@ -1,6 +1,3 @@
-// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
-// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
-
 use carla_sys::carla_rust::client::FfiLandmarkList;
 use cxx::UniquePtr;
 use derivative::Derivative;

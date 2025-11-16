@@ -1,6 +1,3 @@
-// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
-// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
-
 use super::{
     Actor, ActorBase, ActorBlueprint, ActorBuilder, ActorList, ActorVec, BlueprintLibrary,
     BoundingBoxList, DebugHelper, EnvironmentObjectList, LabelledPointList, Landmark, LightManager,

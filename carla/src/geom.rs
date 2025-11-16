@@ -8,15 +8,8 @@ pub use carla_sys::carla_rust::geom::{
 
 /// CARLA transform combining position and rotation.
 ///
-/// This is a zero-cost wrapper around the FFI type [`FfiTransform`] with identical
-/// memory layout. The wrapper enables implementing Rust traits like `std::ops::Mul`
-/// while maintaining perfect compatibility with the C++ CARLA client library.
-///
-/// # Memory Layout
-///
-/// This type uses `#[repr(transparent)]` to guarantee it has the exact same memory
-/// layout as `FfiTransform` (24 bytes: 6 × f32). This allows zero-cost conversion
-/// via transmutation at FFI boundaries.
+/// A transform represents a 3D pose (position + orientation) in the CARLA world.
+/// Transforms can be composed using the `*` operator to calculate relative positions.
 ///
 /// # Transform Composition
 ///
@@ -66,12 +59,6 @@ pub use carla_sys::carla_rust::geom::{
 ///
 /// This wrapper preserves CARLA's coordinate semantics. See module-level documentation
 /// for detailed coordinate system information.
-///
-/// # Memory Layout
-///
-/// This type uses `#[repr(C)]` to guarantee C-compatible layout with public fields.
-/// The layout is verified at compile time on both C++ and Rust sides to ensure
-/// perfect compatibility with `FfiTransform` for zero-cost transmutation.
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct Transform {
@@ -82,42 +69,23 @@ pub struct Transform {
 }
 
 impl Transform {
-    /// Returns a reference to the underlying FFI type.
+    /// Converts to the FFI representation.
     ///
-    /// Use this when passing transforms to FFI functions that expect `&FfiTransform`.
-    ///
-    /// # Safety
-    ///
-    /// This is a zero-cost operation using transmute. The memory layout is verified
-    /// at compile time via static_assertions on both C++ and Rust sides.
+    /// Use this when interfacing with lower-level functions that expect `FfiTransform`.
     #[inline(always)]
     pub fn as_ffi(&self) -> &FfiTransform {
         // Safety: repr(C) with verified layout (size, alignment, field offsets)
         unsafe { std::mem::transmute(self) }
     }
 
-    /// Converts from the FFI type.
-    ///
-    /// This is a zero-cost operation using transmute.
-    ///
-    /// # Safety
-    ///
-    /// The memory layout is verified at compile time via static_assertions
-    /// on both C++ and Rust sides.
+    /// Converts from the FFI representation.
     #[inline(always)]
     pub fn from_ffi(ffi: FfiTransform) -> Self {
         // Safety: repr(C) with verified layout (size, alignment, field offsets)
         unsafe { std::mem::transmute(ffi) }
     }
 
-    /// Converts into the FFI type.
-    ///
-    /// This is a zero-cost operation using transmute.
-    ///
-    /// # Safety
-    ///
-    /// The memory layout is verified at compile time via static_assertions
-    /// on both C++ and Rust sides.
+    /// Converts into the FFI representation.
     #[inline(always)]
     pub fn into_ffi(self) -> FfiTransform {
         // Safety: repr(C) with verified layout (size, alignment, field offsets)
@@ -212,7 +180,7 @@ impl Transform {
         }
     }
 
-    /// Composes two transforms (internal implementation for multiplication operator).
+    /// Composes two transforms.
     ///
     /// Prefer using the `*` operator instead of calling this method directly:
     /// ```ignore
@@ -235,8 +203,6 @@ static_assertions::const_assert_eq!(memoffset::offset_of!(Transform, rotation), 
 /// 3D location in CARLA's left-handed Z-up coordinate system.
 ///
 /// Represents a position in 3D space with floating-point precision.
-/// This type is compatible with the C++ `carla::geom::Location` type
-/// and can be safely transmuted for zero-cost FFI conversion.
 ///
 /// # Examples
 ///

@@ -1,5 +1,3 @@
-// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
-// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
 //
 // Additionally, actor.cxx_actor().as_ref().unwrap_unchecked() is safe because:
 // - All ActorBase types (Actor, Vehicle, etc.) are constructed via from_cxx()

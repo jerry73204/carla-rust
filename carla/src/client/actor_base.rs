@@ -1,6 +1,3 @@
-// SAFETY: This module uses unwrap_unchecked() for performance on methods guaranteed
-// to never return null. See UNWRAP_REPLACEMENTS.md for detailed C++ code audit.
-
 use super::{Actor, ActorAttributeValueList, World};
 #[cfg(carla_version_0916)]
 use crate::geom::BoundingBox;
@@ -40,7 +37,7 @@ use cxx::SharedPtr;
 /// println!("Velocity: {:?}", actor.velocity());
 /// ```
 pub trait ActorBase: Clone {
-    /// Returns the underlying FFI actor pointer (internal use).
+    /// Returns the underlying FFI actor pointer.
     fn cxx_actor(&self) -> SharedPtr<FfiActor>;
 
     /// Converts this actor into a generic [`Actor`].
