@@ -9,6 +9,8 @@ readme = "README.md"
 homepage = "https://github.com/jerry73204/carla-rust"
 repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla/"
+keywords = ["carla", "simulator", "robotics", "autonomous-driving"]
+categories = ["api-bindings", "simulation", "game-development"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(carla_version_0914, carla_version_0915, carla_version_0916)'] }

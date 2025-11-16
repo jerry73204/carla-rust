@@ -9,6 +9,8 @@ readme = "README.md"
 homepage = "https://github.com/jerry73204/carla-rust"
 repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla-src/"
+keywords = ["carla", "simulator", "build-dependencies"]
+categories = ["development-tools::build-utils"]
 
 [dependencies]
 anyhow = "1.0.80"

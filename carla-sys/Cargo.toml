@@ -10,6 +10,9 @@ readme = "README.md"
 homepage = "https://github.com/jerry73204/carla-rust"
 repository = "https://github.com/jerry73204/carla-rust"
 documentation = "https://docs.rs/carla-sys/"
+keywords = ["carla", "simulator", "ffi", "bindings"]
+categories = ["api-bindings", "external-ffi-bindings"]
+exclude = ["generated/*.tar.zstd"]
 
 [dependencies]
 autocxx = { version = "0.26.0" }
