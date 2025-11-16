@@ -1,40 +1,102 @@
 # Carla Simulator Client Library in Rust
 
-Rust client library for Carla simulator.
+[![Crates.io](https://img.shields.io/crates/v/carla.svg)](https://crates.io/crates/carla)
+[![Documentation](https://docs.rs/carla/badge.svg)](https://docs.rs/carla)
+[![License](https://img.shields.io/crates/l/carla.svg)](LICENSE.txt)
 
-**Supported Versions:** CARLA 0.9.14, 0.9.16 (default: 0.9.16)
+Rust client library for CARLA simulator.
 
-To select a specific version, set the `CARLA_VERSION` environment variable:
+**Supported Versions:** CARLA 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
+
+## Usage
+
+Add `carla` to your `Cargo.toml`:
+
+```toml
+[dependencies]
+carla = "0.13"
+```
+
+By default, the library uses CARLA 0.9.16. To use a different version, set the `CARLA_VERSION` environment variable during build:
+
 ```bash
 # Use CARLA 0.9.16 (default)
 cargo build
 
 # Use CARLA 0.9.14
 CARLA_VERSION=0.9.14 cargo build
+
+# Use CARLA 0.9.15
+CARLA_VERSION=0.9.15 cargo build
 ```
 
-It is recommended to fix the clang version to 12 on newer systems such
-as Ubuntu 22.04. See the [Troubleshooting](#troubleshooting) section
-to find instructions.
+### Quick Start Example
+
+```rust
+use carla::client::Client;
+
+fn main() -> anyhow::Result<()> {
+    // Connect to CARLA server
+    let client = Client::new("localhost", 2000, None);
+    let mut world = client.world();
+
+    // Get a vehicle blueprint
+    let blueprint_library = world.blueprint_library_filtered("vehicle.*")?;
+    let vehicle_bp = blueprint_library[0].clone();
+
+    // Spawn a vehicle
+    let spawn_points = world.map()?.recommended_spawn_points()?;
+    let vehicle = world.spawn_actor(&vehicle_bp, &spawn_points[0])?;
+
+    println!("Spawned vehicle: {:?}", vehicle.id());
+
+    Ok(())
+}
+```
+
+For more examples, see the [examples directory](carla/examples).
 
 ## Documentation
 
-To get started, it's recommended to read the API documentation and
-learn from the simple example [here](carla/examples/spawn.rs).
-
-- [API documentation](https://docs.rs/carla)
-- [crates.io](https://crates.io/crates/carla)
-- [Examples](carla/examples)
+- [API documentation](https://docs.rs/carla) - Complete API reference
+- [Examples](carla/examples) - Code examples demonstrating various features
+- [crates.io](https://crates.io/crates/carla) - Published crate
 
 
-## Usage
+## Development
 
-Add `carla` crate to `Cargo.toml` and get everything. You may wait for
-longer time to generate Rust bindings in the first build.
+This section is for developers working on the carla-rust codebase itself.
 
-If you prefer to manually build Carla C++ client library. Please read
- [this guide](doc/use_prebuilt_client_lib.md) to learn instructions.
+### Building from Source
 
+Clone the repository and use `just` for development tasks:
+
+```bash
+# Build all crates (uses dev-release profile)
+just build
+
+# Run tests
+just test
+
+# Format code
+just format
+
+# Run linters
+just lint
+
+# Build documentation
+just doc
+```
+
+See the [justfile](justfile) for all available commands.
+
+### Project Structure
+
+This is a Cargo workspace with three crates:
+
+- **carla** - High-level Rust client library (main crate)
+- **carla-sys** - FFI bindings to CARLA C++ library
+- **carla-src** - Build utilities for CARLA source code
 
 ## Troubleshooting
 
@@ -66,15 +128,19 @@ The build system automatically detects and configures a compatible version if av
 incompatible version. The build script automatically overrides this if it detects
 LLVM 11-13.
 
-## For Maintainers: Building Prebuilt Libraries
+### Building Prebuilt Libraries (Maintainers)
 
 If you need to build prebuilt `libcarla_client` libraries for distribution:
 
 ```bash
-./scripts/build_prebuilt.sh /path/to/carla
+# Build prebuilt package for a specific CARLA version
+just build-prebuilt /path/to/carla/source 0.9.16
+
+# Regenerate bindings for all versions (downloads prebuilt packages)
+just regen-bindings
 ```
 
-This automated script builds and packages the library for distribution. For detailed documentation, see [carla-sys/README.md](carla-sys/README.md#building-prebuilt-libcarla_client-libraries).
+For detailed documentation, see [carla-sys/README.md](carla-sys/README.md#building-prebuilt-libcarla_client-libraries).
 
 ## License
 
