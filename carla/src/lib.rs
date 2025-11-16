@@ -96,7 +96,7 @@
 //! CARLA can run in two modes:
 //!
 //! - **Synchronous Mode**: The simulation is stepped by the client, providing deterministic
-//!   behavior. Use [`World::tick()`] to advance the simulation.
+//!   behavior. Use [`client::World::tick()`] to advance the simulation.
 //! - **Asynchronous Mode**: The simulation runs freely at the server's pace. The client
 //!   receives updates as they occur.
 //!
