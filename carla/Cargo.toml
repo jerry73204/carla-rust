@@ -1,6 +1,6 @@
 [package]
 name = "carla"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["jerry73204 <jerry73204@gmail.com>"]
 description = "Rust client library for Carla simulator"
 edition = "2021"
@@ -17,7 +17,7 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(carla_version_0914, carla_
 autocxx = "0.26.0"
 cxx = "1.0.119"
 nalgebra = "0.34.1"
-carla-sys = { version = "0.12.0", path = "../carla-sys" }
+carla-sys = { version = "0.13.0", path = "../carla-sys" }
 ndarray = "0.15.6"
 once_cell = "1.19.0"
 anyhow = "1.0.80"
