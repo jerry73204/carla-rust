@@ -19,7 +19,22 @@ use static_assertions::assert_impl_all;
 /// individual lights or groups of lights, and adjust properties such as color, intensity,
 /// and on/off state.
 ///
-/// Corresponds to [`carla.LightManager`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager) in the Python API.
+/// Corresponds to [`carla.LightManager`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.LightManager`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.LightManager`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.LightManager`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager"
+)]
 ///
 /// # Examples
 ///
@@ -60,8 +75,22 @@ pub struct LightManager {
 impl LightManager {
     /// Returns a list of lights belonging to the specified group.
     ///
-    /// See [carla.LightManager.get_all_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_all_lights)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.get_all_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_all_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.get_all_lights](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.get_all_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.get_all_lights](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.get_all_lights)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn all_lights(&self, group: LightGroup) -> LightList {
         let list = self.inner.GetAllLights(group).within_unique_ptr();
         unsafe { LightList::from_cxx(list).unwrap_unchecked() }
@@ -69,80 +98,220 @@ impl LightManager {
 
     /// Returns the color of the light with the given ID.
     ///
-    /// See [carla.LightManager.get_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_color)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.get_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_color)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.get_color](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.get_color)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.get_color](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.get_color)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn color(&self, id: LightId) -> Color {
         self.inner.GetColor(id)
     }
 
     /// Returns the intensity of the light with the given ID.
     ///
-    /// See [carla.LightManager.get_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_intensity)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.get_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_intensity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.get_intensity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.get_intensity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.get_intensity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.get_intensity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn intensity(&self, id: LightId) -> f32 {
         self.inner.GetIntensity(id)
     }
 
     /// Returns the state of the light with the given ID.
     ///
-    /// See [carla.LightManager.get_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_state)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.get_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_state)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.get_light_state](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.get_light_state)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.get_light_state](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.get_light_state)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn light_state(&self, id: LightId) -> LightState {
         self.inner.GetLightState(id)
     }
 
     /// Returns the group of the light with the given ID.
     ///
-    /// See [carla.LightManager.get_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_group)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.get_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.get_light_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.get_light_group](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.get_light_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.get_light_group](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.get_light_group)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn light_group(&self, id: LightId) -> LightGroup {
         self.inner.GetLightGroup(id)
     }
 
     /// Returns true if the light with the given ID is active (on).
     ///
-    /// See [carla.LightManager.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.is_active)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.is_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.is_active](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.is_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.is_active](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.is_active)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn is_active(&self, id: LightId) -> bool {
         self.inner.IsActive(id)
     }
 
     /// Sets whether the light with the given ID is active (on/off).
     ///
-    /// See [carla.LightManager.set_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_active)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.set_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.set_active](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.set_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.set_active](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.set_active)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_active(&self, id: LightId, active: bool) {
         self.inner.SetActive(id, active);
     }
 
     /// Sets the color of the light with the given ID.
     ///
-    /// See [carla.LightManager.set_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_color)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.set_color](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_color)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.set_color](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.set_color)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.set_color](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.set_color)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_color(&self, id: LightId, color: Color) {
         self.inner.SetColor(id, color);
     }
 
     /// Sets the intensity of the light with the given ID.
     ///
-    /// See [carla.LightManager.set_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_intensity)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.set_intensity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_intensity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.set_intensity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.set_intensity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.set_intensity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.set_intensity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_intensity(&self, id: LightId, intensity: f32) {
         self.inner.SetIntensity(id, intensity);
     }
 
     /// Sets the complete state of the light with the given ID.
     ///
-    /// See [carla.LightManager.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_state)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.set_light_state](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_state)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.set_light_state](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.set_light_state)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.set_light_state](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.set_light_state)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_light_state(&self, id: LightId, state: &LightState) {
         self.inner.SetLightState(id, state);
     }
 
     /// Sets the group of the light with the given ID.
     ///
-    /// See [carla.LightManager.set_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_group)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LightManager.set_light_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LightManager.set_light_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LightManager.set_light_group](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LightManager.set_light_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LightManager.set_light_group](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LightManager.set_light_group)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_light_group(&self, id: LightId, group: LightGroup) {
         self.inner.SetLightGroup(id, group);
     }

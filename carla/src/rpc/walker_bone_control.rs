@@ -74,7 +74,22 @@ use carla_sys::carla_rust::rpc::{
 /// Allows setting custom transforms for individual bones in a walker's skeleton.
 /// This is useful for creating custom animations and poses.
 ///
-/// Corresponds to [`carla.BoneTransformDataIn`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataIn) in the Python API
+/// Corresponds to [`carla.BoneTransformDataIn`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.BoneTransformDataIn`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataIn"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.BoneTransformDataIn`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.BoneTransformDataIn"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.BoneTransformDataIn`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.BoneTransformDataIn"
+)]
 ///
 /// # Examples
 ///
@@ -100,7 +115,22 @@ pub struct BoneTransformDataIn {
 /// The different coordinate spaces allow you to work with bone transforms
 /// relative to the world, the walker component, or the bone's parent.
 ///
-/// Corresponds to [`carla.BoneTransformDataOut`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataOut) in the Python API
+/// Corresponds to [`carla.BoneTransformDataOut`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.BoneTransformDataOut`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.BoneTransformDataOut"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.BoneTransformDataOut`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.BoneTransformDataOut"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.BoneTransformDataOut`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.BoneTransformDataOut"
+)]
 #[derive(Debug, Clone)]
 pub struct BoneTransformDataOut {
     /// Name of the bone (e.g., "crl_arm__L", "crl_leg__R")
@@ -129,7 +159,22 @@ pub struct BoneTransformDataOut {
 ///
 /// Used to set custom bone poses on a walker actor.
 ///
-/// Corresponds to [`carla.WalkerBoneControlIn`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlIn) in the Python API
+/// Corresponds to [`carla.WalkerBoneControlIn`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.WalkerBoneControlIn`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlIn"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.WalkerBoneControlIn`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.WalkerBoneControlIn"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.WalkerBoneControlIn`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WalkerBoneControlIn"
+)]
 ///
 /// # Examples
 ///
@@ -162,7 +207,22 @@ pub struct WalkerBoneControlIn {
 ///
 /// Contains the current transforms of all bones in a walker's skeleton.
 ///
-/// Corresponds to [`carla.WalkerBoneControlOut`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlOut) in the Python API
+/// Corresponds to [`carla.WalkerBoneControlOut`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.WalkerBoneControlOut`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WalkerBoneControlOut"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.WalkerBoneControlOut`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.WalkerBoneControlOut"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.WalkerBoneControlOut`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WalkerBoneControlOut"
+)]
 #[derive(Debug, Clone, Default)]
 pub struct WalkerBoneControlOut {
     /// Vector of bone transformations

@@ -55,16 +55,44 @@ pub struct Junction {
 impl Junction {
     /// Returns the junction ID.
     ///
-    /// See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.id)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.id)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Junction.id)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Junction.id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Junction.id)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn id(&self) -> JuncId {
         self.inner.GetId()
     }
 
     /// Returns pairs of waypoints defining possible paths through the junction.
     ///
-    /// See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.get_waypoints)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.get_waypoints)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Junction.get_waypoints)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Junction.get_waypoints](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Junction.get_waypoints)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     /// * `type_` - Lane type filter (e.g., `LaneType::Driving`)
@@ -75,8 +103,22 @@ impl Junction {
 
     /// Returns the bounding box enclosing the junction.
     ///
-    /// See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.bounding_box)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Junction.bounding_box)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Junction.bounding_box)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Junction.bounding_box](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Junction.bounding_box)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn bounding_box(&self) -> BoundingBox {
         let bbox = self.inner.GetBoundingBox();
         BoundingBox::from_native(&bbox)

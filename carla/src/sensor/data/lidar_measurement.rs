@@ -12,7 +12,22 @@ use std::slice;
 /// 3D coordinates and intensity information. LiDAR sensors are commonly used for
 /// object detection, mapping, and localization in autonomous driving.
 ///
-/// Corresponds to [`carla.LidarMeasurement`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement) in the Python API.
+/// Corresponds to [`carla.LidarMeasurement`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.LidarMeasurement`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.LidarMeasurement`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LidarMeasurement"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.LidarMeasurement`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LidarMeasurement"
+)]
 ///
 /// # Examples
 ///
@@ -60,8 +75,22 @@ impl LidarMeasurement {
     ///
     /// This represents the current rotation angle of the LiDAR sensor.
     ///
-    /// See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.horizontal_angle)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.horizontal_angle)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LidarMeasurement.horizontal_angle)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LidarMeasurement.horizontal_angle](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LidarMeasurement.horizontal_angle)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn horizontal_angle(&self) -> f32 {
         self.inner.GetHorizontalAngle()
     }
@@ -70,16 +99,44 @@ impl LidarMeasurement {
     ///
     /// Returns `None` if the channel index is out of bounds.
     ///
-    /// See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.get_point_count)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.get_point_count)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LidarMeasurement.get_point_count)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LidarMeasurement.get_point_count](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LidarMeasurement.get_point_count)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn point_count(&self, channel: usize) -> Option<usize> {
         (channel < self.channel_count()).then(|| self.inner.GetPointCount(channel) as usize)
     }
 
     /// Returns the number of channels (laser beams) in the LiDAR sensor.
     ///
-    /// See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.channels)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.LidarMeasurement.channels)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.LidarMeasurement.channels)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.LidarMeasurement.channels](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.LidarMeasurement.channels)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn channel_count(&self) -> usize {
         self.inner.GetChannelCount() as usize
     }

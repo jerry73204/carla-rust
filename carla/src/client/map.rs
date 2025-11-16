@@ -69,8 +69,22 @@ pub struct Map {
 impl Map {
     /// Returns the name of the map (e.g., "Town01", "Town02").
     ///
-    /// See [carla.Map.name](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.name)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.name](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.name)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.name](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.name)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.name](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.name)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn name(&self) -> String {
         self.inner.GetName().to_string()
     }
@@ -79,8 +93,22 @@ impl Map {
     ///
     /// OpenDRIVE is the standard format for road network descriptions.
     ///
-    /// See [carla.Map.to_opendrive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.to_opendrive)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.to_opendrive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.to_opendrive)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.to_opendrive](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.to_opendrive)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.to_opendrive](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.to_opendrive)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn to_open_drive(&self) -> String {
         self.inner.GetOpenDrive().to_string()
     }
@@ -89,8 +117,22 @@ impl Map {
     ///
     /// These are predefined locations suitable for spawning vehicles without collisions.
     ///
-    /// See [carla.Map.get_spawn_points](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_spawn_points)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_spawn_points](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_spawn_points)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_spawn_points](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_spawn_points)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_spawn_points](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_spawn_points)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn recommended_spawn_points(&self) -> RecommendedSpawnPoints {
         let ptr = self.inner.GetRecommendedSpawnPoints().within_unique_ptr();
         unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() }
@@ -98,8 +140,22 @@ impl Map {
 
     /// Finds the nearest waypoint on a driving lane.
     ///
-    /// See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -132,8 +188,22 @@ impl Map {
 
     /// Finds the nearest waypoint with custom options.
     ///
-    /// See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_waypoint](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_waypoint)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -158,8 +228,22 @@ impl Map {
 
     /// Gets a waypoint by OpenDRIVE coordinates.
     ///
-    /// See [carla.Map.get_waypoint_xodr](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint_xodr)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_waypoint_xodr](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_waypoint_xodr)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_waypoint_xodr](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_waypoint_xodr)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_waypoint_xodr](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_waypoint_xodr)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -178,8 +262,22 @@ impl Map {
 
     /// Generates a grid of waypoints covering the entire road network.
     ///
-    /// See [carla.Map.generate_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.generate_waypoints)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.generate_waypoints](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.generate_waypoints)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.generate_waypoints](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.generate_waypoints)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.generate_waypoints](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.generate_waypoints)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -195,8 +293,22 @@ impl Map {
 
     /// Gets the junction associated with a waypoint.
     ///
-    /// See [carla.Map.get_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_junction)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_junction](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_junction)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_junction](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_junction)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_junction](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_junction)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -208,8 +320,22 @@ impl Map {
 
     /// Returns all landmarks in the map (traffic signs, lights, etc.).
     ///
-    /// See [carla.Map.get_all_landmarks](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_all_landmarks](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_all_landmarks](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_all_landmarks)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_all_landmarks](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_all_landmarks)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn all_landmarks(&self) -> LandmarkList {
         let ptr = self.inner.GetAllLandmarks().within_unique_ptr();
         unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
@@ -217,8 +343,22 @@ impl Map {
 
     /// Finds landmarks by their OpenDRIVE ID.
     ///
-    /// See [carla.Map.get_landmark_from_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_from_id)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_landmark_from_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_from_id)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_landmark_from_id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_landmark_from_id)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_landmark_from_id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_landmark_from_id)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -230,8 +370,22 @@ impl Map {
 
     /// Finds all landmarks of a specific type.
     ///
-    /// See [carla.Map.get_all_landmarks_of_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks_of_type)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_all_landmarks_of_type](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_all_landmarks_of_type)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_all_landmarks_of_type](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_all_landmarks_of_type)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_all_landmarks_of_type](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_all_landmarks_of_type)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -243,8 +397,22 @@ impl Map {
 
     /// Gets all landmarks in the same group as the given landmark.
     ///
-    /// See [carla.Map.get_landmark_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_group)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_landmark_group](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_landmark_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_landmark_group](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_landmark_group)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_landmark_group](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_landmark_group)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -263,8 +431,22 @@ impl Map {
     /// pair represents a connection from one waypoint to another. This is useful
     /// for path planning and understanding the road network structure.
     ///
-    /// See [carla.Map.get_topology](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_topology)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.get_topology](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.get_topology)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.get_topology](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.get_topology)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.get_topology](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.get_topology)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Returns
     ///

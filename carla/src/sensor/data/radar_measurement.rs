@@ -12,7 +12,22 @@ use std::slice;
 /// position, velocity, azimuth, altitude, and depth relative to the sensor. Radar sensors
 /// are useful for detecting moving objects and measuring their velocity.
 ///
-/// Corresponds to [`carla.RadarMeasurement`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.RadarMeasurement) in the Python API.
+/// Corresponds to [`carla.RadarMeasurement`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.RadarMeasurement`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.RadarMeasurement"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.RadarMeasurement`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.RadarMeasurement"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.RadarMeasurement`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.RadarMeasurement"
+)]
 ///
 /// # Examples
 ///
@@ -56,8 +71,22 @@ pub struct RadarMeasurement {
 impl RadarMeasurement {
     /// Returns the number of objects detected by the radar.
     ///
-    /// See [carla.RadarMeasurement.get_detection_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.RadarMeasurement.get_detection_count)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.RadarMeasurement.get_detection_count](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.RadarMeasurement.get_detection_count)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.RadarMeasurement.get_detection_count](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.RadarMeasurement.get_detection_count)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.RadarMeasurement.get_detection_count](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.RadarMeasurement.get_detection_count)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn detection_amount(&self) -> usize {
         self.inner.GetDetectionAmount()
     }

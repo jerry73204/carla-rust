@@ -16,7 +16,22 @@ use std::slice;
 /// in BGRA format (32 bits per pixel) and provide multiple access methods for different
 /// use cases: slice access, array views, and raw bytes.
 ///
-/// Corresponds to [`carla.Image`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image) in the Python API.
+/// Corresponds to [`carla.Image`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.Image`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.Image`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Image"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.Image`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Image"
+)]
 ///
 /// # Examples
 ///
@@ -64,16 +79,44 @@ pub struct Image {
 impl Image {
     /// Returns the image height in pixels.
     ///
-    /// See [carla.Image.height](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.height)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Image.height](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.height)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Image.height](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Image.height)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Image.height](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Image.height)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn height(&self) -> usize {
         self.inner.GetHeight()
     }
 
     /// Returns the image width in pixels.
     ///
-    /// See [carla.Image.width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.width)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Image.width](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.width)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Image.width](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Image.width)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Image.width](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Image.width)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn width(&self) -> usize {
         self.inner.GetWidth()
     }
@@ -91,8 +134,22 @@ impl Image {
 
     /// Returns the horizontal field of view of the camera in degrees.
     ///
-    /// See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.fov)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.fov)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Image.fov)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Image.fov](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Image.fov)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn fov_angle(&self) -> f32 {
         self.inner.GetFOVAngle()
     }
@@ -277,8 +334,22 @@ impl Image {
     /// The file format is determined by the file extension (e.g., ".png", ".jpg").
     /// CARLA images are in BGRA format and are converted to RGBA before saving.
     ///
-    /// See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.save_to_disk)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Image.save_to_disk)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Image.save_to_disk)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Image.save_to_disk](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Image.save_to_disk)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Examples
     ///

@@ -15,7 +15,22 @@ use static_assertions::assert_impl_all;
 /// - Jumping
 /// - AI controller spawning and management
 ///
-/// Corresponds to [`carla.Walker`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker) in the Python API
+/// Corresponds to [`carla.Walker`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.Walker`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.Walker`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.Walker`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker"
+)]
 ///
 /// # Examples
 ///
@@ -57,8 +72,22 @@ pub struct Walker {
 impl Walker {
     /// Applies walker control (direction, speed, jump).
     ///
-    /// See [carla.Walker.apply_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.apply_control)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.apply_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.apply_control)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.apply_control](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.apply_control)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.apply_control](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.apply_control)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -92,8 +121,22 @@ impl Walker {
 
     /// Gets the current walker control state.
     ///
-    /// See [carla.Walker.get_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_control)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.get_control](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_control)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.get_control](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.get_control)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.get_control](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.get_control)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// Returns the last control applied to the walker.
     pub fn control(&self) -> WalkerControl {
@@ -102,8 +145,22 @@ impl Walker {
 
     /// Sets bone transforms for custom walker animations.
     ///
-    /// See [carla.Walker.set_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.set_bones)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.set_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.set_bones)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.set_bones](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.set_bones)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.set_bones](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.set_bones)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// Allows direct control over individual bones in the walker's skeleton.
     ///
@@ -142,8 +199,22 @@ impl Walker {
 
     /// Blends the current pose with the animation pose.
     ///
-    /// See [carla.Walker.blend_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.blend_pose)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.blend_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.blend_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.blend_pose](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.blend_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.blend_pose](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.blend_pose)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///
@@ -169,8 +240,22 @@ impl Walker {
 
     /// Shows the custom pose (blend factor 1.0).
     ///
-    /// See [carla.Walker.show_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.show_pose)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.show_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.show_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.show_pose](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.show_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.show_pose](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.show_pose)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// Equivalent to `blend_pose(1.0)`.
     ///
@@ -193,8 +278,22 @@ impl Walker {
 
     /// Hides the custom pose (blend factor 0.0).
     ///
-    /// See [carla.Walker.hide_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.hide_pose)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.hide_pose](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.hide_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.hide_pose](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.hide_pose)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.hide_pose](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.hide_pose)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// Equivalent to `blend_pose(0.0)`, returns to animation pose.
     ///
@@ -217,8 +316,22 @@ impl Walker {
 
     /// Gets the current bone transforms.
     ///
-    /// See [carla.Walker.get_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_bones)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Walker.get_bones](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Walker.get_bones)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Walker.get_bones](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Walker.get_bones)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Walker.get_bones](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Walker.get_bones)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// Returns the transforms of all bones in the walker's skeleton in different
     /// coordinate spaces (world, component, relative).

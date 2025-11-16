@@ -5,7 +5,22 @@
 /// Provides detailed physics information about a wheel including friction, slip, forces, and torque.
 /// This data is useful for advanced vehicle dynamics analysis and control.
 ///
-/// Corresponds to [`carla.WheelTelemetryData`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WheelTelemetryData) in the Python API.
+/// Corresponds to [`carla.WheelTelemetryData`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.WheelTelemetryData`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WheelTelemetryData"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.WheelTelemetryData`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.WheelTelemetryData"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.WheelTelemetryData`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WheelTelemetryData"
+)]
 #[cfg(carla_0916)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct WheelTelemetryData {
@@ -61,7 +76,22 @@ impl From<carla_sys::carla::rpc::WheelTelemetryData> for WheelTelemetryData {
 /// telemetry. This is useful for analyzing vehicle behavior, tuning physics parameters,
 /// and implementing advanced control systems.
 ///
-/// Corresponds to [`carla.VehicleTelemetryData`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehicleTelemetryData) in the Python API.
+/// Corresponds to [`carla.VehicleTelemetryData`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.VehicleTelemetryData`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehicleTelemetryData"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.VehicleTelemetryData`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.VehicleTelemetryData"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.VehicleTelemetryData`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.VehicleTelemetryData"
+)]
 ///
 /// # Examples
 ///

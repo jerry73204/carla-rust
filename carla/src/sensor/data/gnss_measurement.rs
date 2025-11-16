@@ -9,7 +9,22 @@ use static_assertions::assert_impl_all;
 /// This type represents geographic position data from a GNSS sensor. It provides
 /// latitude, longitude, and altitude information in the WGS84 coordinate system.
 ///
-/// Corresponds to [`carla.GnssMeasurement`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement) in the Python API.
+/// Corresponds to [`carla.GnssMeasurement`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.GnssMeasurement`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.GnssMeasurement`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.GnssMeasurement"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.GnssMeasurement`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.GnssMeasurement"
+)]
 ///
 /// # Examples
 ///
@@ -53,8 +68,22 @@ pub struct GnssMeasurement {
 impl GnssMeasurement {
     /// Returns the geographic location as a GeoLocation struct.
     ///
-    /// See [carla.GnssMeasurement.transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.transform)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.GnssMeasurement.transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.GnssMeasurement.transform](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.GnssMeasurement.transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.GnssMeasurement.transform](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.GnssMeasurement.transform)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn geo_location(&self) -> GeoLocation {
         // SAFETY: carla::geom::GeoLocation and FfiGeoLocation have identical memory layout
         unsafe {
@@ -68,24 +97,66 @@ impl GnssMeasurement {
 
     /// Returns the longitude in degrees (WGS84 coordinate system).
     ///
-    /// See [carla.GnssMeasurement.longitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.longitude)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.GnssMeasurement.longitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.longitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.GnssMeasurement.longitude](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.GnssMeasurement.longitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.GnssMeasurement.longitude](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.GnssMeasurement.longitude)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn longitude(&self) -> f64 {
         self.inner.GetLongitude()
     }
 
     /// Returns the latitude in degrees (WGS84 coordinate system).
     ///
-    /// See [carla.GnssMeasurement.latitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.latitude)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.GnssMeasurement.latitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.latitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.GnssMeasurement.latitude](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.GnssMeasurement.latitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.GnssMeasurement.latitude](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.GnssMeasurement.latitude)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn latitude(&self) -> f64 {
         self.inner.GetLatitude()
     }
 
     /// Returns the altitude in meters above sea level (WGS84 coordinate system).
     ///
-    /// See [carla.GnssMeasurement.altitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.altitude)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.GnssMeasurement.altitude](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.GnssMeasurement.altitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.GnssMeasurement.altitude](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.GnssMeasurement.altitude)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.GnssMeasurement.altitude](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.GnssMeasurement.altitude)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn attitude(&self) -> f64 {
         self.inner.GetAltitude()
     }

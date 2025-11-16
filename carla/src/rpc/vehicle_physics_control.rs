@@ -15,7 +15,22 @@ use carla_sys::{
 /// and wheel physics. These parameters can be queried from a vehicle and modified
 /// to create custom vehicle physics.
 ///
-/// Corresponds to [`carla.VehiclePhysicsControl`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehiclePhysicsControl) in the Python API.
+/// Corresponds to [`carla.VehiclePhysicsControl`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.VehiclePhysicsControl`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.VehiclePhysicsControl"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.VehiclePhysicsControl`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.VehiclePhysicsControl"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.VehiclePhysicsControl`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.VehiclePhysicsControl"
+)]
 ///
 /// # Examples
 ///

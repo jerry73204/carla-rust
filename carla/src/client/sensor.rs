@@ -67,16 +67,44 @@ impl Sensor {
     ///
     /// The sensor can be restarted with [`listen()`](Self::listen).
     ///
-    /// See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.stop)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.stop)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Sensor.stop)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Sensor.stop](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Sensor.stop)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn stop(&self) {
         self.inner.Stop();
     }
 
     /// Returns whether the sensor is currently listening (generating data).
     ///
-    /// See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.is_listening)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.is_listening)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Sensor.is_listening)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Sensor.is_listening](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Sensor.is_listening)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn is_listening(&self) -> bool {
         self.inner.IsListening()
     }
@@ -86,8 +114,22 @@ impl Sensor {
     /// The callback is invoked each time the sensor generates new data. It runs on
     /// a separate thread, so use appropriate synchronization if sharing state.
     ///
-    /// See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.listen)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.listen)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Sensor.listen)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Sensor.listen](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Sensor.listen)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Arguments
     ///

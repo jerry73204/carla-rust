@@ -26,7 +26,22 @@ use std::time::Duration;
 /// - Custom routes and paths
 /// - Performance optimizations for large fleets
 ///
-/// Corresponds to [`carla.TrafficManager`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager) in the Python API.
+/// Corresponds to [`carla.TrafficManager`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.TrafficManager`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.TrafficManager`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.TrafficManager`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager"
+)]
 ///
 /// # Usage Pattern
 ///
@@ -50,8 +65,22 @@ pub struct TrafficManager {
 impl TrafficManager {
     /// Returns the port used by this traffic manager instance.
     ///
-    /// See [carla.TrafficManager.get_port](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.get_port)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.get_port](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.get_port)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.get_port](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.get_port)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.get_port](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.get_port)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn port(&self) -> u16 {
         self.inner.Port()
     }
@@ -63,16 +92,44 @@ impl TrafficManager {
 
     /// Enables or disables OSM (OpenStreetMap) mode.
     ///
-    /// See [carla.TrafficManager.set_osm_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_osm_mode)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_osm_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_osm_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_osm_mode](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_osm_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_osm_mode](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_osm_mode)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_osm_mode(&mut self, yes: bool) {
         self.inner.pin_mut().SetOSMMode(yes);
     }
 
     /// Sets a custom path for a vehicle to follow.
     ///
-    /// See [carla.TrafficManager.set_path](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_path)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_path](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_path)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_path](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_path)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_path](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_path)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_custom_path<A, P>(&mut self, actor: &A, path: &[P], empty_buffer: bool)
     where
         A: ActorBase,
@@ -114,8 +171,22 @@ impl TrafficManager {
 
     /// Sets an imported route for a vehicle to follow.
     ///
-    /// See [carla.TrafficManager.set_imported_route](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_imported_route)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_imported_route](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_imported_route)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_imported_route](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_imported_route)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_imported_route](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_imported_route)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_import_route<A: ActorBase>(&mut self, actor: &A, route: &[u8], empty_buffer: bool) {
         let route = route.iter().fold(CxxVector::new_typed(), |mut vec, &val| {
             vec.pin_mut().push(val);
@@ -150,16 +221,44 @@ impl TrafficManager {
 
     /// Enables or disables respawning of dormant vehicles.
     ///
-    /// See [carla.TrafficManager.set_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_respawn_dormant_vehicles)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_respawn_dormant_vehicles(&mut self, yes: bool) {
         self.inner.pin_mut().SetRespawnDormantVehicles(yes);
     }
 
     /// Sets the boundaries for respawning dormant vehicles.
     ///
-    /// See [carla.TrafficManager.set_boundaries_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_boundaries_respawn_dormant_vehicles)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_boundaries_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_boundaries_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_boundaries_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_boundaries_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_boundaries_respawn_dormant_vehicles](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_boundaries_respawn_dormant_vehicles)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_boundaries_respawn_dormant_vehicles(&mut self, lower_bound: f32, upper_bound: f32) {
         self.inner
             .pin_mut()
@@ -175,8 +274,22 @@ impl TrafficManager {
     ///
     /// In hybrid physics mode, only vehicles near the ego vehicle use full physics simulation.
     ///
-    /// See [carla.TrafficManager.set_hybrid_physics_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_mode)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_mode](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_hybrid_physics_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_mode](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_hybrid_physics_mode)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_hybrid_physics_mode(&mut self, yes: bool) {
         self.inner.pin_mut().SetHybridPhysicsMode(yes);
     }
@@ -185,8 +298,22 @@ impl TrafficManager {
     ///
     /// Vehicles within this radius of the ego vehicle will use full physics simulation.
     ///
-    /// See [carla.TrafficManager.set_hybrid_physics_radius](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_radius)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_radius](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_hybrid_physics_radius)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_radius](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_hybrid_physics_radius)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_hybrid_physics_radius](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_hybrid_physics_radius)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_hybrid_physics_radius(&mut self, radius: f32) {
         self.inner.pin_mut().SetHybridPhysicsRadius(radius);
     }
@@ -222,8 +349,22 @@ impl TrafficManager {
     /// A positive percentage makes the vehicle drive slower, negative makes it faster.
     /// For example, 20 means the vehicle will drive at 80% of the speed limit.
     ///
-    /// See [carla.TrafficManager.vehicle_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.vehicle_percentage_speed_difference)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.vehicle_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.vehicle_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.vehicle_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.vehicle_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.vehicle_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.vehicle_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_percentage_speed_difference<A>(&mut self, actor: &A, percentage: f32)
     where
         A: ActorBase,
@@ -239,8 +380,22 @@ impl TrafficManager {
     /// A positive offset makes the vehicle drive to the right of the lane center,
     /// negative makes it drive to the left.
     ///
-    /// See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_lane_offset<A: ActorBase>(&mut self, actor: &A, offset: f32) {
         self.inner.pin_mut().SetLaneOffset(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -262,8 +417,22 @@ impl TrafficManager {
     ///
     /// A positive percentage makes vehicles drive slower, negative makes them faster.
     ///
-    /// See [carla.TrafficManager.global_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.global_percentage_speed_difference)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.global_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.global_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.global_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.global_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.global_percentage_speed_difference](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.global_percentage_speed_difference)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_global_percentage_speed_difference(&mut self, percentage: f32) {
         self.inner
             .pin_mut()
@@ -283,8 +452,22 @@ impl TrafficManager {
     /// When enabled, the traffic manager automatically updates the vehicle's lights
     /// based on the situation (brake lights, turn signals, etc.).
     ///
-    /// See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.update_vehicle_lights](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.update_vehicle_lights)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_update_vehicle_lights<A: ActorBase>(&mut self, actor: &A, do_update: bool) {
         self.inner.pin_mut().SetUpdateVehicleLights(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -296,8 +479,22 @@ impl TrafficManager {
     ///
     /// When disabled, the reference vehicle will ignore collisions with the other vehicle.
     ///
-    /// See [carla.TrafficManager.collision_detection](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.collision_detection)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.collision_detection](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.collision_detection)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.collision_detection](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.collision_detection)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.collision_detection](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.collision_detection)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_collision_detection<A1: ActorBase, A2: ActorBase>(
         &mut self,
         reference_actor: &A1,
@@ -315,8 +512,22 @@ impl TrafficManager {
     ///
     /// The direction parameter indicates which direction to change: true for left, false for right.
     ///
-    /// See [carla.TrafficManager.force_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.force_lane_change)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.force_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.force_lane_change)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.force_lane_change](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.force_lane_change)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.force_lane_change](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.force_lane_change)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_force_lane_change<A: ActorBase>(&mut self, actor: &A, direction: bool) {
         self.inner.pin_mut().SetForceLaneChange(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -328,8 +539,22 @@ impl TrafficManager {
     ///
     /// When enabled, the vehicle can autonomously change lanes when appropriate.
     ///
-    /// See [carla.TrafficManager.auto_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.auto_lane_change)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.auto_lane_change](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.auto_lane_change)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.auto_lane_change](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.auto_lane_change)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.auto_lane_change](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.auto_lane_change)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_auto_lane_change<A: ActorBase>(&mut self, actor: &A, enable: bool) {
         self.inner.pin_mut().SetAutoLaneChange(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -341,8 +566,22 @@ impl TrafficManager {
     ///
     /// This controls the safe following distance for the vehicle.
     ///
-    /// See [carla.TrafficManager.distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.distance_to_leading_vehicle)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_distance_to_leading_vehicle<A: ActorBase>(&mut self, actor: &A, distance: f32) {
         self.inner.pin_mut().SetDistanceToLeadingVehicle(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -354,8 +593,22 @@ impl TrafficManager {
     ///
     /// A value of 100 means the vehicle will always ignore pedestrians, 0 means it will always respect them.
     ///
-    /// See [carla.TrafficManager.ignore_walkers_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_walkers_percentage)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.ignore_walkers_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_walkers_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.ignore_walkers_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.ignore_walkers_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.ignore_walkers_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.ignore_walkers_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_percentage_ignore_walkers<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         self.inner.pin_mut().SetPercentageIgnoreWalkers(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -367,8 +620,22 @@ impl TrafficManager {
     ///
     /// A value of 100 means the vehicle will always ignore other vehicles, 0 means it will always respect them.
     ///
-    /// See [carla.TrafficManager.ignore_vehicles_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_vehicles_percentage)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.ignore_vehicles_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_vehicles_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.ignore_vehicles_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.ignore_vehicles_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.ignore_vehicles_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.ignore_vehicles_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_percentage_ignore_vehicles<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         self.inner.pin_mut().SetPercentageIgnoreVehicles(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -380,8 +647,22 @@ impl TrafficManager {
     ///
     /// A value of 100 means the vehicle will always run red lights, 0 means it will always stop.
     ///
-    /// See [carla.TrafficManager.ignore_lights_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_lights_percentage)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.ignore_lights_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_lights_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.ignore_lights_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.ignore_lights_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.ignore_lights_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.ignore_lights_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_percentage_running_light<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         self.inner.pin_mut().SetPercentageRunningLight(
             unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
@@ -393,8 +674,22 @@ impl TrafficManager {
     ///
     /// In synchronous mode, the traffic manager waits for a tick before updating.
     ///
-    /// See [carla.TrafficManager.set_synchronous_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_synchronous_mode)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_synchronous_mode](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_synchronous_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_synchronous_mode](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_synchronous_mode)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_synchronous_mode](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_synchronous_mode)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_synchronous_mode(&mut self, yes: bool) {
         self.inner.pin_mut().SetSynchronousMode(yes);
     }
@@ -423,8 +718,22 @@ impl TrafficManager {
     ///
     /// Returns true if the tick was successful.
     ///
-    /// See [carla.TrafficManager.tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.tick)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.tick](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.tick)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.tick](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.tick)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.tick](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.tick)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn synchronous_tick(&mut self) -> bool {
         self.inner.pin_mut().SynchronousTick()
     }
@@ -433,8 +742,22 @@ impl TrafficManager {
     ///
     /// This controls the safe following distance globally.
     ///
-    /// See [carla.TrafficManager.set_global_distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_global_distance_to_leading_vehicle)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_global_distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_global_distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_global_distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_global_distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_global_distance_to_leading_vehicle](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_global_distance_to_leading_vehicle)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_global_distance_to_leading_vehicle(&mut self, distance: f32) {
         self.inner
             .pin_mut()
@@ -458,8 +781,22 @@ impl TrafficManager {
     ///
     /// Higher values increase the likelihood of random left lane changes.
     ///
-    /// See [carla.TrafficManager.random_left_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_left_lanechange_percentage)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.random_left_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_left_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.random_left_lanechange_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.random_left_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.random_left_lanechange_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.random_left_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_random_left_lane_change_percentage<A: ActorBase>(
         &mut self,
         actor: &A,
@@ -475,8 +812,22 @@ impl TrafficManager {
     ///
     /// Higher values increase the likelihood of random right lane changes.
     ///
-    /// See [carla.TrafficManager.random_right_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_right_lanechange_percentage)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.random_right_lanechange_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.random_right_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.random_right_lanechange_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.random_right_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.random_right_lanechange_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.random_right_lanechange_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_random_right_lane_change_percentage<A: ActorBase>(
         &mut self,
         actor: &A,
@@ -492,16 +843,44 @@ impl TrafficManager {
     ///
     /// This allows for reproducible traffic behavior across runs.
     ///
-    /// See [carla.TrafficManager.set_random_device_seed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_random_device_seed)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.set_random_device_seed](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.set_random_device_seed)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.set_random_device_seed](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.set_random_device_seed)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.set_random_device_seed](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.set_random_device_seed)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn set_random_device_seed(&mut self, seed: u64) {
         self.inner.pin_mut().SetRandomDeviceSeed(seed);
     }
 
     /// Shuts down the traffic manager and releases all resources.
     ///
-    /// See [carla.TrafficManager.shut_down](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.shut_down)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.shut_down](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.shut_down)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.shut_down](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.shut_down)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.shut_down](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.shut_down)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn shutdown(mut self) {
         self.inner.pin_mut().ShutDown();
         self.inner = UniquePtr::null();

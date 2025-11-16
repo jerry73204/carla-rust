@@ -17,7 +17,22 @@ use static_assertions::assert_impl_all;
 /// Generated when an actor with a collision sensor attached collides with another actor.
 /// Contains information about the collision force and the actors involved.
 ///
-/// Corresponds to [`carla.CollisionEvent`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent) in the Python API.
+/// Corresponds to [`carla.CollisionEvent`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.CollisionEvent`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.CollisionEvent`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.CollisionEvent"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.CollisionEvent`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.CollisionEvent"
+)]
 ///
 /// # Examples
 ///
@@ -73,8 +88,22 @@ impl CollisionEvent {
     ///
     /// This is the actor that experienced the collision and has the sensor attached.
     ///
-    /// See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.actor)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.actor)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.CollisionEvent.actor)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.CollisionEvent.actor](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.CollisionEvent.actor)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Examples
     ///
@@ -92,8 +121,22 @@ impl CollisionEvent {
     ///
     /// Returns `None` if the collision was with a static object (like a building or the ground).
     ///
-    /// See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.other_actor)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.other_actor)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.CollisionEvent.other_actor)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.CollisionEvent.other_actor](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.CollisionEvent.other_actor)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Examples
     ///
@@ -117,8 +160,22 @@ impl CollisionEvent {
     ///
     /// Units: Newton-seconds (N·s)
     ///
-    /// See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.normal_impulse)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.CollisionEvent.normal_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.CollisionEvent.normal_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.CollisionEvent.normal_impulse](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.CollisionEvent.normal_impulse)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     ///
     /// # Examples
     ///

@@ -51,22 +51,44 @@ pub trait ActorBase: Clone {
 
     /// Returns the unique actor ID.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.id)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.id)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.id)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.id)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.id)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.id)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn id(&self) -> ActorId {
         self.cxx_actor().GetId()
     }
 
     /// Returns the actor blueprint type ID (e.g., "vehicle.tesla.model3").
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.type_id)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.type_id)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.type_id)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.type_id)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.type_id)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.type_id](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.type_id)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn type_id(&self) -> String {
         self.cxx_actor().GetTypeId().to_string()
     }
@@ -83,33 +105,66 @@ pub trait ActorBase: Clone {
 
     /// Returns semantic segmentation tags for this actor.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.semantic_tags)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.semantic_tags)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.semantic_tags)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.semantic_tags)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.semantic_tags)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.semantic_tags](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.semantic_tags)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn semantic_tags(&self) -> Vec<u8> {
         self.cxx_actor().GetSemanticTags().iter().cloned().collect()
     }
 
     /// Returns the parent actor, if attached to one.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_parent)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_parent)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_parent)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_parent)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_parent)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_parent](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_parent)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn parent(&self) -> Option<Actor> {
         Actor::from_cxx(self.cxx_actor().GetParent())
     }
 
     /// Returns the actor's blueprint attributes (color, role_name, etc.).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.attributes)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.attributes)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.attributes)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.attributes)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.attributes)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.attributes](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.attributes)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn attributes(&self) -> ActorAttributeValueList<'_> {
         let ptr = self.cxx_actor().GetAttributes().within_unique_ptr();
         unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap_unchecked() }
@@ -117,44 +172,88 @@ pub trait ActorBase: Clone {
 
     /// Returns the world this actor belongs to.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_world)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_world)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_world)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_world)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_world)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_world](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_world)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn world(&self) -> World {
         unsafe { World::from_cxx(self.cxx_actor().GetWorld()).unwrap_unchecked() }
     }
 
     /// Returns the actor's current location (position only).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_location)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_location)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_location)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_location)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_location)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_location](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_location)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn location(&self) -> Location {
         Location::from_ffi(self.cxx_actor().GetLocation())
     }
 
     /// Returns the actor's current transform (position and rotation).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_transform)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_transform)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_transform)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_transform](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_transform)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn transform(&self) -> Transform {
         Transform::from_ffi(self.cxx_actor().GetTransform())
     }
 
     /// Returns the actor's velocity vector in m/s.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn velocity(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
@@ -168,11 +267,22 @@ pub trait ActorBase: Clone {
 
     /// Returns the actor's acceleration vector in m/s².
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_acceleration)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_acceleration)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_acceleration)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_acceleration)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_acceleration)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_acceleration](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_acceleration)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn acceleration(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
@@ -186,11 +296,22 @@ pub trait ActorBase: Clone {
 
     /// Returns the actor's angular velocity in radians/s.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_angular_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_angular_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_angular_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_angular_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.get_angular_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.get_angular_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn angular_velocity(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
@@ -204,33 +325,66 @@ pub trait ActorBase: Clone {
 
     /// Teleports the actor to a new location.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_location)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_location)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_location)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_location)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_location)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_location](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_location)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_location(&self, location: &Location) {
         self.cxx_actor().SetLocation(location.as_ffi())
     }
 
     /// Teleports the actor to a new transform (position and rotation).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_transform)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_transform)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_transform)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_transform)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_transform](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_transform)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_transform(&self, transform: &Transform) {
         self.cxx_actor().SetTransform(transform.as_ffi())
     }
 
     /// Sets the target velocity for physics simulation (m/s).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_target_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_target_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_target_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_target_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_target_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_target_velocity(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -242,11 +396,22 @@ pub trait ActorBase: Clone {
 
     /// Sets the target angular velocity for physics simulation (rad/s).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_angular_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_target_angular_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_target_angular_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_angular_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_target_angular_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_target_angular_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_target_angular_velocity(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -258,11 +423,22 @@ pub trait ActorBase: Clone {
 
     /// Enables constant velocity mode (actor moves at fixed velocity regardless of physics).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.enable_constant_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.enable_constant_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.enable_constant_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.enable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.enable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.enable_constant_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.enable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn enable_constant_velocity(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -274,22 +450,44 @@ pub trait ActorBase: Clone {
 
     /// Disables constant velocity mode.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.disable_constant_velocity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.disable_constant_velocity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.disable_constant_velocity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.disable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.disable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.disable_constant_velocity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.disable_constant_velocity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn disable_constant_velocity(&self) {
         self.cxx_actor().DisableConstantVelocity()
     }
 
     /// Applies an impulse (instantaneous velocity change) to the actor's center of mass.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_impulse)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_impulse)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_impulse)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.add_impulse](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_impulse)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn add_impulse(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -313,11 +511,22 @@ pub trait ActorBase: Clone {
 
     /// Applies a continuous force to the actor's center of mass.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_force)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_force)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_force)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_force)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_force)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.add_force](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_force)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn add_force(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -341,11 +550,22 @@ pub trait ActorBase: Clone {
 
     /// Applies an angular impulse (instantaneous rotation change).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_angular_impulse)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_angular_impulse)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_angular_impulse)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_angular_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_angular_impulse)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.add_angular_impulse](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_angular_impulse)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn add_angular_impulse(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -357,11 +577,22 @@ pub trait ActorBase: Clone {
 
     /// Applies a continuous torque (rotational force).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_torque)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_torque)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_torque)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.add_torque)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.add_torque)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.add_torque](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.add_torque)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn add_torque(&self, vector: &Vector3D) {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         unsafe {
@@ -373,55 +604,110 @@ pub trait ActorBase: Clone {
 
     /// Enables or disables physics simulation for this actor.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_simulate_physics)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_simulate_physics)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_simulate_physics)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_simulate_physics)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_simulate_physics)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_simulate_physics](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_simulate_physics)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_simulate_physics(&self, enabled: bool) {
         self.cxx_actor().SetSimulatePhysics(enabled)
     }
 
     /// Enables or disables gravity for this actor.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_enable_gravity)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_enable_gravity)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_enable_gravity)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_enable_gravity)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.set_enable_gravity)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.set_enable_gravity](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.set_enable_gravity)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn set_enable_gravity(&self, enabled: bool) {
         self.cxx_actor().SetEnableGravity(enabled)
     }
 
     /// Returns whether the actor still exists in the simulation.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_alive)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_alive)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_alive)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_alive)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_alive)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_alive)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn is_alive(&self) -> bool {
         self.cxx_actor().IsAlive()
     }
 
     /// Returns whether the actor is currently dormant (inactive/sleeping).
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_dormant)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_dormant)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_dormant)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_dormant)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_dormant)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.is_dormant](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_dormant)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn is_dormant(&self) -> bool {
         self.cxx_actor().IsDormant()
     }
 
     /// Returns whether the actor is currently active.
     ///
-    ///
-    #[cfg_attr(carla_version_0916, doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_active)")]
-    #[cfg_attr(carla_version_0915, doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_active)")]
-    #[cfg_attr(carla_version_0914, doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_active)")]
-    #[cfg_attr(any(carla_version_0916, carla_version_0915, carla_version_0914), doc = " in the Python API.")]
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Actor.is_active)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Actor.is_active](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Actor.is_active)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     fn is_active(&self) -> bool {
         self.cxx_actor().IsActive()
     }

@@ -10,7 +10,22 @@ use static_assertions::assert_impl_all;
 /// gyroscope (angular velocity), and compass (orientation) readings. IMU sensors are useful
 /// for vehicle dynamics analysis and state estimation.
 ///
-/// Corresponds to [`carla.IMUMeasurement`](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement) in the Python API.
+/// Corresponds to [`carla.IMUMeasurement`] in the Python API.
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.IMUMeasurement`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement"
+)]
+#[cfg_attr(carla_version_0915, doc = "")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.IMUMeasurement`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.IMUMeasurement"
+)]
+#[cfg_attr(carla_version_0914, doc = "")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.IMUMeasurement`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.IMUMeasurement"
+)]
 ///
 /// # Examples
 ///
@@ -63,8 +78,22 @@ impl ImuMeasurement {
     /// - y: left/right
     /// - z: up/down
     ///
-    /// See [carla.IMUMeasurement.accelerometer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.accelerometer)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.IMUMeasurement.accelerometer](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.accelerometer)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.IMUMeasurement.accelerometer](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.IMUMeasurement.accelerometer)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.IMUMeasurement.accelerometer](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.IMUMeasurement.accelerometer)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn accelerometer(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {
@@ -77,8 +106,22 @@ impl ImuMeasurement {
     ///
     /// The compass value represents the orientation relative to north (0 radians).
     ///
-    /// See [carla.IMUMeasurement.compass](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.compass)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.IMUMeasurement.compass](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.compass)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.IMUMeasurement.compass](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.IMUMeasurement.compass)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.IMUMeasurement.compass](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.IMUMeasurement.compass)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn compass(&self) -> f32 {
         self.inner.GetCompass()
     }
@@ -90,8 +133,22 @@ impl ImuMeasurement {
     /// - y: pitch rate (rotation around lateral axis)
     /// - z: yaw rate (rotation around vertical axis)
     ///
-    /// See [carla.IMUMeasurement.gyroscope](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.gyroscope)
-    /// in the Python API.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.IMUMeasurement.gyroscope](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.IMUMeasurement.gyroscope)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.IMUMeasurement.gyroscope](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.IMUMeasurement.gyroscope)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.IMUMeasurement.gyroscope](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.IMUMeasurement.gyroscope)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
     pub fn gyroscope(&self) -> Vector3D {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
         unsafe {

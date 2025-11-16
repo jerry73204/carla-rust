@@ -23,13 +23,21 @@ use std::time::Duration;
 /// - Check version compatibility
 ///
 /// Corresponds to [`carla.Client`] in the Python API.
-///
 #[cfg_attr(carla_version_0916, doc = "")]
-#[cfg_attr(carla_version_0916, doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Client")]
+#[cfg_attr(
+    carla_version_0916,
+    doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Client"
+)]
 #[cfg_attr(carla_version_0915, doc = "")]
-#[cfg_attr(carla_version_0915, doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Client")]
+#[cfg_attr(
+    carla_version_0915,
+    doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Client"
+)]
 #[cfg_attr(carla_version_0914, doc = "")]
-#[cfg_attr(carla_version_0914, doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Client")]
+#[cfg_attr(
+    carla_version_0914,
+    doc = " [`carla.Client`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Client"
+)]
 ///
 /// # Thread Safety
 ///
