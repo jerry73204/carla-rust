@@ -179,16 +179,18 @@ fn setup_scenario(world: &mut carla::client::World) -> Vehicle {
 
     // Try multiple spawn points in case some are occupied
     for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
-        if let Ok(vehicle_actor) = world.spawn_actor(&vehicle_bp, spawn_point) {
-            if let Ok(vehicle) = Vehicle::try_from(vehicle_actor) {
-                println!("Vehicle spawned at spawn point {}", i);
-                println!("Scenario setup complete\n");
-                return vehicle;
-            }
+        if let Ok(vehicle_actor) = world.spawn_actor(&vehicle_bp, spawn_point)
+            && let Ok(vehicle) = Vehicle::try_from(vehicle_actor)
+        {
+            println!("Vehicle spawned at spawn point {}", i);
+            println!("Scenario setup complete\n");
+            return vehicle;
         }
     }
 
-    panic!("Failed to spawn vehicle at any of the first 10 spawn points. Try running scripts/clean-carla-world.py");
+    panic!(
+        "Failed to spawn vehicle at any of the first 10 spawn points. Try running scripts/clean-carla-world.py"
+    );
 }
 
 fn run_test<F>(name: &str, test_fn: F, passed: &mut i32, failed: &mut i32)

@@ -26,7 +26,7 @@ pub use carla_sys::carla::sensor::data::DVSEvent;
 /// ```no_run
 /// use carla::{
 ///     client::{ActorBase, Client},
-///     sensor::{data::DVSEventArray, SensorDataBase},
+///     sensor::{SensorDataBase, data::DVSEventArray},
 /// };
 ///
 /// let client = Client::default();

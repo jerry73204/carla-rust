@@ -265,16 +265,16 @@ fn test_landmark_waypoints(world: &carla::client::World) -> TestResult {
     let map = world.map();
     let waypoints = map.generate_waypoints(10.0);
 
-    if !waypoints.is_empty() {
-        if let Some(wp) = waypoints.get(0) {
-            println!(
-                "  Waypoint at ({:.1}, {:.1}, {:.1})",
-                wp.transform().location.x,
-                wp.transform().location.y,
-                wp.transform().location.z
-            );
-            println!("  Landmark waypoint association API not yet available");
-        }
+    if !waypoints.is_empty()
+        && let Some(wp) = waypoints.get(0)
+    {
+        println!(
+            "  Waypoint at ({:.1}, {:.1}, {:.1})",
+            wp.transform().location.x,
+            wp.transform().location.y,
+            wp.transform().location.z
+        );
+        println!("  Landmark waypoint association API not yet available");
     }
 
     // API limitation: Landmark waypoint queries not yet wrapped

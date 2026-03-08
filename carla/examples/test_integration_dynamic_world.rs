@@ -198,12 +198,12 @@ fn test_map_operations(world: &carla::client::World) {
         println!("⚠️  No waypoint found at (0,0,0) - using spawn point instead");
 
         let spawn_points = map.recommended_spawn_points();
-        if let Some(spawn_point) = spawn_points.get(0) {
-            if let Some(waypoint) = map.waypoint_at(&spawn_point.location) {
-                println!("✓ Found waypoint at spawn point");
-                let next_waypoints = waypoint.next(5.0);
-                println!("✓ Next waypoints: {} found", next_waypoints.len());
-            }
+        if let Some(spawn_point) = spawn_points.get(0)
+            && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+        {
+            println!("✓ Found waypoint at spawn point");
+            let next_waypoints = waypoint.next(5.0);
+            println!("✓ Next waypoints: {} found", next_waypoints.len());
         }
     }
 

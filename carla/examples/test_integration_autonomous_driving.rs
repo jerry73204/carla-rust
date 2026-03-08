@@ -22,8 +22,8 @@ use carla::{
 };
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
     time::{Duration, Instant},
 };

@@ -559,7 +559,7 @@ pub mod rpc;
 /// ```no_run
 /// use carla::{
 ///     client::Client,
-///     sensor::{data::Image, SensorDataBase},
+///     sensor::{SensorDataBase, data::Image},
 /// };
 ///
 /// let client = Client::default();

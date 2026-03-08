@@ -21,14 +21,14 @@ use carla::{
     rpc::AttachmentType,
     sensor::data::{Image, LidarMeasurement},
 };
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use macroquad::prelude::*;
 use nalgebra::{Isometry3, Translation3, UnitQuaternion};
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
 };
 use tracing::info;

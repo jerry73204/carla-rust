@@ -45,8 +45,8 @@ use carla::{
     sensor::data::Image as CarlaImage,
 };
 use gilrs::{
-    ff::{BaseEffect, BaseEffectType, Effect, EffectBuilder, Replay},
     Axis, Button, Event, EventType, Gilrs,
+    ff::{BaseEffect, BaseEffectType, Effect, EffectBuilder, Replay},
 };
 use macroquad::prelude::*;
 use std::sync::{Arc, Mutex};
@@ -168,32 +168,32 @@ impl GamepadController {
         }
 
         // Read analog axes
-        if let Some(id) = self.gamepad_id {
-            if let Some(gamepad) = self.gilrs.connected_gamepad(id) {
-                // Steering (LeftStickX or first available axis)
-                let steering_raw = gamepad
-                    .axis_data(Axis::LeftStickX)
-                    .map(|a| a.value())
-                    .unwrap_or(0.0);
-                input.steering =
-                    Self::apply_dead_zone_and_curve(steering_raw, DEAD_ZONE, STEERING_CURVE);
+        if let Some(id) = self.gamepad_id
+            && let Some(gamepad) = self.gilrs.connected_gamepad(id)
+        {
+            // Steering (LeftStickX or first available axis)
+            let steering_raw = gamepad
+                .axis_data(Axis::LeftStickX)
+                .map(|a| a.value())
+                .unwrap_or(0.0);
+            input.steering =
+                Self::apply_dead_zone_and_curve(steering_raw, DEAD_ZONE, STEERING_CURVE);
 
-                // Throttle (RightTrigger2 or RightZ)
-                let throttle_raw = gamepad
-                    .axis_data(Axis::RightZ)
-                    .or_else(|| gamepad.axis_data(Axis::RightStickY))
-                    .map(|a| (a.value() + 1.0) / 2.0) // Convert -1..1 to 0..1
-                    .unwrap_or(0.0);
-                input.throttle = Self::apply_dead_zone(throttle_raw, DEAD_ZONE).clamp(0.0, 1.0);
+            // Throttle (RightTrigger2 or RightZ)
+            let throttle_raw = gamepad
+                .axis_data(Axis::RightZ)
+                .or_else(|| gamepad.axis_data(Axis::RightStickY))
+                .map(|a| (a.value() + 1.0) / 2.0) // Convert -1..1 to 0..1
+                .unwrap_or(0.0);
+            input.throttle = Self::apply_dead_zone(throttle_raw, DEAD_ZONE).clamp(0.0, 1.0);
 
-                // Brake (LeftTrigger2 or LeftZ)
-                let brake_raw = gamepad
-                    .axis_data(Axis::LeftZ)
-                    .or_else(|| gamepad.axis_data(Axis::LeftStickY))
-                    .map(|a| (a.value() + 1.0) / 2.0) // Convert -1..1 to 0..1
-                    .unwrap_or(0.0);
-                input.brake = Self::apply_dead_zone(brake_raw, DEAD_ZONE).clamp(0.0, 1.0);
-            }
+            // Brake (LeftTrigger2 or LeftZ)
+            let brake_raw = gamepad
+                .axis_data(Axis::LeftZ)
+                .or_else(|| gamepad.axis_data(Axis::LeftStickY))
+                .map(|a| (a.value() + 1.0) / 2.0) // Convert -1..1 to 0..1
+                .unwrap_or(0.0);
+            input.brake = Self::apply_dead_zone(brake_raw, DEAD_ZONE).clamp(0.0, 1.0);
         }
     }
 
@@ -219,42 +219,42 @@ impl GamepadController {
 
     /// Apply force feedback effect based on vehicle speed
     fn apply_force_feedback(&mut self, speed_kmh: f32) {
-        if let Some(id) = self.gamepad_id {
-            if let Some(gamepad) = self.gilrs.connected_gamepad(id) {
-                if !gamepad.is_ff_supported() {
-                    return;
-                }
+        if let Some(id) = self.gamepad_id
+            && let Some(gamepad) = self.gilrs.connected_gamepad(id)
+        {
+            if !gamepad.is_ff_supported() {
+                return;
+            }
 
-                // Remove old effect
-                if let Some(_effect) = self.ff_effect_id.take() {
-                    // Effect is automatically dropped
-                }
+            // Remove old effect
+            if let Some(_effect) = self.ff_effect_id.take() {
+                // Effect is automatically dropped
+            }
 
-                // Calculate resistance based on speed (stronger at higher speeds)
-                let resistance = (speed_kmh / 100.0).min(1.0) * self.force_feedback_strength;
+            // Calculate resistance based on speed (stronger at higher speeds)
+            let resistance = (speed_kmh / 100.0).min(1.0) * self.force_feedback_strength;
 
-                if resistance > 0.01 {
-                    // Create constant force effect
-                    let duration = gilrs::ff::Ticks::from_ms(100);
-                    let effect = EffectBuilder::new()
-                        .add_effect(BaseEffect {
-                            kind: BaseEffectType::Strong {
-                                magnitude: (resistance * u16::MAX as f32) as u16,
-                            },
-                            scheduling: Replay {
-                                play_for: duration,
-                                with_delay: gilrs::ff::Ticks::from_ms(0),
-                                ..Default::default()
-                            },
+            if resistance > 0.01 {
+                // Create constant force effect
+                let duration = gilrs::ff::Ticks::from_ms(100);
+                let effect = EffectBuilder::new()
+                    .add_effect(BaseEffect {
+                        kind: BaseEffectType::Strong {
+                            magnitude: (resistance * u16::MAX as f32) as u16,
+                        },
+                        scheduling: Replay {
+                            play_for: duration,
+                            with_delay: gilrs::ff::Ticks::from_ms(0),
                             ..Default::default()
-                        })
-                        .gamepads(&[id])
-                        .finish(&mut self.gilrs);
+                        },
+                        ..Default::default()
+                    })
+                    .gamepads(&[id])
+                    .finish(&mut self.gilrs);
 
-                    if let Ok(effect) = effect {
-                        let _ = effect.play();
-                        self.ff_effect_id = Some(effect);
-                    }
+                if let Ok(effect) = effect {
+                    let _ = effect.play();
+                    self.ff_effect_id = Some(effect);
                 }
             }
         }
@@ -354,10 +354,10 @@ impl CameraManager {
         let latest_image_clone = Arc::clone(&latest_image);
 
         sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_image_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_image_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
@@ -423,10 +423,10 @@ impl CameraManager {
         // Setup new listener
         let latest_image_clone = Arc::clone(&self.latest_image);
         self.sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_image_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_image_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
@@ -434,23 +434,23 @@ impl CameraManager {
     }
 
     fn update(&mut self) -> bool {
-        if let Ok(mut img_opt) = self.latest_image.lock() {
-            if let Some(image) = img_opt.take() {
-                let raw_data = image.as_slice();
-                let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+        if let Ok(mut img_opt) = self.latest_image.lock()
+            && let Some(image) = img_opt.take()
+        {
+            let raw_data = image.as_slice();
+            let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
 
-                for color in raw_data {
-                    rgba_data.push(color.r);
-                    rgba_data.push(color.g);
-                    rgba_data.push(color.b);
-                    rgba_data.push(color.a);
-                }
-
-                self.texture =
-                    Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
-                self.texture.set_filter(FilterMode::Linear);
-                return true;
+            for color in raw_data {
+                rgba_data.push(color.r);
+                rgba_data.push(color.g);
+                rgba_data.push(color.b);
+                rgba_data.push(color.a);
             }
+
+            self.texture =
+                Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+            self.texture.set_filter(FilterMode::Linear);
+            return true;
         }
         false
     }
@@ -749,10 +749,10 @@ async fn main() -> Result<()> {
         }
 
         // Handle camera switching
-        if input_state.switch_camera {
-            if let Err(e) = camera.switch_view(&mut world, &vehicle) {
-                eprintln!("Failed to switch camera: {}", e);
-            }
+        if input_state.switch_camera
+            && let Err(e) = camera.switch_view(&mut world, &vehicle)
+        {
+            eprintln!("Failed to switch camera: {}", e);
         }
 
         // Handle light toggle

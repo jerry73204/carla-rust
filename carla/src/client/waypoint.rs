@@ -2,8 +2,8 @@ use super::{Junction, LandmarkList, WaypointList};
 use crate::{
     geom::Transform,
     road::{
-        element::{LaneMarking, LaneMarking_LaneChange},
         JuncId, LaneId, LaneType, RoadId, SectionId,
+        element::{LaneMarking, LaneMarking_LaneChange},
     },
 };
 use autocxx::WithinUniquePtr;

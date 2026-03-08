@@ -157,12 +157,11 @@ impl VehicleManager {
             // Try to spawn
             if let Ok(actor) =
                 world.spawn_actor_opt::<Actor, _>(vehicle_bp, spawn_point, None::<&Actor>, None)
+                && let Ok(vehicle) = Vehicle::try_from(actor)
             {
-                if let Ok(vehicle) = Vehicle::try_from(actor) {
-                    vehicle.set_autopilot(true);
-                    self.vehicles.push(vehicle);
-                    spawned += 1;
-                }
+                vehicle.set_autopilot(true);
+                self.vehicles.push(vehicle);
+                spawned += 1;
             }
 
             attempts += 1;

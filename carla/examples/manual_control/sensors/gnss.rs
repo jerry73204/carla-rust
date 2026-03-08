@@ -13,7 +13,7 @@ use carla::{
     rpc::AttachmentType,
     sensor::data::GnssMeasurement,
 };
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use std::sync::{Arc, Mutex};
 use tracing::info;
 

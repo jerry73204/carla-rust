@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{Result, bail, ensure};
 
 #[derive(Debug, Clone)]
 pub struct Probe {

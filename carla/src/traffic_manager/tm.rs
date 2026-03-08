@@ -136,8 +136,9 @@ impl TrafficManager {
             vec
         });
 
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetCustomPath(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             &path,
             empty_buffer,
         );
@@ -187,8 +188,9 @@ impl TrafficManager {
             vec
         });
 
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetImportedRoute(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             route.as_ref().unwrap(),
             empty_buffer,
         );
@@ -358,8 +360,9 @@ impl TrafficManager {
     where
         A: ActorBase,
     {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetPercentageSpeedDifference(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }
@@ -385,20 +388,20 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_lane_offset<A: ActorBase>(&mut self, actor: &A, offset: f32) {
-        self.inner.pin_mut().SetLaneOffset(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            offset,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetLaneOffset(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, offset);
     }
 
     /// Sets a specific desired speed for a vehicle in m/s.
     ///
     /// This overrides the speed limit-based speed calculation.
     pub fn set_desired_speed<A: ActorBase>(&mut self, actor: &A, value: f32) {
-        self.inner.pin_mut().SetDesiredSpeed(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            value,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetDesiredSpeed(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, value);
     }
 
     /// Sets the percentage difference from the speed limit for all vehicles.
@@ -455,10 +458,10 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_update_vehicle_lights<A: ActorBase>(&mut self, actor: &A, do_update: bool) {
-        self.inner.pin_mut().SetUpdateVehicleLights(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            do_update,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetUpdateVehicleLights(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, do_update);
     }
 
     /// Enables or disables collision detection between two vehicles.
@@ -486,9 +489,11 @@ impl TrafficManager {
         other_actor: &A2,
         detect_collision: bool,
     ) {
+        let cxx_ref = reference_actor.cxx_actor();
+        let cxx_other = other_actor.cxx_actor();
         self.inner.pin_mut().SetCollisionDetection(
-            unsafe { reference_actor.cxx_actor().as_ref().unwrap_unchecked() },
-            unsafe { other_actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_ref.as_ref().unwrap_unchecked() },
+            unsafe { cxx_other.as_ref().unwrap_unchecked() },
             detect_collision,
         );
     }
@@ -513,10 +518,10 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_force_lane_change<A: ActorBase>(&mut self, actor: &A, direction: bool) {
-        self.inner.pin_mut().SetForceLaneChange(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            direction,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetForceLaneChange(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, direction);
     }
 
     /// Enables or disables automatic lane changes for a vehicle.
@@ -539,10 +544,10 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_auto_lane_change<A: ActorBase>(&mut self, actor: &A, enable: bool) {
-        self.inner.pin_mut().SetAutoLaneChange(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            enable,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetAutoLaneChange(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, enable);
     }
 
     /// Sets the minimum distance to maintain from the leading vehicle in meters.
@@ -565,8 +570,9 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_distance_to_leading_vehicle<A: ActorBase>(&mut self, actor: &A, distance: f32) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetDistanceToLeadingVehicle(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             distance,
         );
     }
@@ -591,8 +597,9 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_percentage_ignore_walkers<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetPercentageIgnoreWalkers(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }
@@ -617,8 +624,9 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_percentage_ignore_vehicles<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetPercentageIgnoreVehicles(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }
@@ -643,8 +651,9 @@ impl TrafficManager {
         doc = " in the Python API."
     )]
     pub fn set_percentage_running_light<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetPercentageRunningLight(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }
@@ -747,10 +756,10 @@ impl TrafficManager {
     /// Note: This method is only available in CARLA versions before 0.9.16.
     #[cfg(not(carla_0916))]
     pub fn set_keep_right_percentage<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
-        self.inner.pin_mut().SetKeepRightPercentage(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        let cxx_actor = actor.cxx_actor();
+        self.inner
+            .pin_mut()
+            .SetKeepRightPercentage(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, percentage);
     }
 
     /// Sets the percentage chance for a vehicle to randomly change to the left lane.
@@ -777,8 +786,9 @@ impl TrafficManager {
         actor: &A,
         percentage: f32,
     ) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetRandomLeftLaneChangePercentage(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }
@@ -807,8 +817,9 @@ impl TrafficManager {
         actor: &A,
         percentage: f32,
     ) {
+        let cxx_actor = actor.cxx_actor();
         self.inner.pin_mut().SetRandomRightLaneChangePercentage(
-            unsafe { actor.cxx_actor().as_ref().unwrap_unchecked() },
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
             percentage,
         );
     }

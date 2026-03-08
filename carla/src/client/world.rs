@@ -18,7 +18,7 @@ use carla_sys::carla_rust::{
     client::{FfiActor, FfiWorld},
     geom::FfiVector3D,
 };
-use cxx::{let_cxx_string, CxxVector, UniquePtr};
+use cxx::{CxxVector, UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 use std::{ptr, time::Duration};

@@ -211,22 +211,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut walker_controllers = Vec::new();
     for &controller_id in &controller_ids {
-        if let Some(actor) = world.actor(controller_id) {
-            if let Ok(controller) = WalkerAIController::try_from(actor) {
-                // Start the AI
-                controller.start();
+        if let Some(actor) = world.actor(controller_id)
+            && let Ok(controller) = WalkerAIController::try_from(actor)
+        {
+            // Start the AI
+            controller.start();
 
-                // Set walking speed (random between 0.5 and 2.0 m/s)
-                let speed = rng.gen_range(0.5..2.0);
-                controller.set_max_speed(speed);
+            // Set walking speed (random between 0.5 and 2.0 m/s)
+            let speed = rng.gen_range(0.5..2.0);
+            controller.set_max_speed(speed);
 
-                // Set random destination
-                if let Some(destination) = controller.get_random_location() {
-                    controller.go_to_location(&destination);
-                }
-
-                walker_controllers.push(controller);
+            // Set random destination
+            if let Some(destination) = controller.get_random_location() {
+                controller.go_to_location(&destination);
             }
+
+            walker_controllers.push(controller);
         }
     }
 

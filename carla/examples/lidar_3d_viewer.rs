@@ -124,10 +124,10 @@ impl LidarManager {
         let latest_data_clone = Arc::clone(&latest_data);
 
         sensor.listen(move |data| {
-            if let Ok(lidar_data) = LidarMeasurement::try_from(data) {
-                if let Ok(mut data_lock) = latest_data_clone.lock() {
-                    *data_lock = Some(lidar_data);
-                }
+            if let Ok(lidar_data) = LidarMeasurement::try_from(data)
+                && let Ok(mut data_lock) = latest_data_clone.lock()
+            {
+                *data_lock = Some(lidar_data);
             }
         });
 

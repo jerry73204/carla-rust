@@ -338,18 +338,18 @@ impl CameraManager {
         let depth_buffer_clone = Arc::clone(&depth_buffer);
 
         rgb_sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_image_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_image_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
         depth_sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = depth_buffer_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = depth_buffer_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
@@ -368,23 +368,23 @@ impl CameraManager {
         self.transform = Self::compute_world_transform(&vehicle_transform, &self.transform);
 
         // Update texture
-        if let Ok(mut img) = self.latest_image.lock() {
-            if let Some(image) = img.take() {
-                let data = image.as_slice();
-                let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+        if let Ok(mut img) = self.latest_image.lock()
+            && let Some(image) = img.take()
+        {
+            let data = image.as_slice();
+            let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
 
-                for pixel in data {
-                    rgba_data.push(pixel.b);
-                    rgba_data.push(pixel.g);
-                    rgba_data.push(pixel.r);
-                    rgba_data.push(255);
-                }
-
-                self.texture =
-                    Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
-                self.texture.set_filter(FilterMode::Linear);
-                return true;
+            for pixel in data {
+                rgba_data.push(pixel.b);
+                rgba_data.push(pixel.g);
+                rgba_data.push(pixel.r);
+                rgba_data.push(255);
             }
+
+            self.texture =
+                Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+            self.texture.set_filter(FilterMode::Linear);
+            return true;
         }
         false
     }
@@ -429,24 +429,24 @@ impl CameraManager {
 
     /// Check if point is occluded using depth buffer
     fn is_occluded(&self, u: f32, v: f32, depth: f32) -> bool {
-        if let Ok(depth_img) = self.depth_buffer.lock() {
-            if let Some(ref img) = *depth_img {
-                let x = u.round() as u32;
-                let y = v.round() as u32;
+        if let Ok(depth_img) = self.depth_buffer.lock()
+            && let Some(ref img) = *depth_img
+        {
+            let x = u.round() as u32;
+            let y = v.round() as u32;
 
-                if x < CAMERA_WIDTH && y < CAMERA_HEIGHT {
-                    let idx = (y * CAMERA_WIDTH + x) as usize;
-                    let data = img.as_slice();
+            if x < CAMERA_WIDTH && y < CAMERA_HEIGHT {
+                let idx = (y * CAMERA_WIDTH + x) as usize;
+                let data = img.as_slice();
 
-                    if idx < data.len() {
-                        let pixel = &data[idx];
-                        // Depth encoded as normalized R value (0.0 = near, 1.0 = far)
-                        // Convert to actual depth in meters (assuming max depth = 1000m)
-                        let buffer_depth = (pixel.r as f32 / 255.0) * 1000.0;
+                if idx < data.len() {
+                    let pixel = &data[idx];
+                    // Depth encoded as normalized R value (0.0 = near, 1.0 = far)
+                    // Convert to actual depth in meters (assuming max depth = 1000m)
+                    let buffer_depth = (pixel.r as f32 / 255.0) * 1000.0;
 
-                        // Point is occluded if it's further than buffer depth + threshold
-                        return depth > buffer_depth + 1.0;
-                    }
+                    // Point is occluded if it's further than buffer depth + threshold
+                    return depth > buffer_depth + 1.0;
                 }
             }
         }
@@ -806,7 +806,10 @@ impl HelpOverlay {
                 "This demo computes bounding boxes entirely client-side for performance comparison.",
                 20.0,
             ),
-            ("Includes occlusion handling, frustum culling, and spatial optimization.", 20.0),
+            (
+                "Includes occlusion handling, frustum culling, and spatial optimization.",
+                20.0,
+            ),
             ("", 20.0),
             ("CONTROLS:", 25.0),
             ("", 20.0),

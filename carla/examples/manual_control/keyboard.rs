@@ -226,17 +226,17 @@ impl KeyboardControl {
         }
 
         // ✅ Subphase 12.8.1: Backtick (`) key - Next sensor
-        if is_key_pressed(KeyCode::GraveAccent) {
-            if let Ok(sensor_name) = camera.next_sensor(world) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::GraveAccent)
+            && let Ok(sensor_name) = camera.next_sensor(world)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
 
         // ✅ Subphase 12.8.1: N key - Next sensor (alternative to backtick)
-        if is_key_pressed(KeyCode::N) {
-            if let Ok(sensor_name) = camera.next_sensor(world) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::N)
+            && let Ok(sensor_name) = camera.next_sensor(world)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
 
         // ✅ Subphase 12.8.1: Number keys 1-9 - Direct sensor selection (indices 0-8)
@@ -272,25 +272,29 @@ impl KeyboardControl {
                 notification.set_text(sensor_name, 2.0);
             }
         }
-        if is_key_pressed(KeyCode::Key6) && !ctrl_pressed {
-            if let Ok(sensor_name) = camera.set_sensor(world, 5) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::Key6)
+            && !ctrl_pressed
+            && let Ok(sensor_name) = camera.set_sensor(world, 5)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
-        if is_key_pressed(KeyCode::Key7) && !ctrl_pressed {
-            if let Ok(sensor_name) = camera.set_sensor(world, 6) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::Key7)
+            && !ctrl_pressed
+            && let Ok(sensor_name) = camera.set_sensor(world, 6)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
-        if is_key_pressed(KeyCode::Key8) && !ctrl_pressed {
-            if let Ok(sensor_name) = camera.set_sensor(world, 7) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::Key8)
+            && !ctrl_pressed
+            && let Ok(sensor_name) = camera.set_sensor(world, 7)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
-        if is_key_pressed(KeyCode::Key9) && !ctrl_pressed {
-            if let Ok(sensor_name) = camera.set_sensor(world, 8) {
-                notification.set_text(sensor_name, 2.0);
-            }
+        if is_key_pressed(KeyCode::Key9)
+            && !ctrl_pressed
+            && let Ok(sensor_name) = camera.set_sensor(world, 8)
+        {
+            notification.set_text(sensor_name, 2.0);
         }
 
         // TODO Phase 8.1: TAB - camera position (moved to main.rs for now)
@@ -376,69 +380,70 @@ impl KeyboardControl {
         }
 
         // ✅ Subphase 12.11.1: G key - Toggle radar visualization
-        if is_key_pressed(KeyCode::G) {
-            if let Some(ref mut radar) = hud.radar_sensor {
-                radar.toggle();
-                world.radar_enabled = !world.radar_enabled;
-                let message = if world.radar_enabled {
-                    "Radar visualization ON"
-                } else {
-                    "Radar visualization OFF"
-                };
-                notification.set_text(message, 2.0);
-            }
+        if is_key_pressed(KeyCode::G)
+            && let Some(ref mut radar) = hud.radar_sensor
+        {
+            radar.toggle();
+            world.radar_enabled = !world.radar_enabled;
+            let message = if world.radar_enabled {
+                "Radar visualization ON"
+            } else {
+                "Radar visualization OFF"
+            };
+            notification.set_text(message, 2.0);
         }
 
         // ✅ Subphase 12.11.2: O key - Toggle vehicle doors
-        if is_key_pressed(KeyCode::O) {
-            if let Some(ref player) = world.player {
-                use carla::rpc::VehicleDoor;
+        if is_key_pressed(KeyCode::O)
+            && let Some(ref player) = world.player
+        {
+            use carla::rpc::VehicleDoor;
 
-                world.doors_are_open = !world.doors_are_open;
+            world.doors_are_open = !world.doors_are_open;
 
-                if world.doors_are_open {
-                    // Try to open all doors - handle gracefully if vehicle doesn't support doors
-                    player.open_door(VehicleDoor::All);
-                    notification.set_text("Opening doors", 2.0);
-                } else {
-                    player.close_door(VehicleDoor::All);
-                    notification.set_text("Closing doors", 2.0);
-                }
+            if world.doors_are_open {
+                // Try to open all doors - handle gracefully if vehicle doesn't support doors
+                player.open_door(VehicleDoor::All);
+                notification.set_text("Opening doors", 2.0);
+            } else {
+                player.close_door(VehicleDoor::All);
+                notification.set_text("Closing doors", 2.0);
             }
         }
 
         // ✅ Subphase 12.11.3: Ctrl+W - Toggle constant velocity mode
-        if is_key_pressed(KeyCode::W) && ctrl_pressed {
-            if let Some(ref player) = world.player {
-                use carla::geom::Vector3D;
+        if is_key_pressed(KeyCode::W)
+            && ctrl_pressed
+            && let Some(ref player) = world.player
+        {
+            use carla::geom::Vector3D;
 
-                world.constant_velocity_enabled = !world.constant_velocity_enabled;
+            world.constant_velocity_enabled = !world.constant_velocity_enabled;
 
-                if world.constant_velocity_enabled {
-                    // 60 km/h = 16.67 m/s ≈ 17 m/s
-                    let velocity = Vector3D::new(17.0, 0.0, 0.0);
-                    player.enable_constant_velocity(&velocity);
-                    notification.set_text("Constant velocity mode ON (60 km/h)", 2.0);
-                } else {
-                    player.disable_constant_velocity();
-                    notification.set_text("Constant velocity mode OFF", 2.0);
-                }
+            if world.constant_velocity_enabled {
+                // 60 km/h = 16.67 m/s ≈ 17 m/s
+                let velocity = Vector3D::new(17.0, 0.0, 0.0);
+                player.enable_constant_velocity(&velocity);
+                notification.set_text("Constant velocity mode ON (60 km/h)", 2.0);
+            } else {
+                player.disable_constant_velocity();
+                notification.set_text("Constant velocity mode OFF", 2.0);
             }
         }
 
         // ✅ Subphase 12.11.4: T key - Toggle vehicle telemetry
-        if is_key_pressed(KeyCode::T) {
-            if let Some(ref player) = world.player {
-                world.show_vehicle_telemetry = !world.show_vehicle_telemetry;
-                player.show_debug_telemetry(world.show_vehicle_telemetry);
+        if is_key_pressed(KeyCode::T)
+            && let Some(ref player) = world.player
+        {
+            world.show_vehicle_telemetry = !world.show_vehicle_telemetry;
+            player.show_debug_telemetry(world.show_vehicle_telemetry);
 
-                let message = if world.show_vehicle_telemetry {
-                    "Vehicle telemetry ON"
-                } else {
-                    "Vehicle telemetry OFF"
-                };
-                notification.set_text(message, 2.0);
-            }
+            let message = if world.show_vehicle_telemetry {
+                "Vehicle telemetry ON"
+            } else {
+                "Vehicle telemetry OFF"
+            };
+            notification.set_text(message, 2.0);
         }
 
         // ✅ Subphase 12.12.2: H key or Shift+/ - Toggle help overlay
@@ -512,31 +517,31 @@ impl KeyboardControl {
     /// ✅ Subphase 12.7.2: Apply light state
     pub fn apply_control(&mut self, world: &mut crate::world::World) -> Result<()> {
         // Only apply manual control if autopilot is disabled
-        if !self.autopilot_enabled {
-            if let Some(ref player) = world.player {
-                // Apply vehicle control
-                player.apply_control(&self.control);
+        if !self.autopilot_enabled
+            && let Some(ref player) = world.player
+        {
+            // Apply vehicle control
+            player.apply_control(&self.control);
 
-                // ✅ Subphase 12.7.2: Automatically set brake and reverse lights
-                let mut current_lights = self.lights;
+            // ✅ Subphase 12.7.2: Automatically set brake and reverse lights
+            let mut current_lights = self.lights;
 
-                // Set brake light when braking
-                if self.control.brake > 0.0 {
-                    current_lights |= VehicleLightState::BRAKE;
-                } else {
-                    current_lights &= !VehicleLightState::BRAKE;
-                }
-
-                // Set reverse light when in reverse
-                if self.control.reverse {
-                    current_lights |= VehicleLightState::REVERSE;
-                } else {
-                    current_lights &= !VehicleLightState::REVERSE;
-                }
-
-                // Apply light state (now type-safe with no unsafe code!)
-                player.set_light_state(&current_lights);
+            // Set brake light when braking
+            if self.control.brake > 0.0 {
+                current_lights |= VehicleLightState::BRAKE;
+            } else {
+                current_lights &= !VehicleLightState::BRAKE;
             }
+
+            // Set reverse light when in reverse
+            if self.control.reverse {
+                current_lights |= VehicleLightState::REVERSE;
+            } else {
+                current_lights &= !VehicleLightState::REVERSE;
+            }
+
+            // Apply light state (now type-safe with no unsafe code!)
+            player.set_light_state(&current_lights);
         }
         Ok(())
     }

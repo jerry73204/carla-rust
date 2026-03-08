@@ -123,19 +123,19 @@ impl DisplayManager {
                         },
                     );
                 }
-            } else if viewport.sensor_type.contains("LiDAR") {
-                if let Some(texture) = self.lidar_textures.get(&viewport.actor_id) {
-                    draw_texture_ex(
-                        texture,
-                        x as f32,
-                        y as f32,
-                        WHITE,
-                        DrawTextureParams {
-                            dest_size: Some(vec2(width as f32, height as f32)),
-                            ..Default::default()
-                        },
-                    );
-                }
+            } else if viewport.sensor_type.contains("LiDAR")
+                && let Some(texture) = self.lidar_textures.get(&viewport.actor_id)
+            {
+                draw_texture_ex(
+                    texture,
+                    x as f32,
+                    y as f32,
+                    WHITE,
+                    DrawTextureParams {
+                        dest_size: Some(vec2(width as f32, height as f32)),
+                        ..Default::default()
+                    },
+                );
             }
 
             // Draw grid lines

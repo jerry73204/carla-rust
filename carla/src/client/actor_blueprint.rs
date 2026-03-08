@@ -2,7 +2,7 @@ use autocxx::prelude::*;
 use carla_sys::{
     carla::client::ActorBlueprint as FfiActorBlueprint, carla_rust::client::copy_actor_blueprint,
 };
-use cxx::{let_cxx_string, UniquePtr};
+use cxx::{UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 

@@ -32,9 +32,9 @@ use carla::{
     geom::{Location, Rotation},
     rpc::{AttachmentType, EpisodeSettings},
     sensor::{
+        SensorDataBase,
         camera::{build_projection_matrix, project_to_2d, world_to_camera},
         data::{Image, LidarMeasurement},
-        SensorDataBase,
     },
 };
 use nalgebra::Point3;

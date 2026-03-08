@@ -28,12 +28,11 @@ fn spawn_vehicle_with_retry(
     preferred_index: usize,
 ) -> Result<Vehicle, Box<dyn std::error::Error>> {
     // Try preferred spawn point first
-    if let Some(spawn_point) = spawn_points.get(preferred_index) {
-        if let Ok(actor) = world.spawn_actor(vehicle_bp, spawn_point) {
-            if let Ok(vehicle) = Vehicle::try_from(actor) {
-                return Ok(vehicle);
-            }
-        }
+    if let Some(spawn_point) = spawn_points.get(preferred_index)
+        && let Ok(actor) = world.spawn_actor(vehicle_bp, spawn_point)
+        && let Ok(vehicle) = Vehicle::try_from(actor)
+    {
+        return Ok(vehicle);
     }
 
     // If preferred failed, try other spawn points

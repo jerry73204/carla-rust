@@ -186,10 +186,10 @@ impl CameraManager {
         let latest_image_clone = Arc::clone(&latest_image);
 
         sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_image_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_image_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
@@ -208,23 +208,23 @@ impl CameraManager {
         // Update camera world transform
         self.transform = self.compute_world_transform(vehicle_transform);
 
-        if let Ok(mut img_opt) = self.latest_image.lock() {
-            if let Some(image) = img_opt.take() {
-                let raw_data = image.as_slice();
-                let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+        if let Ok(mut img_opt) = self.latest_image.lock()
+            && let Some(image) = img_opt.take()
+        {
+            let raw_data = image.as_slice();
+            let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
 
-                for color in raw_data {
-                    rgba_data.push(color.r);
-                    rgba_data.push(color.g);
-                    rgba_data.push(color.b);
-                    rgba_data.push(color.a);
-                }
-
-                self.texture =
-                    Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
-                self.texture.set_filter(FilterMode::Linear);
-                return true;
+            for color in raw_data {
+                rgba_data.push(color.r);
+                rgba_data.push(color.g);
+                rgba_data.push(color.b);
+                rgba_data.push(color.a);
             }
+
+            self.texture =
+                Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+            self.texture.set_filter(FilterMode::Linear);
+            return true;
         }
         false
     }

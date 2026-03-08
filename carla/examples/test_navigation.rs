@@ -139,34 +139,34 @@ fn test_waypoint_next(world: &carla::client::World) -> TestResult {
 
     // Get a spawn point on the road
     let spawn_points = map.recommended_spawn_points();
-    if let Some(spawn_point) = spawn_points.get(0) {
-        if let Some(waypoint) = map.waypoint_at(&spawn_point.location) {
-            // Test getting next waypoints at different distances
-            println!("  Testing next waypoint queries");
+    if let Some(spawn_point) = spawn_points.get(0)
+        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+    {
+        // Test getting next waypoints at different distances
+        println!("  Testing next waypoint queries");
 
-            let next_1m = waypoint.next(1.0);
-            println!("  Next waypoints at 1.0m: {} found", next_1m.len());
+        let next_1m = waypoint.next(1.0);
+        println!("  Next waypoints at 1.0m: {} found", next_1m.len());
 
-            let next_5m = waypoint.next(5.0);
-            println!("  Next waypoints at 5.0m: {} found", next_5m.len());
+        let next_5m = waypoint.next(5.0);
+        println!("  Next waypoints at 5.0m: {} found", next_5m.len());
 
-            let next_10m = waypoint.next(10.0);
-            println!("  Next waypoints at 10.0m: {} found", next_10m.len());
+        let next_10m = waypoint.next(10.0);
+        println!("  Next waypoints at 10.0m: {} found", next_10m.len());
 
-            // Verify we get some waypoints
+        // Verify we get some waypoints
+        assert!(
+            !next_5m.is_empty() || !next_10m.is_empty(),
+            "Should find next waypoints"
+        );
+
+        // Verify waypoint locations are valid
+        if let Some(next_wp) = next_10m.get(0) {
+            let loc = next_wp.transform().location;
             assert!(
-                !next_5m.is_empty() || !next_10m.is_empty(),
-                "Should find next waypoints"
+                loc.x.is_finite() && loc.y.is_finite() && loc.z.is_finite(),
+                "Next waypoint location should be valid"
             );
-
-            // Verify waypoint locations are valid
-            if let Some(next_wp) = next_10m.get(0) {
-                let loc = next_wp.transform().location;
-                assert!(
-                    loc.x.is_finite() && loc.y.is_finite() && loc.z.is_finite(),
-                    "Next waypoint location should be valid"
-                );
-            }
         }
     }
 
@@ -179,16 +179,16 @@ fn test_waypoint_lane_change(world: &carla::client::World) -> TestResult {
     let map = world.map();
     let spawn_points = map.recommended_spawn_points();
 
-    if let Some(spawn_point) = spawn_points.get(0) {
-        if let Some(waypoint) = map.waypoint_at(&spawn_point.location) {
-            println!(
-                "  Current waypoint at ({:.1}, {:.1}, {:.1})",
-                waypoint.transform().location.x,
-                waypoint.transform().location.y,
-                waypoint.transform().location.z
-            );
-            println!("  Lane change API (get_left_lane/get_right_lane) not yet available");
-        }
+    if let Some(spawn_point) = spawn_points.get(0)
+        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+    {
+        println!(
+            "  Current waypoint at ({:.1}, {:.1}, {:.1})",
+            waypoint.transform().location.x,
+            waypoint.transform().location.y,
+            waypoint.transform().location.z
+        );
+        println!("  Lane change API (get_left_lane/get_right_lane) not yet available");
     }
 
     // API limitation: Lane change methods not yet wrapped
@@ -325,44 +325,43 @@ fn test_route_waypoints(world: &carla::client::World) -> TestResult {
     let map = world.map();
     let spawn_points = map.recommended_spawn_points();
 
-    if let Some(spawn_point) = spawn_points.get(0) {
-        if let Some(start_wp) = map.waypoint_at(&spawn_point.location) {
-            println!("  Generating waypoint sequence from spawn point");
+    if let Some(spawn_point) = spawn_points.get(0)
+        && let Some(start_wp) = map.waypoint_at(&spawn_point.location)
+    {
+        println!("  Generating waypoint sequence from spawn point");
 
-            let mut waypoints = vec![start_wp.clone()];
-            let mut current = start_wp;
+        let mut waypoints = vec![start_wp.clone()];
+        let mut current = start_wp;
 
-            // Generate a sequence of waypoints
-            for _ in 0..5 {
-                let next = current.next(5.0);
-                if let Some(next_wp) = next.get(0) {
-                    waypoints.push(next_wp.clone());
-                    current = next_wp.clone();
-                } else {
-                    break;
-                }
+        // Generate a sequence of waypoints
+        for _ in 0..5 {
+            let next = current.next(5.0);
+            if let Some(next_wp) = next.get(0) {
+                waypoints.push(next_wp.clone());
+                current = next_wp.clone();
+            } else {
+                break;
             }
-
-            println!("  Generated sequence of {} waypoints", waypoints.len());
-
-            // Verify waypoints form a path
-            if waypoints.len() >= 2 {
-                let first = &waypoints[0];
-                let last = &waypoints[waypoints.len() - 1];
-
-                let first_loc = first.transform().location;
-                let last_loc = last.transform().location;
-
-                let distance = ((last_loc.x - first_loc.x).powi(2)
-                    + (last_loc.y - first_loc.y).powi(2))
-                .sqrt();
-
-                println!("  Distance covered: {:.1}m", distance);
-                assert!(distance > 0.0, "Waypoints should cover some distance");
-            }
-
-            println!("  Waypoint sequence generation successful");
         }
+
+        println!("  Generated sequence of {} waypoints", waypoints.len());
+
+        // Verify waypoints form a path
+        if waypoints.len() >= 2 {
+            let first = &waypoints[0];
+            let last = &waypoints[waypoints.len() - 1];
+
+            let first_loc = first.transform().location;
+            let last_loc = last.transform().location;
+
+            let distance =
+                ((last_loc.x - first_loc.x).powi(2) + (last_loc.y - first_loc.y).powi(2)).sqrt();
+
+            println!("  Distance covered: {:.1}m", distance);
+            assert!(distance > 0.0, "Waypoints should cover some distance");
+        }
+
+        println!("  Waypoint sequence generation successful");
     }
 
     Ok(())

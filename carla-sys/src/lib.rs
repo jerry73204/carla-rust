@@ -82,6 +82,11 @@
 //!
 //! - [`carla`] - Safe, high-level Rust bindings (use this instead!)
 
+// autocxx-generated code contains unsafe operations inside unsafe fns,
+// which is incompatible with the Rust 2024 edition default. We can't
+// modify the generated code, so we allow this lint crate-wide.
+#![allow(unsafe_op_in_unsafe_fn)]
+
 #[cfg(feature = "docs-only")]
 mod ffi_docs_only;
 #[cfg(feature = "docs-only")]

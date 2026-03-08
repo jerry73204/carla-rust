@@ -1,11 +1,11 @@
 use super::World;
 use crate::{
     rpc::{Command, CommandResponse, OpendriveGenerationParameters},
-    traffic_manager::{constants::Networking::TM_DEFAULT_PORT, TrafficManager},
+    traffic_manager::{TrafficManager, constants::Networking::TM_DEFAULT_PORT},
 };
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{FfiClient, FfiCommandBatch};
-use cxx::{let_cxx_string, UniquePtr};
+use cxx::{UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 use std::time::Duration;

@@ -98,10 +98,10 @@ impl CameraManager {
         let latest_image_clone = Arc::clone(&latest_image);
 
         sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_image_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_image_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
@@ -113,25 +113,25 @@ impl CameraManager {
     }
 
     fn update(&mut self) -> bool {
-        if let Ok(mut img_opt) = self.latest_image.lock() {
-            if let Some(image) = img_opt.take() {
-                // Convert CARLA Color format to RGBA
-                let raw_data = image.as_slice();
-                let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
+        if let Ok(mut img_opt) = self.latest_image.lock()
+            && let Some(image) = img_opt.take()
+        {
+            // Convert CARLA Color format to RGBA
+            let raw_data = image.as_slice();
+            let mut rgba_data = Vec::with_capacity((CAMERA_WIDTH * CAMERA_HEIGHT * 4) as usize);
 
-                for color in raw_data {
-                    rgba_data.push(color.r); // R
-                    rgba_data.push(color.g); // G
-                    rgba_data.push(color.b); // B
-                    rgba_data.push(color.a); // A
-                }
-
-                // Create new texture from RGBA data
-                self.texture =
-                    Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
-                self.texture.set_filter(FilterMode::Linear);
-                return true;
+            for color in raw_data {
+                rgba_data.push(color.r); // R
+                rgba_data.push(color.g); // G
+                rgba_data.push(color.b); // B
+                rgba_data.push(color.a); // A
             }
+
+            // Create new texture from RGBA data
+            self.texture =
+                Texture2D::from_rgba8(CAMERA_WIDTH as u16, CAMERA_HEIGHT as u16, &rgba_data);
+            self.texture.set_filter(FilterMode::Linear);
+            return true;
         }
         false
     }

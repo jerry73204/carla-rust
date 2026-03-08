@@ -352,11 +352,9 @@ impl AgentCore {
             let mut in_same_lane = target_waypoint.road_id() == ego_waypoint.road_id()
                 && target_waypoint.lane_id() == ego_waypoint.lane_id();
 
-            if !in_same_lane {
-                if let Some(ref next_wp) = next_waypoint {
-                    in_same_lane = target_waypoint.road_id() == next_wp.road_id()
-                        && target_waypoint.lane_id() == next_wp.lane_id();
-                }
+            if !in_same_lane && let Some(ref next_wp) = next_waypoint {
+                in_same_lane = target_waypoint.road_id() == next_wp.road_id()
+                    && target_waypoint.lane_id() == next_wp.lane_id();
             }
 
             if !in_same_lane {

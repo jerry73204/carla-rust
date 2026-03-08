@@ -126,18 +126,18 @@ impl CameraManager {
         let latest_semantic_clone = Arc::clone(&latest_semantic);
 
         rgb_sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_rgb_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_rgb_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 
         semantic_sensor.listen(move |data| {
-            if let Ok(image) = CarlaImage::try_from(data) {
-                if let Ok(mut img) = latest_semantic_clone.lock() {
-                    *img = Some(image);
-                }
+            if let Ok(image) = CarlaImage::try_from(data)
+                && let Ok(mut img) = latest_semantic_clone.lock()
+            {
+                *img = Some(image);
             }
         });
 

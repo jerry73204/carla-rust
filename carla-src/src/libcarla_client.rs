@@ -1,5 +1,5 @@
-use crate::{probe, Probe};
-use anyhow::{bail, Context, Result};
+use crate::{Probe, probe};
+use anyhow::{Context, Result, bail};
 use fs_extra::dir::CopyOptions;
 use std::{fs, path::Path, process::Command};
 
@@ -70,7 +70,8 @@ where
     let ue4_root = src_dir.join("Unreal").join("UnrealEngine");
 
     // Set UE4_ROOT environment variable
-    std::env::set_var("UE4_ROOT", &ue4_root);
+    // SAFETY: This is called during build setup before any threads are spawned.
+    unsafe { std::env::set_var("UE4_ROOT", &ue4_root) };
 
     // Clone UnrealEngine if not present
     if !ue4_root.join("Engine").exists() {
@@ -185,7 +186,8 @@ where
     let ue4_root = src_dir.join("Unreal").join("UnrealEngine");
 
     // Set UE4_ROOT environment variable
-    std::env::set_var("UE4_ROOT", &ue4_root);
+    // SAFETY: This is called during build setup before any threads are spawned.
+    unsafe { std::env::set_var("UE4_ROOT", &ue4_root) };
 
     // Clone UnrealEngine if not present
     if !ue4_root.join("Engine").exists() {

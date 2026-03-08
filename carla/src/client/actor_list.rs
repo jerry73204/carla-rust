@@ -1,6 +1,6 @@
 use crate::rpc::ActorId;
 use carla_sys::carla_rust::client::FfiActorList;
-use cxx::{let_cxx_string, SharedPtr};
+use cxx::{SharedPtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 

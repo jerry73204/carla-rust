@@ -14,7 +14,7 @@ use carla::{
     rpc::AttachmentType,
     sensor::data::CollisionEvent as CarlaCollisionEvent,
 };
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use std::{
     collections::VecDeque,
     sync::{Arc, Mutex},

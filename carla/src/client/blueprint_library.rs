@@ -1,7 +1,7 @@
 use super::ActorBlueprint;
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::{copy_actor_blueprint, FfiBlueprintLibrary};
-use cxx::{let_cxx_string, SharedPtr};
+use carla_sys::carla_rust::client::{FfiBlueprintLibrary, copy_actor_blueprint};
+use cxx::{SharedPtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
 

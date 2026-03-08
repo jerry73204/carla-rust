@@ -27,7 +27,7 @@ pub use carla_sys::carla_rust::sensor::data::FfiOpticalFlowPixel as OpticalFlowP
 /// ```no_run
 /// use carla::{
 ///     client::{ActorBase, Client},
-///     sensor::{data::OpticalFlowImage, SensorDataBase},
+///     sensor::{SensorDataBase, data::OpticalFlowImage},
 /// };
 ///
 /// let client = Client::default();

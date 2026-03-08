@@ -13,7 +13,7 @@ use carla::{
     rpc::{AttachmentType, Color},
     sensor::data::RadarMeasurement,
 };
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use std::sync::{Arc, Mutex};
 use tracing::info;
 
@@ -85,10 +85,10 @@ impl RadarSensor {
 
         radar_sensor.listen(move |sensor_data| {
             // Check if radar visualization is enabled
-            if let Ok(enabled) = enabled_clone.lock() {
-                if !*enabled {
-                    return;
-                }
+            if let Ok(enabled) = enabled_clone.lock()
+                && !*enabled
+            {
+                return;
             }
 
             // Convert sensor data to radar measurement

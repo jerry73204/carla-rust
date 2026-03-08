@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::{env, path::PathBuf, str::FromStr};
 
 #[cfg(not(feature = "docs-only"))]
@@ -290,7 +290,7 @@ fn create_tarball(src_dir: &Path, tarball: &Path) -> Result<()> {
 
 #[cfg(all(not(feature = "build-prebuilt"), not(feature = "docs-only")))]
 fn download_tarball() -> Result<Option<PathBuf>> {
-    use std::io::{prelude::*, BufWriter};
+    use std::io::{BufWriter, prelude::*};
 
     let index_file = CARGO_MANIFEST_DIR.join("index.json5");
 
@@ -365,10 +365,13 @@ fn configure_llvm() {
                 version
             );
 
-            env::set_var("LLVM_CONFIG_PATH", llvm_config);
-            env::set_var("LIBCLANG_PATH", &llvm_lib);
-            env::set_var("LIBCLANG_STATIC_PATH", &llvm_lib);
-            env::set_var("CLANG_PATH", clang_path);
+            // SAFETY: This is called during build script setup, which runs single-threaded.
+            unsafe {
+                env::set_var("LLVM_CONFIG_PATH", llvm_config);
+                env::set_var("LIBCLANG_PATH", &llvm_lib);
+                env::set_var("LIBCLANG_STATIC_PATH", &llvm_lib);
+                env::set_var("CLANG_PATH", clang_path);
+            }
             return;
         }
     }
@@ -376,9 +379,13 @@ fn configure_llvm() {
     // No compatible LLVM version found - print warning with instructions
     // Using cargo:warning to ensure the message is visible
     println!("cargo:warning=");
-    println!("cargo:warning==============================================================================");
+    println!(
+        "cargo:warning=============================================================================="
+    );
     println!("cargo:warning=WARNING: No compatible LLVM version (11-13) detected!");
-    println!("cargo:warning==============================================================================");
+    println!(
+        "cargo:warning=============================================================================="
+    );
     println!("cargo:warning=The build requires LLVM/clang versions 11, 12, or 13.");
     println!("cargo:warning=LLVM 14+ is not supported due to autocxx compatibility issues.");
     println!("cargo:warning=");
@@ -393,7 +400,9 @@ fn configure_llvm() {
     println!("cargo:warning=     export CLANG_PATH=/usr/bin/clang-13");
     println!("cargo:warning=");
     println!("cargo:warning=The build will now continue and may fail if LLVM >= 14 is used.");
-    println!("cargo:warning==============================================================================");
+    println!(
+        "cargo:warning=============================================================================="
+    );
     println!("cargo:warning=");
 }
 

@@ -89,10 +89,10 @@ fn spawn_vehicles(world: &mut carla::client::World, count: usize) -> Vec<Vehicle
         let spawn_point = spawn_points.get(i).unwrap();
         let bp = &vehicle_blueprints[i % vehicle_blueprints.len()];
 
-        if let Ok(actor) = world.spawn_actor(bp, spawn_point) {
-            if let Ok(vehicle) = Vehicle::try_from(actor) {
-                vehicles.push(vehicle);
-            }
+        if let Ok(actor) = world.spawn_actor(bp, spawn_point)
+            && let Ok(vehicle) = Vehicle::try_from(actor)
+        {
+            vehicles.push(vehicle);
         }
 
         // Progress indicator
@@ -133,10 +133,10 @@ fn spawn_walkers(world: &mut carla::client::World, count: usize) -> Vec<Walker> 
 
         let bp = &walker_blueprints[i % walker_blueprints.len()];
 
-        if let Ok(actor) = world.spawn_actor(bp, &transform) {
-            if let Ok(walker) = Walker::try_from(actor) {
-                walkers.push(walker);
-            }
+        if let Ok(actor) = world.spawn_actor(bp, &transform)
+            && let Ok(walker) = Walker::try_from(actor)
+        {
+            walkers.push(walker);
         }
 
         // Progress indicator

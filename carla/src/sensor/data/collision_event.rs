@@ -36,7 +36,7 @@ use static_assertions::assert_impl_all;
 /// ```no_run
 /// use carla::{
 ///     client::Client,
-///     sensor::{data::CollisionEvent, SensorDataBase},
+///     sensor::{SensorDataBase, data::CollisionEvent},
 /// };
 ///
 /// let client = Client::default();

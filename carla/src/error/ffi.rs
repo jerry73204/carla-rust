@@ -165,21 +165,19 @@ fn extract_timeout_duration(message: &str) -> Option<Duration> {
     let lower = message.to_lowercase();
 
     // Pattern: "N seconds"
-    if let Some(idx) = lower.find(" second") {
-        if let Some(start) = lower[..idx].rfind(char::is_whitespace) {
-            if let Ok(secs) = lower[start + 1..idx].trim().parse::<f64>() {
-                return Some(Duration::from_secs_f64(secs));
-            }
-        }
+    if let Some(idx) = lower.find(" second")
+        && let Some(start) = lower[..idx].rfind(char::is_whitespace)
+        && let Ok(secs) = lower[start + 1..idx].trim().parse::<f64>()
+    {
+        return Some(Duration::from_secs_f64(secs));
     }
 
     // Pattern: "Ns"
-    if let Some(idx) = lower.find("s ") {
-        if let Some(start) = lower[..idx].rfind(char::is_whitespace) {
-            if let Ok(secs) = lower[start + 1..idx].trim().parse::<u64>() {
-                return Some(Duration::from_secs(secs));
-            }
-        }
+    if let Some(idx) = lower.find("s ")
+        && let Some(start) = lower[..idx].rfind(char::is_whitespace)
+        && let Ok(secs) = lower[start + 1..idx].trim().parse::<u64>()
+    {
+        return Some(Duration::from_secs(secs));
     }
 
     None

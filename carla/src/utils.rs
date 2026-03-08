@@ -8,13 +8,13 @@ use carla_sys::{
     carla_rust::{
         geom::FfiLocation,
         utils::{
-            new_ffi_location_vector, new_gear_physics_control_vector, new_uint32_t_vector,
-            new_uint64_t_vector, new_uint8_t_vector, new_vector_2d_vector,
+            new_ffi_location_vector, new_gear_physics_control_vector, new_uint8_t_vector,
+            new_uint32_t_vector, new_uint64_t_vector, new_vector_2d_vector,
             new_wheel_physics_control_vector,
         },
     },
 };
-use cxx::{kind::Trivial, vector::VectorElement, CxxVector, ExternType, UniquePtr};
+use cxx::{CxxVector, ExternType, UniquePtr, kind::Trivial, vector::VectorElement};
 
 pub trait NewCxxVectorElement
 where

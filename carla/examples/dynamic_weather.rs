@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Cycling through different weather conditions...\n");
 
     // Define weather presets
-    let weather_presets = vec![
+    let weather_presets = [
         (
             "Clear Day",
             WeatherParameters {

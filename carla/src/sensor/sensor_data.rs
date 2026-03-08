@@ -45,7 +45,7 @@ pub trait SensorDataBase {
 /// ```no_run
 /// use carla::{
 ///     client::{ActorBase, Client},
-///     sensor::{data::Image, SensorDataBase},
+///     sensor::{SensorDataBase, data::Image},
 /// };
 ///
 /// let client = Client::default();

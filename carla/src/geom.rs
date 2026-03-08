@@ -622,11 +622,7 @@ impl Vector3D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector3D {
         let len = self.length();
-        if len > 0.0 {
-            *self / len
-        } else {
-            *self
-        }
+        if len > 0.0 { *self / len } else { *self }
     }
 
     /// Calculates the dot product with another vector.
@@ -916,11 +912,7 @@ impl Vector2D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector2D {
         let len = self.length();
-        if len > 0.0 {
-            *self / len
-        } else {
-            *self
-        }
+        if len > 0.0 { *self / len } else { *self }
     }
 
     /// Calculates the dot product with another vector.

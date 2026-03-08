@@ -7,8 +7,8 @@ use crate::{
 };
 use anyhow::Result;
 use petgraph::{
-    graph::{Graph, NodeIndex},
     Directed,
+    graph::{Graph, NodeIndex},
 };
 use std::collections::HashMap;
 
@@ -140,27 +140,27 @@ impl GlobalRoutePlanner {
             let waypoint = node.waypoint.clone();
 
             // Check for left lane
-            if let Some(left_wp) = waypoint.left() {
-                if let Some(&left_idx) = self.waypoint_to_node.get(&left_wp.id()) {
-                    // Add lane change left edge
-                    let edge = RoadEdge {
-                        length: 1.0, // Small cost for lane changes
-                        road_option: RoadOption::ChangeLaneLeft,
-                    };
-                    edges_to_add.push((node_idx, left_idx, edge));
-                }
+            if let Some(left_wp) = waypoint.left()
+                && let Some(&left_idx) = self.waypoint_to_node.get(&left_wp.id())
+            {
+                // Add lane change left edge
+                let edge = RoadEdge {
+                    length: 1.0, // Small cost for lane changes
+                    road_option: RoadOption::ChangeLaneLeft,
+                };
+                edges_to_add.push((node_idx, left_idx, edge));
             }
 
             // Check for right lane
-            if let Some(right_wp) = waypoint.right() {
-                if let Some(&right_idx) = self.waypoint_to_node.get(&right_wp.id()) {
-                    // Add lane change right edge
-                    let edge = RoadEdge {
-                        length: 1.0, // Small cost for lane changes
-                        road_option: RoadOption::ChangeLaneRight,
-                    };
-                    edges_to_add.push((node_idx, right_idx, edge));
-                }
+            if let Some(right_wp) = waypoint.right()
+                && let Some(&right_idx) = self.waypoint_to_node.get(&right_wp.id())
+            {
+                // Add lane change right edge
+                let edge = RoadEdge {
+                    length: 1.0, // Small cost for lane changes
+                    road_option: RoadOption::ChangeLaneRight,
+                };
+                edges_to_add.push((node_idx, right_idx, edge));
             }
         }
 

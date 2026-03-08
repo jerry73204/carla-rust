@@ -17,8 +17,8 @@ use carla::{
     client::{ActorBase, Client, Sensor},
     geom::{Location, Rotation, Transform},
     sensor::{
-        data::{DVSEventArray, Image, OpticalFlowImage},
         SensorDataBase,
+        data::{DVSEventArray, Image, OpticalFlowImage},
     },
 };
 use std::{
@@ -359,10 +359,10 @@ fn test_optical_flow_visualization(world: &mut carla::client::World) -> TestResu
             let mut non_zero_count = 0;
 
             for i in 0..sample_count {
-                if let Some(pixel) = flow_img.get(i) {
-                    if pixel.x.abs() > 0.001 || pixel.y.abs() > 0.001 {
-                        non_zero_count += 1;
-                    }
+                if let Some(pixel) = flow_img.get(i)
+                    && (pixel.x.abs() > 0.001 || pixel.y.abs() > 0.001)
+                {
+                    non_zero_count += 1;
                 }
             }
 

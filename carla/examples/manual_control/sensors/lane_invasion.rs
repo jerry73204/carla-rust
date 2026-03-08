@@ -13,7 +13,7 @@ use carla::{
     rpc::AttachmentType,
     sensor::data::LaneInvasionEvent,
 };
-use eyre::{eyre, Result};
+use eyre::{Result, eyre};
 use std::sync::{Arc, Mutex};
 use tracing::{info, warn};
 

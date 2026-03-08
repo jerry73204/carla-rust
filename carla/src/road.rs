@@ -1,5 +1,5 @@
 pub use carla_sys::carla::road::{
-    JuncId, LaneId, Lane_LaneType as LaneType, RoadId, SectionId, SignalOrientation,
+    JuncId, Lane_LaneType as LaneType, LaneId, RoadId, SectionId, SignalOrientation,
 };
 
 /// Traffic sign identifier.

@@ -202,8 +202,12 @@ unsafe extern "C" fn caller(fn_: *mut c_void, arg: *mut SharedPtr<FfiSensorData>
     // Cast back to *mut Box<Callback> (the thin pointer we passed to C++)
     // We dereference it to get &Box<Callback>, which auto-derefs to &Callback
     let fn_ = fn_ as *mut Box<Callback>;
-    let arg = (*arg).clone();
-    (*fn_)(arg);
+    // SAFETY: fn_ and arg were validated non-null above, and are provided by
+    // the C++ CARLA library through the Listen callback mechanism.
+    unsafe {
+        let arg = (*arg).clone();
+        (*fn_)(arg);
+    }
 }
 
 unsafe extern "C" fn deleter(fn_: *mut c_void) {
@@ -219,7 +223,9 @@ unsafe extern "C" fn deleter(fn_: *mut c_void) {
     // 2. Box::from_raw reconstructs Box<Box<Callback>>
     // 3. Drop cleans up both the outer box and the inner trait object
     let fn_ = fn_ as *mut Box<Callback>;
-    let fn_: Box<Box<Callback>> = Box::from_raw(fn_);
+    // SAFETY: fn_ was validated non-null above, and was created by
+    // Box::into_raw in the listen() method.
+    let fn_: Box<Box<Callback>> = unsafe { Box::from_raw(fn_) };
     mem::drop(fn_);
 }
 
