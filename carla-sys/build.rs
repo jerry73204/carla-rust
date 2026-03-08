@@ -311,7 +311,7 @@ fn download_tarball() -> Result<Option<PathBuf>> {
     };
 
     // Download the tarball
-    let mut reader = ureq::get(&entry.url).call()?.into_reader();
+    let mut reader = ureq::get(&entry.url).call()?.into_body().into_reader();
     let mut writer = BufWriter::new(File::create(&*DOWNLOAD_PREBUILT_TARBALL)?);
     io::copy(&mut reader, &mut writer)?;
     writer.flush()?;

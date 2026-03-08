@@ -31,7 +31,7 @@ use carla::{
     geom::{Location, Transform},
     rpc::Command,
 };
-use rand::Rng;
+use rand::RngExt;
 use std::{thread, time::Duration};
 
 const NUM_VEHICLES: usize = 30;
@@ -45,13 +45,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to CARLA server
     let mut client = Client::default();
     let mut world = client.world();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     println!("Connected to CARLA simulator");
     println!("Map: {}\n", world.map().name());
 
     // Configure pedestrian behavior
-    world.set_pedestrians_seed(rng.gen_range(0..100000));
+    world.set_pedestrians_seed(rng.random_range(0..100000));
     world.set_pedestrians_cross_factor(0.2); // 20% chance to cross roads
 
     let bp_lib = world.blueprint_library();
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut vehicle_spawn_commands = Vec::new();
     for i in 0..NUM_VEHICLES.min(spawn_points.len()) {
         let vehicle_bp = vehicle_blueprints
-            .get(rng.gen_range(0..vehicle_blueprints.len()))
+            .get(rng.random_range(0..vehicle_blueprints.len()))
             .ok_or("Failed to get vehicle blueprint")?;
         let spawn_point = spawn_points.get(i).ok_or("No spawn point available")?;
 
@@ -124,7 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut walker_spawn_commands = Vec::new();
     for _ in 0..NUM_WALKERS {
         let walker_bp = walker_blueprints
-            .get(rng.gen_range(0..walker_blueprints.len()))
+            .get(rng.random_range(0..walker_blueprints.len()))
             .ok_or("Failed to get walker blueprint")?;
 
         // Get random location from navigation system
@@ -218,7 +218,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             controller.start();
 
             // Set walking speed (random between 0.5 and 2.0 m/s)
-            let speed = rng.gen_range(0.5..2.0);
+            let speed = rng.random_range(0.5..2.0);
             controller.set_max_speed(speed);
 
             // Set random destination
