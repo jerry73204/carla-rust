@@ -48,7 +48,7 @@ pub struct VehicleLightStateListElement<'a> {
 
 impl<'a> VehicleLightStateListElement<'a> {
     pub fn id(&self) -> ActorId {
-        self.inner.id()
+        self.inner.id().into()
     }
 
     pub fn light_state(&self) -> VehicleLightState {

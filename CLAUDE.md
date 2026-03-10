@@ -201,20 +201,11 @@ When using prebuilt libraries, the version determines:
 
 ### Environment Requirements
 
-**LLVM/clang compatibility**: The build requires LLVM versions 11-13 due to autocxx compatibility issues with LLVM 14+. The build system automatically detects and configures any compatible version found.
-
-**Supported versions:** LLVM 11, 12, 13
-**Unsupported versions:** LLVM 14 and newer
-
-Installation and configuration:
+**LLVM/clang compatibility**: The build requires `libclang` for autocxx to parse C++ headers. Any recent LLVM/clang version should work (tested with LLVM 13 and 14).
 
 ```bash
-sudo apt install clang-12 libclang-12-dev
+sudo apt install libclang-dev
 ```
-
-The build script automatically detects versions in this preference order: 13, 12, 11 (newest compatible first).
-
-**Important:** On systems with multiple LLVM versions, autocxx may default to the newest version (e.g., LLVM 14+), which is incompatible. The build script automatically overrides this by setting the appropriate environment variables when it detects LLVM 11-13. You can manually override by setting `LLVM_CONFIG_PATH` before building.
 
 ## Testing
 

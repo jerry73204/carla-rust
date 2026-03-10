@@ -172,7 +172,7 @@ public:
         }
     }
 
-    std::shared_ptr<FfiActor> GetTrafficLightFromOpenDRIVE(const SignId& sign_id) const {
+    std::shared_ptr<FfiActor> GetTrafficLightFromOpenDRIVE(const std::string& sign_id) const {
         auto actor = inner_.GetTrafficLightFromOpenDRIVE(sign_id);
         if (actor == nullptr) {
             return nullptr;

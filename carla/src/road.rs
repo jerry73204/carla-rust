@@ -1,6 +1,13 @@
-pub use carla_sys::carla::road::{
-    JuncId, Lane_LaneType as LaneType, LaneId, RoadId, SectionId, SignalOrientation,
-};
+pub use carla_sys::carla::road::{Lane_LaneType as LaneType, SignalOrientation};
+
+/// Road identifier type. Matches C++ `uint32_t` typedef.
+pub type RoadId = u32;
+/// Junction identifier type. Matches C++ `int32_t` typedef.
+pub type JuncId = i32;
+/// Road section identifier type. Matches C++ `uint32_t` typedef.
+pub type SectionId = u32;
+/// Lane identifier type. Matches C++ `int32_t` typedef.
+pub type LaneId = i32;
 
 /// Traffic sign identifier.
 ///

@@ -146,6 +146,7 @@ impl TrafficManager {
 
     /// Removes an uploaded path for a vehicle.
     pub fn remove_upload_path(&mut self, actor_id: ActorId, remove_path: bool) {
+        let actor_id = autocxx::c_uint(actor_id);
         self.inner
             .pin_mut()
             .RemoveUploadPath(&actor_id, remove_path);
@@ -162,6 +163,7 @@ impl TrafficManager {
             vec
         });
 
+        let actor_id = autocxx::c_uint(actor_id);
         self.inner.pin_mut().UpdateUploadPath(&actor_id, &path);
     }
 
@@ -198,6 +200,7 @@ impl TrafficManager {
 
     /// Removes an imported route for a vehicle.
     pub fn remove_imported_route(&mut self, actor_id: ActorId, remove_path: bool) {
+        let actor_id = autocxx::c_uint(actor_id);
         self.inner
             .pin_mut()
             .RemoveImportedRoute(&actor_id, remove_path);
@@ -210,6 +213,7 @@ impl TrafficManager {
             vec
         });
 
+        let actor_id = autocxx::c_uint(actor_id);
         self.inner
             .pin_mut()
             .UpdateImportedRoute(&actor_id, route.as_ref().unwrap());
@@ -873,6 +877,7 @@ impl TrafficManager {
     ///
     /// This provides access to the traffic manager's decision for the vehicle's next move.
     pub fn next_action(&mut self, actor_id: ActorId) -> Action {
+        let actor_id = autocxx::c_uint(actor_id);
         let action = self
             .inner
             .pin_mut()
@@ -885,6 +890,7 @@ impl TrafficManager {
     ///
     /// The action buffer contains the sequence of planned actions for the vehicle.
     pub fn action_buffer(&mut self, actor_id: ActorId) -> ActionBuffer {
+        let actor_id = autocxx::c_uint(actor_id);
         let ptr = self
             .inner
             .pin_mut()

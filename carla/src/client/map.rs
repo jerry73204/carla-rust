@@ -247,7 +247,9 @@ impl Map {
         lane_id: LaneId,
         distance: f32,
     ) -> Option<Waypoint> {
-        let ptr = self.inner.GetWaypointXODR(road_id, lane_id, distance);
+        let ptr = self
+            .inner
+            .GetWaypointXODR(road_id.into(), lane_id.into(), distance);
         Waypoint::from_cxx(ptr)
     }
 

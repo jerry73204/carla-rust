@@ -15,12 +15,12 @@ categories = ["api-bindings", "external-ffi-bindings"]
 exclude = ["generated/*.tar.zstd"]
 
 [dependencies]
-autocxx = { version = "0.26.0" }
+autocxx = { version = "0.28.0" }
 cxx = "1.0.119"
 
 [build-dependencies]
 anyhow = { version = "1.0.80", features = ["backtrace"] }
-autocxx-build = { version = "0.26.0" }
+autocxx-build = { version = "0.28.0" }
 carla-src = { version = "0.12.0", path = "../carla-src" }
 json5 = "1.3"
 once_cell = "1.19.0"

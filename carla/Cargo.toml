@@ -16,7 +16,7 @@ categories = ["api-bindings", "simulation", "game-development"]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(carla_version_0914, carla_version_0915, carla_version_0916)'] }
 
 [dependencies]
-autocxx = "0.26.0"
+autocxx = "0.28.0"
 cxx = "1.0.119"
 nalgebra = "0.34.1"
 carla-sys = { version = "0.13.0", path = "../carla-sys" }

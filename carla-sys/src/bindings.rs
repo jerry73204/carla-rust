@@ -213,6 +213,7 @@ include_cpp! {
 
     // block offending types
     block!("carla::client::Sensor_CallbackFunctionType")
+    block!("carla::client::detail::WeakEpisodeProxy") // autocxx mangles EpisodeProxyPointerType::Weak incorrectly
     block!("carla::geom::CubicPolynomial")  // Contains std::array<double, 4> which autocxx doesn't support
     block!("carla::road::element::RoadInfoLaneWidth")  // Uses CubicPolynomial
     block!("carla::road::element::RoadInfoLaneHeight")  // Uses CubicPolynomial

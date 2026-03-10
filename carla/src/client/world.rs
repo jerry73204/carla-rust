@@ -516,7 +516,7 @@ impl World {
     pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> ActorVec {
         let ptr = self
             .inner
-            .GetTrafficLightsInJunction(junc_id)
+            .GetTrafficLightsInJunction(junc_id.into())
             .within_unique_ptr();
         unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
     }

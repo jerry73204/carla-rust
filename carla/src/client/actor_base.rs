@@ -64,7 +64,7 @@ pub trait ActorBase: Clone {
         doc = " in the Python API."
     )]
     fn id(&self) -> ActorId {
-        self.cxx_actor().GetId()
+        self.cxx_actor().GetId().into()
     }
 
     /// Returns the actor blueprint type ID (e.g., "vehicle.tesla.model3").
@@ -95,7 +95,7 @@ pub trait ActorBase: Clone {
 
     /// Returns the ID of this actor's parent, or 0 if no parent.
     fn parent_id(&self) -> ActorId {
-        self.cxx_actor().GetParentId()
+        self.cxx_actor().GetParentId().into()
     }
 
     /// Returns semantic segmentation tags for this actor.

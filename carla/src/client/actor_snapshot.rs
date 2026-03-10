@@ -62,7 +62,7 @@ impl ActorSnapshot {
     /// println!("Actor ID: {}", actor_id);
     /// ```
     pub fn id(&self) -> ActorId {
-        self.inner.GetId()
+        self.inner.GetId().into()
     }
 
     /// Returns the actor's transform (position and rotation).

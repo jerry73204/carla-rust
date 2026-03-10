@@ -107,7 +107,7 @@ impl Landmark {
         doc = " in the Python API."
     )]
     pub fn road_id(&self) -> RoadId {
-        self.inner.GetRoadId()
+        self.inner.GetRoadId().into()
     }
 
     /// Returns the distance from the beginning of the road.

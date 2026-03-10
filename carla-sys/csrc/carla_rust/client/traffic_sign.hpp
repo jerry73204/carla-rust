@@ -26,7 +26,9 @@ public:
         return new_;
     }
 
-    SignId GetSignId() const { return inner_->GetSignId(); }
+    std::unique_ptr<std::string> GetSignId() const {
+        return std::make_unique<std::string>(inner_->GetSignId());
+    }
 
     std::shared_ptr<FfiActor> to_actor() const {
         SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);

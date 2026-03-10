@@ -109,7 +109,7 @@ impl WorldSnapshot {
     /// }
     /// ```
     pub fn contains(&self, actor_id: ActorId) -> bool {
-        self.inner.Contains(actor_id)
+        self.inner.Contains(actor_id.into())
     }
 
     /// Find an actor snapshot by actor ID.
@@ -134,7 +134,7 @@ impl WorldSnapshot {
     /// }
     /// ```
     pub fn find(&self, actor_id: ActorId) -> Option<ActorSnapshot> {
-        ActorSnapshot::from_cxx(self.inner.Find(actor_id))
+        ActorSnapshot::from_cxx(self.inner.Find(actor_id.into()))
     }
 
     /// Returns an iterator over all actor snapshots in this world snapshot.

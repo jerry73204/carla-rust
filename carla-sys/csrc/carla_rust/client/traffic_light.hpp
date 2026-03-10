@@ -35,7 +35,9 @@ public:
         return new_;
     }
 
-    SignId GetSignId() const { return inner_->GetSignId(); }
+    std::unique_ptr<std::string> GetSignId() const {
+        return std::make_unique<std::string>(inner_->GetSignId());
+    }
 
     void SetState(TrafficLightState state) const { inner_->SetState(state); }
 
@@ -78,7 +80,9 @@ public:
         return FfiBoundingBoxList(std::move(orig));
     }
 
-    SignId GetOpenDRIVEID() const { return inner_->GetOpenDRIVEID(); }
+    std::unique_ptr<std::string> GetOpenDRIVEID() const {
+        return std::make_unique<std::string>(inner_->GetOpenDRIVEID());
+    }
 
     FfiWaypointList GetStopWaypoints() const {
         auto orig = inner_->GetAffectedLaneWaypoints();

@@ -68,7 +68,7 @@ impl Junction {
         doc = " in the Python API."
     )]
     pub fn id(&self) -> JuncId {
-        self.inner.GetId()
+        self.inner.GetId().into()
     }
 
     /// Returns pairs of waypoints defining possible paths through the junction.

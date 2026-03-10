@@ -95,7 +95,7 @@ impl Waypoint {
         doc = " in the Python API."
     )]
     pub fn road_id(&self) -> RoadId {
-        self.inner.GetRoadId()
+        self.inner.GetRoadId().into()
     }
 
     /// Returns the OpenDRIVE section ID.
@@ -116,7 +116,7 @@ impl Waypoint {
         doc = " in the Python API."
     )]
     pub fn section_id(&self) -> SectionId {
-        self.inner.GetSectionId()
+        self.inner.GetSectionId().into()
     }
 
     /// Returns the OpenDRIVE lane ID.
@@ -137,7 +137,7 @@ impl Waypoint {
         doc = " in the Python API."
     )]
     pub fn lane_id(&self) -> LaneId {
-        self.inner.GetLaneId()
+        self.inner.GetLaneId().into()
     }
 
     /// Returns the distance from the beginning of the road to this waypoint (in meters).
@@ -202,7 +202,7 @@ impl Waypoint {
         doc = " in the Python API."
     )]
     pub fn junction_id(&self) -> JuncId {
-        self.inner.GetJunctionId()
+        self.inner.GetJunctionId().into()
     }
 
     /// Returns `true` if this waypoint is inside a junction.
