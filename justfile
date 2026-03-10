@@ -1,17 +1,20 @@
 # carla-rust justfile
 # Run `just --list` to see all available recipes
 
+# Default Cargo profile for builds
+profile := "dev-release"
+
 # Show all available recipes (default)
 @_default:
     just --list
 
-# Build with dev-release profile
+# Build with default profile
 build:
-    cargo build --all-targets --profile dev-release
+    cargo build --all-targets --profile {{ profile }}
 
 # Run unit tests
 test:
-    cargo nextest run --no-tests pass --no-fail-fast --cargo-profile dev-release
+    cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
 
 # Format Rust and C++ code
 format: format-rust format-cpp
@@ -43,10 +46,7 @@ lint-cpp-format:
 lint-cpp-tidy:
     #!/usr/bin/env bash
     set -euo pipefail
-    CARLA_INCLUDE=$(find target/dev-release/build/carla-sys-*/out/libcarla_client/*/include -type d 2>/dev/null | head -1)
-    if [ -z "$CARLA_INCLUDE" ]; then
-        CARLA_INCLUDE=$(find target/debug/build/carla-sys-*/out/libcarla_client/*/include -type d 2>/dev/null | head -1)
-    fi
+    CARLA_INCLUDE=$(find target/{{ profile }}/build/carla-sys-*/out/libcarla_client/*/include -maxdepth 0 -type d 2>/dev/null | head -1 || true)
     if [ -z "$CARLA_INCLUDE" ]; then
         echo "Error: CARLA headers not found. Run 'just build' first."
         exit 1
@@ -55,6 +55,9 @@ lint-cpp-tidy:
         echo "Running clang-tidy on all files..."
         clang-tidy $(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=c++14 -Icarla-sys/csrc -I$CARLA_INCLUDE
     fi
+
+# Run all CI checks (build, lint, test)
+ci: build lint-rust lint-cpp-format test
 
 # Remove build artifacts
 clean:
@@ -78,7 +81,7 @@ regen-bindings:
         echo "=================================================="
 
         CARLA_VERSION="${VERSION}" \
-        cargo build -p carla-sys --features save-bindings --profile dev-release
+        cargo build -p carla-sys --features save-bindings --profile {{ profile }}
 
         echo ""
         echo "✓ Bindings saved: carla-sys/generated/bindings.${VERSION}.rs"
@@ -113,7 +116,7 @@ build-prebuilt CARLA_SRC_DIR VERSION:
 
     CARLA_DIR="{{ CARLA_SRC_DIR }}" \
     CARLA_VERSION="{{ VERSION }}" \
-    cargo build -p carla-sys --features build-prebuilt --profile dev-release
+    cargo build -p carla-sys --features build-prebuilt --profile {{ profile }}
 
     echo ""
     echo "✓ Prebuilt package created: carla-sys/generated/libcarla_client.{{ VERSION }}-$(rustc -vV | grep host | cut -d' ' -f2).tar.zstd"
