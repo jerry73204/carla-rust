@@ -118,14 +118,18 @@ public:
         return inner_->GetVehicleBoneWorldTransforms();
     }
 
-    void RestorePhysXPhysics() const { inner_->RestorePhysXPhysics(); }
+    void RestorePhysXPhysics() const {
+        inner_->RestorePhysXPhysics();
+    }
 #endif
 
     void EnableCarSim(std::string simfile_path) const {
         inner_->EnableCarSim(std::move(simfile_path));
     }
 
-    void UseCarSimRoad(bool enabled) const { inner_->UseCarSimRoad(enabled); }
+    void UseCarSimRoad(bool enabled) const {
+        inner_->UseCarSimRoad(enabled);
+    }
 
     void EnableChronoPhysics(uint64_t MaxSubsteps, float MaxSubstepDeltaTime,
                              std::string VehicleJSON = "", std::string PowertrainJSON = "",

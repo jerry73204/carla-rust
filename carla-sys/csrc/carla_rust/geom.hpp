@@ -263,7 +263,9 @@ public:
         return new_;
     }
 
-    const BoundingBox& as_native() const { return reinterpret_cast<const BoundingBox&>(*this); }
+    const BoundingBox& as_native() const {
+        return reinterpret_cast<const BoundingBox&>(*this);
+    }
 };
 
 // NOLINTNEXTLINE(clang-diagnostic-error)

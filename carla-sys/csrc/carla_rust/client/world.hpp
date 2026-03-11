@@ -146,13 +146,17 @@ public:
         }
     }
 
-    uint64_t Tick(size_t millis) { return inner_.Tick(time_duration::milliseconds(millis)); }
+    uint64_t Tick(size_t millis) {
+        return inner_.Tick(time_duration::milliseconds(millis));
+    }
 
     void SetPedestriansCrossFactor(float percentage) {
         inner_.SetPedestriansCrossFactor(percentage);
     }
 
-    void SetPedestriansSeed(unsigned int seed) { inner_.SetPedestriansSeed(seed); }
+    void SetPedestriansSeed(unsigned int seed) {
+        inner_.SetPedestriansSeed(seed);
+    }
 
     std::shared_ptr<FfiActor> GetTrafficSign(const FfiLandmark& landmark) const {
         auto actor = inner_.GetTrafficSign(*landmark.inner());
@@ -181,7 +185,9 @@ public:
         }
     }
 
-    void ResetAllTrafficLights() { inner_.ResetAllTrafficLights(); }
+    void ResetAllTrafficLights() {
+        inner_.ResetAllTrafficLights();
+    }
 
     std::shared_ptr<FfiLightManager> GetLightManager() const {
         auto orig = inner_.GetLightManager();
@@ -196,7 +202,9 @@ public:
     //     return DebugHelper{_episode};
     // }
 
-    void FreezeAllTrafficLights(bool frozen) { inner_.FreezeAllTrafficLights(frozen); }
+    void FreezeAllTrafficLights(bool frozen) {
+        inner_.FreezeAllTrafficLights(frozen);
+    }
 
     std::unique_ptr<FfiBoundingBoxList> GetLevelBBs(uint8_t queried_tag) const {
         auto orig = inner_.GetLevelBBs(queried_tag);
@@ -264,7 +272,9 @@ public:
         return std::make_unique<FfiWorldSnapshot>(std::move(snapshot));
     }
 
-    std::vector<std::string> GetNamesOfAllObjects() const { return inner_.GetNamesOfAllObjects(); }
+    std::vector<std::string> GetNamesOfAllObjects() const {
+        return inner_.GetNamesOfAllObjects();
+    }
 
     std::shared_ptr<FfiActor> GetActor(uint32_t id) const {
         auto actor = inner_.GetActor(id);
@@ -285,14 +295,22 @@ public:
         return std::make_shared<FfiActorList>(std::move(list));
     }
 
-    WeatherParameters GetWeather() const { return inner_.GetWeather(); }
+    WeatherParameters GetWeather() const {
+        return inner_.GetWeather();
+    }
 
-    void SetWeather(const WeatherParameters& weather) { inner_.SetWeather(weather); }
+    void SetWeather(const WeatherParameters& weather) {
+        inner_.SetWeather(weather);
+    }
 
 #ifdef CARLA_VERSION_0916
-    float GetIMUISensorGravity() const { return inner_.GetIMUISensorGravity(); }
+    float GetIMUISensorGravity() const {
+        return inner_.GetIMUISensorGravity();
+    }
 
-    void SetIMUISensorGravity(float gravity) { inner_.SetIMUISensorGravity(gravity); }
+    void SetIMUISensorGravity(float gravity) {
+        inner_.SetIMUISensorGravity(gravity);
+    }
 
     void SetAnnotationsTraverseTranslucency(bool enable) {
         inner_.SetAnnotationsTraverseTranslucency(enable);
@@ -347,7 +365,9 @@ public:
         return std::make_unique<FfiDebugHelper>(std::move(helper));
     }
 
-    FfiWorld clone() const { return *this; }
+    FfiWorld clone() const {
+        return *this;
+    }
 
 private:
     World inner_;

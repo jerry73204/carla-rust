@@ -76,7 +76,9 @@ public:
         return inner_.StartRecorder(std::move(filename), additional_data);
     }
 
-    void StopRecorder() { inner_.StopRecorder(); }
+    void StopRecorder() {
+        inner_.StopRecorder();
+    }
 
     std::string ShowRecorderFileInfo(std::string filename, bool show_all) {
         return inner_.ShowRecorderFileInfo(std::move(filename), show_all);
@@ -105,11 +107,17 @@ public:
 #endif
     }
 
-    void StopReplayer(bool keep_actors) { inner_.StopReplayer(keep_actors); }
+    void StopReplayer(bool keep_actors) {
+        inner_.StopReplayer(keep_actors);
+    }
 
-    void SetReplayerTimeFactor(double time_factor) { inner_.SetReplayerTimeFactor(time_factor); }
+    void SetReplayerTimeFactor(double time_factor) {
+        inner_.SetReplayerTimeFactor(time_factor);
+    }
 
-    void SetReplayerIgnoreHero(bool ignore_hero) { inner_.SetReplayerIgnoreHero(ignore_hero); }
+    void SetReplayerIgnoreHero(bool ignore_hero) {
+        inner_.SetReplayerIgnoreHero(ignore_hero);
+    }
 
 #if defined(CARLA_VERSION_0915) || defined(CARLA_VERSION_0916)
     void SetReplayerIgnoreSpectator(bool ignore_spectator) {

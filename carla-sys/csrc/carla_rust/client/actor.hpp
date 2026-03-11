@@ -134,7 +134,9 @@ public:
     void SetEnableGravity(bool enabled) const { return inner_->SetEnableGravity(enabled); }
 
 #ifdef CARLA_VERSION_0916
-    geom::BoundingBox GetBoundingBox() const { return inner_->GetBoundingBox(); }
+    geom::BoundingBox GetBoundingBox() const {
+        return inner_->GetBoundingBox();
+    }
 
     geom::Transform GetComponentWorldTransform(const std::string& component_name) const {
         return inner_->GetComponentWorldTransform(component_name);
@@ -152,9 +154,13 @@ public:
         return inner_->GetBoneRelativeTransforms();
     }
 
-    std::vector<std::string> GetComponentNames() const { return inner_->GetComponentNames(); }
+    std::vector<std::string> GetComponentNames() const {
+        return inner_->GetComponentNames();
+    }
 
-    std::vector<std::string> GetBoneNames() const { return inner_->GetBoneNames(); }
+    std::vector<std::string> GetBoneNames() const {
+        return inner_->GetBoneNames();
+    }
 
     std::vector<geom::Transform> GetSocketWorldTransforms() const {
         return inner_->GetSocketWorldTransforms();
@@ -164,22 +170,38 @@ public:
         return inner_->GetSocketRelativeTransforms();
     }
 
-    std::vector<std::string> GetSocketNames() const { return inner_->GetSocketNames(); }
+    std::vector<std::string> GetSocketNames() const {
+        return inner_->GetSocketNames();
+    }
 
-    void SetCollisions(bool enabled = true) const { return inner_->SetCollisions(enabled); }
+    void SetCollisions(bool enabled = true) const {
+        return inner_->SetCollisions(enabled);
+    }
 
-    void SetActorDead() const { return inner_->SetActorDead(); }
+    void SetActorDead() const {
+        return inner_->SetActorDead();
+    }
 #endif
 
-    bool IsAlive() const { return inner_->IsAlive(); }
+    bool IsAlive() const {
+        return inner_->IsAlive();
+    }
 
-    bool IsDormant() const { return inner_->IsDormant(); }
+    bool IsDormant() const {
+        return inner_->IsDormant();
+    }
 
-    bool IsActive() const { return inner_->IsActive(); }
+    bool IsActive() const {
+        return inner_->IsActive();
+    }
 
-    bool Destroy() const { return inner_->Destroy(); }
+    bool Destroy() const {
+        return inner_->Destroy();
+    }
 
-    const SharedPtr<Actor>& as_builtin() const { return inner_; }
+    const SharedPtr<Actor>& as_builtin() const {
+        return inner_;
+    }
 
     std::shared_ptr<FfiVehicle> to_vehicle() const {
         SharedPtr<Vehicle> ptr = boost::dynamic_pointer_cast<Vehicle>(inner_);

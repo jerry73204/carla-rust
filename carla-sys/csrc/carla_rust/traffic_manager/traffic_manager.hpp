@@ -232,9 +232,13 @@ public:
         inner_.SetRandomRightLaneChangePercentage(actor.as_builtin(), percentage);
     }
 
-    void SetRandomDeviceSeed(const uint64_t seed) { inner_.SetRandomDeviceSeed(seed); }
+    void SetRandomDeviceSeed(const uint64_t seed) {
+        inner_.SetRandomDeviceSeed(seed);
+    }
 
-    void ShutDown() { inner_.ShutDown(); }
+    void ShutDown() {
+        inner_.ShutDown();
+    }
 
     FfiAction GetNextAction(const FfiActorId& actor_id) {
         auto orig = inner_.GetNextAction(actor_id);
