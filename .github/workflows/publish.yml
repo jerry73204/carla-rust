@@ -1,0 +1,57 @@
+name: Publish to crates.io
+
+on:
+  push:
+    tags:
+      - "carla@*"
+      - "carla-sys@*"
+      - "carla-src@*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libclang-dev
+
+      - name: Extract crate name and version from tag
+        id: tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          CRATE="${TAG%@*}"
+          VERSION="${TAG##*@}"
+          echo "crate=$CRATE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing $CRATE version $VERSION"
+
+      - name: Validate version matches Cargo.toml
+        run: |
+          CRATE="${{ steps.tag.outputs.crate }}"
+          VERSION="${{ steps.tag.outputs.version }}"
+
+          if [ "$CRATE" = "carla" ]; then
+            MANIFEST="carla/Cargo.toml"
+          elif [ "$CRATE" = "carla-sys" ]; then
+            MANIFEST="carla-sys/Cargo.toml"
+          elif [ "$CRATE" = "carla-src" ]; then
+            MANIFEST="carla-src/Cargo.toml"
+          else
+            echo "::error::Unknown crate: $CRATE"
+            exit 1
+          fi
+
+          TOML_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$MANIFEST" | head -1)
+          if [ "$VERSION" != "$TOML_VERSION" ]; then
+            echo "::error::Tag version ($VERSION) does not match $MANIFEST version ($TOML_VERSION)"
+            exit 1
+          fi
+          echo "Version $VERSION matches $MANIFEST"
+
+      - name: Publish to crates.io
+        run: cargo publish -p ${{ steps.tag.outputs.crate }}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
