@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:22.04
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Install system dependencies
         run: |
@@ -55,7 +58,11 @@ jobs:
           fi
           echo "Version $VERSION matches $MANIFEST"
 
+      - name: Get crates.io token via trusted publishing
+        uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
       - name: Publish to crates.io
         run: cargo publish -p ${{ steps.tag.outputs.crate }}
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
