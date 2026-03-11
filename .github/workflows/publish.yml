@@ -11,15 +11,14 @@ jobs:
   publish:
     runs-on: ubuntu-24.04
     env:
-      CC: gcc-11
-      CXX: g++-11
+      LIBCLANG_PATH: /usr/lib/llvm-14/lib
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libclang-dev gcc-11 g++-11
+        run: sudo apt-get update && sudo apt-get install -y libclang-14-dev
 
       - name: Extract crate name and version from tag
         id: tag
