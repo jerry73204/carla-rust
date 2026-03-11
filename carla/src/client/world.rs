@@ -627,6 +627,11 @@ impl World {
 
     /// Spawns an actor with optional parent attachment.
     ///
+    /// **Important**: In synchronous mode, the actor's spawn is queued but not processed until
+    /// the next tick. You must call [`wait_for_tick()`](Self::wait_for_tick) or [`tick()`](Self::tick)
+    /// after spawning to ensure the actor is actually created in the simulation before querying
+    /// its properties (position, etc.).
+    ///
     /// # Arguments
     ///
     /// * `blueprint` - The actor blueprint
