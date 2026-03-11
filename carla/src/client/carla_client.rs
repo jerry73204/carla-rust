@@ -4,7 +4,9 @@ use crate::{
     traffic_manager::{TrafficManager, constants::Networking::TM_DEFAULT_PORT},
 };
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::{FfiClient, FfiCommandBatch};
+use carla_sys::carla_rust::client::{
+    FfiClient, FfiCommandBatch, FfiError, ffi_try_connect, ffi_try_get_world,
+};
 use cxx::{UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
@@ -94,6 +96,72 @@ impl Client {
         Self {
             inner: FfiClient::new(&host_cxx, port, worker_threads).within_unique_ptr(),
         }
+    }
+
+    /// Fallible version of [`connect`](Self::connect).
+    ///
+    /// Returns `Err` instead of panicking when the server is unreachable.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// match Client::try_connect("localhost", 2000, None) {
+    ///     Ok(client) => println!("Connected!"),
+    ///     Err(e) => eprintln!("Failed: {e}"),
+    /// }
+    /// ```
+    pub fn try_connect<W>(host: &str, port: u16, worker_threads: W) -> crate::Result<Self>
+    where
+        W: Into<Option<usize>>,
+    {
+        use crate::error::ffi::parse_ffi_error;
+
+        let_cxx_string!(host_cxx = host);
+        let worker_threads = worker_threads.into().unwrap_or(0);
+        let mut error = FfiError::new().within_unique_ptr();
+        let client_ptr = ffi_try_connect(&host_cxx, port, worker_threads, error.pin_mut());
+        if client_ptr.is_null() {
+            let msg = error.message();
+            return Err(parse_ffi_error(
+                error.kind(),
+                msg.to_str().unwrap_or("unknown"),
+                Some("connect"),
+            ));
+        }
+        Ok(Self { inner: client_ptr })
+    }
+
+    /// Fallible version of [`world`](Self::world).
+    ///
+    /// Returns `Err` instead of panicking on timeout or server error.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::client::Client;
+    ///
+    /// let client = Client::default();
+    /// match client.try_world() {
+    ///     Ok(world) => println!("World ID: {}", world.id()),
+    ///     Err(e) => eprintln!("Failed: {e}"),
+    /// }
+    /// ```
+    pub fn try_world(&self) -> crate::Result<World> {
+        use crate::error::ffi::parse_ffi_error;
+
+        let mut error = FfiError::new().within_unique_ptr();
+        let world_ptr = ffi_try_get_world(self.inner.as_ref().unwrap(), error.pin_mut());
+        if world_ptr.is_null() {
+            let msg = error.message();
+            return Err(parse_ffi_error(
+                error.kind(),
+                msg.to_str().unwrap_or("unknown"),
+                Some("get_world"),
+            ));
+        }
+        Ok(unsafe { World::from_cxx(world_ptr).unwrap_unchecked() })
     }
 
     /// Returns the client library version string.

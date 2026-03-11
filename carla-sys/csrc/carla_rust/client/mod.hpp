@@ -15,6 +15,7 @@
 #include "debug_helper.hpp"
 #include "world.hpp"
 #include "client.hpp"
+#include "result.hpp"
 #include "actor_blueprint.hpp"
 #include "actor_attribute.hpp"
 #include "actor_attribute_value_list.hpp"
