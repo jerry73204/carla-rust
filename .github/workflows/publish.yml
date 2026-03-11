@@ -9,17 +9,18 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-24.04
-    env:
-      CC: clang
-      CXX: clang++
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
     steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl build-essential libclang-dev pkg-config libudev-dev git
+
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libclang-dev libudev-dev
 
       - name: Extract crate name and version from tag
         id: tag
