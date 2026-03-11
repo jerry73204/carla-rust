@@ -9,8 +9,11 @@ jobs:
   ci:
     runs-on: ubuntu-24.04
     env:
-      # Pin libclang to match the version used to develop autocxx bindings
-      LIBCLANG_PATH: /usr/lib/llvm-14/lib
+      # Use clang as the C++ compiler for autocxx-generated code.
+      # GCC 12+ rejects const-correctness issues in autocxx output,
+      # but clang (which autocxx targets) compiles it correctly.
+      CC: clang
+      CXX: clang++
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +24,7 @@ jobs:
           components: rustfmt
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libclang-14-dev
+        run: sudo apt-get update && sudo apt-get install -y libclang-dev libudev-dev
 
       - name: Install just
         uses: extractions/setup-just@v2
