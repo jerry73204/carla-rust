@@ -147,6 +147,9 @@ fn main() -> Result<()> {
         // Suppress warnings from external libraries (msgpack)
         builder.flag_if_supported("-Wno-class-memaccess");
 
+        // autocxx generates code with const-correctness issues that GCC 14+ rejects
+        builder.flag_if_supported("-fpermissive");
+
         // Also define for the final compilation
         match version {
             CarlaVersion::V0_9_16 => builder.define("CARLA_VERSION_0916", None),
