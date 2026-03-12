@@ -10,5 +10,9 @@
     "0.9.16-x86_64-unknown-linux-gnu": {
         "url": "https://github.com/jerry73204/carla/releases/download/carla-rust%2F0.9.16/libcarla_client.0.9.16-x86_64-unknown-linux-gnu.tar.zstd",
         "sha256": "1dc1e69d824f545931ff746e4507ee62478569812dcf2cb1a0b261e20703c15b"
+    },
+    "0.10.0-x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/jerry73204/carla/releases/download/carla-rust%2F0.10.0/libcarla_client.0.10.0-x86_64-unknown-linux-gnu.tar.zstd",
+        "sha256": "869b730fef46c6495ba16d7e7d2142e2071ec56c3c83df4fc54a6b83316c1170"
     }
 }
