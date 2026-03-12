@@ -4,17 +4,54 @@
 # Default Cargo profile for builds
 profile := "dev-release"
 
+# Default CARLA version
+carla_version := env("CARLA_VERSION", "0.10.0")
+
+# Target directory per CARLA version (isolates build artifacts)
+target_dir := "target/carla-" + carla_version
+
 # Show all available recipes (default)
 @_default:
     just --list
 
-# Build with default profile
+# Build for a specific CARLA version (default: 0.10.0)
+# Usage: just build  OR  CARLA_VERSION=0.9.16 just build
 build:
-    cargo build --all-targets --profile {{ profile }}
+    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
+        cargo build --all-targets --profile {{ profile }}
 
-# Run unit tests
+# Run unit tests for a specific CARLA version
 test:
-    cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
+    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
+        cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
+
+# Build and test all supported CARLA versions
+build-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
+        echo "=================================================="
+        echo "Building CARLA ${VERSION}..."
+        echo "=================================================="
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
+            cargo build --all-targets --profile {{ profile }}
+        echo ""
+    done
+    echo "All versions built successfully!"
+
+# Test all supported CARLA versions
+test-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
+        echo "=================================================="
+        echo "Testing CARLA ${VERSION}..."
+        echo "=================================================="
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
+            cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
+        echo ""
+    done
+    echo "All versions tested successfully!"
 
 # Format Rust and C++ code
 format: format-rust format-cpp
@@ -33,7 +70,8 @@ lint: lint-rust lint-cpp
 # Run Rust lints only
 lint-rust:
     cargo +nightly fmt --check
-    cargo clippy --all-targets -- -D warnings
+    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
+        cargo clippy --all-targets -- -D warnings
 
 # Run C++ lints (format + tidy)
 lint-cpp: lint-cpp-format lint-cpp-tidy
@@ -46,14 +84,15 @@ lint-cpp-format:
 lint-cpp-tidy:
     #!/usr/bin/env bash
     set -euo pipefail
-    CARLA_INCLUDE=$(find target/{{ profile }}/build/carla-sys-*/out/libcarla_client/*/include -maxdepth 0 -type d 2>/dev/null | head -1 || true)
+    CARLA_INCLUDE=$(find {{ target_dir }}/{{ profile }}/build/carla-sys-*/out/libcarla_client/*/include -maxdepth 0 -type d 2>/dev/null | head -1 || true)
     if [ -z "$CARLA_INCLUDE" ]; then
         echo "Error: CARLA headers not found. Run 'just build' first."
         exit 1
     else
         echo "Using CARLA headers from: $CARLA_INCLUDE"
         echo "Running clang-tidy on all files..."
-        clang-tidy $(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=c++14 -Icarla-sys/csrc -I$CARLA_INCLUDE
+        CPP_STD=$([[ "{{ carla_version }}" == "0.10.0" ]] && echo "c++20" || echo "c++14")
+        clang-tidy $(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=$CPP_STD -Icarla-sys/csrc -I$CARLA_INCLUDE
     fi
 
 # Run all CI checks (build, lint, test)
@@ -62,10 +101,12 @@ ci: build lint-rust lint-cpp-format test
 # Remove build artifacts
 clean:
     cargo clean
+    rm -rf target/carla-*
 
 # Build documentation
 doc:
-    cargo doc --no-deps --open
+    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
+        cargo doc --no-deps --open
 
 # Regenerate bindings for all CARLA versions (downloads prebuilt packages)
 regen-bindings:
@@ -75,12 +116,12 @@ regen-bindings:
     echo "Regenerating bindings for all CARLA versions using prebuilt packages..."
     echo ""
 
-    for VERSION in 0.9.14 0.9.15 0.9.16; do
+    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
         echo "=================================================="
         echo "Regenerating bindings for CARLA ${VERSION}..."
         echo "=================================================="
 
-        CARLA_VERSION="${VERSION}" \
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
         cargo build -p carla-sys --features save-bindings --profile {{ profile }}
 
         echo ""
@@ -116,15 +157,16 @@ build-prebuilt CARLA_SRC_DIR VERSION:
 
     CARLA_DIR="{{ CARLA_SRC_DIR }}" \
     CARLA_VERSION="{{ VERSION }}" \
+    CARGO_TARGET_DIR="target/carla-{{ VERSION }}" \
     cargo build -p carla-sys --features build-prebuilt --profile {{ profile }}
 
     echo ""
     echo "✓ Prebuilt package created: carla-sys/generated/libcarla_client.{{ VERSION }}-$(rustc -vV | grep host | cut -d' ' -f2).tar.zstd"
     echo "✓ Bindings saved: carla-sys/generated/bindings.{{ VERSION }}.rs"
 
-# Simulate docs.rs build (CARLA 0.9.16, docs-only feature, no bindings generation)
+# Simulate docs.rs build (CARLA 0.10.0, docs-only feature, no bindings generation)
 doc-docsrs:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Building documentation as docs.rs would (CARLA 0.9.16, docs-only feature)..."
-    CARLA_VERSION=0.9.16 RUSTDOCFLAGS="--cfg carla_version_0916" cargo doc -p carla --no-deps --no-default-features --features docs-only --open
+    echo "Building documentation as docs.rs would (CARLA 0.10.0, docs-only feature)..."
+    CARLA_VERSION=0.10.0 RUSTDOCFLAGS="--cfg carla_version_0100" cargo doc -p carla --no-deps --no-default-features --features docs-only --open
