@@ -9,7 +9,7 @@ mod vehicle_failure_state;
 mod vehicle_light_state;
 mod vehicle_light_state_list;
 mod vehicle_physics_control;
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 mod vehicle_telemetry_data;
 mod walker_bone_control;
 
@@ -35,6 +35,6 @@ pub use vehicle_failure_state::*;
 pub use vehicle_light_state::*;
 pub use vehicle_light_state_list::*;
 pub use vehicle_physics_control::*;
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 pub use vehicle_telemetry_data::*;
 pub use walker_bone_control::*;

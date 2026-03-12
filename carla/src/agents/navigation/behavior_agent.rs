@@ -436,21 +436,11 @@ impl BehaviorAgent {
             // Get maximum extent (approximate radius) for ego vehicle
             let vehicle_radius = vehicle_bbox.extent.x.max(vehicle_bbox.extent.y);
 
-            // Get walker radius - use actual bbox on 0.9.16+, approximate on older versions
+            // Get walker radius from actual bounding box
             let walker_radius = {
-                #[cfg(carla_version_0916)]
-                {
-                    // Use actual walker bounding box (available in 0.9.16+)
-                    let walker = walker_actor.unwrap();
-                    let walker_bbox = walker.bounding_box();
-                    walker_bbox.extent.x.max(walker_bbox.extent.y)
-                }
-                #[cfg(not(carla_version_0916))]
-                {
-                    // Approximate walker radius for older CARLA versions
-                    let _ = walker_actor; // Suppress unused variable warning
-                    0.4
-                }
+                let walker = walker_actor.unwrap();
+                let walker_bbox = walker.bounding_box();
+                walker_bbox.extent.x.max(walker_bbox.extent.y)
             };
 
             // Adjust distance by subtracting radii

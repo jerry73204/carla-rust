@@ -456,17 +456,17 @@ pub mod road;
 /// # Environment
 /// - [`EnvironmentObjectRef`](rpc::EnvironmentObjectRef) - Static world objects
 /// - [`MapLayer`](rpc::MapLayer) - Map layer flags (buildings, props, etc.)
-#[cfg_attr(carla_0916, doc = "")]
-#[cfg_attr(carla_0916, doc = "# Telemetry (CARLA 0.9.16+)")]
+#[cfg_attr(carla_version_0916, doc = "")]
+#[cfg_attr(carla_version_0916, doc = "# Telemetry (CARLA 0.9.16 only)")]
 #[cfg_attr(
-    carla_0916,
+    carla_version_0916,
     doc = "- [`VehicleTelemetryData`](rpc::VehicleTelemetryData) - Vehicle telemetry including wheel data"
 )]
 #[cfg_attr(
-    carla_0916,
+    carla_version_0916,
     doc = "- [`WheelTelemetryData`](rpc::WheelTelemetryData) - Individual wheel telemetry"
 )]
-#[cfg_attr(carla_0916, doc = "")]
+#[cfg_attr(carla_version_0916, doc = "")]
 /// # Miscellaneous
 /// - [`ActorId`](rpc::ActorId) - Unique actor identifier
 /// - [`AttachmentType`](rpc::AttachmentType) - How actors attach to parents

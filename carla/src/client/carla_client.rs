@@ -291,7 +291,7 @@ impl Client {
     /// // This won't reload since Town03 is already loaded
     /// let world2 = client.load_world_if_different("Town03");
     /// ```
-    #[cfg(carla_0916)]
+    #[cfg(carla_0915)]
     pub fn load_world_if_different(&self, map_name: &str) -> World {
         self.load_world_if_different_opt(map_name, true)
     }
@@ -304,7 +304,7 @@ impl Client {
     ///
     /// * `map_name` - Name of the map to load
     /// * `reset_settings` - If true, resets simulation settings to defaults
-    #[cfg(carla_0916)]
+    #[cfg(carla_0915)]
     pub fn load_world_if_different_opt(&self, map_name: &str, reset_settings: bool) -> World {
         let world = self
             .inner

@@ -130,7 +130,13 @@ fn main() -> Result<()> {
         // Export version for dependent crates (will be available as DEP_CARLA_SYS_CARLA_VERSION)
         println!("cargo:carla_version={}", version.as_str());
 
-        // Expose version to Rust code via cfg flags
+        // Declare valid cfg flags for carla-sys crate
+        println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
+        println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
+        println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
+        println!("cargo:rustc-check-cfg=cfg(carla_version_0914)");
+
+        // Expose exact version to Rust code via cfg flags
         match version {
             CarlaVersion::V0_10_0 => println!("cargo:rustc-cfg=carla_version_0100"),
             CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
@@ -138,11 +144,21 @@ fn main() -> Result<()> {
             CarlaVersion::V0_9_14 => println!("cargo:rustc-cfg=carla_version_0914"),
         }
 
-        // Set version-specific compiler flags before autocxx processes headers
-        let extra_clang_args = match version {
-            CarlaVersion::V0_10_0 => vec!["-DCARLA_VERSION_0100", "-std=c++20"],
-            CarlaVersion::V0_9_16 => vec!["-DCARLA_VERSION_0916"],
-            CarlaVersion::V0_9_15 => vec!["-DCARLA_VERSION_0915"],
+        // Set version-specific compiler flags before autocxx processes headers.
+        // Each version gets its exact flag plus cumulative "or later" flags.
+        let extra_clang_args: Vec<&str> = match version {
+            CarlaVersion::V0_10_0 => vec![
+                "-DCARLA_VERSION_0100",
+                "-DCARLA_VERSION_0916_PLUS",
+                "-DCARLA_VERSION_0915_PLUS",
+                "-std=c++20",
+            ],
+            CarlaVersion::V0_9_16 => vec![
+                "-DCARLA_VERSION_0916",
+                "-DCARLA_VERSION_0916_PLUS",
+                "-DCARLA_VERSION_0915_PLUS",
+            ],
+            CarlaVersion::V0_9_15 => vec!["-DCARLA_VERSION_0915", "-DCARLA_VERSION_0915_PLUS"],
             CarlaVersion::V0_9_14 => vec!["-DCARLA_VERSION_0914"],
         };
 
@@ -159,13 +175,26 @@ fn main() -> Result<()> {
         // Suppress warnings from external libraries (msgpack)
         builder.flag_if_supported("-Wno-class-memaccess");
 
-        // Also define for the final compilation
+        // Also define for the final compilation (must match extra_clang_args)
         match version {
-            CarlaVersion::V0_10_0 => builder.define("CARLA_VERSION_0100", None),
-            CarlaVersion::V0_9_16 => builder.define("CARLA_VERSION_0916", None),
-            CarlaVersion::V0_9_15 => builder.define("CARLA_VERSION_0915", None),
-            CarlaVersion::V0_9_14 => builder.define("CARLA_VERSION_0914", None),
-        };
+            CarlaVersion::V0_10_0 => {
+                builder.define("CARLA_VERSION_0100", None);
+                builder.define("CARLA_VERSION_0916_PLUS", None);
+                builder.define("CARLA_VERSION_0915_PLUS", None);
+            }
+            CarlaVersion::V0_9_16 => {
+                builder.define("CARLA_VERSION_0916", None);
+                builder.define("CARLA_VERSION_0916_PLUS", None);
+                builder.define("CARLA_VERSION_0915_PLUS", None);
+            }
+            CarlaVersion::V0_9_15 => {
+                builder.define("CARLA_VERSION_0915", None);
+                builder.define("CARLA_VERSION_0915_PLUS", None);
+            }
+            CarlaVersion::V0_9_14 => {
+                builder.define("CARLA_VERSION_0914", None);
+            }
+        }
 
         builder.compile("carla_rust");
 

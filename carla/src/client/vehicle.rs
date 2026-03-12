@@ -1,5 +1,5 @@
 use super::{Actor, ActorBase};
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 use crate::rpc::VehicleTelemetryData;
 use crate::{
     geom::BoundingBox,
@@ -639,7 +639,7 @@ impl Vehicle {
     ///     );
     /// }
     /// ```
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     pub fn telemetry_data(&self) -> VehicleTelemetryData {
         (&*self.inner.GetTelemetryData().within_unique_ptr()).into()
     }
@@ -663,7 +663,7 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     pub fn set_wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
         self.inner.SetWheelPitchAngle(wheel_location, degrees);
     }
@@ -687,7 +687,7 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
         self.inner.GetWheelPitchAngle(wheel_location)
     }
@@ -698,7 +698,7 @@ impl Vehicle {
     // /// **Available only in CARLA 0.9.16+**
     // ///
     // /// Useful for advanced vehicle visualization and skeleton tracking.
-    // #[cfg(carla_0916)]
+    // #[cfg(carla_version_0916)]
     // pub fn vehicle_bone_world_transforms(&self) -> Vec<crate::geom::Transform> {
     //     use crate::geom::{Location, Rotation, Transform};
     //
@@ -745,7 +745,7 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     pub fn restore_phys_x_physics(&self) {
         self.inner.RestorePhysXPhysics();
     }

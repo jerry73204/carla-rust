@@ -757,8 +757,8 @@ impl TrafficManager {
     ///
     /// Higher values make the vehicle more likely to stay in the right lane.
     ///
-    /// Note: This method is only available in CARLA versions before 0.9.16.
-    #[cfg(not(carla_0916))]
+    /// Note: This method is absent in CARLA 0.9.16 but present in all other versions.
+    #[cfg(not(carla_version_0916))]
     pub fn set_keep_right_percentage<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         let cxx_actor = actor.cxx_actor();
         self.inner

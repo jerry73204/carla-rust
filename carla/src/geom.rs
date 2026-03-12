@@ -1273,21 +1273,21 @@ impl BoundingBox {
             location: transform.location.into_ffi(),
             rotation: transform.rotation.into_ffi(),
             extent: extent.into_ffi(),
-            #[cfg(carla_0916)]
+            #[cfg(carla_version_0916)]
             actor_id: 0,
         }
     }
 
     /// Creates from CARLA's native C++ bounding box type.
     pub fn from_native(bbox: &NativeBoundingBox) -> Self {
-        #[cfg(carla_0916)]
+        #[cfg(carla_version_0916)]
         let NativeBoundingBox {
             location,
             extent,
             rotation,
             actor_id: _,
         } = bbox;
-        #[cfg(not(carla_0916))]
+        #[cfg(not(carla_version_0916))]
         let NativeBoundingBox {
             location,
             extent,

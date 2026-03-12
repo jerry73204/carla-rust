@@ -1,8 +1,6 @@
 use super::{Actor, ActorAttributeValueList, World};
-#[cfg(carla_version_0916)]
-use crate::geom::BoundingBox;
 use crate::{
-    geom::{Location, Transform, Vector3D},
+    geom::{BoundingBox, Location, Transform, Vector3D},
     rpc::ActorId,
 };
 use autocxx::WithinUniquePtr;
@@ -707,7 +705,6 @@ pub trait ActorBase: Clone {
     /// println!("Bounding box extent: {:?}", bbox.extent);
     /// println!("Bounding box center: {:?}", bbox.transform.location);
     /// ```
-    #[cfg(carla_version_0916)]
     fn bounding_box(&self) -> BoundingBox {
         use autocxx::prelude::*;
         // SAFETY: GetBoundingBox returns impl New<Output = carla::geom::BoundingBox>

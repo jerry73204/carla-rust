@@ -108,7 +108,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     thread::sleep(Duration::from_secs(2));
 
     // Demo 5: Vehicle Telemetry (0.9.16+ only)
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     {
         println!("\n--- Demo 5: Vehicle Telemetry Data (0.9.16+) ---");
         let telemetry = vehicle.telemetry_data();
@@ -143,13 +143,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("✓ Telemetry data retrieved successfully");
     }
 
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("\n--- Demo 5: Vehicle Telemetry Data ---");
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("⚠ Telemetry data is only available in CARLA 0.9.16+");
 
     // Demo 6: Wheel Pitch Control (0.9.16+ only)
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     {
         use carla::rpc::VehicleWheelLocation;
         println!("\n--- Demo 6: Wheel Pitch Control (0.9.16+) ---");
@@ -191,13 +191,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("✓ Wheel pitch reset");
     }
 
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("\n--- Demo 6: Wheel Pitch Control ---");
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("⚠ Wheel pitch control is only available in CARLA 0.9.16+");
 
     // Demo 7: Physics System Control (0.9.16+ only)
-    #[cfg(carla_0916)]
+    #[cfg(carla_version_0916)]
     {
         println!("\n--- Demo 7: Physics System Control (0.9.16+) ---");
         println!("Physics systems available:");
@@ -215,9 +215,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("✓ PhysX physics active");
     }
 
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("\n--- Demo 7: Physics System Control ---");
-    #[cfg(not(carla_0916))]
+    #[cfg(not(carla_version_0916))]
     println!("⚠ restore_phys_x_physics() is only available in CARLA 0.9.16+");
 
     // Cleanup

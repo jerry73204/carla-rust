@@ -64,35 +64,40 @@ fn main() -> Result<()> {
         version.as_str()
     );
 
-    // Declare the custom cfg flags
-    println!("cargo:rustc-check-cfg=cfg(carla_0916)");
-
-    // Declare cfg flags from carla-sys for version-aware documentation
+    // Declare all cfg flags
+    // Exact version flags: carla_version_XXXX (set for exactly one version)
     println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0914)");
+    // Cumulative version flags: carla_XXXX (set for this version and all later)
+    println!("cargo:rustc-check-cfg=cfg(carla_0100)");
+    println!("cargo:rustc-check-cfg=cfg(carla_0916)");
+    println!("cargo:rustc-check-cfg=cfg(carla_0915)");
 
-    // Set up cfg flags for version-specific code
+    // Set exact version flag
     match version {
-        CarlaVersion::V0_10_0 => {
-            println!("cargo:rustc-cfg=carla_version_0100");
-            eprintln!("Setting carla_version_0100 cfg flag");
-        }
-        CarlaVersion::V0_9_16 => {
-            println!("cargo:rustc-cfg=carla_0916");
-            println!("cargo:rustc-cfg=carla_version_0916");
-            eprintln!("Setting carla_0916 and carla_version_0916 cfg flags");
-        }
-        CarlaVersion::V0_9_15 => {
-            println!("cargo:rustc-cfg=carla_version_0915");
-            eprintln!("Setting carla_version_0915 cfg flag");
-        }
-        CarlaVersion::V0_9_14 => {
-            println!("cargo:rustc-cfg=carla_version_0914");
-            eprintln!("Setting carla_version_0914 cfg flag");
-        }
+        CarlaVersion::V0_10_0 => println!("cargo:rustc-cfg=carla_version_0100"),
+        CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
+        CarlaVersion::V0_9_15 => println!("cargo:rustc-cfg=carla_version_0915"),
+        CarlaVersion::V0_9_14 => println!("cargo:rustc-cfg=carla_version_0914"),
     }
+
+    // Set cumulative "or later" flags
+    if matches!(
+        version,
+        CarlaVersion::V0_9_15 | CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0
+    ) {
+        println!("cargo:rustc-cfg=carla_0915");
+    }
+    if matches!(version, CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0) {
+        println!("cargo:rustc-cfg=carla_0916");
+    }
+    if matches!(version, CarlaVersion::V0_10_0) {
+        println!("cargo:rustc-cfg=carla_0100");
+    }
+
+    eprintln!("cfg flags set for CARLA version {}", version.as_str());
 
     // Rerun if CARLA_VERSION changes
     println!("cargo:rerun-if-env-changed=CARLA_VERSION");

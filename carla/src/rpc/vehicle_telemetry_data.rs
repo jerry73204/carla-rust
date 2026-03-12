@@ -21,7 +21,7 @@
     carla_version_0914,
     doc = " [`carla.WheelTelemetryData`]: https://carla.readthedocs.io/en/0.9.14/python_api/#carla.WheelTelemetryData"
 )]
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct WheelTelemetryData {
     /// Tire friction coefficient
@@ -48,7 +48,7 @@ pub struct WheelTelemetryData {
     pub normalized_lat_force: f32,
 }
 
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 impl From<carla_sys::carla::rpc::WheelTelemetryData> for WheelTelemetryData {
     fn from(value: carla_sys::carla::rpc::WheelTelemetryData) -> Self {
         Self {
@@ -121,7 +121,7 @@ impl From<carla_sys::carla::rpc::WheelTelemetryData> for WheelTelemetryData {
 ///     );
 /// }
 /// ```
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct VehicleTelemetryData {
     /// Vehicle speed (m/s)
@@ -142,7 +142,7 @@ pub struct VehicleTelemetryData {
     pub wheels: Vec<WheelTelemetryData>,
 }
 
-#[cfg(carla_0916)]
+#[cfg(carla_version_0916)]
 impl From<&carla_sys::carla_rust::rpc::FfiVehicleTelemetryData> for VehicleTelemetryData {
     fn from(value: &carla_sys::carla_rust::rpc::FfiVehicleTelemetryData) -> Self {
         // Get wheels via wheels() method

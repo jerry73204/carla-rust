@@ -134,11 +134,9 @@ public:
 
     void SetEnableGravity(bool enabled) const { return inner_->SetEnableGravity(enabled); }
 
-#ifdef CARLA_VERSION_0916
-    geom::BoundingBox GetBoundingBox() const {
-        return inner_->GetBoundingBox();
-    }
+    geom::BoundingBox GetBoundingBox() const { return inner_->GetBoundingBox(); }
 
+#ifdef CARLA_VERSION_0916
     geom::Transform GetComponentWorldTransform(const std::string& component_name) const {
         return inner_->GetComponentWorldTransform(component_name);
     }
@@ -174,7 +172,9 @@ public:
     std::vector<std::string> GetSocketNames() const {
         return inner_->GetSocketNames();
     }
+#endif
 
+#ifdef CARLA_VERSION_0915_PLUS
     void SetCollisions(bool enabled = true) const {
         return inner_->SetCollisions(enabled);
     }

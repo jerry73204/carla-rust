@@ -44,7 +44,7 @@ public:
         return FfiWorld(std::move(world));
     }
 
-#if defined(CARLA_VERSION_0915) || defined(CARLA_VERSION_0916)
+#ifdef CARLA_VERSION_0915_PLUS
     FfiWorld LoadWorldIfDifferent(std::string map_name, bool reset_settings = true) const {
         auto map_layers = MapLayer::All;
         inner_.LoadWorldIfDifferent(std::move(map_name), reset_settings, map_layers);
@@ -119,7 +119,7 @@ public:
         inner_.SetReplayerIgnoreHero(ignore_hero);
     }
 
-#if defined(CARLA_VERSION_0915) || defined(CARLA_VERSION_0916)
+#ifdef CARLA_VERSION_0915_PLUS
     void SetReplayerIgnoreSpectator(bool ignore_spectator) {
         inner_.SetReplayerIgnoreSpectator(ignore_spectator);
     }
