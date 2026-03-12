@@ -111,7 +111,7 @@ fn main() -> Result<()> {
         println!("cargo:rustc-link-search=native={}", carla_lib_dir.display());
 
         // Link libraries
-        for lib in libcarla_client::LIBS {
+        for lib in libcarla_client::libs() {
             println!("cargo:rustc-link-lib={lib}");
         }
 
@@ -119,13 +119,20 @@ fn main() -> Result<()> {
         let csrc_dir = CARGO_MANIFEST_DIR.join("csrc");
 
         // Use headers from install directory (either from CARLA build or extracted tarball)
-        let include_dirs = [carla_include_dir, csrc_dir];
+        // For 0.10.0, add compat shim headers before CARLA headers to shadow
+        // incompatible types (e.g., WheelPhysicsControl with std::vector).
+        let csrc_compat_dir = CARGO_MANIFEST_DIR.join("csrc_compat_0100");
+        let include_dirs: Vec<PathBuf> = match version {
+            CarlaVersion::V0_10_0 => vec![csrc_compat_dir, carla_include_dir, csrc_dir],
+            _ => vec![carla_include_dir, csrc_dir],
+        };
 
         // Export version for dependent crates (will be available as DEP_CARLA_SYS_CARLA_VERSION)
         println!("cargo:carla_version={}", version.as_str());
 
         // Expose version to Rust code via cfg flags
         match version {
+            CarlaVersion::V0_10_0 => println!("cargo:rustc-cfg=carla_version_0100"),
             CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
             CarlaVersion::V0_9_15 => println!("cargo:rustc-cfg=carla_version_0915"),
             CarlaVersion::V0_9_14 => println!("cargo:rustc-cfg=carla_version_0914"),
@@ -133,6 +140,7 @@ fn main() -> Result<()> {
 
         // Set version-specific compiler flags before autocxx processes headers
         let extra_clang_args = match version {
+            CarlaVersion::V0_10_0 => vec!["-DCARLA_VERSION_0100", "-std=c++20"],
             CarlaVersion::V0_9_16 => vec!["-DCARLA_VERSION_0916"],
             CarlaVersion::V0_9_15 => vec!["-DCARLA_VERSION_0915"],
             CarlaVersion::V0_9_14 => vec!["-DCARLA_VERSION_0914"],
@@ -142,13 +150,18 @@ fn main() -> Result<()> {
             .extra_clang_args(&extra_clang_args)
             .build()?;
 
-        builder.flag_if_supported("-std=c++14");
+        let cpp_std = match version {
+            CarlaVersion::V0_10_0 => "-std=c++20",
+            _ => "-std=c++14",
+        };
+        builder.flag_if_supported(cpp_std);
 
         // Suppress warnings from external libraries (msgpack)
         builder.flag_if_supported("-Wno-class-memaccess");
 
         // Also define for the final compilation
         match version {
+            CarlaVersion::V0_10_0 => builder.define("CARLA_VERSION_0100", None),
             CarlaVersion::V0_9_16 => builder.define("CARLA_VERSION_0916", None),
             CarlaVersion::V0_9_15 => builder.define("CARLA_VERSION_0915", None),
             CarlaVersion::V0_9_14 => builder.define("CARLA_VERSION_0914", None),
@@ -173,6 +186,7 @@ fn load_carla_install_dir() -> Result<PathBuf> {
                 "CARLA_DIR environment variable is required when using 'build-prebuilt' feature"
             )
         })?;
+        let src_dir = resolve_carla_dir(&src_dir)?;
         build_libcarla_client(&src_dir)?;
         install_libcarla_client(&src_dir)?
     };
@@ -180,7 +194,10 @@ fn load_carla_install_dir() -> Result<PathBuf> {
     #[cfg(not(feature = "build-prebuilt"))]
     let install_dir = {
         match env::var_os("CARLA_DIR") {
-            Some(src_dir) => install_libcarla_client(src_dir)?,
+            Some(src_dir) => {
+                let src_dir = resolve_carla_dir(&PathBuf::from(src_dir))?;
+                install_libcarla_client(src_dir)?
+            }
             None => {
                 extract_prebuilt_libcarla_client()?
                     .ok_or_else(|| anyhow!("No prebuild binaries for profile {}. \
@@ -342,6 +359,7 @@ enum CarlaVersion {
     V0_9_16,
     V0_9_15,
     V0_9_14,
+    V0_10_0,
 }
 
 impl FromStr for CarlaVersion {
@@ -349,11 +367,12 @@ impl FromStr for CarlaVersion {
 
     fn from_str(ver_text: &str) -> Result<Self, Self::Err> {
         let ver = match ver_text {
+            "0.10.0" => Self::V0_10_0,
             "0.9.16" => Self::V0_9_16,
             "0.9.15" => Self::V0_9_15,
             "0.9.14" => Self::V0_9_14,
             _ => bail!(
-                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16",
+                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
                 ver_text
             ),
         };
@@ -364,11 +383,46 @@ impl FromStr for CarlaVersion {
 impl CarlaVersion {
     fn as_str(&self) -> &str {
         match self {
+            CarlaVersion::V0_10_0 => "0.10.0",
             CarlaVersion::V0_9_16 => "0.9.16",
             CarlaVersion::V0_9_15 => "0.9.15",
             CarlaVersion::V0_9_14 => "0.9.14",
         }
     }
+}
+
+/// Resolve CARLA_DIR to an absolute path.
+///
+/// If the path is relative, it is resolved against the workspace root
+/// (parent of CARGO_MANIFEST_DIR) since build scripts run from the
+/// package directory, not the directory where `cargo` was invoked.
+#[cfg(not(feature = "docs-only"))]
+fn resolve_carla_dir(path: &Path) -> Result<PathBuf> {
+    if path.is_absolute() {
+        return Ok(path.to_path_buf());
+    }
+
+    // Try the path as-is first (works if cargo was invoked from the package dir)
+    if path.exists() {
+        return fs::canonicalize(path)
+            .with_context(|| format!("Failed to resolve CARLA_DIR path: {}", path.display()));
+    }
+
+    // Try relative to workspace root (parent of CARGO_MANIFEST_DIR)
+    let workspace_root = CARGO_MANIFEST_DIR
+        .parent()
+        .ok_or_else(|| anyhow!("Cannot determine workspace root"))?;
+    let resolved = workspace_root.join(path);
+    if resolved.exists() {
+        return fs::canonicalize(&resolved)
+            .with_context(|| format!("Failed to resolve CARLA_DIR path: {}", resolved.display()));
+    }
+
+    bail!(
+        "CARLA_DIR '{}' not found (tried relative to CWD and workspace root '{}')",
+        path.display(),
+        workspace_root.display()
+    )
 }
 
 fn parse_carla_version() -> Result<CarlaVersion> {

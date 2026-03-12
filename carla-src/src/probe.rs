@@ -11,58 +11,42 @@ pub struct Probe {
 
 #[derive(Debug, Clone)]
 pub struct IncludeDirs {
-    pub carla_source: PathBuf,
-    pub carla_third_party: PathBuf,
-    pub recast: PathBuf,
-    pub rpclib: PathBuf,
-    pub boost: PathBuf,
-    pub libpng: PathBuf,
+    dirs: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
 pub struct LibDirs {
-    pub recast: PathBuf,
-    pub rpclib: PathBuf,
-    pub boost: PathBuf,
-    pub libpng: PathBuf,
-    pub libcarla_client: PathBuf,
+    dirs: Vec<PathBuf>,
 }
 
 impl IncludeDirs {
     pub fn into_vec(self) -> Vec<PathBuf> {
-        let Self {
-            recast,
-            rpclib,
-            boost,
-            libpng,
-            carla_source,
-            carla_third_party,
-        } = self;
-        vec![
-            recast,
-            rpclib,
-            libpng,
-            boost,
-            carla_source,
-            carla_third_party,
-        ]
+        self.dirs
     }
 }
 
 impl LibDirs {
     pub fn into_vec(self) -> Vec<PathBuf> {
-        let Self {
-            recast,
-            rpclib,
-            boost,
-            libpng,
-            libcarla_client,
-        } = self;
-        vec![recast, rpclib, libpng, boost, libcarla_client]
+        self.dirs
     }
 }
 
 pub fn probe<P>(carla_src_dir: P) -> Result<Probe>
+where
+    P: AsRef<Path>,
+{
+    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.9.16".to_string());
+    match carla_version.as_str() {
+        "0.9.14" | "0.9.15" | "0.9.16" => probe_09x(carla_src_dir, &carla_version),
+        "0.10.0" => probe_0_10_0(carla_src_dir),
+        _ => bail!(
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
+            carla_version
+        ),
+    }
+}
+
+fn probe_09x<P>(carla_src_dir: P, carla_version: &str) -> Result<Probe>
 where
     P: AsRef<Path>,
 {
@@ -86,9 +70,7 @@ where
     let carla_third_party_dir = carla_source_dir.join("third-party");
     let build_dir = carla_src_dir.join("Build");
 
-    // Detect CARLA version to use appropriate dependency versions
-    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.9.16".to_string());
-    let (boost_pattern, recast_pattern, rpclib_pattern) = match carla_version.as_str() {
+    let (boost_pattern, recast_pattern, rpclib_pattern) = match carla_version {
         "0.9.14" => (
             "boost-1.80.0-c*-install",
             "recast-0b13b0-c*-install",
@@ -104,10 +86,7 @@ where
             "recast-c*-install",
             "rpclib-v2.2.1_c5-c*-libstdcxx-install",
         ),
-        _ => bail!(
-            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16",
-            carla_version
-        ),
+        _ => unreachable!(),
     };
 
     let recast_dir = find_match(build_dir.join(recast_pattern).to_str().unwrap())?;
@@ -127,30 +106,127 @@ where
         .join("cmake")
         .join("client");
     ensure!(
-        libpng_dir.exists(),
+        libcarla_client_lib_dir.exists(),
         "Unable to find '{}'",
         libcarla_client_lib_dir.display()
     );
 
     let include_dirs = IncludeDirs {
-        carla_source: carla_source_dir,
-        carla_third_party: carla_third_party_dir,
-        recast: recast_dir.join("include"),
-        rpclib: rpclib_dir.join("include"),
-        boost: boost_dir.join("include"),
-        libpng: libpng_dir.join("include"),
+        dirs: vec![
+            recast_dir.join("include"),
+            rpclib_dir.join("include"),
+            libpng_dir.join("include"),
+            boost_dir.join("include"),
+            carla_source_dir,
+            carla_third_party_dir,
+        ],
     };
     let lib_dirs = LibDirs {
-        recast: recast_dir.join("lib"),
-        rpclib: rpclib_dir.join("lib"),
-        boost: boost_dir.join("lib"),
-        libpng: libpng_dir.join("lib"),
-        libcarla_client: libcarla_client_lib_dir,
+        dirs: vec![
+            recast_dir.join("lib"),
+            rpclib_dir.join("lib"),
+            libpng_dir.join("lib"),
+            boost_dir.join("lib"),
+            libcarla_client_lib_dir,
+        ],
     };
 
     Ok(Probe {
         prefix: carla_src_dir.to_path_buf(),
         include_dirs,
+        lib_dirs,
+    })
+}
+
+fn probe_0_10_0<P>(carla_src_dir: P) -> Result<Probe>
+where
+    P: AsRef<Path>,
+{
+    let carla_src_dir = carla_src_dir.as_ref();
+    let build_dir = carla_src_dir.join("Build/libstdcxx-release");
+    let deps_dir = build_dir.join("_deps");
+
+    ensure!(
+        build_dir.exists(),
+        "Build directory not found: '{}'. Run the 0.10.0 CMake build first.",
+        build_dir.display()
+    );
+
+    let carla_source_dir = carla_src_dir.join("LibCarla/source");
+    let carla_third_party_dir = carla_source_dir.join("third-party");
+
+    // Verify key artifacts exist
+    let libcarla_client = build_dir.join("LibCarla/libcarla-client.a");
+    ensure!(
+        libcarla_client.exists(),
+        "libcarla-client.a not found at '{}'",
+        libcarla_client.display()
+    );
+
+    // Collect include dirs
+    let mut include_dirs = vec![carla_source_dir, carla_third_party_dir];
+
+    // Boost: headers are scattered across libs/*/include
+    let boost_include_pattern = deps_dir
+        .join("boost-src/libs/*/include")
+        .to_str()
+        .unwrap()
+        .to_string();
+    for entry in glob::glob(&boost_include_pattern)? {
+        include_dirs.push(entry?);
+    }
+
+    // Recast navigation includes
+    for component in &["Recast", "Detour", "DetourCrowd"] {
+        let dir = deps_dir.join(format!("recastnavigation-src/{component}/Include"));
+        ensure!(
+            dir.exists(),
+            "Recast include dir not found: '{}'",
+            dir.display()
+        );
+        include_dirs.push(dir);
+    }
+
+    // rpclib includes
+    let rpclib_include = deps_dir.join("rpclib-src/include");
+    ensure!(
+        rpclib_include.exists(),
+        "rpclib include dir not found: '{}'",
+        rpclib_include.display()
+    );
+    include_dirs.push(rpclib_include);
+
+    // libpng includes (png.h at top level of source, pnglibconf.h in build dir)
+    let libpng_src = deps_dir.join("libpng-src");
+    ensure!(
+        libpng_src.join("png.h").exists(),
+        "png.h not found in '{}'",
+        libpng_src.display()
+    );
+    include_dirs.push(libpng_src);
+
+    let libpng_build = deps_dir.join("libpng-build");
+    if libpng_build.join("pnglibconf.h").exists() {
+        include_dirs.push(libpng_build.clone());
+    }
+
+    // Collect lib dirs
+    let lib_dirs = LibDirs {
+        dirs: vec![
+            build_dir.join("LibCarla"),
+            deps_dir.join("boost-build/libs/filesystem"),
+            deps_dir.join("recastnavigation-build/Recast"),
+            deps_dir.join("recastnavigation-build/Detour"),
+            deps_dir.join("recastnavigation-build/DetourCrowd"),
+            deps_dir.join("rpclib-build"),
+            libpng_build,
+            deps_dir.join("zlib-build"),
+        ],
+    };
+
+    Ok(Probe {
+        prefix: carla_src_dir.to_path_buf(),
+        include_dirs: IncludeDirs { dirs: include_dirs },
         lib_dirs,
     })
 }

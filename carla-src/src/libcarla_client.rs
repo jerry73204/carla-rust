@@ -9,15 +9,30 @@ pub fn version() -> &'static str {
     option_env!("CARLA_VERSION").unwrap_or("0.9.16")
 }
 
-pub const LIBS: &[&str] = &[
-    "static=carla_client",
-    "static=Recast",
-    "static=Detour",
-    "static=DetourCrowd",
-    "static=rpc",
-    "static=png",
-    "static=boost_filesystem",
-];
+pub fn libs() -> &'static [&'static str] {
+    let v = std::env::var("CARLA_VERSION").unwrap_or_else(|_| version().to_string());
+    match v.as_str() {
+        "0.10.0" => &[
+            "static=carla-client",
+            "static=Recast",
+            "static=Detour",
+            "static=DetourCrowd",
+            "static=rpc",
+            "static=png16",
+            "static=z",
+            "static=boost_filesystem",
+        ],
+        _ => &[
+            "static=carla_client",
+            "static=Recast",
+            "static=Detour",
+            "static=DetourCrowd",
+            "static=rpc",
+            "static=png",
+            "static=boost_filesystem",
+        ],
+    }
+}
 
 pub fn build<P>(src_dir: P) -> Result<()>
 where
@@ -29,8 +44,9 @@ where
         "0.9.14" => build_0914(src_dir),
         "0.9.15" => build_0915(src_dir),
         "0.9.16" => build_0916(src_dir),
+        "0.10.0" => build_0_10_0(src_dir),
         _ => bail!(
-            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16",
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
             carla_version
         ),
     }
@@ -294,6 +310,68 @@ where
     Ok(())
 }
 
+fn build_0_10_0<P>(src_dir: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let src_dir = src_dir.as_ref();
+    let build_dir = src_dir.join("Build/libstdcxx-release");
+
+    // Configure with CMake
+    eprintln!("Configuring CARLA 0.10.0 with CMake...");
+    let status = Command::new("cmake")
+        .args([
+            "-B",
+            build_dir.to_str().unwrap(),
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_CARLA_CLIENT=ON",
+            "-DBUILD_CARLA_SERVER=OFF",
+            "-DBUILD_EXAMPLES=OFF",
+            "-DBUILD_LIBCARLA_TESTS=OFF",
+            "-DBUILD_PYTHON_API=OFF",
+            "-DBUILD_CARLA_UNREAL=OFF",
+            "-DENABLE_ROS2=OFF",
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        ])
+        .current_dir(src_dir)
+        .status()
+        .with_context(|| format!("cmake configure failed in {}", src_dir.display()))?;
+
+    if !status.success() {
+        bail!("cmake configure failed in {}", src_dir.display());
+    }
+
+    // Build with CMake
+    eprintln!("Building CARLA 0.10.0 client library...");
+    let nproc = std::thread::available_parallelism()
+        .map(|n| n.get().to_string())
+        .unwrap_or_else(|_| "4".to_string());
+
+    let status = Command::new("cmake")
+        .args([
+            "--build",
+            build_dir.to_str().unwrap(),
+            "--target",
+            "carla-client",
+            "-j",
+            &nproc,
+        ])
+        .current_dir(src_dir)
+        .status()
+        .with_context(|| format!("cmake build failed in {}", src_dir.display()))?;
+
+    if !status.success() {
+        bail!("cmake build failed in {}", src_dir.display());
+    }
+
+    eprintln!("Build complete!");
+    eprintln!("Output: {}/LibCarla/libcarla-client.a", build_dir.display());
+
+    Ok(())
+}
+
 pub fn install<S, T>(src_dir: S, tgt_dir: T) -> Result<()>
 where
     S: AsRef<Path>,
@@ -374,13 +452,19 @@ where
 {
     let src_dir = src_dir.as_ref();
     let build_dir = src_dir.join("Build");
-    let err = || format!("`make clean.LibCarla` failed in {}", src_dir.display());
+    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| version().to_string());
 
     if build_dir.exists() {
-        fs::remove_dir_all(build_dir)?;
+        fs::remove_dir_all(&build_dir)?;
     }
 
-    // make LibCarla.client.release
+    // For 0.10.0 (CMake-based), removing Build/ is sufficient
+    if carla_version == "0.10.0" {
+        return Ok(());
+    }
+
+    // For 0.9.x (Make-based), also run make clean
+    let err = || format!("`make clean.LibCarla` failed in {}", src_dir.display());
     let status = Command::new("make")
         .arg("clean.LibCarla")
         .current_dir(src_dir)
