@@ -4,32 +4,18 @@
 # Default Cargo profile for builds
 profile := "dev-release"
 
-# Default CARLA version
-carla_version := env("CARLA_VERSION", "0.10.0")
-
-# Target directory per CARLA version (isolates build artifacts)
-target_dir := "target/carla-" + carla_version
+# Supported CARLA versions
+versions := "0.9.14 0.9.15 0.9.16 0.10.0"
 
 # Show all available recipes (default)
 @_default:
     just --list
 
-# Build for a specific CARLA version (default: 0.10.0)
-# Usage: just build  OR  CARLA_VERSION=0.9.16 just build
+# Build all supported CARLA versions
 build:
-    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
-        cargo build --all-targets --profile {{ profile }}
-
-# Run unit tests for a specific CARLA version
-test:
-    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
-        cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
-
-# Build and test all supported CARLA versions
-build-all:
     #!/usr/bin/env bash
     set -euo pipefail
-    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
+    for VERSION in {{ versions }}; do
         echo "=================================================="
         echo "Building CARLA ${VERSION}..."
         echo "=================================================="
@@ -39,11 +25,11 @@ build-all:
     done
     echo "All versions built successfully!"
 
-# Test all supported CARLA versions
-test-all:
+# Run unit tests for all supported CARLA versions
+test:
     #!/usr/bin/env bash
     set -euo pipefail
-    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
+    for VERSION in {{ versions }}; do
         echo "=================================================="
         echo "Testing CARLA ${VERSION}..."
         echo "=================================================="
@@ -52,6 +38,51 @@ test-all:
         echo ""
     done
     echo "All versions tested successfully!"
+
+# Run Rust and C++ checks for all supported CARLA versions
+check: check-rust check-cpp
+
+# Run Rust checks (fmt + clippy) for all supported CARLA versions
+check-rust:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo +nightly fmt --check
+    for VERSION in {{ versions }}; do
+        echo "=================================================="
+        echo "Clippy CARLA ${VERSION}..."
+        echo "=================================================="
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
+            cargo clippy --all-targets -- -D warnings
+        echo ""
+    done
+
+# Run C++ checks (format + tidy)
+check-cpp: check-cpp-format check-cpp-tidy
+
+# Run C++ format check
+check-cpp-format:
+    find carla-sys/csrc -name "*.hpp" -o -name "*.cpp" | xargs clang-format --dry-run --Werror --style=file
+
+# Run clang-tidy
+check-cpp-tidy:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Use the default version's headers for tidy
+    VERSION="${CARLA_VERSION:-0.10.0}"
+    TARGET_DIR="target/carla-${VERSION}"
+    CARLA_INCLUDE=$(find "${TARGET_DIR}"/{{ profile }}/build/carla-sys-*/out/libcarla_client/*/include -maxdepth 0 -type d 2>/dev/null | head -1 || true)
+    if [ -z "$CARLA_INCLUDE" ]; then
+        echo "Error: CARLA headers not found. Run 'just build' first."
+        exit 1
+    else
+        echo "Using CARLA headers from: $CARLA_INCLUDE"
+        echo "Running clang-tidy on all files..."
+        CPP_STD=$([[ "$VERSION" == "0.10.0" ]] && echo "c++20" || echo "c++14")
+        clang-tidy $(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=$CPP_STD -Icarla-sys/csrc -I$CARLA_INCLUDE
+    fi
+
+# Run all CI checks (build, check, test)
+ci: build check-rust check-cpp-format test
 
 # Format Rust and C++ code
 format: format-rust format-cpp
@@ -64,48 +95,16 @@ format-rust:
 format-cpp:
     find carla-sys/csrc -name "*.hpp" -o -name "*.cpp" | xargs clang-format -i --style=file
 
-# Run Rust and C++ lints
-lint: lint-rust lint-cpp
-
-# Run Rust lints only
-lint-rust:
-    cargo +nightly fmt --check
-    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
-        cargo clippy --all-targets -- -D warnings
-
-# Run C++ lints (format + tidy)
-lint-cpp: lint-cpp-format lint-cpp-tidy
-
-# Run C++ format check only
-lint-cpp-format:
-    find carla-sys/csrc -name "*.hpp" -o -name "*.cpp" | xargs clang-format --dry-run --Werror --style=file
-
-# Run clang-tidy only
-lint-cpp-tidy:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    CARLA_INCLUDE=$(find {{ target_dir }}/{{ profile }}/build/carla-sys-*/out/libcarla_client/*/include -maxdepth 0 -type d 2>/dev/null | head -1 || true)
-    if [ -z "$CARLA_INCLUDE" ]; then
-        echo "Error: CARLA headers not found. Run 'just build' first."
-        exit 1
-    else
-        echo "Using CARLA headers from: $CARLA_INCLUDE"
-        echo "Running clang-tidy on all files..."
-        CPP_STD=$([[ "{{ carla_version }}" == "0.10.0" ]] && echo "c++20" || echo "c++14")
-        clang-tidy $(find carla-sys/csrc -name "*.hpp" -o -name "*.cpp") -- -std=$CPP_STD -Icarla-sys/csrc -I$CARLA_INCLUDE
-    fi
-
-# Run all CI checks (build, lint, test)
-ci: build lint-rust lint-cpp-format test
-
-# Remove build artifacts
+# Remove build artifacts for all CARLA versions
 clean:
-    cargo clean
     rm -rf target/carla-*
 
 # Build documentation
 doc:
-    CARLA_VERSION={{ carla_version }} CARGO_TARGET_DIR={{ target_dir }} \
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION="${CARLA_VERSION:-0.10.0}"
+    CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
         cargo doc --no-deps --open
 
 # Regenerate bindings for all CARLA versions (downloads prebuilt packages)
@@ -116,7 +115,7 @@ regen-bindings:
     echo "Regenerating bindings for all CARLA versions using prebuilt packages..."
     echo ""
 
-    for VERSION in 0.9.14 0.9.15 0.9.16 0.10.0; do
+    for VERSION in {{ versions }}; do
         echo "=================================================="
         echo "Regenerating bindings for CARLA ${VERSION}..."
         echo "=================================================="
