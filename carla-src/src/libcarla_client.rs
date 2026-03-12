@@ -6,7 +6,7 @@ use std::{fs, path::Path, process::Command};
 /// Get the CARLA version from environment variable or use default
 pub fn version() -> &'static str {
     // This is evaluated at compile time via build script
-    option_env!("CARLA_VERSION").unwrap_or("0.9.16")
+    option_env!("CARLA_VERSION").unwrap_or("0.10.0")
 }
 
 pub fn libs() -> &'static [&'static str] {

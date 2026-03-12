@@ -355,10 +355,10 @@ fn download_tarball() -> Result<Option<PathBuf>> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 enum CarlaVersion {
-    #[default]
     V0_9_16,
     V0_9_15,
     V0_9_14,
+    #[default]
     V0_10_0,
 }
 

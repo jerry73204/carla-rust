@@ -3,10 +3,10 @@ use std::{env, str::FromStr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum CarlaVersion {
-    #[default]
     V0_9_16,
     V0_9_15,
     V0_9_14,
+    #[default]
     V0_10_0,
 }
 
@@ -45,7 +45,7 @@ fn parse_carla_version() -> Result<CarlaVersion> {
     let version_str = env::var("DEP_CARLA_CARLA_VERSION")
         .or_else(|_| env::var("CARLA_VERSION"))
         .unwrap_or_else(|_| {
-            eprintln!("Warning: CARLA version not detected, defaulting to 0.9.16");
+            eprintln!("Warning: CARLA version not detected, defaulting to 0.10.0");
             CarlaVersion::default().as_str().to_string()
         });
 

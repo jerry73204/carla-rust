@@ -35,7 +35,7 @@ pub fn probe<P>(carla_src_dir: P) -> Result<Probe>
 where
     P: AsRef<Path>,
 {
-    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.9.16".to_string());
+    let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.10.0".to_string());
     match carla_version.as_str() {
         "0.9.14" | "0.9.15" | "0.9.16" => probe_09x(carla_src_dir, &carla_version),
         "0.10.0" => probe_0_10_0(carla_src_dir),
