@@ -7,6 +7,7 @@ enum CarlaVersion {
     V0_9_16,
     V0_9_15,
     V0_9_14,
+    V0_10_0,
 }
 
 impl FromStr for CarlaVersion {
@@ -14,11 +15,12 @@ impl FromStr for CarlaVersion {
 
     fn from_str(ver_text: &str) -> Result<Self, Self::Err> {
         let ver = match ver_text {
+            "0.10.0" => Self::V0_10_0,
             "0.9.16" => Self::V0_9_16,
             "0.9.15" => Self::V0_9_15,
             "0.9.14" => Self::V0_9_14,
             _ => bail!(
-                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16",
+                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
                 ver_text
             ),
         };
@@ -29,6 +31,7 @@ impl FromStr for CarlaVersion {
 impl CarlaVersion {
     fn as_str(&self) -> &str {
         match self {
+            CarlaVersion::V0_10_0 => "0.10.0",
             CarlaVersion::V0_9_16 => "0.9.16",
             CarlaVersion::V0_9_15 => "0.9.15",
             CarlaVersion::V0_9_14 => "0.9.14",
@@ -65,12 +68,17 @@ fn main() -> Result<()> {
     println!("cargo:rustc-check-cfg=cfg(carla_0916)");
 
     // Declare cfg flags from carla-sys for version-aware documentation
+    println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0914)");
 
     // Set up cfg flags for version-specific code
     match version {
+        CarlaVersion::V0_10_0 => {
+            println!("cargo:rustc-cfg=carla_version_0100");
+            eprintln!("Setting carla_version_0100 cfg flag");
+        }
         CarlaVersion::V0_9_16 => {
             println!("cargo:rustc-cfg=carla_0916");
             println!("cargo:rustc-cfg=carla_version_0916");
