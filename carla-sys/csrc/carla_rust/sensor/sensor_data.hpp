@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data/mod.hpp"
+#include "carla_rust/compat.hpp"
 
 namespace carla_rust {
 namespace sensor {
@@ -47,7 +48,7 @@ public:
     }
 
     std::shared_ptr<FfiImage> to_image() const {
-        auto ptr = boost::dynamic_pointer_cast<Image>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<Image>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -56,7 +57,7 @@ public:
     }
 
     std::shared_ptr<FfiGnssMeasurement> to_gnss_measurement() const {
-        auto ptr = boost::dynamic_pointer_cast<GnssMeasurement>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<GnssMeasurement>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -65,7 +66,7 @@ public:
     }
 
     std::shared_ptr<FfiImuMeasurement> to_imu_measurement() const {
-        auto ptr = boost::dynamic_pointer_cast<IMUMeasurement>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<IMUMeasurement>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -74,7 +75,7 @@ public:
     }
 
     std::shared_ptr<FfiCollisionEvent> to_collision_event() const {
-        auto ptr = boost::dynamic_pointer_cast<CollisionEvent>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<CollisionEvent>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -83,7 +84,7 @@ public:
     }
 
     std::shared_ptr<FfiObstacleDetectionEvent> to_obstacle_detection_event() const {
-        auto ptr = boost::dynamic_pointer_cast<ObstacleDetectionEvent>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<ObstacleDetectionEvent>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -92,7 +93,7 @@ public:
     }
 
     std::shared_ptr<FfiLaneInvasionEvent> to_lane_invasion_event() const {
-        auto ptr = boost::dynamic_pointer_cast<LaneInvasionEvent>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<LaneInvasionEvent>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -101,7 +102,7 @@ public:
     }
 
     std::shared_ptr<FfiLidarMeasurement> to_lidar_measurement() const {
-        auto ptr = boost::dynamic_pointer_cast<LidarMeasurement>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<LidarMeasurement>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -110,7 +111,7 @@ public:
     }
 
     std::shared_ptr<FfiSemanticLidarMeasurement> to_semantic_lidar_measurement() const {
-        auto ptr = boost::dynamic_pointer_cast<SemanticLidarMeasurement>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<SemanticLidarMeasurement>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -119,7 +120,7 @@ public:
     }
 
     std::shared_ptr<FfiRadarMeasurement> to_radar_measurement() const {
-        auto ptr = boost::dynamic_pointer_cast<RadarMeasurement>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<RadarMeasurement>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -128,7 +129,7 @@ public:
     }
 
     std::shared_ptr<FfiDVSEventArray> to_dvs_event_array() const {
-        auto ptr = boost::dynamic_pointer_cast<DVSEventArray>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<DVSEventArray>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -137,7 +138,7 @@ public:
     }
 
     std::shared_ptr<FfiOpticalFlowImage> to_optical_flow_image() const {
-        auto ptr = boost::dynamic_pointer_cast<OpticalFlowImage>(inner_);
+        auto ptr = carla_dynamic_pointer_cast<OpticalFlowImage>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {

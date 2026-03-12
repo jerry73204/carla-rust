@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "carla/Memory.h"
+#include "carla_rust/compat.hpp"
 #include "carla/client/Actor.h"
 #include "carla/client/Vehicle.h"
 #include "carla/client/Sensor.h"
@@ -204,7 +205,7 @@ public:
     }
 
     std::shared_ptr<FfiVehicle> to_vehicle() const {
-        SharedPtr<Vehicle> ptr = boost::dynamic_pointer_cast<Vehicle>(inner_);
+        SharedPtr<Vehicle> ptr = carla_dynamic_pointer_cast<Vehicle>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -213,7 +214,7 @@ public:
     }
 
     std::shared_ptr<FfiSensor> to_sensor() const {
-        SharedPtr<Sensor> ptr = boost::dynamic_pointer_cast<Sensor>(inner_);
+        SharedPtr<Sensor> ptr = carla_dynamic_pointer_cast<Sensor>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -222,7 +223,7 @@ public:
     }
 
     std::shared_ptr<FfiTrafficSign> to_traffic_sign() const {
-        SharedPtr<TrafficSign> ptr = boost::dynamic_pointer_cast<TrafficSign>(inner_);
+        SharedPtr<TrafficSign> ptr = carla_dynamic_pointer_cast<TrafficSign>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {
@@ -231,7 +232,7 @@ public:
     }
 
     std::shared_ptr<FfiTrafficLight> to_traffic_light() const {
-        SharedPtr<TrafficLight> ptr = boost::dynamic_pointer_cast<TrafficLight>(inner_);
+        SharedPtr<TrafficLight> ptr = carla_dynamic_pointer_cast<TrafficLight>(inner_);
         if (ptr == nullptr) {
             return nullptr;
         } else {

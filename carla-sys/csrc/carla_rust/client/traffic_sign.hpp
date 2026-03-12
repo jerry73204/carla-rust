@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "carla/Memory.h"
+#include "carla_rust/compat.hpp"
 #include "carla/road/RoadTypes.h"
 #include "carla/geom/BoundingBox.h"
 #include "carla/client/TrafficSign.h"
@@ -31,7 +32,7 @@ public:
     }
 
     std::shared_ptr<FfiActor> to_actor() const {
-        SharedPtr<Actor> ptr = boost::static_pointer_cast<Actor>(inner_);
+        SharedPtr<Actor> ptr = carla_static_pointer_cast<Actor>(inner_);
         return std::make_shared<FfiActor>(std::move(ptr));
     }
 

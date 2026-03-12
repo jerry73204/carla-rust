@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include "carla_rust/rpc/gear_physics_control_compat.hpp"
 
 namespace carla {
 namespace geom {
@@ -9,7 +10,6 @@ class Vector2D;
 }
 
 namespace rpc {
-class GearPhysicsControl;
 class WheelPhysicsControl;
 }  // namespace rpc
 }  // namespace carla

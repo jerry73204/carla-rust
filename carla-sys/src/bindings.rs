@@ -34,7 +34,7 @@ include_cpp! {
     #include "carla/rpc/BoneTransformDataOut.h"
     #include "carla/rpc/OpendriveGenerationParameters.h"
     #include "carla/rpc/TrafficLightState.h"
-    #include "carla/rpc/GearPhysicsControl.h"
+    #include "carla_rust/rpc/gear_physics_control_compat.hpp"
     #include "carla/rpc/WeatherParameters.h"
     #include "carla/rpc/ObjectLabel.h"
     #include "carla/rpc/VehicleFailureState.h"

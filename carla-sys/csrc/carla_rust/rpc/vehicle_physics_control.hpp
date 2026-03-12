@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "carla/geom/Location.h"
-#include "carla/rpc/GearPhysicsControl.h"
+#include "carla_rust/rpc/gear_physics_control_compat.hpp"
 #include "carla/rpc/WheelPhysicsControl.h"
 #include "carla/rpc/VehiclePhysicsControl.h"
 #include "carla_rust/geom.hpp"
