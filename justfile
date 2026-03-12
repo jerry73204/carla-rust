@@ -105,9 +105,9 @@ build-prebuilt CARLA_SRC_DIR VERSION:
     fi
 
     # Validate version format
-    if ! echo "{{ VERSION }}" | grep -qE '^0\.9\.(14|15|16)$'; then
+    if ! echo "{{ VERSION }}" | grep -qE '^0\.(9\.(14|15|16)|10\.0)$'; then
         echo "Error: Invalid CARLA version: {{ VERSION }}"
-        echo "Supported versions: 0.9.14, 0.9.15, 0.9.16"
+        echo "Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0"
         exit 1
     fi
 
