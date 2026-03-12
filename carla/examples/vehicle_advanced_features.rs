@@ -11,7 +11,7 @@
 
 use carla::{
     client::{ActorBase, Client},
-    rpc::{VehicleAckermannControl, VehicleControl, VehicleDoor, VehicleWheelLocation},
+    rpc::{VehicleAckermannControl, VehicleControl, VehicleDoor},
 };
 use std::{thread, time::Duration};
 
@@ -151,6 +151,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Demo 6: Wheel Pitch Control (0.9.16+ only)
     #[cfg(carla_0916)]
     {
+        use carla::rpc::VehicleWheelLocation;
         println!("\n--- Demo 6: Wheel Pitch Control (0.9.16+) ---");
         println!("Setting wheel pitch angles...");
 
