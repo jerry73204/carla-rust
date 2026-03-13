@@ -34,21 +34,21 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `apply_batch_sync()`              | Have        | 0.9.14 |
 | `apply_batch()`                   | Have        | 0.9.14 |
 | `get_trafficmanager()`            | Have        | 0.9.14 |
-| `get_available_maps()`            | **Missing** | 0.9.14 |
-| `set_files_base_folder()`         | **Missing** | 0.9.14 |
-| `get_required_files()`            | **Missing** | 0.9.14 |
-| `request_file()`                  | **Missing** | 0.9.14 |
-| `start_recorder()`                | **Missing** | 0.9.14 |
-| `stop_recorder()`                 | **Missing** | 0.9.14 |
-| `show_recorder_file_info()`       | **Missing** | 0.9.14 |
-| `show_recorder_collisions()`      | **Missing** | 0.9.14 |
-| `show_recorder_actors_blocked()`  | **Missing** | 0.9.14 |
-| `replay_file()`                   | **Missing** | 0.9.14 |
-| `stop_replayer()`                 | **Missing** | 0.9.14 |
-| `set_replayer_time_factor()`      | **Missing** | 0.9.14 |
-| `set_replayer_ignore_hero()`      | **Missing** | 0.9.14 |
-| `load_world_if_different()`       | **Missing** | 0.9.15 |
-| `set_replayer_ignore_spectator()` | **Missing** | 0.9.15 |
+| `get_available_maps()`            | Have        | 0.9.14 |
+| `set_files_base_folder()`         | Have        | 0.9.14 |
+| `get_required_files()`            | Have        | 0.9.14 |
+| `request_file()`                  | Have        | 0.9.14 |
+| `start_recorder()`                | Have        | 0.9.14 |
+| `stop_recorder()`                 | Have        | 0.9.14 |
+| `show_recorder_file_info()`       | Have        | 0.9.14 |
+| `show_recorder_collisions()`      | Have        | 0.9.14 |
+| `show_recorder_actors_blocked()`  | Have        | 0.9.14 |
+| `replay_file()`                   | Have        | 0.9.14 |
+| `stop_replayer()`                 | Have        | 0.9.14 |
+| `set_replayer_time_factor()`      | Have        | 0.9.14 |
+| `set_replayer_ignore_hero()`      | Have        | 0.9.14 |
+| `load_world_if_different()`       | Have        | 0.9.15 |
+| `set_replayer_ignore_spectator()` | Have        | 0.9.15 |
 
 ### `World`
 
@@ -132,20 +132,20 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `set_enable_gravity()`                                 | Have        | 0.9.14 |
 | `set_actor_dead()`                                     | Have        | 0.9.14 |
 | `is_alive()`                                           | Have        | 0.9.14 |
-| `set_location()` (without rotation)                    | **Missing** | 0.9.14 |
-| `set_target_velocity()`                                | **Missing** | 0.9.14 |
-| `set_target_angular_velocity()`                        | **Missing** | 0.9.14 |
-| `enable_constant_velocity()`                           | **Missing** | 0.9.14 |
-| `disable_constant_velocity()`                          | **Missing** | 0.9.14 |
-| `add_impulse(impulse, location)` (at point)            | **Missing** | 0.9.14 |
-| `add_force(force, location)` (at point)                | **Missing** | 0.9.14 |
-| `add_angular_impulse()`                                | **Missing** | 0.9.14 |
-| `add_torque()`                                         | **Missing** | 0.9.14 |
-| `destroy()`                                            | **Missing** | 0.9.14 |
-| `get_bounding_box()`                                   | **Missing** | 0.9.14 |
+| `set_location()` (without rotation)                    | Have        | 0.9.14 |
+| `set_target_velocity()`                                | Have        | 0.9.14 |
+| `set_target_angular_velocity()`                        | Have        | 0.9.14 |
+| `enable_constant_velocity()`                           | Have        | 0.9.14 |
+| `disable_constant_velocity()`                          | Have        | 0.9.14 |
+| `add_impulse(impulse, location)` (at point)            | Have        | 0.9.14 |
+| `add_force(force, location)` (at point)                | Have        | 0.9.14 |
+| `add_angular_impulse()`                                | Have        | 0.9.14 |
+| `add_torque()`                                         | Have        | 0.9.14 |
+| `destroy()`                                            | Have        | 0.9.14 |
+| `get_bounding_box()`                                   | Have        | 0.9.14 |
 | `get_actor_state()`                                    | **Missing** | 0.9.14 |
-| `is_dormant()` / `is_active()`                         | **Missing** | 0.9.14 |
-| `set_collisions()`                                     | **Missing** | 0.9.15 |
+| `is_dormant()` / `is_active()`                         | Have        | 0.9.14 |
+| `set_collisions()`                                     | Have        | 0.9.15 |
 | `get_actor_name()`                                     | **Missing** | 0.10.0 |
 | `get_actor_class_name()`                               | **Missing** | 0.10.0 |
 | `apply_texture()`                                      | **Missing** | 0.10.0 |

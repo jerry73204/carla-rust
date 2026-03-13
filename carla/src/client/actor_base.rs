@@ -741,4 +741,30 @@ pub trait ActorBase: Clone {
     fn destroy(&self) -> bool {
         self.cxx_actor().Destroy()
     }
+
+    /// Enables or disables collision detection for this actor.
+    ///
+    /// **Available in CARLA 0.9.15+**
+    ///
+    /// When disabled, the actor will pass through other objects without
+    /// generating collision events.
+    ///
+    /// # Arguments
+    ///
+    /// * `enabled` - If true, collisions are enabled (default behavior)
+    #[cfg(carla_0915)]
+    fn set_collisions(&self, enabled: bool) {
+        self.cxx_actor().SetCollisions(enabled);
+    }
+
+    /// Marks this actor as dead.
+    ///
+    /// **Available in CARLA 0.9.15+**
+    ///
+    /// Sets the actor state to dead without immediately destroying it.
+    /// This is used for ragdoll effects on walkers and similar scenarios.
+    #[cfg(carla_0915)]
+    fn set_actor_dead(&self) {
+        self.cxx_actor().SetActorDead();
+    }
 }

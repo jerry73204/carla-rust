@@ -71,6 +71,19 @@ public:
         return FfiTrafficManager(std::move(orig));
     }
 
+    // File transfer methods
+    bool SetFilesBaseFolder(std::string path) {
+        return inner_.SetFilesBaseFolder(path);
+    }
+
+    std::vector<std::string> GetRequiredFiles(std::string folder, bool download) const {
+        return inner_.GetRequiredFiles(std::move(folder), download);
+    }
+
+    void RequestFile(std::string name) const {
+        inner_.RequestFile(std::move(name));
+    }
+
     // Recording methods
     std::string StartRecorder(std::string filename, bool additional_data) {
         return inner_.StartRecorder(std::move(filename), additional_data);

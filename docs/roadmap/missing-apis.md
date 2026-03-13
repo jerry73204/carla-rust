@@ -1,0 +1,488 @@
+# Missing API Implementation Roadmap
+
+Implementation plan for achieving 100% CARLA API coverage.
+See [api-coverage.md](../api-coverage.md) for the full gap analysis.
+
+---
+
+## Phase 1: Client — File Transfer
+
+**Priority:** High
+
+- [x] `Client::set_files_base_folder(path)`
+  - [x] Add C++ wrapper in `client.hpp`
+  - [x] Add Rust wrapper in `carla_client.rs`
+- [x] `Client::get_required_files(folder, download) -> Vec<String>`
+  - [x] Add C++ wrapper in `client.hpp`
+  - [x] Add Rust wrapper in `carla_client.rs`
+- [x] `Client::request_file(name)`
+  - [x] Add C++ wrapper in `client.hpp`
+  - [x] Add Rust wrapper in `carla_client.rs`
+
+---
+
+## Phase 2: Actor — Remaining Methods
+
+**Priority:** High
+
+- [ ] `Actor::get_actor_state() -> ActorState`
+  - [ ] Add `ActorState` enum in `carla/src/rpc/`
+  - [ ] Add C++ wrapper in `actor.hpp`
+  - [ ] Add Rust wrapper in `actor_base.rs`
+  - Note: Lower priority since `is_alive()`/`is_dormant()`/`is_active()` cover same info
+- [ ] `Actor::get_actor_name() -> String` — 0.10.0 only
+  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
+  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+- [ ] `Actor::get_actor_class_name() -> String` — 0.10.0 only
+  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
+  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+- [ ] `Actor::apply_texture()` — 0.10.0 only
+  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
+  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+  - [ ] Depends on texture types (Phase 10)
+
+---
+
+## Phase 3: World — Missing Methods
+
+**Priority:** High
+
+### Map layer management
+
+- [ ] `World::load_map_layer(map_layers)`
+  - [ ] Add Rust wrapper (C++ wrapper already exists: `LoadLevelLayer`)
+- [ ] `World::unload_map_layer(map_layers)`
+  - [ ] Add Rust wrapper (C++ wrapper already exists: `UnloadLevelLayer`)
+
+### Traffic light management
+
+- [ ] `World::get_traffic_sign(landmark) -> TrafficSign`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::get_traffic_light(landmark) -> TrafficLight`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::get_traffic_light_from_opendrive_id(id) -> TrafficLight`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::get_traffic_lights_in_junction(junction_id) -> Vec<TrafficLight>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::reset_all_traffic_lights()`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::freeze_all_traffic_lights(frozen)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Environment queries
+
+- [ ] `World::get_vehicles_light_states() -> VehicleLightStateList`
+  - [ ] Add Rust wrapper (C++ wrapper already exists)
+- [ ] `World::get_random_location_from_navigation() -> Option<Location>`
+  - [ ] Add Rust wrapper (C++ wrapper already exists)
+- [ ] `World::get_level_bbs(actor_type) -> Vec<BoundingBox>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+  - [ ] Depends on `CityObjectLabel` enum (Phase 10)
+- [ ] `World::get_environment_objects(object_type) -> Vec<EnvironmentObject>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::enable_environment_objects(object_ids, enable)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::get_names_of_all_objects() -> Vec<String>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::get_actor(id) -> Option<Actor>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Ray casting
+
+- [ ] `World::cast_ray(start, end) -> Vec<LabelledPoint>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+  - [ ] Depends on `LabelledPoint` type (Phase 10)
+- [ ] `World::project_point(location, direction) -> LabelledPoint`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::ground_projection(location, search_distance) -> LabelledPoint`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Texture operations
+
+- [ ] `World::apply_color_texture_to_object(object, material, texture)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+  - [ ] Depends on `TextureColor`, `MaterialParameter` types (Phase 10)
+- [ ] `World::apply_float_color_texture_to_object(object, material, texture)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::apply_textures_to_object(object, color_tex, float_tex)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Pedestrian control
+
+- [ ] `World::set_pedestrians_cross_factor(percentage)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::set_pedestrians_seed(seed)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Event callbacks
+
+- [ ] `World::on_tick(callback) -> usize`
+  - [ ] Design C++ → Rust closure FFI bridge
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `World::remove_on_tick(callback_id)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Version-gated
+
+- [ ] `World::is_weather_enabled() -> bool` — 0.10.0 only
+  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
+  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+
+---
+
+## Phase 4: EpisodeSettings — Missing Fields
+
+**Priority:** Medium
+
+- [ ] Add `max_culling_distance: f32`
+- [ ] Add `tile_stream_distance: f32`
+- [ ] Add `actor_active_distance: f32`
+- [ ] Add `spectator_as_ego: bool` — gated with `#[cfg(carla_0915)]`
+- [ ] Update C++ wrapper if needed
+- [ ] Update `from_ffi`/`into_ffi` conversions
+
+---
+
+## Phase 5: TrafficLight — Missing Methods
+
+**Priority:** Medium
+
+- [ ] `TrafficLight::set_green_time(seconds)`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::set_yellow_time(seconds)`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::set_red_time(seconds)`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::get_pole_index() -> i32`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::reset_group()`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::get_light_boxes() -> Vec<BoundingBox>`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+- [ ] `TrafficLight::get_stop_waypoints() -> Vec<Waypoint>`
+  - [ ] Verify C++ wrapper exists
+  - [ ] Add Rust wrapper
+
+---
+
+## Phase 6: Vehicle & Walker — Missing Methods
+
+**Priority:** Medium
+
+### Vehicle
+
+- [ ] `Vehicle::get_traffic_light() -> TrafficLight`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Vehicle::apply_ackermann_controller_settings(settings)`
+  - [ ] Add `AckermannControllerSettings` Rust type (Phase 10)
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Vehicle::get_ackermann_controller_settings() -> AckermannControllerSettings`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Vehicle::use_carsim_road(enabled)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Vehicle::enable_chrono_physics(...)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Walker
+
+- [ ] `Walker::get_pose_from_animation()`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+---
+
+## Phase 7: Map & Navigation — Missing Methods
+
+**Priority:** Medium
+
+### Map
+
+- [ ] `Map::get_waypoint_xodr(road_id, lane_id, s) -> Option<Waypoint>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::get_geo_reference() -> GeoLocation`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::transform_to_geolocation(location) -> GeoLocation`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::get_crosswalks() -> Vec<Location>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::get_all_landmarks_from_id(id) -> Vec<Landmark>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::get_landmark_group(landmark) -> Vec<Landmark>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Map::cook_in_memory_map(path)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Waypoint
+
+- [ ] `Waypoint::next_until_lane_end(distance) -> Vec<Waypoint>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Waypoint::previous_until_lane_start(distance) -> Vec<Waypoint>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Waypoint::junction_id() -> i32`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+### Landmark
+
+- [ ] `Landmark::country() -> String`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::sub_type() -> String`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::text() -> String`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::h_offset() -> f64`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::pitch() -> f64`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::roll() -> f64`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `Landmark::orientation() -> SignalOrientation`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+  - [ ] Depends on `SignalOrientation` enum (Phase 10)
+- [ ] `Landmark::get_lane_validities() -> Vec<(i32, i32)>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+---
+
+## Phase 8: Geometry — Missing Methods
+
+**Priority:** Medium — pure Rust, no FFI needed.
+
+### Transform
+
+- [ ] `get_forward_vector() -> Vector3D`
+- [ ] `get_right_vector() -> Vector3D`
+- [ ] `get_up_vector() -> Vector3D`
+- [ ] `transform_point(location) -> Location`
+- [ ] `transform_vector(vector) -> Vector3D`
+- [ ] `inverse_transform_point(location) -> Location`
+- [ ] `get_matrix() -> [[f32; 4]; 4]`
+- [ ] `get_inverse_matrix() -> [[f32; 4]; 4]`
+
+### Vector3D
+
+- [ ] `abs() -> Vector3D`
+- [ ] `make_unit_vector() -> Vector3D`
+- [ ] `make_safe_unit_vector() -> Vector3D`
+- [ ] `squared_length_2d() -> f32` — gate with `#[cfg(carla_0915)]`
+- [ ] `length_2d() -> f32` — gate with `#[cfg(carla_0915)]`
+
+### Location
+
+- [ ] `distance(other) -> f32` — gate with `#[cfg(carla_0915)]`
+- [ ] `distance_squared(other) -> f32` — gate with `#[cfg(carla_0915)]`
+
+### Rotation
+
+- [ ] `get_normalized() -> Rotation` — gate with `#[cfg(carla_0100)]`
+
+---
+
+## Phase 9: Traffic Manager — Missing Methods
+
+**Priority:** Medium
+
+- [ ] `global_lane_offset(offset)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `update_vehicle_lights(actor, enabled)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `force_lane_change(actor, direction)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `ignore_signs_percentage(actor, percentage)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_global_distance_to_leading_vehicle(distance)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `random_left_lanechange_percentage(actor, percentage)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `random_right_lanechange_percentage(actor, percentage)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_random_device_seed(seed)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_osm_mode(enabled)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_path(actor, path)` / `set_route(actor, route)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_respawn_dormant_vehicles(enabled)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `set_boundaries_respawn_dormant_vehicles(lower, upper)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `get_next_action(actor) -> (Action, Waypoint)`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `get_all_actions(actor) -> Vec<(Action, Waypoint)>`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+- [ ] `synchronous_tick() -> bool`
+  - [ ] Add C++ wrapper
+  - [ ] Add Rust wrapper
+
+---
+
+## Phase 10: RPC Types
+
+**Priority:** Medium — supporting types needed by other phases.
+
+### Types needed by Phase 2–3
+
+- [ ] `ActorState` enum — `Invalid`, `Active`, `Dormant`, `PendingKill`
+- [ ] `LabelledPoint` struct (FFI type exists as `FfiLabelledPoint`)
+- [ ] `CityObjectLabel` enum
+- [ ] `FloatColor` struct
+- [ ] `TextureColor` / `TextureFloatColor`
+- [ ] `MaterialParameter` enum
+- [ ] `SignalOrientation` enum
+
+### Types needed by Phase 6
+
+- [ ] `AckermannControllerSettings` — FFI type exists, add Rust wrapper
+
+### 0.10.0 layout changes
+
+- [ ] `VehiclePhysicsControl` — ~20 new fields in 0.10.0
+  - [ ] Version-gated struct definitions
+  - [ ] Conversion between layouts
+- [ ] `WheelPhysicsControl` — ~40 fields in 0.10.0 vs ~7 in 0.9.x
+  - [ ] Version-gated struct definitions
+  - [ ] Conversion between layouts
+
+---
+
+## Phase 11: Sensor Data
+
+**Priority:** Low
+
+- [ ] `NormalsImage` type
+- [ ] `horizontal_angle` / `channels` properties on LiDAR measurements
+- [ ] GBuffer subscription methods on Sensor
+  - [ ] `listen_to_gbuffer()`
+  - [ ] `is_listening_gbuffer()`
+  - [ ] `stop_gbuffer()`
+- [ ] ROS bridge methods on Sensor — 0.9.15+ only
+  - [ ] `enable_for_ros()`
+  - [ ] `disable_for_ros()`
+  - [ ] `is_enabled_for_ros()`
+
+---
+
+## Phase 12: Blueprint
+
+**Priority:** Low
+
+- [ ] `BlueprintLibrary::filter_by_attribute(name, value)` — 0.9.15+
+- [ ] `ActorAttribute::as_bool()` / `as_int()` / `as_float()` / `as_str()` / `as_color()`
+- [ ] `ActorAttributeType` enum
+
+---
+
+## Phase 13: Lighting
+
+**Priority:** Low
+
+- [ ] Batch `SetColor`/`SetIntensity` (multiple values at once)
+- [ ] `GetAllLights(type)` — filter by light group
+- [ ] `GetTurnedOnLights()` / `GetTurnedOffLights()`
+
+---
+
+## Phase 14: Command Variants
+
+**Priority:** Low
+
+- [ ] `ApplyWalkerState`
+- [ ] `ApplyTargetVelocity` / `ApplyTargetAngularVelocity`
+- [ ] `ApplyImpulse` / `ApplyForce` / `ApplyAngularImpulse` / `ApplyTorque`
+- [ ] `SetSimulatePhysics` / `SetEnableGravity`
+- [ ] `ShowDebugTelemetry`
+- [ ] `ConsoleCommand`
+- [ ] `SpawnActor.then()` chaining
+
+---
+
+## Phase 15: WeatherParameters Presets
+
+**Priority:** Low — pure Rust, no FFI needed.
+
+- [ ] `ClearNoon`
+- [ ] `CloudyNoon`
+- [ ] `WetNoon`
+- [ ] `WetCloudyNoon`
+- [ ] `SoftRainNoon`
+- [ ] `MidRainNoon`
+- [ ] `HardRainNoon`
+- [ ] `ClearSunset`
+- [ ] `CloudySunset`
+- [ ] `WetSunset`
+- [ ] `WetCloudySunset`
+- [ ] `SoftRainSunset`
+- [ ] `MidRainSunset`
+- [ ] `HardRainSunset`
+- [ ] `ClearNight`
+- [ ] `CloudyNight`
+- [ ] `WetNight`
+- [ ] `WetCloudyNight`
+- [ ] `SoftRainNight`
+- [ ] `MidRainNight`
+- [ ] `HardRainNight`
+- [ ] `DustStorm`
+- [ ] `Fog`

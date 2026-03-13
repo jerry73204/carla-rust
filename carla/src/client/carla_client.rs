@@ -397,6 +397,56 @@ impl Client {
     }
 
     // ========================================================================
+    // File Transfer Methods
+    // ========================================================================
+
+    /// Sets the base folder for file transfer operations.
+    ///
+    /// Files requested from the server will be stored in this folder.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Local directory path for file storage
+    ///
+    /// # Returns
+    ///
+    /// `true` if the folder was set successfully, `false` otherwise
+    pub fn set_files_base_folder(&mut self, path: &str) -> bool {
+        self.inner.pin_mut().SetFilesBaseFolder(path.to_string())
+    }
+
+    /// Returns a list of files required by the server.
+    ///
+    /// Optionally downloads them to the local files base folder.
+    ///
+    /// # Arguments
+    ///
+    /// * `folder` - Server folder to query (empty string for root)
+    /// * `download` - If true, downloads the files automatically
+    ///
+    /// # Returns
+    ///
+    /// List of required file names
+    pub fn get_required_files(&self, folder: &str, download: bool) -> Vec<String> {
+        self.inner
+            .GetRequiredFiles(folder.to_string(), download)
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    }
+
+    /// Requests a specific file from the server.
+    ///
+    /// The file will be downloaded to the local files base folder.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - Name of the file to request
+    pub fn request_file(&self, name: &str) {
+        self.inner.RequestFile(name.to_string());
+    }
+
+    // ========================================================================
     // Recording Methods
     // ========================================================================
 
@@ -684,7 +734,7 @@ impl Client {
     /// client.replay_file("test.log", 0.0, 0.0, 0, false);
     /// client.set_replayer_ignore_spectator(true); // Skip spectator replay
     /// ```
-    #[cfg(any(carla_version_0915, carla_version_0916))]
+    #[cfg(carla_0915)]
     pub fn set_replayer_ignore_spectator(&mut self, ignore_spectator: bool) {
         self.inner
             .pin_mut()
