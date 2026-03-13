@@ -143,11 +143,11 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `add_torque()`                                         | Have        | 0.9.14 |
 | `destroy()`                                            | Have        | 0.9.14 |
 | `get_bounding_box()`                                   | Have        | 0.9.14 |
-| `get_actor_state()`                                    | **Missing** | 0.9.14 |
+| `get_actor_state()`                                    | Have        | 0.9.14 |
 | `is_dormant()` / `is_active()`                         | Have        | 0.9.14 |
 | `set_collisions()`                                     | Have        | 0.9.15 |
-| `get_actor_name()`                                     | **Missing** | 0.10.0 |
-| `get_actor_class_name()`                               | **Missing** | 0.10.0 |
+| `get_actor_name()`                                     | Have        | 0.10.0 |
+| `get_actor_class_name()`                               | Have        | 0.10.0 |
 | `apply_texture()`                                      | **Missing** | 0.10.0 |
 
 ### `Vehicle`
@@ -434,7 +434,7 @@ These types are used in public method signatures of Client, World, Actor, etc.
 
 | Type                                               | Status      | Since  | Used by                                          |
 |----------------------------------------------------|-------------|--------|--------------------------------------------------|
-| `ActorState` enum (`Invalid`, `Active`, `Dormant`) | **Missing** | 0.9.14 | `Actor::GetActorState()`                         |
+| `ActorState` enum (`Invalid`, `Active`, `Dormant`) | Have        | 0.9.14 | `Actor::GetActorState()`                         |
 | `FloatColor` struct                                | **Missing** | 0.9.14 | `TextureFloatColor` / texture methods            |
 | `TextureColor` / `TextureFloatColor`               | **Missing** | 0.9.14 | `World::ApplyColorTextureToObject()` etc.        |
 | `MaterialParameter` enum                           | **Missing** | 0.9.14 | `World::ApplyColorTextureToObject()` parameter   |

@@ -1,3 +1,4 @@
+mod actor_state;
 mod color;
 mod command;
 mod command_response;
@@ -24,6 +25,7 @@ pub use carla_sys::{
         FfiRpcLightState as LightState,
     },
 };
+pub use actor_state::*;
 pub use color::*;
 pub use command::*;
 pub use command_response::*;

@@ -1,7 +1,7 @@
 use super::{Actor, ActorAttributeValueList, World};
 use crate::{
     geom::{BoundingBox, Location, Transform, Vector3D},
-    rpc::ActorId,
+    rpc::{ActorId, ActorState},
 };
 use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::{client::FfiActor, geom::FfiVector3D};
@@ -679,6 +679,34 @@ pub trait ActorBase: Clone {
     )]
     fn is_active(&self) -> bool {
         self.cxx_actor().IsActive()
+    }
+
+    /// Returns the current lifecycle state of this actor.
+    ///
+    /// See [`ActorState`] for possible values:
+    /// - `Invalid` — Actor is not valid
+    /// - `Active` — Actor is active in the simulation
+    /// - `Dormant` — Actor is dormant (hybrid mode)
+    /// - `PendingKill` — Actor is pending destruction
+    fn actor_state(&self) -> ActorState {
+        let raw = self.cxx_actor().GetActorState();
+        ActorState::from_u8(raw).unwrap_or(ActorState::Invalid)
+    }
+
+    /// Returns the actor's name in the Unreal Engine world.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    fn actor_name(&self) -> String {
+        self.cxx_actor().GetActorName().to_string()
+    }
+
+    /// Returns the actor's class name in the Unreal Engine world.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    fn actor_class_name(&self) -> String {
+        self.cxx_actor().GetActorClassName().to_string()
     }
 
     /// Returns the actor's bounding box in world coordinates.

@@ -168,7 +168,11 @@ include_cpp! {
     generate_pod!("carla::rpc::WheelPhysicsControl")
     generate_pod!("carla::rpc::WeatherParameters")
     generate_pod!("carla::rpc::CityObjectLabel")
-    generate_pod!("carla::rpc::ActorState")
+    // Note: carla::rpc::ActorState cannot be generated because autocxx
+    // conflicts with carla::client::detail::ActorState (same name, different namespace).
+    // A native Rust ActorState enum is defined in carla/src/rpc/actor_state.rs instead.
+    block!("carla::rpc::ActorState")
+    block!("carla::client::detail::ActorState")
     generate_pod!("carla::rpc::LightId")
     generate_pod!("carla::rpc::VehicleFailureState")
     // NOTE: WheelTelemetryData is 0.9.16-only, but we provide a stub type for older versions

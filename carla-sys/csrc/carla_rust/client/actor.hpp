@@ -10,6 +10,7 @@
 #include "carla/client/TrafficLight.h"
 #include "carla/client/ActorAttribute.h"
 #include "carla/geom/BoundingBox.h"
+#include "carla/rpc/ActorState.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc/actor_id.hpp"
 #include "carla_rust/client/actor_attribute.hpp"
@@ -195,6 +196,20 @@ public:
     bool IsActive() const {
         return inner_->IsActive();
     }
+
+    uint8_t GetActorState() const {
+        return static_cast<uint8_t>(inner_->GetActorState());
+    }
+
+#ifdef CARLA_VERSION_0100
+    std::string GetActorName() const {
+        return inner_->GetActorName();
+    }
+
+    std::string GetActorClassName() const {
+        return inner_->GetActorClassName();
+    }
+#endif
 
     bool Destroy() const {
         return inner_->Destroy();
