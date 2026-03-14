@@ -4,7 +4,38 @@
 //! boundary into structured Rust error types.
 
 use super::*;
+use carla_sys::carla_rust::client::FfiError;
 use std::time::Duration;
+
+/// Check an `FfiError` and convert it to a `Result`.
+///
+/// Returns `Ok(())` if the error container has no error, otherwise converts
+/// the C++ error kind and message into a [`CarlaError`] via [`parse_ffi_error`].
+///
+/// # Arguments
+///
+/// * `error` - The FFI error container to check
+/// * `operation` - Name of the operation, used for error context
+///
+/// # Examples
+///
+/// ```ignore
+/// let mut error = FfiError::new().within_unique_ptr();
+/// // ... call C++ function that populates error ...
+/// check_ffi_error(error.as_ref().unwrap(), "load_world")?;
+/// ```
+pub fn check_ffi_error(error: &FfiError, operation: &str) -> Result<()> {
+    if error.has_error() {
+        let msg = error.message();
+        Err(parse_ffi_error(
+            error.kind(),
+            msg.to_str().unwrap_or("unknown"),
+            Some(operation),
+        ))
+    } else {
+        Ok(())
+    }
+}
 
 /// Error kind codes matching C++ ErrorKind enum.
 ///

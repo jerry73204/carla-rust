@@ -101,10 +101,11 @@ fn check_ffi_error(error: &FfiError, operation: &str) -> Result<()>;
 
 ## 5.3 Template Infrastructure
 
-- [ ] Add `ffi_call<F, R>` template to `error.hpp`
-- [ ] Add `ffi_call_void<F>` template to `error.hpp`
-- [ ] Add `check_ffi_error()` helper to `carla/src/error/ffi.rs`
-- [ ] Verify templates compile with all supported CARLA versions
+- [x] Add `ffi_call<R, F>` template to `client/result.hpp`
+- [x] Add `ffi_call_void<F>` template to `client/result.hpp`
+- [x] Add `check_ffi_error()` helper to `carla/src/error/ffi.rs`
+- [x] Verify templates compile with all supported CARLA versions
+- [x] Refactor `ffi_try_connect` / `ffi_try_get_world` to use templates
 
 ## 5.4 World + Client
 

@@ -32,38 +32,78 @@ private:
     std::string message_;
 };
 
-/// Try to connect to CARLA. Returns nullptr on failure, populates error.
-inline std::unique_ptr<FfiClient> ffi_try_connect(const std::string& host, uint16_t port,
-                                                  size_t worker_threads, FfiError& error) {
+// ============================================================================
+// Exception-safe FFI call templates
+// ============================================================================
+
+/// Invoke a callable, catching any C++ exception and storing it in `error`.
+///
+/// On success, returns the callable's result.
+/// On exception, populates `error` and returns `default_val`.
+/// R is deduced from `default_val`.
+///
+/// Usage:
+/// ```cpp
+/// auto result = ffi_call(error, std::unique_ptr<FfiWorld>(nullptr), [&]() {
+///     return std::make_unique<FfiWorld>(client.GetWorld());
+/// });
+/// ```
+template <typename R, typename F>
+R ffi_call(FfiError& error, R default_val, F fn) {
     error.clear();
     try {
-        return std::make_unique<FfiClient>(host, port, worker_threads);
+        return fn();
     } catch (const std::exception& e) {
         auto ek = carla_rust::error::classify_exception(e);
         error.set(static_cast<int32_t>(ek), e.what());
-        return nullptr;
+        return default_val;
     } catch (...) {
         error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Unknown),
                   "Unknown C++ exception");
-        return nullptr;
+        return default_val;
     }
+}
+
+/// Invoke a void callable, catching any C++ exception and storing it in `error`.
+///
+/// Usage:
+/// ```cpp
+/// ffi_call_void(error, [&]() {
+///     world.SetWeather(weather);
+/// });
+/// ```
+template <typename F>
+void ffi_call_void(FfiError& error, F fn) {
+    error.clear();
+    try {
+        fn();
+    } catch (const std::exception& e) {
+        auto ek = carla_rust::error::classify_exception(e);
+        error.set(static_cast<int32_t>(ek), e.what());
+    } catch (...) {
+        error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Unknown),
+                  "Unknown C++ exception");
+    }
+}
+
+// ============================================================================
+// Legacy per-function wrappers (to be replaced by ffi_call/ffi_call_void)
+// ============================================================================
+
+/// Try to connect to CARLA. Returns nullptr on failure, populates error.
+inline std::unique_ptr<FfiClient> ffi_try_connect(const std::string& host, uint16_t port,
+                                                  size_t worker_threads, FfiError& error) {
+    return ffi_call(error, std::unique_ptr<FfiClient>(nullptr), [&]() {
+        return std::make_unique<FfiClient>(host, port, worker_threads);
+    });
 }
 
 /// Try to get world from client. Returns nullptr on failure, populates error.
 inline std::unique_ptr<FfiWorld> ffi_try_get_world(const FfiClient& client, FfiError& error) {
-    error.clear();
-    try {
+    return ffi_call(error, std::unique_ptr<FfiWorld>(nullptr), [&]() {
         auto world = client.GetWorld();
         return std::make_unique<FfiWorld>(std::move(world));
-    } catch (const std::exception& e) {
-        auto ek = carla_rust::error::classify_exception(e);
-        error.set(static_cast<int32_t>(ek), e.what());
-        return nullptr;
-    } catch (...) {
-        error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Unknown),
-                  "Unknown C++ exception");
-        return nullptr;
-    }
+    });
 }
 
 }  // namespace client
