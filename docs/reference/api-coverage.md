@@ -198,11 +198,11 @@ All methods implemented. 100% coverage.
 | `get_affected_lane_waypoints()`                             | Have        | 0.9.14 |
 | `get_opendrive_id()`                                        | Have        | 0.9.14 |
 | `sign_id()` / `trigger_volume()`                            | Have        | 0.9.14 |
-| `set_green_time()` / `set_yellow_time()` / `set_red_time()` | **Missing** | 0.9.14 |
-| `get_pole_index()`                                          | **Missing** | 0.9.14 |
-| `reset_group()`                                             | **Missing** | 0.9.14 |
-| `get_light_boxes()`                                         | **Missing** | 0.9.14 |
-| `get_stop_waypoints()`                                      | **Missing** | 0.9.14 |
+| `set_green_time()` / `set_yellow_time()` / `set_red_time()` | Have        | 0.9.14 |
+| `get_pole_index()`                                          | Have        | 0.9.14 |
+| `reset_group()`                                             | Have        | 0.9.14 |
+| `get_light_boxes()`                                         | Have        | 0.9.14 |
+| `get_stop_waypoints()`                                      | Have        | 0.9.14 |
 
 ### `Sensor` / `ServerSideSensor`
 

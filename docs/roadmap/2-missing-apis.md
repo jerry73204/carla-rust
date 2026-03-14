@@ -127,27 +127,14 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Medium
 
-- [ ] `TrafficLight::set_green_time(seconds)`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::set_yellow_time(seconds)`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::set_red_time(seconds)`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::get_pole_index() -> i32`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::reset_group()`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::get_light_boxes() -> Vec<BoundingBox>`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
-- [ ] `TrafficLight::get_stop_waypoints() -> Vec<Waypoint>`
-  - [ ] Verify C++ wrapper exists
-  - [ ] Add Rust wrapper
+- [x] `TrafficLight::set_green_time(seconds)` — already implemented
+- [x] `TrafficLight::set_yellow_time(seconds)` — already implemented
+- [x] `TrafficLight::set_red_time(seconds)` — already implemented
+- [x] `TrafficLight::get_pole_index() -> i32` — already implemented as `pole_index() -> u32`
+- [x] `TrafficLight::reset_group()` — already implemented
+- [x] `TrafficLight::get_light_boxes() -> Vec<BoundingBox>` — already implemented as `light_boxes()`
+- [x] `TrafficLight::get_stop_waypoints() -> Vec<Waypoint>` — already implemented as `stop_waypoints()`
+  - [x] Fixed bug: C++ wrapper was calling `GetAffectedLaneWaypoints()` instead of `GetStopWaypoints()`
 
 ---
 

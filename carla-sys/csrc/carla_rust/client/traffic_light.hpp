@@ -86,7 +86,7 @@ public:
     }
 
     FfiWaypointList GetStopWaypoints() const {
-        auto orig = inner_->GetAffectedLaneWaypoints();
+        auto orig = inner_->GetStopWaypoints();
         return FfiWaypointList(std::move(orig));
     }
 
