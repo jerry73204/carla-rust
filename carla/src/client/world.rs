@@ -1129,6 +1129,14 @@ impl World {
         self.inner.pin_mut().SetWeather(weather)
     }
 
+    /// Returns whether weather simulation is enabled.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    pub fn is_weather_enabled(&self) -> bool {
+        self.inner.IsWeatherEnabled()
+    }
+
     /// Returns environment objects matching the queried tag.
     #[cfg_attr(
         carla_version_0916,

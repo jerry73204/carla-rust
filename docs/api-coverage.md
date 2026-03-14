@@ -67,30 +67,30 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `get_traffic_lights_from_waypoint()`      | Have        | 0.9.14 |
 | `debug` (DebugHelper)                     | Have        | 0.9.14 |
 | `get_light_manager()`                     | Have        | 0.9.14 |
-| `load_map_layer()` / `unload_map_layer()` | **Missing** | 0.9.14 |
-| `get_vehicles_light_states()`             | **Missing** | 0.9.14 |
-| `get_random_location_from_navigation()`   | **Missing** | 0.9.14 |
+| `load_map_layer()` / `unload_map_layer()` | Have        | 0.9.14 |
+| `get_vehicles_light_states()`             | Have        | 0.9.14 |
+| `get_random_location_from_navigation()`   | Have        | 0.9.14 |
 | `on_tick()` / `remove_on_tick()`          | **Missing** | 0.9.14 |
-| `set_pedestrians_cross_factor()`          | **Missing** | 0.9.14 |
-| `set_pedestrians_seed()`                  | **Missing** | 0.9.14 |
-| `get_traffic_sign(landmark)`              | **Missing** | 0.9.14 |
-| `get_traffic_light(landmark)`             | **Missing** | 0.9.14 |
-| `get_traffic_light_from_opendrive_id()`   | **Missing** | 0.9.14 |
-| `get_traffic_lights_in_junction()`        | **Missing** | 0.9.14 |
-| `reset_all_traffic_lights()`              | **Missing** | 0.9.14 |
-| `freeze_all_traffic_lights()`             | **Missing** | 0.9.14 |
-| `get_level_bbs()`                         | **Missing** | 0.9.14 |
-| `get_environment_objects()`               | **Missing** | 0.9.14 |
-| `enable_environment_objects()`            | **Missing** | 0.9.14 |
-| `cast_ray()`                              | **Missing** | 0.9.14 |
-| `project_point()`                         | **Missing** | 0.9.14 |
-| `ground_projection()`                     | **Missing** | 0.9.14 |
-| `get_names_of_all_objects()`              | **Missing** | 0.9.14 |
+| `set_pedestrians_cross_factor()`          | Have        | 0.9.14 |
+| `set_pedestrians_seed()`                  | Have        | 0.9.14 |
+| `get_traffic_sign(landmark)`              | Have        | 0.9.14 |
+| `get_traffic_light(landmark)`             | Have        | 0.9.14 |
+| `get_traffic_light_from_opendrive_id()`   | Have        | 0.9.14 |
+| `get_traffic_lights_in_junction()`        | Have        | 0.9.14 |
+| `reset_all_traffic_lights()`              | Have        | 0.9.14 |
+| `freeze_all_traffic_lights()`             | Have        | 0.9.14 |
+| `get_level_bbs()`                         | Have        | 0.9.14 |
+| `get_environment_objects()`               | Have        | 0.9.14 |
+| `enable_environment_objects()`            | Have        | 0.9.14 |
+| `cast_ray()`                              | Have        | 0.9.14 |
+| `project_point()`                         | Have        | 0.9.14 |
+| `ground_projection()`                     | Have        | 0.9.14 |
+| `get_names_of_all_objects()`              | Have        | 0.9.14 |
 | `apply_color_texture_to_object()`         | **Missing** | 0.9.14 |
 | `apply_float_color_texture_to_object()`   | **Missing** | 0.9.14 |
 | `apply_textures_to_object()`              | **Missing** | 0.9.14 |
-| `get_actor(id)` (single actor lookup)     | **Missing** | 0.9.14 |
-| `is_weather_enabled()`                    | **Missing** | 0.10.0 |
+| `get_actor(id)` (single actor lookup)     | Have        | 0.9.14 |
+| `is_weather_enabled()`                    | Have        | 0.10.0 |
 
 ### `EpisodeSettings`
 

@@ -303,6 +303,12 @@ public:
         inner_.SetWeather(weather);
     }
 
+#ifdef CARLA_VERSION_0100
+    bool IsWeatherEnabled() const {
+        return inner_.IsWeatherEnabled();
+    }
+#endif
+
 #ifdef CARLA_VERSION_0916
     float GetIMUISensorGravity() const {
         return inner_.GetIMUISensorGravity();

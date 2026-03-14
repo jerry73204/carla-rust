@@ -48,107 +48,63 @@ See [api-coverage.md](../api-coverage.md) for the full gap analysis.
 
 **Priority:** High
 
+Most World methods were already implemented. Items below reflect current status.
+
 ### Map layer management
 
-- [ ] `World::load_map_layer(map_layers)`
-  - [ ] Add Rust wrapper (C++ wrapper already exists: `LoadLevelLayer`)
-- [ ] `World::unload_map_layer(map_layers)`
-  - [ ] Add Rust wrapper (C++ wrapper already exists: `UnloadLevelLayer`)
+- [x] `World::load_map_layer(map_layers)` — `load_level_layer()`
+- [x] `World::unload_map_layer(map_layers)` — `unload_level_layer()`
 
 ### Traffic light management
 
-- [ ] `World::get_traffic_sign(landmark) -> TrafficSign`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::get_traffic_light(landmark) -> TrafficLight`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::get_traffic_light_from_opendrive_id(id) -> TrafficLight`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::get_traffic_lights_in_junction(junction_id) -> Vec<TrafficLight>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::reset_all_traffic_lights()`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::freeze_all_traffic_lights(frozen)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `World::get_traffic_sign(landmark)` — `traffic_sign_at()`
+- [x] `World::get_traffic_light(landmark)` — `traffic_light_at()`
+- [x] `World::get_traffic_light_from_opendrive_id(id)` — `traffic_light_from_open_drive()`
+- [x] `World::get_traffic_lights_in_junction(junction_id)` — `traffic_lights_in_junction()`
+- [x] `World::reset_all_traffic_lights()` — `reset_all_traffic_lights()`
+- [x] `World::freeze_all_traffic_lights(frozen)` — `freeze_all_traffic_lights()`
 
 ### Environment queries
 
-- [ ] `World::get_vehicles_light_states() -> VehicleLightStateList`
-  - [ ] Add Rust wrapper (C++ wrapper already exists)
-- [ ] `World::get_random_location_from_navigation() -> Option<Location>`
-  - [ ] Add Rust wrapper (C++ wrapper already exists)
-- [ ] `World::get_level_bbs(actor_type) -> Vec<BoundingBox>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-  - [ ] Depends on `CityObjectLabel` enum (Phase 10)
-- [ ] `World::get_environment_objects(object_type) -> Vec<EnvironmentObject>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::enable_environment_objects(object_ids, enable)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::get_names_of_all_objects() -> Vec<String>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::get_actor(id) -> Option<Actor>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `World::get_vehicles_light_states()` — `vehicle_light_states()`
+- [x] `World::get_random_location_from_navigation()` — `random_location_from_navigation()`
+- [x] `World::get_level_bbs(actor_type)` — `level_bounding_boxes()`
+- [x] `World::get_environment_objects(object_type)` — `environment_objects()`
+- [x] `World::enable_environment_objects(object_ids, enable)` — `enable_environment_objects()`
+- [x] `World::get_names_of_all_objects()` — `names_of_all_objects()`
+- [x] `World::get_actor(id)` — `actor()`
 
 ### Ray casting
 
-- [ ] `World::cast_ray(start, end) -> Vec<LabelledPoint>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-  - [ ] Depends on `LabelledPoint` type (Phase 10)
-- [ ] `World::project_point(location, direction) -> LabelledPoint`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::ground_projection(location, search_distance) -> LabelledPoint`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-
-### Texture operations
-
-- [ ] `World::apply_color_texture_to_object(object, material, texture)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-  - [ ] Depends on `TextureColor`, `MaterialParameter` types (Phase 10)
-- [ ] `World::apply_float_color_texture_to_object(object, material, texture)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::apply_textures_to_object(object, color_tex, float_tex)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `World::cast_ray(start, end)` — `cast_ray()`
+- [x] `World::project_point(location, direction)` — `project_point()`
+- [x] `World::ground_projection(location, search_distance)` — `ground_projection()`
 
 ### Pedestrian control
 
-- [ ] `World::set_pedestrians_cross_factor(percentage)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::set_pedestrians_seed(seed)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-
-### Event callbacks
-
-- [ ] `World::on_tick(callback) -> usize`
-  - [ ] Design C++ → Rust closure FFI bridge
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `World::remove_on_tick(callback_id)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `World::set_pedestrians_cross_factor(percentage)` — `set_pedestrians_cross_factor()`
+- [x] `World::set_pedestrians_seed(seed)` — `set_pedestrians_seed()`
 
 ### Version-gated
 
-- [ ] `World::is_weather_enabled() -> bool` — 0.10.0 only
-  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
-  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+- [x] `World::is_weather_enabled() -> bool` — 0.10.0 only
+  - [x] Add C++ wrapper gated with `CARLA_VERSION_0100`
+  - [x] Add Rust wrapper gated with `#[cfg(carla_0100)]`
+
+### Remaining (deferred)
+
+### Texture operations — depends on Phase 10 types
+
+- [ ] `World::apply_color_texture_to_object(object, material, texture)`
+  - [ ] Depends on `TextureColor`, `MaterialParameter` types (Phase 10)
+- [ ] `World::apply_float_color_texture_to_object(object, material, texture)`
+- [ ] `World::apply_textures_to_object(object, color_tex, float_tex)`
+
+### Event callbacks — requires FFI design
+
+- [ ] `World::on_tick(callback) -> usize`
+  - [ ] Design C++ → Rust closure FFI bridge
+- [ ] `World::remove_on_tick(callback_id)`
 
 ---
 
