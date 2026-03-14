@@ -9,10 +9,10 @@ use super::{
 use crate::{
     agents::tools::get_speed,
     client::{ActorBase, Map, Vehicle, Waypoint},
+    error::Result,
     geom::Location,
     rpc::VehicleControl,
 };
-use anyhow::Result;
 
 /// Configuration options for ConstantVelocityAgent.
 #[derive(Debug, Clone)]
@@ -56,7 +56,7 @@ impl Default for ConstantVelocityAgentConfig {
 ///     geom::Location,
 /// };
 ///
-/// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
+/// # fn example(vehicle: Vehicle) -> carla::Result<()> {
 /// let config = ConstantVelocityAgentConfig {
 ///     target_speed: 10.0, // 10 m/s
 ///     ..Default::default()

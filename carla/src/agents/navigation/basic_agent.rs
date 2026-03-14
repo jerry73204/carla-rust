@@ -9,10 +9,10 @@ use super::{
 use crate::{
     agents::tools::get_speed,
     client::{ActorBase, Map, Vehicle, Waypoint},
+    error::{MapError, OperationError, Result},
     geom::Location,
     rpc::VehicleControl,
 };
-use anyhow::Result;
 
 /// Configuration options for BasicAgent.
 #[derive(Debug, Clone)]
@@ -48,7 +48,7 @@ impl Default for BasicAgentConfig {
 ///     geom::Location,
 /// };
 ///
-/// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
+/// # fn example(vehicle: Vehicle) -> carla::Result<()> {
 /// let config = BasicAgentConfig::default();
 /// let mut agent = BasicAgent::new(vehicle, config, None, None)?;
 ///
@@ -313,7 +313,10 @@ impl BasicAgent {
             self.core
                 .map
                 .waypoint_at(&vehicle_location)
-                .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint from vehicle location"))?
+                .ok_or_else(|| MapError::InvalidWaypoint {
+                    location: format!("{:?}", vehicle_location),
+                    reason: "Failed to get waypoint from vehicle location".to_string(),
+                })?
         };
 
         // Generate lane change path
@@ -329,7 +332,11 @@ impl BasicAgent {
         );
 
         if path.is_empty() {
-            return Err(anyhow::anyhow!("Lane change not possible"));
+            return Err(OperationError::InvalidTransform {
+                transform: format!("{:?}", current_waypoint.transform()),
+                reason: "Lane change not possible".to_string(),
+            }
+            .into());
         }
 
         // Apply the lane change path

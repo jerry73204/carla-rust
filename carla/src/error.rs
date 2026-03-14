@@ -618,6 +618,31 @@ impl CarlaError {
         matches!(self, CarlaError::Resource(ResourceError::NotFound { .. }))
     }
 
+    /// Returns `true` if this is a validation error.
+    pub fn is_validation_error(&self) -> bool {
+        matches!(self, CarlaError::Validation(_))
+    }
+
+    /// Returns `true` if this is an operation error.
+    pub fn is_operation_error(&self) -> bool {
+        matches!(self, CarlaError::Operation(_))
+    }
+
+    /// Returns `true` if this is a map-related error.
+    pub fn is_map_error(&self) -> bool {
+        matches!(self, CarlaError::Map(_))
+    }
+
+    /// Returns `true` if this is a sensor-related error.
+    pub fn is_sensor_error(&self) -> bool {
+        matches!(self, CarlaError::Sensor(_))
+    }
+
+    /// Returns `true` if this is an internal error.
+    pub fn is_internal_error(&self) -> bool {
+        matches!(self, CarlaError::Internal(_))
+    }
+
     /// Returns `true` if this error should be retried.
     ///
     /// This includes:
@@ -646,6 +671,68 @@ impl CarlaError {
                 | CarlaError::Connection(ConnectionError::Disconnected { .. })
                 | CarlaError::Operation(OperationError::SpawnFailed { .. })
         )
+    }
+}
+
+/// Extension trait for adding context to `Result` and `Option` types.
+///
+/// Provides `.context()` and `.with_context()` methods similar to `anyhow::Context`,
+/// but producing [`CarlaError`] values.
+///
+/// # Examples
+///
+/// ```
+/// use carla::error::{CarlaError, ResultExt};
+///
+/// let opt: Option<i32> = None;
+/// let err = opt.context("value was missing").unwrap_err();
+/// assert!(err.is_internal_error());
+/// ```
+pub trait ResultExt<T> {
+    /// Add context to an error, wrapping it as an [`InternalError::UnexpectedState`].
+    fn context(self, msg: &str) -> Result<T>;
+
+    /// Add lazily-evaluated context to an error.
+    fn with_context<F: FnOnce() -> String>(self, f: F) -> Result<T>;
+}
+
+impl<T> ResultExt<T> for Option<T> {
+    fn context(self, msg: &str) -> Result<T> {
+        self.ok_or_else(|| {
+            InternalError::UnexpectedState {
+                description: msg.to_string(),
+            }
+            .into()
+        })
+    }
+
+    fn with_context<F: FnOnce() -> String>(self, f: F) -> Result<T> {
+        self.ok_or_else(|| InternalError::UnexpectedState { description: f() }.into())
+    }
+}
+
+impl<T, E> ResultExt<T> for std::result::Result<T, E>
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    fn context(self, msg: &str) -> Result<T> {
+        self.map_err(|e| {
+            InternalError::FfiError {
+                message: format!("{}: {}", msg, e),
+                source: Some(Box::new(e)),
+            }
+            .into()
+        })
+    }
+
+    fn with_context<F: FnOnce() -> String>(self, f: F) -> Result<T> {
+        self.map_err(|e| {
+            InternalError::FfiError {
+                message: format!("{}: {}", f(), e),
+                source: Some(Box::new(e)),
+            }
+            .into()
+        })
     }
 }
 
@@ -748,5 +835,93 @@ mod tests {
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "file not found");
         let error: CarlaError = io_error.into();
         assert!(matches!(error, CarlaError::Io(_)));
+    }
+
+    #[test]
+    fn test_is_validation_error() {
+        let error: CarlaError = ValidationError::InvalidConfiguration {
+            setting: "test".to_string(),
+            reason: "bad".to_string(),
+        }
+        .into();
+        assert!(error.is_validation_error());
+        assert!(!error.is_operation_error());
+    }
+
+    #[test]
+    fn test_is_operation_error() {
+        let error: CarlaError = OperationError::SimulationError {
+            message: "test".to_string(),
+            source: None,
+        }
+        .into();
+        assert!(error.is_operation_error());
+        assert!(!error.is_validation_error());
+    }
+
+    #[test]
+    fn test_is_map_error() {
+        let error: CarlaError = MapError::TopologyError {
+            message: "test".to_string(),
+        }
+        .into();
+        assert!(error.is_map_error());
+    }
+
+    #[test]
+    fn test_is_sensor_error() {
+        let error: CarlaError = SensorError::DataUnavailable {
+            sensor_id: 1,
+            reason: "test".to_string(),
+        }
+        .into();
+        assert!(error.is_sensor_error());
+    }
+
+    #[test]
+    fn test_is_internal_error() {
+        let error: CarlaError = InternalError::UnexpectedState {
+            description: "test".to_string(),
+        }
+        .into();
+        assert!(error.is_internal_error());
+    }
+
+    #[test]
+    fn test_result_ext_option_context() {
+        let opt: Option<i32> = None;
+        let err = opt.context("missing value").unwrap_err();
+        assert!(err.is_internal_error());
+        assert!(format!("{}", err).contains("missing value"));
+    }
+
+    #[test]
+    fn test_result_ext_option_some() {
+        let opt: Option<i32> = Some(42);
+        assert_eq!(opt.context("should not fail").unwrap(), 42);
+    }
+
+    #[test]
+    fn test_result_ext_option_with_context() {
+        let opt: Option<i32> = None;
+        let err = opt
+            .with_context(|| format!("value {} missing", 42))
+            .unwrap_err();
+        assert!(err.is_internal_error());
+        assert!(format!("{}", err).contains("value 42 missing"));
+    }
+
+    #[test]
+    fn test_result_ext_result_context() {
+        let res: std::result::Result<i32, std::io::Error> = Err(std::io::Error::other("io fail"));
+        let err = res.context("operation failed").unwrap_err();
+        assert!(err.is_internal_error());
+        assert!(format!("{}", err).contains("operation failed"));
+    }
+
+    #[test]
+    fn test_result_ext_result_ok() {
+        let res: std::result::Result<i32, std::io::Error> = Ok(42);
+        assert_eq!(res.context("should not fail").unwrap(), 42);
     }
 }

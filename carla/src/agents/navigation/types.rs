@@ -1,7 +1,6 @@
 //! Type definitions for navigation agents.
 
-use crate::{client::Waypoint, geom::Location, rpc::VehicleControl};
-use anyhow::Result;
+use crate::{client::Waypoint, error::Result, geom::Location, rpc::VehicleControl};
 use std::{fmt, str::FromStr};
 
 /// Road maneuver options for route planning.
@@ -76,7 +75,7 @@ impl fmt::Display for RoadOption {
 impl FromStr for RoadOption {
     type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_uppercase().as_str() {
             "VOID" => Ok(RoadOption::Void),
             "LEFT" => Ok(RoadOption::Left),
@@ -104,14 +103,14 @@ impl FromStr for RoadOption {
 ///     geom::Location,
 /// };
 ///
-/// fn run_agent_loop(agent: &mut dyn Agent) -> anyhow::Result<()> {
+/// fn run_agent_loop(agent: &mut dyn Agent) -> carla::Result<()> {
 ///     while !agent.done() {
 ///         let control = agent.run_step()?;
 ///         // Apply control to vehicle...
 ///     }
 ///     Ok(())
 /// }
-/// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
+/// # fn example(vehicle: Vehicle) -> carla::Result<()> {
 /// let config = BasicAgentConfig::default();
 /// let mut agent = BasicAgent::new(vehicle, config, None, None)?;
 /// let destination = Location::new(100.0, 50.0, 0.3);

@@ -10,8 +10,8 @@
 //! Run with: `cargo run --example error_handling_patterns --profile dev-release`
 
 use carla::{
+    CarlaError,
     client::{ActorBase, Client},
-    error::CarlaError,
     geom::{Location, Rotation, Transform},
 };
 use std::time::Duration;
@@ -196,24 +196,16 @@ fn demo_error_classification() {
         println!("  (In real code, use error.is_*() methods)");
     }
 
-    println!("\nError helper methods available:");
+    println!("\nCarlaError helper methods:");
     println!("  - is_connection_error() - Network/server issues");
     println!("  - is_timeout() - Operation timeout");
     println!("  - is_not_found() - Resource doesn't exist");
     println!("  - is_validation_error() - Invalid input");
     println!("  - is_operation_error() - Operation failed");
+    println!("  - is_map_error() - Map/waypoint issues");
+    println!("  - is_sensor_error() - Sensor issues");
+    println!("  - is_internal_error() - Internal/FFI errors");
     println!("  - is_retriable() - Can be retried");
 
     println!();
-}
-
-/// Extension trait to add validation error check
-trait ErrorExt {
-    fn is_validation_error(&self) -> bool;
-}
-
-impl ErrorExt for CarlaError {
-    fn is_validation_error(&self) -> bool {
-        matches!(self, CarlaError::Validation(_))
-    }
 }

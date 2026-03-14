@@ -40,10 +40,10 @@ Uses `thiserror` for derive macros. Full type definitions are in `carla/src/erro
 - [x] Add `thiserror` dependency
 - [x] Create `FfiErrorKind` enum matching C++ `ErrorKind`
 - [x] Implement `parse_ffi_error()` converter
-- [ ] Add `CarlaError::is_*()` helper methods (is_timeout, is_not_found, is_retriable)
-- [ ] Add `ResultExt` context extension trait
-- [ ] Migrate high-priority APIs from `anyhow::Result` to `carla::Result`
-- [ ] Update examples to demonstrate error handling patterns
+- [x] Add `CarlaError::is_*()` helper methods (is_timeout, is_not_found, is_retriable, is_validation_error, is_operation_error, is_map_error, is_sensor_error, is_internal_error)
+- [x] Add `ResultExt` context extension trait
+- [x] Migrate high-priority APIs from `anyhow::Result` to `carla::Result`
+- [x] Update examples to demonstrate error handling patterns
 
 ## 5.2 FFI Exception Safety
 

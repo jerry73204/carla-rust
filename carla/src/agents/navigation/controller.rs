@@ -17,7 +17,7 @@ use crate::{agents::tools::get_speed, client::ActorBase, geom::Location, rpc::Ve
 ///     geom::Location,
 /// };
 ///
-/// # fn example(vehicle: &Vehicle) -> anyhow::Result<()> {
+/// # fn example(vehicle: &Vehicle) -> carla::Result<()> {
 /// let lateral_params = PIDParams {
 ///     k_p: 1.95,
 ///     k_i: 1.4,
@@ -126,7 +126,7 @@ impl VehiclePIDController {
         vehicle: &T,
         target_speed: f32,
         waypoint: &Location,
-    ) -> anyhow::Result<VehicleControl> {
+    ) -> crate::error::Result<VehicleControl> {
         // Get vehicle state
         let vehicle_transform = vehicle.transform();
         let current_speed = get_speed(vehicle);

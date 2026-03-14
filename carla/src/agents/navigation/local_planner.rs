@@ -4,9 +4,9 @@ use super::{controller::VehiclePIDController, pid::PIDParams, types::RoadOption}
 use crate::{
     agents::tools::get_speed,
     client::{ActorBase, Vehicle, Waypoint},
+    error::Result,
     rpc::VehicleControl,
 };
-use anyhow::Result;
 use std::collections::VecDeque;
 
 /// Configuration options for LocalPlanner.
@@ -77,7 +77,7 @@ impl Default for LocalPlannerConfig {
 ///     prelude::*,
 /// };
 ///
-/// # fn main() -> anyhow::Result<()> {
+/// # fn main() -> carla::Result<()> {
 /// let client = Client::default();
 /// let world = client.world();
 /// let map = world.map();

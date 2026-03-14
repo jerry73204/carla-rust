@@ -14,6 +14,7 @@ mod vehicle_physics_control;
 mod vehicle_telemetry_data;
 mod walker_bone_control;
 
+pub use actor_state::*;
 pub use carla_sys::{
     carla::rpc::{
         AckermannControllerSettings, AttachmentType, GearPhysicsControl,
@@ -25,7 +26,6 @@ pub use carla_sys::{
         FfiRpcLightState as LightState,
     },
 };
-pub use actor_state::*;
 pub use color::*;
 pub use command::*;
 pub use command_response::*;

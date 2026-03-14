@@ -7,9 +7,9 @@ use super::{
 };
 use crate::{
     client::{ActorBase, ActorList, Map, TrafficLight, Vehicle, Waypoint, World},
+    error::{MapError, Result},
     geom::{Location, Vector3D},
 };
-use anyhow::Result;
 
 /// Result of obstacle detection.
 #[derive(Debug, Clone)]
@@ -231,10 +231,13 @@ impl AgentCore {
 
         // Get vehicle waypoint
         let vehicle_location = self.vehicle.transform().location;
-        let vehicle_waypoint = self
-            .map
-            .waypoint_at(&vehicle_location)
-            .ok_or_else(|| anyhow::anyhow!("Failed to get waypoint for vehicle location"))?;
+        let vehicle_waypoint =
+            self.map
+                .waypoint_at(&vehicle_location)
+                .ok_or_else(|| MapError::InvalidWaypoint {
+                    location: format!("{:?}", vehicle_location),
+                    reason: "Failed to get waypoint for vehicle location".to_string(),
+                })?;
 
         if let Some(ref lights) = self.lights_list {
             for actor in lights.iter() {

@@ -644,7 +644,7 @@ mod utils;
 // Re-export error types at crate root for convenience
 pub use error::{
     CarlaError, ConnectionError, InternalError, MapError, OperationError, ResourceError,
-    ResourceType, Result, SensorError, ValidationError,
+    ResourceType, Result, ResultExt, SensorError, ValidationError,
 };
 
 /// Convenient re-exports of commonly used traits and extension methods.

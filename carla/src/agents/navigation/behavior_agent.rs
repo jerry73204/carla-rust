@@ -9,10 +9,10 @@ use super::{
 use crate::{
     agents::tools::get_speed,
     client::{Actor, ActorBase, Map, Vehicle, Waypoint},
+    error::Result,
     geom::Location,
     rpc::VehicleControl,
 };
-use anyhow::Result;
 
 /// Behavior parameters for different driving profiles.
 #[derive(Debug, Clone)]
@@ -221,7 +221,7 @@ impl Default for BehaviorAgentConfig {
 ///     geom::Location,
 /// };
 ///
-/// # fn example(vehicle: Vehicle) -> anyhow::Result<()> {
+/// # fn example(vehicle: Vehicle) -> carla::Result<()> {
 /// let config = BehaviorAgentConfig {
 ///     behavior: BehaviorType::cautious(),
 ///     ..Default::default()

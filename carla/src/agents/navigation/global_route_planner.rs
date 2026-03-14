@@ -3,9 +3,9 @@
 use super::types::RoadOption;
 use crate::{
     client::{Map, Waypoint},
+    error::{MapError, Result},
     geom::Location,
 };
-use anyhow::Result;
 use petgraph::{
     Directed,
     graph::{Graph, NodeIndex},
@@ -218,12 +218,18 @@ impl GlobalRoutePlanner {
         let start_wp = self
             .map
             .waypoint_at(&origin)
-            .ok_or_else(|| anyhow::anyhow!("Could not find waypoint at origin"))?;
+            .ok_or_else(|| MapError::InvalidWaypoint {
+                location: format!("{:?}", origin),
+                reason: "Could not find waypoint at origin".to_string(),
+            })?;
 
-        let end_wp = self
-            .map
-            .waypoint_at(&destination)
-            .ok_or_else(|| anyhow::anyhow!("Could not find waypoint at destination"))?;
+        let end_wp =
+            self.map
+                .waypoint_at(&destination)
+                .ok_or_else(|| MapError::InvalidWaypoint {
+                    location: format!("{:?}", destination),
+                    reason: "Could not find waypoint at destination".to_string(),
+                })?;
 
         // Find closest nodes in graph to start and end waypoints
         let start_node = self.find_closest_node(&start_wp)?;
@@ -246,7 +252,9 @@ impl GlobalRoutePlanner {
             },
         );
 
-        let (_cost, node_path) = path.ok_or_else(|| anyhow::anyhow!("No path found"))?;
+        let (_cost, node_path) = path.ok_or(MapError::TopologyError {
+            message: "No path found between origin and destination".to_string(),
+        })?;
 
         // Convert node path to waypoint route with road options
         let mut route = Vec::new();
@@ -272,7 +280,10 @@ impl GlobalRoutePlanner {
         }
 
         if route.is_empty() {
-            return Err(anyhow::anyhow!("Failed to compute route"));
+            return Err(MapError::TopologyError {
+                message: "Failed to compute route".to_string(),
+            }
+            .into());
         }
 
         Ok(route)
@@ -304,7 +315,12 @@ impl GlobalRoutePlanner {
             }
         }
 
-        closest_node.ok_or_else(|| anyhow::anyhow!("No nodes in graph"))
+        closest_node.ok_or_else(|| {
+            MapError::TopologyError {
+                message: "No nodes in graph".to_string(),
+            }
+            .into()
+        })
     }
 }
 
