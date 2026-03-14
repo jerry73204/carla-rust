@@ -166,67 +166,41 @@ Most World methods were already implemented. Items below reflect current status.
 
 ### Map
 
-- [ ] `Map::get_waypoint_xodr(road_id, lane_id, s) -> Option<Waypoint>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::get_geo_reference() -> GeoLocation`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::transform_to_geolocation(location) -> GeoLocation`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::get_crosswalks() -> Vec<Location>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::get_all_landmarks_from_id(id) -> Vec<Landmark>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::get_landmark_group(landmark) -> Vec<Landmark>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Map::cook_in_memory_map(path)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `Map::get_waypoint_xodr(road_id, lane_id, s) -> Option<Waypoint>` — already implemented as `waypoint_xodr()`
+- [x] `Map::get_geo_reference() -> GeoLocation`
+  - [x] Add C++ wrapper — `GetGeoReference()`
+  - [x] Add Rust wrapper — `geo_reference()`
+- [x] ~~`Map::transform_to_geolocation(location) -> GeoLocation`~~ — does not exist in upstream C++ API (Python-only)
+- [x] `Map::get_crosswalks() -> Vec<Location>`
+  - [x] Add C++ wrapper — `GetAllCrosswalkZones()` (upstream name)
+  - [x] Add Rust wrapper — `crosswalk_zones()`
+- [x] `Map::get_all_landmarks_from_id(id) -> Vec<Landmark>` — already implemented as `landmarks_from_id()`
+- [x] `Map::get_landmark_group(landmark) -> Vec<Landmark>` — already implemented as `landmark_group()`
+- [x] `Map::cook_in_memory_map(path)`
+  - [x] Add C++ wrapper — `CookInMemoryMap()`
+  - [x] Add Rust wrapper — `cook_in_memory_map()`
 
 ### Waypoint
 
-- [ ] `Waypoint::next_until_lane_end(distance) -> Vec<Waypoint>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Waypoint::previous_until_lane_start(distance) -> Vec<Waypoint>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Waypoint::junction_id() -> i32`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `Waypoint::next_until_lane_end(distance) -> Vec<Waypoint>` — already implemented
+  - [x] Fixed bug: C++ wrapper was calling `GetPrevious()` instead of `GetNextUntilLaneEnd()`
+- [x] `Waypoint::previous_until_lane_start(distance) -> Vec<Waypoint>` — already implemented
+- [x] `Waypoint::junction_id() -> i32` — already implemented as `junction_id()`
+  - [x] Fixed bug: `GetSectionId()` C++ wrapper was calling `GetRoadId()` instead of `GetSectionId()`
 
 ### Landmark
 
-- [ ] `Landmark::country() -> String`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::sub_type() -> String`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::text() -> String`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::h_offset() -> f64`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::pitch() -> f64`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::roll() -> f64`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Landmark::orientation() -> SignalOrientation`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-  - [ ] Depends on `SignalOrientation` enum (Phase 10)
-- [ ] `Landmark::get_lane_validities() -> Vec<(i32, i32)>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `Landmark::country() -> String` — already implemented
+- [x] `Landmark::sub_type() -> String` — already implemented
+- [x] `Landmark::text() -> String` — already implemented
+- [x] `Landmark::h_offset() -> f64` — already implemented
+- [x] `Landmark::pitch() -> f64` — already implemented
+- [x] `Landmark::roll() -> f64` — already implemented
+- [x] `Landmark::orientation() -> SignalOrientation` — already implemented
+  - [x] `SignalOrientation` enum auto-generated via autocxx
+- [x] `Landmark::get_lane_validities() -> Vec<(i32, i32)>`
+  - [x] Add C++ wrapper — indexed access via `GetValiditiesCount/GetValidityFromLane/GetValidityToLane`
+  - [x] Add Rust wrapper — `lane_validities()`
 
 ---
 

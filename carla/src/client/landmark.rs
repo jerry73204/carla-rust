@@ -520,6 +520,21 @@ impl Landmark {
     pub fn roll(&self) -> f64 {
         self.inner.GetRoll()
     }
+
+    /// Returns the lane validity ranges for this landmark.
+    ///
+    /// Each pair `(from_lane, to_lane)` indicates which lanes this landmark
+    /// applies to.
+    pub fn lane_validities(&self) -> Vec<(i32, i32)> {
+        let count = self.inner.GetValiditiesCount();
+        let mut result = Vec::with_capacity(count);
+        for i in 0..count {
+            let from = self.inner.GetValidityFromLane(i);
+            let to = self.inner.GetValidityToLane(i);
+            result.push((from, to));
+        }
+        result
+    }
 }
 
 impl Landmark {

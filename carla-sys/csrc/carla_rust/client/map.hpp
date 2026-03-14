@@ -2,6 +2,8 @@
 
 #include "carla/Memory.h"
 #include "carla/client/Map.h"
+#include "carla/geom/GeoLocation.h"
+#include "carla_rust/geom.hpp"
 #include "carla_rust/client/landmark_list.hpp"
 #include "carla_rust/client/transform_list.hpp"
 #include "carla_rust/client/waypoint_list.hpp"
@@ -18,6 +20,8 @@ using carla_rust::client::FfiLandmarkList;
 using carla_rust::client::FfiTransformList;
 using carla_rust::client::FfiWaypointList;
 using carla_rust::client::FfiWaypointPair;
+using carla_rust::geom::FfiGeoLocation;
+using carla_rust::geom::FfiLocation;
 
 // Map
 class FfiMap {
@@ -73,9 +77,20 @@ public:
 
     // std::vector<road::element::LaneMarking> CalculateCrossedLanes(
     // const geom::Location &origin,
-    // const geom::GeoLocation &GetGeoReference() const;
 
-    // std::vector<geom::Location> GetAllCrosswalkZones() const;
+    FfiGeoLocation GetGeoReference() const { return FfiGeoLocation(inner_->GetGeoReference()); }
+
+    std::vector<FfiLocation> GetAllCrosswalkZones() const {
+        auto zones = inner_->GetAllCrosswalkZones();
+        std::vector<FfiLocation> result;
+        result.reserve(zones.size());
+        for (auto& loc : zones) {
+            result.push_back(FfiLocation(std::move(loc)));
+        }
+        return result;
+    }
+
+    void CookInMemoryMap(std::string path) const { inner_->CookInMemoryMap(path); }
 
     std::shared_ptr<FfiJunction> GetJunction(const FfiWaypoint& waypoint) const {
         const auto& wp = waypoint.inner();

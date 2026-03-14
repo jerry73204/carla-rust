@@ -235,12 +235,12 @@ All methods implemented. 100% coverage.
 | `landmarks_of_type()`                                | Have        | 0.9.14      |
 | `get_topology()`                                     | Have        | 0.9.14      |
 | `get_landmarks_from_waypoint()`                      | Have        | 0.9.14      |
-| `get_waypoint_xodr()`                                | **Missing** | 0.9.14      |
-| `get_geo_reference()` / `transform_to_geolocation()` | **Missing** | 0.9.14      |
-| `get_crosswalks()`                                   | **Missing** | 0.9.14      |
-| `get_all_landmarks_from_id()`                        | **Missing** | 0.9.14      |
-| `get_landmark_group()`                               | **Missing** | 0.9.14      |
-| `cook_in_memory_map()`                               | **Missing** | 0.9.14      |
+| `get_waypoint_xodr()`                                | Have        | 0.9.14      |
+| `get_geo_reference()`                                | Have        | 0.9.14      |
+| `get_crosswalks()`                                   | Have        | 0.9.14      |
+| `get_all_landmarks_from_id()`                        | Have        | 0.9.14      |
+| `get_landmark_group()`                               | Have        | 0.9.14      |
+| `cook_in_memory_map()`                               | Have        | 0.9.14      |
 | `save_to_disk()`                                     | **Missing** | Python-only |
 
 ### `Waypoint`
@@ -258,9 +258,9 @@ All methods implemented. 100% coverage.
 | `lane_change()`                                             | Have        | 0.9.14 |
 | `all_landmarks_in_distance()`                               | Have        | 0.9.14 |
 | `get_landmarks_of_type_in_distance()`                       | Have        | 0.9.14 |
-| `next_until_lane_end()`                                     | **Missing** | 0.9.14 |
-| `previous_until_lane_start()`                               | **Missing** | 0.9.14 |
-| `junction_id` (property)                                    | **Missing** | 0.9.14 |
+| `next_until_lane_end()`                                     | Have        | 0.9.14 |
+| `previous_until_lane_start()`                               | Have        | 0.9.14 |
+| `junction_id` (property)                                    | Have        | 0.9.14 |
 
 ### `Landmark`
 
@@ -272,13 +272,13 @@ All methods implemented. 100% coverage.
 | `height()` / `width()`               | Have        | 0.9.14 |
 | `s()` / `t()` / `z_offset()`         | Have        | 0.9.14 |
 | `is_dynamic()`                       | Have        | 0.9.14 |
-| `country()`                          | **Missing** | 0.9.14 |
-| `sub_type()`                         | **Missing** | 0.9.14 |
-| `text()`                             | **Missing** | 0.9.14 |
-| `h_offset()`                         | **Missing** | 0.9.14 |
-| `pitch()` / `roll()`                 | **Missing** | 0.9.14 |
-| `orientation()`                      | **Missing** | 0.9.14 |
-| `get_lane_validities()`              | **Missing** | 0.9.14 |
+| `country()`                          | Have        | 0.9.14 |
+| `sub_type()`                         | Have        | 0.9.14 |
+| `text()`                             | Have        | 0.9.14 |
+| `h_offset()`                         | Have        | 0.9.14 |
+| `pitch()` / `roll()`                 | Have        | 0.9.14 |
+| `orientation()`                      | Have        | 0.9.14 |
+| `get_lane_validities()`              | Have        | 0.9.14 |
 
 ### `Junction`
 

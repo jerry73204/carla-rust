@@ -2,7 +2,7 @@ use core::slice;
 
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
-    geom::{Location, Transform},
+    geom::{GeoLocation, Location, Transform},
     road::{LaneId, LaneType, RoadId},
 };
 use autocxx::WithinUniquePtr;
@@ -477,6 +477,27 @@ impl Map {
         }
 
         result
+    }
+
+    /// Returns the geo-reference of the map (latitude, longitude, altitude origin).
+    pub fn geo_reference(&self) -> GeoLocation {
+        GeoLocation::from_ffi(self.inner.GetGeoReference())
+    }
+
+    /// Returns all crosswalk zone locations in the map.
+    pub fn crosswalk_zones(&self) -> Vec<Location> {
+        self.inner
+            .GetAllCrosswalkZones()
+            .iter()
+            .map(|loc| Location::new(loc.x, loc.y, loc.z))
+            .collect()
+    }
+
+    /// Generates a chunked mesh for the map and saves it to disk.
+    ///
+    /// This pre-processes the map geometry for faster loading.
+    pub fn cook_in_memory_map(&self, path: &str) {
+        self.inner.CookInMemoryMap(path.to_string());
     }
 }
 

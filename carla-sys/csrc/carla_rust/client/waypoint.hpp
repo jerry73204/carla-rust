@@ -35,7 +35,7 @@ public:
 
     RoadId GetRoadId() const { return inner_->GetRoadId(); }
 
-    SectionId GetSectionId() const { return inner_->GetRoadId(); }
+    SectionId GetSectionId() const { return inner_->GetSectionId(); }
 
     LaneId GetLaneId() const { return inner_->GetLaneId(); }
 
@@ -74,7 +74,7 @@ public:
     }
 
     FfiWaypointList GetNextUntilLaneEnd(double distance) const {
-        auto orig = inner_->GetPrevious(distance);
+        auto orig = inner_->GetNextUntilLaneEnd(distance);
         return FfiWaypointList(std::move(orig));
     }
 

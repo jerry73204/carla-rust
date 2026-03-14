@@ -3,6 +3,7 @@
 #include <memory>
 #include "carla/Memory.h"
 #include "carla/client/Landmark.h"
+#include "carla/road/LaneValidity.h"
 #include "carla/road/RoadTypes.h"
 #include "carla/road/Signal.h"
 #include "carla_rust/geom.hpp"
@@ -76,8 +77,15 @@ public:
 
     double GetRoll() const { return inner_->GetRoll(); }
 
-    // const auto &GetValidities() const {
-    // }
+    size_t GetValiditiesCount() const { return inner_->GetValidities().size(); }
+
+    int32_t GetValidityFromLane(size_t index) const {
+        return inner_->GetValidities().at(index)._from_lane;
+    }
+
+    int32_t GetValidityToLane(size_t index) const {
+        return inner_->GetValidities().at(index)._to_lane;
+    }
 
     const SharedPtr<Landmark>& inner() const { return inner_; }
 
