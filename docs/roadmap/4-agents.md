@@ -646,16 +646,16 @@ carla/src/agents/
 **Current Status:** BasicAgent implementation complete and functional ✅
 
 **What's Implemented:**
-- ✅ **Phase A.1:** PID controllers, utility functions, RoadOption enum (COMPLETE)
-- ✅ **Phase A.2:** LocalPlanner with waypoint queue management and PID integration (COMPLETE)
-- ✅ **Phase A.3.1:** GlobalRoutePlanner simplified implementation (COMPLETE)
-- ✅ **Phase A.3.2:** Full A* GlobalRoutePlanner with graph-based pathfinding (COMPLETE)
-- ✅ **Phase A.4.1:** BasicAgent and AgentCore (COMPLETE)
-- ✅ **Phase A.4.2:** Lane change support (COMPLETE)
-- ✅ **Phase A.4.3:** Enhanced detection with trigger volumes and bounding boxes (COMPLETE)
-- ✅ **Phase A.4.4:** BehaviorAgent with behavior profiles (COMPLETE)
-- ✅ **Phase A.4.5:** ConstantVelocityAgent (COMPLETE)
-- ✅ **Phase A.4.6:** Agent trait for polymorphism (COMPLETE)
+- ✅ **Phase 4.1:** PID controllers, utility functions, RoadOption enum (COMPLETE)
+- ✅ **Phase 4.2:** LocalPlanner with waypoint queue management and PID integration (COMPLETE)
+- ✅ **Phase 4.3.1:** GlobalRoutePlanner simplified implementation (COMPLETE)
+- ✅ **Phase 4.3.2:** Full A* GlobalRoutePlanner with graph-based pathfinding (COMPLETE)
+- ✅ **Phase 4.4.1:** BasicAgent and AgentCore (COMPLETE)
+- ✅ **Phase 4.4.2:** Lane change support (COMPLETE)
+- ✅ **Phase 4.4.3:** Enhanced detection with trigger volumes and bounding boxes (COMPLETE)
+- ✅ **Phase 4.4.4:** BehaviorAgent with behavior profiles (COMPLETE)
+- ✅ **Phase 4.4.5:** ConstantVelocityAgent (COMPLETE)
+- ✅ **Phase 4.4.6:** Agent trait for polymorphism (COMPLETE)
 
 **What's Remaining:**
 - None - all phases complete!
@@ -686,7 +686,7 @@ carla/src/agents/
 4. **Testing Mode:**
    - ConstantVelocityAgent for controlled testing scenarios
    - Optional basic behavior mode with hazard detection
-5. **Enhanced Detection (Phase A.4.3):**
+5. **Enhanced Detection (Phase 4.4.3):**
    - Traffic light trigger volume detection using `TrafficLight::affected_lane_waypoints()`
    - Bounding box intersection using `geo` crate for polygon intersection
    - Manual coordinate transformation for bounding box corners (rotation + translation)
@@ -699,8 +699,8 @@ carla/src/agents/
 - ✅ Three working examples demonstrate full agent capabilities
 
 **Previously Blocking Issues (Now Resolved):**
-- ✅ Phase A.4.3.1: `TrafficLight::affected_lane_waypoints()` API was already implemented
-- ✅ Phase A.4.3.2: `Vehicle::bounding_box()` API was already implemented, added `geo` crate
+- ✅ Phase 4.4.3.1: `TrafficLight::affected_lane_waypoints()` API was already implemented
+- ✅ Phase 4.4.3.2: `Vehicle::bounding_box()` API was already implemented, added `geo` crate
 
 **Ready for Use:**
 - ✅ Phase 13.1 (Automatic Control GUI Example) can proceed with all agent types
@@ -713,7 +713,7 @@ carla/src/agents/
 
 ---
 
-### Phase A.1: Core Infrastructure and PID Controllers ✅ COMPLETE
+### Phase 4.1: Core Infrastructure and PID Controllers ✅ COMPLETE
 
 **Status:** ✅ Complete (all items implemented and tested)
 
@@ -755,7 +755,7 @@ carla/src/agents/
 - Throttle/brake applied correctly based on acceleration sign
 - All utility functions match Python behavior
 
-### Phase A.2: LocalPlanner Implementation ✅ COMPLETE
+### Phase 4.2: LocalPlanner Implementation ✅ COMPLETE
 
 **Estimated Effort:** 1.5-2 weeks
 **Status:** ✅ Complete (all items implemented and tested)
@@ -801,9 +801,9 @@ carla/src/agents/
 - Control outputs smooth and stable
 - Done detection works correctly
 
-### Phase A.3: GlobalRoutePlanner Implementation
+### Phase 4.3: GlobalRoutePlanner Implementation
 
-#### Phase A.3.1: Simplified Implementation ✅ COMPLETE
+#### Phase 4.3.1: Simplified Implementation ✅ COMPLETE
 
 **Status:** ✅ Complete - Functional but not optimal
 **Estimated Effort:** 1 day
@@ -829,7 +829,7 @@ carla/src/agents/
 - ✅ Greedy selection produces drivable paths
 - ⚠️ Optimal routes not guaranteed
 
-#### Phase A.3.2: Full A* Implementation ✅ COMPLETE
+#### Phase 4.3.2: Full A* Implementation ✅ COMPLETE
 
 **Status:** ✅ Complete - Full graph-based A* pathfinding
 **Estimated Effort:** 1.5-2 weeks
@@ -882,9 +882,9 @@ carla/src/agents/
 - ✅ Lane change options included
 - ✅ Build and linter pass successfully
 
-### Phase A.4: Agent Implementations
+### Phase 4.4: Agent Implementations
 
-#### Phase A.4.1: BasicAgent Implementation ✅ COMPLETE
+#### Phase 4.4.1: BasicAgent Implementation ✅ COMPLETE
 
 **Status:** ✅ Complete - Fully functional autonomous navigation
 **Estimated Effort:** 1 week
@@ -906,14 +906,14 @@ carla/src/agents/
   - Cache traffic lights list for efficiency
   - Tests: Traffic light detection in various scenarios
   - Time: 2-3 days
-  - **Note:** Simplified without trigger volume waypoint matching (see Phase A.4.3 for enhancement)
+  - **Note:** Simplified without trigger volume waypoint matching (see Phase 4.4.3 for enhancement)
 
 - [x] **A.4.1.3: AgentCore Vehicle Obstacle Detection (Simplified)**
   - Implement `vehicle_obstacle_detected(&self, max_distance)` → `ObstacleDetectionResult`
   - Simplified detection mode: distance + forward vector dot product
   - Tests: Obstacle detection with various vehicle configurations
   - Time: 3-4 days
-  - **Note:** Simplified geometry check (see Phase A.4.3 for bounding box enhancement)
+  - **Note:** Simplified geometry check (see Phase 4.4.3 for bounding box enhancement)
 
 - [x] **A.4.1.4: BasicAgent Structure and Navigation**
   - File: `carla/src/agents/navigation/basic_agent.rs`
@@ -955,7 +955,7 @@ carla/src/agents/
 - ✅ All unit tests pass (59 tests)
 - ✅ Example `basic_agent_demo.rs` demonstrates full navigation flow
 
-#### Phase A.4.2: Lane Change Support ✅ COMPLETE
+#### Phase 4.4.2: Lane Change Support ✅ COMPLETE
 
 **Status:** ✅ Complete - Full lane change path generation and execution
 **Estimated Effort:** 3-4 days
@@ -985,7 +985,7 @@ carla/src/agents/
 - ✅ Three-phase approach provides smooth transitions
 - ✅ Build and tests pass
 
-#### Phase A.4.3: Enhanced Detection ✅ COMPLETE
+#### Phase 4.4.3: Enhanced Detection ✅ COMPLETE
 
 **Status:** ✅ Complete - Enhanced detection with trigger volumes and bounding boxes
 **Estimated Effort:** 1 week
@@ -1022,7 +1022,7 @@ carla/src/agents/
 - ✅ Build successful with geo crate integration
 - ✅ All unit tests pass
 
-#### Phase A.4.4: BehaviorAgent ✅ COMPLETE
+#### Phase 4.4.4: BehaviorAgent ✅ COMPLETE
 
 **Status:** ✅ Complete - Advanced agent with behavior profiles
 **Estimated Effort:** 1.5 weeks
@@ -1065,7 +1065,7 @@ carla/src/agents/
 - ✅ Build and linter pass successfully
 - ✅ Example demonstrates all three behavior profiles
 
-#### Phase A.4.5: ConstantVelocityAgent ✅ COMPLETE
+#### Phase 4.4.5: ConstantVelocityAgent ✅ COMPLETE
 
 **Status:** ✅ Complete - Testing utility agent
 **Estimated Effort:** 2-3 days
@@ -1090,7 +1090,7 @@ carla/src/agents/
 - ✅ Build and linter pass successfully
 - ✅ Example demonstrates constant velocity and speed changes
 
-#### Phase A.4.6: Agent Trait ✅ COMPLETE
+#### Phase 4.4.6: Agent Trait ✅ COMPLETE
 
 **Status:** ✅ Complete - Polymorphic agent interface
 **Estimated Effort:** 1 day
@@ -1143,7 +1143,7 @@ carla/src/agents/
 - `World::debug()` ✅ (Debug visualization)
 - `World::tick()` ✅ (Simulation step)
 
-### APIs Blocking Phase A.4.3 (Enhanced Detection)
+### APIs Blocking Phase 4.4.3 (Enhanced Detection)
 
 These APIs are required for enhanced detection features but **not required for BasicAgent** functionality:
 
@@ -1155,9 +1155,9 @@ These APIs are required for enhanced detection features but **not required for B
 - **Purpose:** Get waypoints controlled by this traffic light (trigger volume)
 - **Python:** `traffic_light.get_affected_lane_waypoints()`
 - **Implementation Status:** Available and working
-- **Usage:** Can now implement precise traffic light detection in Phase A.4.3.1
+- **Usage:** Can now implement precise traffic light detection in Phase 4.4.3.1
 - **Current Workaround Still Used:** Simple distance check (can be replaced)
-- **Unblocks:** Phase A.4.3.1
+- **Unblocks:** Phase 4.4.3.1
 
 #### 2. Vehicle Bounding Boxes (PARTIALLY UNBLOCKED ✅)
 
@@ -1174,7 +1174,7 @@ These APIs are required for enhanced detection features but **not required for B
 - **Remaining Dependency:** `geo = "0.27"` crate for polygon intersection (not yet added)
 - **What Can Be Done Now:** Query vehicle bounding boxes, use extent data for distance checks
 - **What Remains:** Add `geo` crate and implement polygon intersection logic
-- **Partially Unblocks:** Phase A.4.3.2 (can start implementation, pending geo crate)
+- **Partially Unblocks:** Phase 4.4.3.2 (can start implementation, pending geo crate)
 
 ### APIs for Future Enhancements (Lower Priority)
 
@@ -1190,7 +1190,7 @@ These APIs would be useful for future phases but are not currently blocking:
 - **Why Needed:** Validate lane change paths and detect lane changes
 - **FFI Implementation:** Property binding to waypoint
 - **Effort:** 1 day
-- **Useful for:** Phase A.4.2 (Lane Change Support)
+- **Useful for:** Phase 4.4.2 (Lane Change Support)
 
 #### 4. Landmark Detection (for Stop Signs, etc.) ✅ IMPLEMENTED
 
@@ -1212,7 +1212,7 @@ These APIs would be useful for future phases but are not currently blocking:
 
 ### External Dependencies
 
-#### Polygon Intersection Library (for Phase A.4.3.2)
+#### Polygon Intersection Library (for Phase 4.4.3.2)
 
 **Crate:** `geo = "0.27"` (recommended)
 
@@ -1223,7 +1223,7 @@ These APIs would be useful for future phases but are not currently blocking:
   - Create route polygon from waypoint sequence
   - Check intersection for precise collision detection
 - **Integration Effort:** 1 day (add dependency, write integration code)
-- **Blocks:** Phase A.4.3.2 (along with bounding_box() API)
+- **Blocks:** Phase 4.4.3.2 (along with bounding_box() API)
 
 ## Verification Strategy
 
@@ -1304,10 +1304,10 @@ These APIs would be useful for future phases but are not currently blocking:
 
 ### Optimistic: 4 Weeks
 
-**Week 1:** Phase A.1 (PID + utilities)
-**Week 2:** Phase A.2 (LocalPlanner)
-**Week 3:** Phase A.3 (GlobalRoutePlanner)
-**Week 4:** Phase A.4 (BasicAgent + integration tests)
+**Week 1:** Phase 4.1 (PID + utilities)
+**Week 2:** Phase 4.2 (LocalPlanner)
+**Week 3:** Phase 4.3 (GlobalRoutePlanner)
+**Week 4:** Phase 4.4 (BasicAgent + integration tests)
 
 **Assumptions:**
 - No major FFI issues
@@ -1317,10 +1317,10 @@ These APIs would be useful for future phases but are not currently blocking:
 
 ### Realistic: 5-6 Weeks
 
-**Week 1-1.5:** Phase A.1 (PID + utilities + some missing APIs)
-**Week 2-3:** Phase A.2 (LocalPlanner + debugging)
-**Week 3-4.5:** Phase A.3 (GlobalRoutePlanner + graph algorithm adaptation)
-**Week 4.5-6:** Phase A.4 (BasicAgent + integration tests + BehaviorAgent)
+**Week 1-1.5:** Phase 4.1 (PID + utilities + some missing APIs)
+**Week 2-3:** Phase 4.2 (LocalPlanner + debugging)
+**Week 3-4.5:** Phase 4.3 (GlobalRoutePlanner + graph algorithm adaptation)
+**Week 4.5-6:** Phase 4.4 (BasicAgent + integration tests + BehaviorAgent)
 
 **Assumptions:**
 - Expected FFI challenges (1-2 days debugging)
@@ -1330,10 +1330,10 @@ These APIs would be useful for future phases but are not currently blocking:
 
 ### Conservative: 6-8 Weeks
 
-**Week 1-2:** Missing APIs + Phase A.1
-**Week 2-3.5:** Phase A.2 with extensive testing
-**Week 3.5-5:** Phase A.3 with performance optimization
-**Week 5-7:** Phase A.4 with BehaviorAgent full implementation
+**Week 1-2:** Missing APIs + Phase 4.1
+**Week 2-3.5:** Phase 4.2 with extensive testing
+**Week 3.5-5:** Phase 4.3 with performance optimization
+**Week 5-7:** Phase 4.4 with BehaviorAgent full implementation
 **Week 7-8:** Integration testing, bug fixes, documentation
 
 **Assumptions:**
@@ -1414,27 +1414,27 @@ geo = "0.27"       # Polygon intersection (shapely equivalent)
 
 **What Was Implemented:**
 
-1. **Phase A.1 - Core Infrastructure** ✅ Complete
+1. **Phase 4.1 - Core Infrastructure** ✅ Complete
    - All PID controllers (longitudinal, lateral, combined)
    - All utility functions (get_speed, compute_distance, etc.)
    - RoadOption enum with full trait support
    - Comprehensive unit tests
 
-2. **Phase A.2 - LocalPlanner** ✅ Complete
+2. **Phase 4.2 - LocalPlanner** ✅ Complete
    - Waypoint queue management with VecDeque
    - PID controller integration
    - Speed management and configuration
    - Distance-based waypoint advancement
    - Query methods for plan inspection
 
-3. **Phase A.3 - GlobalRoutePlanner** ✅ Complete (Full A* Implementation)
+3. **Phase 4.3 - GlobalRoutePlanner** ✅ Complete (Full A* Implementation)
    - Graph-based A* pathfinding with petgraph
    - Road topology graph construction from Map::topology()
    - Lane change edges with configurable costs
    - Turn decision logic using vector math
    - Optimal route computation between locations
 
-4. **Phase A.4 - Agent Implementations** ✅ Complete (All Agents)
+4. **Phase 4.4 - Agent Implementations** ✅ Complete (All Agents)
    - AgentCore with composition pattern and lane change generation
    - BasicAgent with full navigation and lane change capability
    - BehaviorAgent with three personality profiles (Cautious, Normal, Aggressive)
@@ -1454,8 +1454,8 @@ geo = "0.27"       # Polygon intersection (shapely equivalent)
 
 **Known Limitations:**
 
-1. ~~Traffic light detection doesn't use trigger volumes~~ ✅ Now implemented (Phase A.4.3.1)
-2. ~~Vehicle detection doesn't use bounding box intersection~~ ✅ Now implemented (Phase A.4.3.2)
+1. ~~Traffic light detection doesn't use trigger volumes~~ ✅ Now implemented (Phase 4.4.3.1)
+2. ~~Vehicle detection doesn't use bounding box intersection~~ ✅ Now implemented (Phase 4.4.3.2)
 3. ~~Pedestrian detection simplified (basic distance check, no full bounding box analysis)~~ ✅ Now uses actual bounding boxes on CARLA 0.9.16+
 
 **Future Work:**

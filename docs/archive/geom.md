@@ -1,7 +1,5 @@
 # Geometry Types Migration
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document tracks the migration of CARLA geometry types from FFI exports to native Rust types with compile-time memory layout verification.
 
 ## Progress Summary

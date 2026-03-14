@@ -1,7 +1,5 @@
 # GUI Example Implementations (Phases 12-14)
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document covers Phases 12-14: GUI Example Implementations with Macroquad. These examples demonstrate interactive CARLA applications with real-time visualization, keyboard controls, and comprehensive feature showcases.
 
 **Last Updated:** 2025-11-08
@@ -9,19 +7,19 @@ This document covers Phases 12-14: GUI Example Implementations with Macroquad. T
 ## Contents
 
 - [Foundation: Error Handling Improvements](#foundation-error-handling-improvements) ✅ COMPLETE
-- [Phase 12: Manual Control - Complete Interactive Example](#phase-12-manual-control---complete-interactive-example) ✅ COMPLETE
-- [Phase 13: Core GUI Examples](#phase-13-core-gui-examples)
-  - [13.1: Automatic Control](#phase-131-automatic-control)
-  - [13.2: Synchronous Mode GUI](#phase-132-synchronous-mode-gui)
-  - [13.3: Dynamic Weather GUI](#phase-133-dynamic-weather-gui)
-- [Phase 14: Advanced GUI Examples](#phase-14-advanced-gui-examples)
-  - [14.1: Bounding Boxes Visualization](#phase-141-bounding-boxes-visualization)
-  - [14.2: Multiple Sensor Grid View](#phase-142-multiple-sensor-grid-view)
-  - [14.3: No Rendering Mode (Performance Demo)](#phase-143-no-rendering-mode-performance-demo)
-  - [14.4: Walker Skeleton Visualization](#phase-144-walker-skeleton-visualization)
-- [Phase 15: Specialized GUI Examples (Optional)](#phase-15-specialized-gui-examples-optional)
-  - [15.1: Steering Wheel Support](#phase-151-steering-wheel-support)
-  - [15.2: LiDAR 3D Visualization](#phase-152-lidar-3d-visualization-optional)
+- [Phase 3.1: Manual Control - Complete Interactive Example](#phase-31-manual-control---complete-interactive-example) ✅ COMPLETE
+- [Phase 3.2: Core GUI Examples](#phase-32-core-gui-examples)
+  - [3.2.1: Automatic Control](#phase-321-automatic-control)
+  - [3.2.2: Synchronous Mode GUI](#phase-322-synchronous-mode-gui)
+  - [3.2.3: Dynamic Weather GUI](#phase-323-dynamic-weather-gui)
+- [Phase 3.3: Advanced GUI Examples](#phase-33-advanced-gui-examples)
+  - [3.3.1: Bounding Boxes Visualization](#phase-331-bounding-boxes-visualization)
+  - [3.3.2: Multiple Sensor Grid View](#phase-332-multiple-sensor-grid-view)
+  - [3.3.3: No Rendering Mode (Performance Demo)](#phase-333-no-rendering-mode-performance-demo)
+  - [3.3.4: Walker Skeleton Visualization](#phase-334-walker-skeleton-visualization)
+- [Phase 3.4: Specialized GUI Examples (Optional)](#phase-34-specialized-gui-examples-optional)
+  - [3.4.1: Steering Wheel Support](#phase-341-steering-wheel-support)
+  - [3.4.2: LiDAR 3D Visualization](#phase-342-lidar-3d-visualization-optional)
 
 ---
 
@@ -129,7 +127,7 @@ After:  "Resource not found: Blueprint 'vehicle.nonexistent.model'
 ### GUI Framework: Macroquad
 
 **Decision Date:** 2025-10-29
-**Status:** ✅ Selected and proven in Phase 12
+**Status:** ✅ Selected and proven in Phase 3.1
 
 All GUI examples use **Macroquad v0.4** as the official pygame replacement:
 - Simple, pygame-like API
@@ -174,12 +172,12 @@ async fn main() {
 - Prioritize example clarity over DRY principle
 
 **Future Considerations:**
-- Phase 2: Extract `carla/examples/common/` module after Phase 13
-- Phase 3: Consider separate `carla-gui` crate only if externally demanded
+- Extract `carla/examples/common/` module after Phase 3.2
+- Consider separate `carla-gui` crate only if externally demanded
 
 ---
 
-## Phase 12: Manual Control - Complete Interactive Example
+## Phase 3.1: Manual Control - Complete Interactive Example
 
 **Priority:** HIGH (Flagship example)
 **Status:** ✅ COMPLETE (37/37 work items, 100% feature parity)
@@ -221,23 +219,23 @@ The most comprehensive CARLA example - a fully interactive vehicle simulator wit
 ✅ Help overlay (H key) with all controls
 ✅ Ackermann steering mode
 
-**Reference:** See Phase 12 section below for historical development details.
+**Reference:** See Phase 3.1 historical development section below for details.
 
 ---
 
-## Phase 13: Core GUI Examples
+## Phase 3.2: Core GUI Examples
 
 **Priority:** HIGH
 **Estimated Effort:** 3-4 weeks total
 **Status:** ✅ COMPLETE (2025-11-05)
-**Dependencies:** Phase 12 ✅ Complete
+**Dependencies:** Phase 3.1 ✅ Complete
 
 These examples demonstrate essential CARLA workflows with GUI:
 - Automatic navigation with AI agents ✅
 - Synchronous simulation mode ✅
 - Dynamic environment control ✅
 
-### Phase 13.1: Automatic Control GUI ✅
+### Phase 3.2.1: Automatic Control GUI ✅
 
 **Priority:** HIGH
 **Estimated Effort:** 1 week (after Agent Phase completion)
@@ -357,13 +355,13 @@ This example demonstrates the completed CARLA agent system in Rust. See **[Navig
 - ✅ Auto-respawn with new destination works
 
 **Dependencies:**
-- ✅ Phase 12 (Manual Control) - Code reuse source
+- ✅ Phase 3.1 (Manual Control) - Code reuse source
 - ⚠️ **Agent Phase (A.1-A.4)** - **CRITICAL BLOCKER**
 - See: [Navigation Agents Implementation](agents.md)
 
 ---
 
-### Phase 13.2: Synchronous Mode GUI ✅
+### Phase 3.2.2: Synchronous Mode GUI ✅
 
 **Priority:** MEDIUM
 **Estimated Effort:** 3-5 days
@@ -397,7 +395,7 @@ Demonstrates frame-perfect synchronous simulation with visual feedback.
 
 ---
 
-### Phase 13.3: Dynamic Weather GUI ✅
+### Phase 3.2.3: Dynamic Weather GUI ✅
 
 **Priority:** LOW
 **Estimated Effort:** 2-3 days
@@ -432,16 +430,16 @@ Demonstrates smooth weather transitions with visual feedback.
 
 ---
 
-## Phase 14: Advanced GUI Examples
+## Phase 3.3: Advanced GUI Examples
 
 **Priority:** MEDIUM
 **Estimated Effort:** 4-5 weeks total
 **Status:** Ready to Start
-**Dependencies:** Phase 13 ✅ COMPLETE
+**Dependencies:** Phase 3.2 ✅ COMPLETE
 
 These examples demonstrate advanced visualization and computer vision techniques.
 
-### Phase 14.1: Bounding Boxes Visualization ✅
+### Phase 3.3.1: Bounding Boxes Visualization ✅
 
 **Priority:** HIGH
 **Estimated Effort:** 1-1.5 weeks
@@ -571,7 +569,7 @@ Demonstrates 2D/3D bounding box computation and visualization for computer visio
 
 ---
 
-### Phase 14.2: Multiple Sensor Grid View ✅
+### Phase 3.3.2: Multiple Sensor Grid View ✅
 
 **Priority:** MEDIUM
 **Estimated Effort:** 1 week
@@ -648,7 +646,7 @@ Demonstrates multi-viewport rendering with sensor fusion.
 
 ---
 
-### Phase 14.3: No Rendering Mode (Performance Demo) ✅
+### Phase 3.3.3: No Rendering Mode (Performance Demo) ✅
 
 **Priority:** MEDIUM
 **Estimated Effort:** 3-4 days
@@ -722,7 +720,7 @@ Demonstrates large-scale simulation with rendering disabled for performance test
 
 ---
 
-### Phase 14.4: Walker Skeleton Visualization ✅
+### Phase 3.3.4: Walker Skeleton Visualization ✅
 
 **Status:** COMPLETE (2025-11-08)
 **Priority:** LOW
@@ -810,16 +808,16 @@ Demonstrates walker bone structure and skeletal animation.
 
 ---
 
-## Phase 15: Specialized GUI Examples (Optional)
+## Phase 3.4: Specialized GUI Examples (Optional)
 
 **Priority:** LOW
 **Estimated Effort:** 2-3 weeks total
 **Status:** Future Work
-**Dependencies:** Phase 14 recommended
+**Dependencies:** Phase 3.3 recommended
 
 These examples require additional hardware or specialized libraries.
 
-### Phase 15.1: Steering Wheel Support ✅
+### Phase 3.4.1: Steering Wheel Support ✅
 
 **Priority:** LOW
 **Estimated Effort:** 1-1.5 weeks
@@ -840,39 +838,39 @@ Demonstrates hardware input from racing wheels and pedals.
 
 #### Work Items ✅
 
-- ✅ **15.1.1: Gamepad Library Integration**
+- ✅ **3.4.1.1: Gamepad Library Integration**
   - ✅ Add `gilrs = "0.10"` dependency
   - ✅ Initialize gamepad context
   - ✅ Enumerate connected devices
   - ✅ Test: Steering wheel detected
 
-- ✅ **15.1.2: Analog Input Mapping**
+- ✅ **3.4.1.2: Analog Input Mapping**
   - ✅ Map steering axis (-1.0 to 1.0)
   - ✅ Map throttle axis (0.0 to 1.0)
   - ✅ Map brake axis (0.0 to 1.0)
   - ✅ Apply dead zones and curves
   - ✅ Test: Smooth analog control
 
-- ✅ **15.1.3: Button Mapping**
+- ✅ **3.4.1.3: Button Mapping**
   - ✅ Map gear shift buttons (reverse)
   - ✅ Map light controls
   - ✅ Map camera switching
   - ✅ Map handbrake button
   - ✅ Test: All buttons work
 
-- ✅ **15.1.4: Force Feedback**
+- ✅ **3.4.1.4: Force Feedback**
   - ✅ Detect FF-capable devices
   - ✅ Apply resistance based on speed
   - ✅ Adjustable FF strength (D-Pad Up/Down)
   - ✅ Test: FF effects work (if hardware supports)
 
-- ✅ **15.1.5: HUD Integration**
+- ✅ **3.4.1.5: HUD Integration**
   - ✅ Copy HUD from automatic_control_gui
   - ✅ Add input visualizer (steering angle, pedal positions)
   - ✅ Show connected device name
   - ✅ Test: HUD displays hardware state
 
-- ✅ **15.1.6: Fallback to Keyboard**
+- ✅ **3.4.1.6: Fallback to Keyboard**
   - ✅ Detect no gamepad scenario
   - ✅ Fall back to WASD controls
   - ✅ Show info message in console and HUD
@@ -909,7 +907,7 @@ Demonstrates hardware input from racing wheels and pedals.
 
 ---
 
-### Phase 15.2: LiDAR 3D Visualization (Optional) ✅
+### Phase 3.4.2: LiDAR 3D Visualization (Optional) ✅
 
 **Status:** COMPLETE (January 2025)
 **Lines of Code:** 303 lines
@@ -996,71 +994,71 @@ Demonstrates real-time 3D point cloud visualization from CARLA LiDAR sensor usin
 
 #### Work Items (Implemented)
 
-**Phase 15.2.1: Basic Point Cloud Rendering**
+**Phase 3.4.2.1: Basic Point Cloud Rendering**
 
-- [x] **15.2.1.1: kiss3d Setup** ✅
+- [x] **3.4.2.1.1: kiss3d Setup** ✅
   - Added `kiss3d = "0.35"` to dev-dependencies
   - Created `lidar_3d_viewer.rs` example (303 lines)
   - Initialized kiss3d window with `State` trait pattern
   - Window opens with built-in 3D camera controls (ArcBall)
 
-- [x] **15.2.1.2: LiDAR Sensor Integration** ✅
+- [x] **3.4.2.1.2: LiDAR Sensor Integration** ✅
   - Spawned LiDAR sensor on vehicle (lines 93-136)
   - Configured LiDAR: 32 channels, 50m range, 100k points/sec
   - Setup sensor data listener with `Arc<Mutex<>>` pattern
   - Receives LiDAR point cloud data successfully
 
-- [x] **15.2.1.3: Point Cloud Rendering** ✅
+- [x] **3.4.2.1.3: Point Cloud Rendering** ✅
   - Used `Window::draw_point()` API (simpler than custom renderer)
   - Implemented in `State::step()` method (lines 169-249)
   - Stores points in `Vec<(Point3<f32>, Point3<f32>)>` (position, color)
   - Renders point cloud each frame
 
-**Phase 15.2.2: Real-Time Visualization**
+**Phase 3.4.2.2: Real-Time Visualization**
 
-- [x] **15.2.2.1: Dynamic Point Updates** ✅
+- [x] **3.4.2.2.1: Dynamic Point Updates** ✅
   - Updates point cloud each frame from latest LiDAR data (lines 194-233)
   - Coordinate transformation: CARLA → OpenGL (line 213)
   - Transform: `(carla_y, carla_z, -carla_x)` for correct orientation
   - Real-time updates smooth at 60 FPS
 
-- [x] **15.2.2.2: Intensity-Based Coloring** ✅
+- [x] **3.4.2.2.2: Intensity-Based Coloring** ✅
   - Extracts intensity from `LidarDetection.intensity` field
   - Maps to Viridis colormap (lines 51-84)
   - 4-segment linear interpolation for smooth gradient
   - Points colored by intensity (0.0-1.0 range)
 
-- [x] **15.2.2.3: Height-Based Coloring** ✅
+- [x] **3.4.2.2.3: Height-Based Coloring** ✅
   - *Note: Implemented height-based instead of semantic*
   - Normalizes Z coordinate to 0-1 range (lines 198-206)
   - Uses same Viridis colormap for consistency
   - Keyboard toggle between intensity and height modes (C key)
   - *Rationale: Regular LiDAR lacks semantic tags; height provides useful visualization*
 
-**Phase 15.2.3: Camera and Controls**
+**Phase 3.4.2.3: Camera and Controls**
 
-- [x] **15.2.3.1: Camera Controls** ✅
+- [x] **3.4.2.3.1: Camera Controls** ✅
   - Uses kiss3d built-in ArcBall camera (default)
   - Mouse controls: left-drag orbit, right-drag pan, scroll zoom
   - Camera state managed by kiss3d automatically
   - Smooth camera navigation
 
-- [x] **15.2.3.2: Keyboard Controls** ✅
+- [x] **3.4.2.3.2: Keyboard Controls** ✅
   - C key: Toggle color mode (intensity/height)
   - +/- keys: Adjust point size (1.0-10.0 range)
   - Event handling in `State::step()` (lines 171-191)
   - Visual feedback via console println
 
-- [x] **15.2.3.3: Performance Metrics** ✅
+- [x] **3.4.2.3.3: Performance Metrics** ✅
   - FPS calculation with 1-second averaging (lines 229-237)
   - Point count display
   - Current color mode display
   - Stats printed every 60 frames (line 240)
   - *Note: Console-based instead of GUI HUD for simplicity*
 
-**Phase 15.2.4: Implemented Features**
+**Phase 3.4.2.4: Implemented Features**
 
-- [x] **15.2.4.1: Point Size Control** ✅
+- [x] **3.4.2.4.1: Point Size Control** ✅
   - Keyboard controls (+/- keys) adjust size
   - Point size clamped to 1.0-10.0 range
   - `point_size` field in `AppState` (line 147)
@@ -1094,7 +1092,7 @@ Demonstrates real-time 3D point cloud visualization from CARLA LiDAR sensor usin
 
 ---
 
-## Phase 12: Manual Control - Historical Development
+## Phase 3.1: Manual Control - Historical Development
 
 **Status:** ✅ COMPLETE (2025-11-01)
 **Work Items:** 37/37 (100%)
@@ -1255,7 +1253,7 @@ The most comprehensive CARLA example - implemented incrementally over 12 subphas
 - `tracing = "0.1"` - Logging
 - `tracing-subscriber = "0.3"` - Log formatting
 
-**Optional (Phase 15+):**
+**Optional (Phase 3.4+):**
 - `gilrs = "0.10"` - Gamepad/steering wheel input
 - `three-d = "0.16"` OR `bevy = "0.12"` - 3D visualization (Phase 15.2)
 
@@ -1288,6 +1286,3 @@ All examples use existing APIs from Phases 0-11:
 - Bounding box computation
 - Coordinate transformations
 
----
-
-**[← Back to Roadmap Index](../roadmap.md)**

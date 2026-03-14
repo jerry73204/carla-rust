@@ -1,7 +1,5 @@
 # Intermediate Example Implementations (Phase 11)
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document covers Phase 11: Intermediate Example Implementations (Headless/No GUI). These examples demonstrate more complex CARLA operations suitable for headless operation, automated testing, or CI/CD environments.
 
 ---

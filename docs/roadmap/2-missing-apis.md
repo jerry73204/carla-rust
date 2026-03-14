@@ -1,11 +1,11 @@
 # Missing API Implementation Roadmap
 
 Implementation plan for achieving 100% CARLA API coverage.
-See [api-coverage.md](../api-coverage.md) for the full gap analysis.
+See `reference/api-coverage.md` for the full gap analysis.
 
 ---
 
-## Phase 1: Client — File Transfer
+## Phase 2.1: Client — File Transfer
 
 **Priority:** High
 
@@ -21,7 +21,7 @@ See [api-coverage.md](../api-coverage.md) for the full gap analysis.
 
 ---
 
-## Phase 2: Actor — Remaining Methods
+## Phase 2.2: Actor — Remaining Methods
 
 **Priority:** High
 
@@ -44,7 +44,7 @@ See [api-coverage.md](../api-coverage.md) for the full gap analysis.
 
 ---
 
-## Phase 3: World — Missing Methods
+## Phase 2.3: World — Missing Methods
 
 **Priority:** High
 
@@ -108,7 +108,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 4: EpisodeSettings — Missing Fields
+## Phase 2.4: EpisodeSettings — Missing Fields
 
 **Priority:** Medium
 
@@ -121,7 +121,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 5: TrafficLight — Missing Methods
+## Phase 2.5: TrafficLight — Missing Methods
 
 **Priority:** Medium
 
@@ -149,7 +149,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 6: Vehicle & Walker — Missing Methods
+## Phase 2.6: Vehicle & Walker — Missing Methods
 
 **Priority:** Medium
 
@@ -180,7 +180,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 7: Map & Navigation — Missing Methods
+## Phase 2.7: Map & Navigation — Missing Methods
 
 **Priority:** Medium
 
@@ -250,7 +250,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 8: Geometry — Missing Methods
+## Phase 2.8: Geometry — Missing Methods
 
 **Priority:** Medium — pure Rust, no FFI needed.
 
@@ -284,7 +284,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 9: Traffic Manager — Missing Methods
+## Phase 2.9: Traffic Manager — Missing Methods
 
 **Priority:** Medium
 
@@ -336,7 +336,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 10: RPC Types
+## Phase 2.10: RPC Types
 
 **Priority:** Medium — supporting types needed by other phases.
 
@@ -365,7 +365,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 11: Sensor Data
+## Phase 2.11: Sensor Data
 
 **Priority:** Low
 
@@ -382,7 +382,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 12: Blueprint
+## Phase 2.12: Blueprint
 
 **Priority:** Low
 
@@ -392,7 +392,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 13: Lighting
+## Phase 2.13: Lighting
 
 **Priority:** Low
 
@@ -402,7 +402,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 14: Command Variants
+## Phase 2.14: Command Variants
 
 **Priority:** Low
 
@@ -416,7 +416,7 @@ Most World methods were already implemented. Items below reflect current status.
 
 ---
 
-## Phase 15: WeatherParameters Presets
+## Phase 2.15: WeatherParameters Presets
 
 **Priority:** Low — pure Rust, no FFI needed.
 

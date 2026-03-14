@@ -1,26 +1,24 @@
 # Core API Development (Phases 0-10)
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document covers the core API development phases (0-10) for the carla-rust project. These phases focus on implementing the fundamental CARLA client APIs in Rust.
 
 ## Contents
 
-- [Phase 0: Cargo Examples for Demonstration](#phase-0-cargo-examples-for-demonstration)
-- [Phase 1: Walker/Pedestrian Control](#phase-1-walkerpedestrian-control)
-- [Phase 2: Debug and Visualization Utilities](#phase-2-debug-and-visualization-utilities)
-- [Phase 3: Recording and Playback](#phase-3-recording-and-playback)
-- [Phase 4: Advanced Vehicle Features (0.9.14+)](#phase-4-advanced-vehicle-features-0914)
-- [Phase 5: Batch Operations and Commands](#phase-5-batch-operations-and-commands)
-- [Phase 6: Advanced Sensor Features](#phase-6-advanced-sensor-features)
-- [Phase 7: Advanced World Operations](#phase-7-advanced-world-operations)
-- [Phase 8: Navigation and Path Planning](#phase-8-navigation-and-path-planning)
-- [Phase 9: Additional Utilities and Refinements](#phase-9-additional-utilities-and-refinements)
+- [Phase 1.0: Cargo Examples for Demonstration](#phase-10-cargo-examples-for-demonstration)
+- [Phase 1.1: Walker/Pedestrian Control](#phase-11-walkerpedestrian-control)
+- [Phase 1.2: Debug and Visualization Utilities](#phase-12-debug-and-visualization-utilities)
+- [Phase 1.3: Recording and Playback](#phase-13-recording-and-playback)
+- [Phase 1.4: Advanced Vehicle Features (0.9.14+)](#phase-14-advanced-vehicle-features-0914)
+- [Phase 1.5: Batch Operations and Commands](#phase-15-batch-operations-and-commands)
+- [Phase 1.6: Advanced Sensor Features](#phase-16-advanced-sensor-features)
+- [Phase 1.7: Advanced World Operations](#phase-17-advanced-world-operations)
+- [Phase 1.8: Navigation and Path Planning](#phase-18-navigation-and-path-planning)
+- [Phase 1.9: Additional Utilities and Refinements](#phase-19-additional-utilities-and-refinements)
 - [Geometry Type Improvements](#geometry-type-improvements)
 
 ---
 
-## Phase 0: Cargo Examples for Demonstration
+## Phase 1.0: Cargo Examples for Demonstration
 
 **Priority:** Critical
 **Estimated Effort:** 1 week
@@ -97,7 +95,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 1: Walker/Pedestrian Control
+## Phase 1.1: Walker/Pedestrian Control
 
 **Priority:** High
 **Estimated Effort:** 3-4 weeks (includes FFI work)
@@ -237,7 +235,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 2: Debug and Visualization Utilities
+## Phase 1.2: Debug and Visualization Utilities
 
 **Priority:** Medium
 **Estimated Effort:** 2-3 weeks (includes FFI work)
@@ -314,7 +312,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 3: Recording and Playback
+## Phase 1.3: Recording and Playback
 
 **Priority:** Medium
 **Estimated Effort:** 2-3 weeks (includes FFI work)
@@ -420,7 +418,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 4: Advanced Vehicle Features (0.9.14+)
+## Phase 1.4: Advanced Vehicle Features (0.9.14+)
 
 **Priority:** Low
 **Estimated Effort:** 2-3 weeks (includes FFI work + version handling)
@@ -526,7 +524,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 5: Batch Operations and Commands
+## Phase 1.5: Batch Operations and Commands
 
 **Priority:** Medium
 **Estimated Effort:** 3 weeks
@@ -619,7 +617,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 6: Advanced Sensor Features
+## Phase 1.6: Advanced Sensor Features
 
 **Priority:** Medium
 **Estimated Effort:** 2 weeks
@@ -692,7 +690,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 7: Advanced World Operations
+## Phase 1.7: Advanced World Operations
 
 **Priority:** Low
 **Estimated Effort:** 2 weeks
@@ -760,7 +758,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 8: Navigation and Path Planning
+## Phase 1.8: Navigation and Path Planning
 
 **Priority:** Low
 **Estimated Effort:** 1 week
@@ -817,7 +815,7 @@ Run with: `cargo run --example spawn_vehicle`
 
 ---
 
-## Phase 9: Additional Utilities and Refinements
+## Phase 1.9: Additional Utilities and Refinements
 
 **Priority:** MEDIUM
 **Estimated Effort:** 3-4 weeks

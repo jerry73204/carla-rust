@@ -1,7 +1,5 @@
 # Simple Example Implementations (Phase 10)
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document covers Phase 10: Simple Example Implementations. These examples demonstrate basic CARLA operations in a straightforward, easy-to-understand format.
 
 ---

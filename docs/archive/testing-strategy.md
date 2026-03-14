@@ -1,7 +1,5 @@
 # Cross-Phase Testing
 
-**[← Back to Roadmap Index](../roadmap.md)**
-
 This document covers the cross-phase testing strategy for the carla-rust project. This includes test infrastructure, methodologies, and best practices that span across all development phases.
 
 ---
