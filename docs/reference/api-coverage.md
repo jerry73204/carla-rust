@@ -295,14 +295,14 @@ All methods implemented. 100% coverage.
 | `location` / `rotation` fields | Have        | 0.9.14 |
 | Composition (`Mul`)            | Have        | 0.9.14 |
 | nalgebra conversions           | Have        | 0.9.14 |
-| `get_forward_vector()`         | **Missing** | 0.9.14 |
-| `get_right_vector()`           | **Missing** | 0.9.14 |
-| `get_up_vector()`              | **Missing** | 0.9.14 |
-| `transform_point()`            | **Missing** | 0.9.14 |
-| `transform_vector()`           | **Missing** | 0.9.14 |
-| `inverse_transform_point()`    | **Missing** | 0.9.14 |
-| `get_matrix()`                 | **Missing** | 0.9.14 |
-| `get_inverse_matrix()`         | **Missing** | 0.9.14 |
+| `get_forward_vector()`         | Have        | 0.9.14 |
+| `get_right_vector()`           | Have        | 0.9.14 |
+| `get_up_vector()`              | Have        | 0.9.14 |
+| `transform_point()`            | Have        | 0.9.14 |
+| `transform_vector()`           | Have        | 0.9.14 |
+| `inverse_transform_point()`    | Have        | 0.9.14 |
+| `get_matrix()`                 | Have        | 0.9.14 |
+| `get_inverse_matrix()`         | Have        | 0.9.14 |
 
 ### `Rotation`
 
@@ -318,10 +318,10 @@ All methods implemented. 100% coverage.
 |----------------------------------------------------|-------------|--------|
 | Fields, arithmetic, `length()`, `dot()`, `cross()` | Have        | 0.9.14 |
 | `normalize()`                                      | Have        | 0.9.14 |
-| `abs()`                                            | **Missing** | 0.9.14 |
-| `make_unit_vector()` / `make_safe_unit_vector()`   | **Missing** | 0.9.14 |
-| `squared_length_2d()` / `length_2d()`              | **Missing** | 0.9.15 |
-| `distance()` / `distance_squared()` (on Location)  | **Missing** | 0.9.15 |
+| `abs()`                                            | Have        | 0.9.14 |
+| `make_unit_vector()` / `make_safe_unit_vector()`   | Have        | 0.9.14 |
+| `squared_length_2d()` / `length_2d()`              | Have        | 0.9.14 |
+| `distance()` / `distance_squared()` (on Location)  | Have        | 0.9.14 |
 | `distance_2d()` / `distance_squared_2d()` (Math)   | **Missing** | 0.9.14 |
 | `get_vector_angle()` (Math)                        | **Missing** | 0.9.14 |
 

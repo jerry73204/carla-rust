@@ -210,31 +210,31 @@ Most World methods were already implemented. Items below reflect current status.
 
 ### Transform
 
-- [ ] `get_forward_vector() -> Vector3D`
-- [ ] `get_right_vector() -> Vector3D`
-- [ ] `get_up_vector() -> Vector3D`
-- [ ] `transform_point(location) -> Location`
-- [ ] `transform_vector(vector) -> Vector3D`
-- [ ] `inverse_transform_point(location) -> Location`
-- [ ] `get_matrix() -> [[f32; 4]; 4]`
-- [ ] `get_inverse_matrix() -> [[f32; 4]; 4]`
+- [x] `get_forward_vector() -> Vector3D` — delegates to `Rotation::forward_vector()`
+- [x] `get_right_vector() -> Vector3D` — delegates to `Rotation::right_vector()`
+- [x] `get_up_vector() -> Vector3D` — delegates to `Rotation::up_vector()`
+- [x] `transform_point(location) -> Location`
+- [x] `transform_vector(vector) -> Vector3D`
+- [x] `inverse_transform_point(location) -> Location`
+- [x] `get_matrix() -> [[f32; 4]; 4]`
+- [x] `get_inverse_matrix() -> [[f32; 4]; 4]`
 
 ### Vector3D
 
-- [ ] `abs() -> Vector3D`
-- [ ] `make_unit_vector() -> Vector3D`
-- [ ] `make_safe_unit_vector() -> Vector3D`
-- [ ] `squared_length_2d() -> f32` — gate with `#[cfg(carla_0915)]`
-- [ ] `length_2d() -> f32` — gate with `#[cfg(carla_0915)]`
+- [x] `abs() -> Vector3D` — already implemented
+- [x] `make_unit_vector() -> Vector3D` — alias for `normalize()`
+- [x] `make_safe_unit_vector() -> Vector3D` — with epsilon check
+- [x] `squared_length_2d() -> f32` — pure Rust, no version gating needed
+- [x] `length_2d() -> f32` — pure Rust, no version gating needed
 
 ### Location
 
-- [ ] `distance(other) -> f32` — gate with `#[cfg(carla_0915)]`
-- [ ] `distance_squared(other) -> f32` — gate with `#[cfg(carla_0915)]`
+- [x] `distance(other) -> f32` — already implemented, no version gating needed
+- [x] `distance_squared(other) -> f32` — already implemented, no version gating needed
 
 ### Rotation
 
-- [ ] `get_normalized() -> Rotation` — gate with `#[cfg(carla_0100)]`
+- [x] `get_normalized() -> Rotation` — normalizes angles to [0, 360), no version gating needed
 
 ---
 

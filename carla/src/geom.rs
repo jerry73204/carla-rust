@@ -180,6 +180,102 @@ impl Transform {
         }
     }
 
+    /// Gets the forward direction vector for this transform's rotation.
+    ///
+    /// Equivalent to `self.rotation.forward_vector()`.
+    #[inline]
+    pub fn get_forward_vector(&self) -> Vector3D {
+        self.rotation.forward_vector()
+    }
+
+    /// Gets the right direction vector for this transform's rotation.
+    ///
+    /// Equivalent to `self.rotation.right_vector()`.
+    #[inline]
+    pub fn get_right_vector(&self) -> Vector3D {
+        self.rotation.right_vector()
+    }
+
+    /// Gets the up direction vector for this transform's rotation.
+    ///
+    /// Equivalent to `self.rotation.up_vector()`.
+    #[inline]
+    pub fn get_up_vector(&self) -> Vector3D {
+        self.rotation.up_vector()
+    }
+
+    /// Transforms a point from local to world coordinates.
+    ///
+    /// Applies rotation then translation: `R * point + location`.
+    pub fn transform_point(&self, point: &Location) -> Location {
+        let rotated = self
+            .rotation
+            .rotate_vector(&Vector3D::new(point.x, point.y, point.z));
+        Location::new(
+            rotated.x + self.location.x,
+            rotated.y + self.location.y,
+            rotated.z + self.location.z,
+        )
+    }
+
+    /// Transforms a direction vector (rotation only, no translation).
+    pub fn transform_vector(&self, vector: &Vector3D) -> Vector3D {
+        self.rotation.rotate_vector(vector)
+    }
+
+    /// Inverse-transforms a point from world to local coordinates.
+    ///
+    /// Applies inverse translation then inverse rotation: `R^-1 * (point - location)`.
+    pub fn inverse_transform_point(&self, point: &Location) -> Location {
+        let translated = Vector3D::new(
+            point.x - self.location.x,
+            point.y - self.location.y,
+            point.z - self.location.z,
+        );
+        let result = self.rotation.inverse_rotate_vector(&translated);
+        Location::new(result.x, result.y, result.z)
+    }
+
+    /// Returns the 4x4 transformation matrix (rotation + translation).
+    ///
+    /// The matrix is in row-major order, suitable for transforming column vectors.
+    pub fn get_matrix(&self) -> [[f32; 4]; 4] {
+        let fwd = self.rotation.forward_vector();
+        let right = self.rotation.right_vector();
+        let up = self.rotation.up_vector();
+        let loc = &self.location;
+
+        [
+            [fwd.x, right.x, up.x, loc.x],
+            [fwd.y, right.y, up.y, loc.y],
+            [fwd.z, right.z, up.z, loc.z],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    }
+
+    /// Returns the inverse 4x4 transformation matrix.
+    ///
+    /// Computed as R^T with adjusted translation: -R^T * t.
+    pub fn get_inverse_matrix(&self) -> [[f32; 4]; 4] {
+        let fwd = self.rotation.forward_vector();
+        let right = self.rotation.right_vector();
+        let up = self.rotation.up_vector();
+        let loc = &self.location;
+
+        // Transpose of rotation (= inverse for orthogonal matrices)
+        // Inverse translation: -R^T * t
+        let tx = -(fwd.x * loc.x + fwd.y * loc.y + fwd.z * loc.z);
+        let ty = -(right.x * loc.x + right.y * loc.y + right.z * loc.z);
+        let tz = -(up.x * loc.x + up.y * loc.y + up.z * loc.z);
+
+        [
+            [fwd.x, fwd.y, fwd.z, tx],
+            [right.x, right.y, right.z, ty],
+            [up.x, up.y, up.z, tz],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    }
+
     /// Composes two transforms.
     ///
     /// Prefer using the `*` operator instead of calling this method directly:
@@ -502,6 +598,15 @@ impl Rotation {
         }
     }
 
+    /// Returns a rotation with angles normalized to [0, 360) degrees.
+    pub fn get_normalized(&self) -> Rotation {
+        Rotation {
+            pitch: self.pitch.rem_euclid(360.0),
+            yaw: self.yaw.rem_euclid(360.0),
+            roll: self.roll.rem_euclid(360.0),
+        }
+    }
+
     /// Creates from nalgebra UnitQuaternion.
     pub fn from_na(from: &UnitQuaternion<f32>) -> Self {
         let (roll, pitch, yaw) = from.euler_angles();
@@ -647,6 +752,34 @@ impl Vector3D {
             y: self.y.abs(),
             z: self.z.abs(),
         }
+    }
+
+    /// Returns a unit vector. Alias for [`normalize()`](Self::normalize).
+    #[inline]
+    pub fn make_unit_vector(&self) -> Vector3D {
+        self.normalize()
+    }
+
+    /// Returns a unit vector, or a zero vector if the length is too small.
+    ///
+    /// Uses an epsilon of `1e-8` to avoid division by near-zero values.
+    pub fn make_safe_unit_vector(&self) -> Vector3D {
+        let len = self.length();
+        if len > 1e-8 {
+            *self / len
+        } else {
+            Vector3D::zero()
+        }
+    }
+
+    /// Calculates the squared length using only X and Y components (ignoring Z).
+    pub fn squared_length_2d(&self) -> f32 {
+        self.x * self.x + self.y * self.y
+    }
+
+    /// Calculates the length using only X and Y components (ignoring Z).
+    pub fn length_2d(&self) -> f32 {
+        self.squared_length_2d().sqrt()
     }
 
     /// Creates from nalgebra Vector3.
@@ -1835,6 +1968,74 @@ mod tests {
         assert_approx_eq(result.rotation.yaw, 90.0, 0.1);
         assert_approx_eq(result.rotation.pitch, 0.0, 0.1);
         assert_approx_eq(result.rotation.roll, 0.0, 0.1);
+    }
+
+    #[test]
+    fn test_transform_point_identity() {
+        let t = Transform {
+            location: Location::new(10.0, 20.0, 30.0),
+            rotation: Rotation::identity(),
+        };
+        let p = Location::new(1.0, 2.0, 3.0);
+        let result = t.transform_point(&p);
+        assert_approx_eq(result.x, 11.0, 0.01);
+        assert_approx_eq(result.y, 22.0, 0.01);
+        assert_approx_eq(result.z, 33.0, 0.01);
+    }
+
+    #[test]
+    fn test_inverse_transform_point_roundtrip() {
+        let t = Transform {
+            location: Location::new(5.0, 10.0, 15.0),
+            rotation: Rotation::new(0.0, 90.0, 0.0),
+        };
+        let p = Location::new(1.0, 2.0, 3.0);
+        let world = t.transform_point(&p);
+        let back = t.inverse_transform_point(&world);
+        assert_approx_eq(back.x, p.x, 0.01);
+        assert_approx_eq(back.y, p.y, 0.01);
+        assert_approx_eq(back.z, p.z, 0.01);
+    }
+
+    #[test]
+    fn test_get_matrix_identity() {
+        let t = Transform {
+            location: Location::zero(),
+            rotation: Rotation::identity(),
+        };
+        let m = t.get_matrix();
+        // Identity rotation → diagonal should be ~1
+        assert_approx_eq(m[0][0], 1.0, 0.01);
+        assert_approx_eq(m[1][1], 1.0, 0.01);
+        assert_approx_eq(m[2][2], 1.0, 0.01);
+        assert_approx_eq(m[3][3], 1.0, 0.01);
+    }
+
+    #[test]
+    fn test_vector3d_make_safe_unit_vector() {
+        let v = Vector3D::new(3.0, 4.0, 0.0);
+        let unit = v.make_safe_unit_vector();
+        assert_approx_eq(unit.length(), 1.0, 0.001);
+
+        let zero = Vector3D::zero();
+        let safe = zero.make_safe_unit_vector();
+        assert_approx_eq(safe.length(), 0.0, 0.001);
+    }
+
+    #[test]
+    fn test_vector3d_length_2d() {
+        let v = Vector3D::new(3.0, 4.0, 100.0);
+        assert_approx_eq(v.length_2d(), 5.0, 0.001);
+        assert_approx_eq(v.squared_length_2d(), 25.0, 0.001);
+    }
+
+    #[test]
+    fn test_rotation_get_normalized() {
+        let r = Rotation::new(-10.0, 370.0, -720.0);
+        let n = r.get_normalized();
+        assert_approx_eq(n.pitch, 350.0, 0.001);
+        assert_approx_eq(n.yaw, 10.0, 0.001);
+        assert_approx_eq(n.roll, 0.0, 0.001);
     }
 }
 
