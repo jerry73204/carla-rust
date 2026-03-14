@@ -355,6 +355,15 @@ impl Walker {
         WalkerBoneControlOut::from_ffi(ffi_bones.as_mut())
     }
 
+    /// Retrieves the pose from the current animation frame and stores it as a custom pose.
+    ///
+    /// Use [`blend_pose()`](Self::blend_pose) or [`show_pose()`](Self::show_pose) to apply
+    /// the captured pose, then modify individual bones with
+    /// [`set_bones()`](Self::set_bones).
+    pub fn get_pose_from_animation(&self) {
+        self.inner.GetPoseFromAnimation();
+    }
+
     #[allow(dead_code)]
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiWalker>) -> Option<Self> {
         if ptr.is_null() {

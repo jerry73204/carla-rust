@@ -144,28 +144,19 @@ Most World methods were already implemented. Items below reflect current status.
 
 ### Vehicle
 
-- [ ] `Vehicle::get_traffic_light() -> TrafficLight`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Vehicle::apply_ackermann_controller_settings(settings)`
-  - [ ] Add `AckermannControllerSettings` Rust type (Phase 10)
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Vehicle::get_ackermann_controller_settings() -> AckermannControllerSettings`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Vehicle::use_carsim_road(enabled)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `Vehicle::enable_chrono_physics(...)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `Vehicle::get_traffic_light() -> TrafficLight`
+  - [x] Add C++ wrapper — `GetTrafficLight()` returns `std::shared_ptr<FfiTrafficLight>`
+  - [x] Add Rust wrapper — `traffic_light() -> Option<TrafficLight>`
+- [x] `Vehicle::apply_ackermann_controller_settings(settings)` — already implemented
+- [x] `Vehicle::get_ackermann_controller_settings() -> AckermannControllerSettings` — already implemented
+- [x] `Vehicle::use_carsim_road(enabled)` — already implemented
+- [x] `Vehicle::enable_chrono_physics(...)` — already implemented
 
 ### Walker
 
-- [ ] `Walker::get_pose_from_animation()`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `Walker::get_pose_from_animation()`
+  - [x] Add C++ wrapper
+  - [x] Add Rust wrapper
 
 ---
 

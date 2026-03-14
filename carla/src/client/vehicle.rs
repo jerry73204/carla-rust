@@ -1,4 +1,4 @@
-use super::{Actor, ActorBase};
+use super::{Actor, ActorBase, TrafficLight};
 #[cfg(carla_version_0916)]
 use crate::rpc::VehicleTelemetryData;
 use crate::{
@@ -524,6 +524,15 @@ impl Vehicle {
     )]
     pub fn is_at_traffic_light(&self) -> bool {
         self.inner.IsAtTrafficLight()
+    }
+
+    /// Returns the traffic light affecting this vehicle, if any.
+    ///
+    /// Only returns a value when the vehicle is at a traffic light
+    /// (i.e., when [`is_at_traffic_light()`](Self::is_at_traffic_light) returns `true`).
+    pub fn traffic_light(&self) -> Option<TrafficLight> {
+        let ptr = self.inner.GetTrafficLight();
+        TrafficLight::from_cxx(ptr)
     }
 
     /// Returns the vehicle's current failure state.

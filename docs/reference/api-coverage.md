@@ -167,11 +167,11 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `enable_carsim()`                                         | Have        | 0.9.14 |
 | `get_failure_state()`                                     | Have        | 0.9.14 |
 | `set_wheel_steer_direction()` / `get_wheel_steer_angle()` | Have        | 0.9.14 |
-| `get_traffic_light()` (returns TrafficLight)              | **Missing** | 0.9.14 |
-| `apply_ackermann_controller_settings()`                   | **Missing** | 0.9.14 |
-| `get_ackermann_controller_settings()`                     | **Missing** | 0.9.14 |
-| `use_carsim_road()`                                       | **Missing** | 0.9.14 |
-| `enable_chrono_physics()`                                 | **Missing** | 0.9.14 |
+| `get_traffic_light()` (returns TrafficLight)              | Have        | 0.9.14 |
+| `apply_ackermann_controller_settings()`                   | Have        | 0.9.14 |
+| `get_ackermann_controller_settings()`                     | Have        | 0.9.14 |
+| `use_carsim_road()`                                       | Have        | 0.9.14 |
+| `enable_chrono_physics()`                                 | Have        | 0.9.14 |
 
 ### `Walker`
 
@@ -180,7 +180,7 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `apply_control()` / `control()`                | Have        | 0.9.14 |
 | `set_bones()` / `get_bones_transform()`        | Have        | 0.9.14 |
 | `blend_pose()` / `show_pose()` / `hide_pose()` | Have        | 0.9.14 |
-| `get_pose_from_animation()`                    | **Missing** | 0.9.14 |
+| `get_pose_from_animation()`                    | Have        | 0.9.14 |
 
 ### `WalkerAIController`
 
@@ -443,7 +443,7 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | `MapLayer` enum (load/unload support)              | Partial     | 0.9.14 | `World::LoadLevelLayer()` parameter              |
 | `SignalOrientation` enum                           | **Missing** | 0.9.14 | `Landmark::GetOrientation()` return type         |
 | `ActorAttributeType` enum                          | **Missing** | 0.9.14 | `ActorAttributeValueAccess::GetType()`           |
-| `AckermannControllerSettings` struct               | **Missing** | 0.9.14 | `Vehicle::GetAckermannControllerSettings()`      |
+| `AckermannControllerSettings` struct               | Have        | 0.9.14 | `Vehicle::GetAckermannControllerSettings()`      |
 
 ---
 

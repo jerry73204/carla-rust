@@ -16,6 +16,8 @@
 #ifdef CARLA_VERSION_0916
 #include "carla/rpc/VehicleTelemetryData.h"
 #endif
+#include "carla/client/TrafficLight.h"
+#include "carla_rust/client/traffic_light.hpp"
 #include "carla_rust/rpc/vehicle_physics_control.hpp"
 #include "carla_rust/rpc/vehicle_telemetry_data.hpp"
 
@@ -100,7 +102,13 @@ public:
         return FfiBoundingBox(std::move(orig));
     }
 
-    // SharedPtr<TrafficLight> GetTrafficLight() const {}
+    std::shared_ptr<FfiTrafficLight> GetTrafficLight() const {
+        auto tl = inner_->GetTrafficLight();
+        if (tl == nullptr) {
+            return nullptr;
+        }
+        return std::make_shared<FfiTrafficLight>(std::move(tl));
+    }
 
 #ifdef CARLA_VERSION_0916
     carla_rust::rpc::FfiVehicleTelemetryData GetTelemetryData() const {

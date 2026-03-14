@@ -45,6 +45,8 @@ public:
 
     void BlendPose(float blend) const { inner_->BlendPose(blend); }
 
+    void GetPoseFromAnimation() const { inner_->GetPoseFromAnimation(); }
+
     std::shared_ptr<FfiActor> to_actor() const {
         SharedPtr<Actor> ptr = carla_static_pointer_cast<Actor>(inner_);
         return std::make_shared<FfiActor>(std::move(ptr));
