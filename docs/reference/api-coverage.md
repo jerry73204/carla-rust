@@ -105,10 +105,10 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `max_actor_shapes`           | Have        | 0.9.14 |
 | `deterministic_ragdolls`     | Have        | 0.9.14 |
 | `enable_environment_objects` | Have        | 0.9.14 |
-| `max_culling_distance`       | **Missing** | 0.9.14 |
-| `tile_stream_distance`       | **Missing** | 0.9.14 |
-| `actor_active_distance`      | **Missing** | 0.9.14 |
-| `spectator_as_ego`           | **Missing** | 0.9.15 |
+| `max_culling_distance`       | Have        | 0.9.14 |
+| `tile_stream_distance`       | Have        | 0.9.14 |
+| `actor_active_distance`      | Have        | 0.9.14 |
+| `spectator_as_ego`           | Have        | 0.9.15 |
 
 ---
 
@@ -549,7 +549,7 @@ Most missing APIs have been present since 0.9.14. Only these require `#[cfg]` gu
 | `Client::set_replayer_ignore_spectator()`                                 | 0.9.15     | —                        |
 | `Actor::set_collisions()`                                                 | 0.9.15     | —                        |
 | `Sensor::enable_for_ros()` / `disable_for_ros()` / `is_enabled_for_ros()` | 0.9.15     | —                        |
-| `EpisodeSettings::spectator_as_ego`                                       | 0.9.15     | —                        |
+| `EpisodeSettings::spectator_as_ego`                                       | 0.9.15     | `spectator_as_ego`       |
 | `BlueprintLibrary::filter_by_attribute()`                                 | 0.9.15     | —                        |
 | `Vector3D::squared_length_2d()` / `length_2d()`                           | 0.9.15     | —                        |
 | `Location::distance_squared()`                                            | 0.9.15     | —                        |

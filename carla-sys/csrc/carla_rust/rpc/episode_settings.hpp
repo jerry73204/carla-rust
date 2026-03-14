@@ -51,6 +51,16 @@ public:
 
     float actor_active_distance() const { return inner_.actor_active_distance; }
 
+#ifdef CARLA_VERSION_0915_PLUS
+    bool spectator_as_ego() const {
+        return inner_.spectator_as_ego;
+    }
+
+    void set_spectator_as_ego(bool value) {
+        inner_.spectator_as_ego = value;
+    }
+#endif
+
 private:
     EpisodeSettings inner_;
 };

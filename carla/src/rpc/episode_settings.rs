@@ -57,6 +57,11 @@ pub struct EpisodeSettings {
 
     /// Distance at which actors become active (meters).
     pub actor_active_distance: f32,
+
+    /// Whether the spectator acts as ego for tile loading in large maps.
+    /// Default: `true`. Available in CARLA 0.9.15+.
+    #[cfg(carla_0915)]
+    pub spectator_as_ego: bool,
 }
 
 impl EpisodeSettings {
@@ -79,37 +84,34 @@ impl EpisodeSettings {
             deterministic_ragdolls: from.deterministic_ragdolls(),
             tile_stream_distance: from.tile_stream_distance(),
             actor_active_distance: from.actor_active_distance(),
+            #[cfg(carla_0915)]
+            spectator_as_ego: from.spectator_as_ego(),
         }
     }
 
     pub(crate) fn to_cxx(&self) -> UniquePtr<FfiEpisodeSettings> {
-        let Self {
-            synchronous_mode,
-            no_rendering_mode,
-            fixed_delta_seconds,
-            substepping,
-            max_substep_delta_time,
-            max_substeps,
-            max_culling_distance,
-            deterministic_ragdolls,
-            tile_stream_distance,
-            actor_active_distance,
-        } = *self;
-        let fixed_delta_seconds = fixed_delta_seconds.unwrap_or(0.0);
+        let fixed_delta_seconds = self.fixed_delta_seconds.unwrap_or(0.0);
 
-        FfiEpisodeSettings::new2(
-            synchronous_mode,
-            no_rendering_mode,
+        let mut settings = FfiEpisodeSettings::new2(
+            self.synchronous_mode,
+            self.no_rendering_mode,
             fixed_delta_seconds,
-            substepping,
-            max_substep_delta_time,
-            c_int(max_substeps as std::os::raw::c_int),
-            max_culling_distance,
-            deterministic_ragdolls,
-            tile_stream_distance,
-            actor_active_distance,
+            self.substepping,
+            self.max_substep_delta_time,
+            c_int(self.max_substeps as std::os::raw::c_int),
+            self.max_culling_distance,
+            self.deterministic_ragdolls,
+            self.tile_stream_distance,
+            self.actor_active_distance,
         )
-        .within_unique_ptr()
+        .within_unique_ptr();
+
+        #[cfg(carla_0915)]
+        settings
+            .pin_mut()
+            .set_spectator_as_ego(self.spectator_as_ego);
+
+        settings
     }
 }
 

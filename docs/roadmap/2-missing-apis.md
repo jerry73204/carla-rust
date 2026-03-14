@@ -112,12 +112,14 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Medium
 
-- [ ] Add `max_culling_distance: f32`
-- [ ] Add `tile_stream_distance: f32`
-- [ ] Add `actor_active_distance: f32`
-- [ ] Add `spectator_as_ego: bool` — gated with `#[cfg(carla_0915)]`
-- [ ] Update C++ wrapper if needed
-- [ ] Update `from_ffi`/`into_ffi` conversions
+- [x] Add `max_culling_distance: f32` — already implemented
+- [x] Add `tile_stream_distance: f32` — already implemented
+- [x] Add `actor_active_distance: f32` — already implemented
+- [x] Add `spectator_as_ego: bool` — gated with `#[cfg(carla_0915)]`
+  - [x] Add C++ accessor + setter gated with `CARLA_VERSION_0915_PLUS`
+  - [x] Add Rust field gated with `#[cfg(carla_0915)]`
+- [x] Update C++ wrapper if needed
+- [x] Update `from_ffi`/`into_ffi` conversions
 
 ---
 
