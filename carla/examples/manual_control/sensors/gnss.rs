@@ -55,7 +55,7 @@ impl GnssSensor {
             .ok_or_else(|| eyre!("No player vehicle available"))?;
 
         // Get blueprint for sensor.other.gnss
-        let blueprint_library = world.world.blueprint_library();
+        let blueprint_library = world.world.blueprint_library()?;
         let gnss_bp = blueprint_library
             .find("sensor.other.gnss")
             .ok_or_else(|| eyre!("sensor.other.gnss blueprint not found"))?;
@@ -90,7 +90,7 @@ impl GnssSensor {
                     data.longitude = longitude;
                 }
             }
-        });
+        })?;
 
         self.sensor = Some(gnss_sensor);
         info!("✓ GNSS sensor spawned and listening");

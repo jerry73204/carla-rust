@@ -19,18 +19,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let mut client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let mut client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Spawn a vehicle to record
     println!("Spawning vehicle...");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());
 
     // Enable autopilot to create interesting movement
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
     println!("✓ Autopilot enabled\n");
 
     // Start recording
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Filename: {}", recording_filename);
     println!("  Additional data: enabled");
 
-    let result = client.start_recorder(recording_filename, true);
+    let result = client.start_recorder(recording_filename, true)?;
     println!("✓ Recording started: {}\n", result);
 
     // Let the simulation run and record
@@ -60,11 +60,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Stop recording
     println!("\nStopping recorder...");
-    client.stop_recorder();
+    client.stop_recorder()?;
     println!("✓ Recording stopped");
 
     // Cleanup
-    vehicle.destroy();
+    vehicle.destroy()?;
     println!("✓ Vehicle destroyed");
 
     println!("\n=== Recording Complete ===");

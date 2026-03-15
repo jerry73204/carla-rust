@@ -1,7 +1,7 @@
 //! Walker AI controller for autonomous pedestrian navigation.
 
 use super::{Actor, ActorBase};
-use crate::geom::Location;
+use crate::{error::ffi::with_ffi_error, geom::Location};
 use carla_sys::carla_rust::client::{FfiActor, FfiWalkerAIController};
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -34,29 +34,28 @@ use derivative::Derivative;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::{
 ///     client::{ActorBase, Client},
 ///     geom::Location,
 /// };
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
 ///
-/// # let bp_lib = world.blueprint_library();
+/// # let bp_lib = world.blueprint_library()?;
 /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
 /// # let ai_controller_bp = bp_lib.find("controller.ai.walker").unwrap();
-/// # let spawn_points = world.map().recommended_spawn_points();
-/// # let walker = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
-/// let ai_controller = world
-///     .spawn_actor(&ai_controller_bp, spawn_points.get(0).unwrap())
-///     .unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let walker = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
+/// let ai_controller = world.spawn_actor(&ai_controller_bp, spawn_points.get(0).unwrap())?;
 /// let mut ai: carla::client::WalkerAIController = ai_controller.try_into().unwrap();
 ///
 /// // Start AI control
-/// ai.start();
+/// ai.start()?;
 ///
 /// // Set maximum speed
-/// ai.set_max_speed(1.4); // m/s
+/// ai.set_max_speed(1.4)?; // m/s
 ///
 /// // Navigate to a location
 /// let destination = Location {
@@ -64,7 +63,9 @@ use derivative::Derivative;
 ///     y: 50.0,
 ///     z: 0.5,
 /// };
-/// ai.go_to_location(&destination);
+/// ai.go_to_location(&destination)?;
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -98,18 +99,23 @@ impl WalkerAIController {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap())?;
     /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
-    /// ai.start();
+    /// ai.start()?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn start(&self) {
-        self.inner.Start();
+    pub fn start(&self) -> crate::Result<()> {
+        with_ffi_error("start", |e| {
+            self.inner.Start(e);
+        })
     }
 
     /// Stops the AI controller.
@@ -135,18 +141,23 @@ impl WalkerAIController {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap())?;
     /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
-    /// ai.stop();
+    /// ai.stop()?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn stop(&self) {
-        self.inner.Stop();
+    pub fn stop(&self) -> crate::Result<()> {
+        with_ffi_error("stop", |e| {
+            self.inner.Stop(e);
+        })
     }
 
     /// Gets a random navigation location.
@@ -173,25 +184,28 @@ impl WalkerAIController {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap())?;
     /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
     /// if let Some(location) = ai.get_random_location() {
     ///     println!("Random location: {:?}", location);
-    ///     ai.go_to_location(&location);
+    ///     ai.go_to_location(&location)?;
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn get_random_location(&self) -> Option<Location> {
-        let ptr = self.inner.GetRandomLocation();
+    pub fn get_random_location(&self) -> crate::Result<Option<Location>> {
+        let ptr = with_ffi_error("get_random_location", |e| self.inner.GetRandomLocation(e))?;
         if ptr.is_null() {
-            None
+            Ok(None)
         } else {
-            Some(Location::from_ffi(ptr.as_ref().unwrap().clone()))
+            Ok(Some(Location::from_ffi(ptr.as_ref().unwrap().clone())))
         }
     }
 
@@ -222,24 +236,29 @@ impl WalkerAIController {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap())?;
     /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
     /// let destination = Location {
     ///     x: 100.0,
     ///     y: 50.0,
     ///     z: 0.0,
     /// };
-    /// ai.go_to_location(&destination);
+    /// ai.go_to_location(&destination)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn go_to_location(&self, location: &Location) {
-        self.inner.GoToLocation(location.as_ffi());
+    pub fn go_to_location(&self, location: &Location) -> crate::Result<()> {
+        with_ffi_error("go_to_location", |e| {
+            self.inner.GoToLocation(location.as_ffi(), e);
+        })
     }
 
     /// Sets the maximum walking speed.
@@ -267,19 +286,24 @@ impl WalkerAIController {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let ai_bp = bp_lib.find("controller.ai.walker").unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&ai_bp, spawn_points.get(0).unwrap())?;
     /// # let mut ai: carla::client::WalkerAIController = actor.try_into().unwrap();
     /// // Set walking speed to 1.4 m/s (typical human walking speed)
-    /// ai.set_max_speed(1.4);
+    /// ai.set_max_speed(1.4)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn set_max_speed(&self, speed: f32) {
-        self.inner.SetMaxSpeed(speed);
+    pub fn set_max_speed(&self, speed: f32) -> crate::Result<()> {
+        with_ffi_error("set_max_speed", |e| {
+            self.inner.SetMaxSpeed(speed, e);
+        })
     }
 
     #[allow(dead_code)]

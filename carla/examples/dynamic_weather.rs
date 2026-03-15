@@ -21,12 +21,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Get current weather
-    let initial_weather = world.weather();
+    let initial_weather = world.weather()?;
     println!("Initial weather:");
     print_weather(&initial_weather);
     println!();
@@ -39,10 +39,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let sun_altitude_angle = -30.0 + (hour as f32 * 5.0); // -30 to 85 degrees
         let sun_azimuth_angle = hour as f32 * 15.0; // 0 to 345 degrees
 
-        let mut weather = world.weather();
+        let mut weather = world.weather()?;
         weather.sun_altitude_angle = sun_altitude_angle;
         weather.sun_azimuth_angle = sun_azimuth_angle;
-        world.set_weather(&weather);
+        world.set_weather(&weather)?;
 
         println!(
             "Hour {:02}:00 - Altitude: {:.1}°, Azimuth: {:.1}°",
@@ -179,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (name, weather) in weather_presets.iter() {
         println!("--- {} ---", name);
         print_weather(weather);
-        world.set_weather(weather);
+        world.set_weather(weather)?;
         println!("Displaying for 5 seconds...\n");
         thread::sleep(Duration::from_secs(5));
     }
@@ -194,7 +194,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for i in 0..=steps {
         let t = i as f32 / steps as f32; // 0.0 to 1.0
 
-        let mut weather = world.weather();
+        let mut weather = world.weather()?;
         weather.cloudiness = lerp(10.0, 100.0, t);
         weather.precipitation = lerp(0.0, 100.0, t);
         weather.wind_intensity = lerp(5.0, 100.0, t);
@@ -202,7 +202,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         weather.wetness = lerp(0.0, 100.0, t);
         weather.sun_altitude_angle = lerp(75.0, 15.0, t);
 
-        world.set_weather(&weather);
+        world.set_weather(&weather)?;
 
         if i % 10 == 0 {
             println!(
@@ -220,7 +220,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Restore initial weather
     println!("Restoring initial weather...");
-    world.set_weather(&initial_weather);
+    world.set_weather(&initial_weather)?;
     println!("✓ Weather restored");
 
     println!("\n=== Dynamic Weather Demo Complete ===");

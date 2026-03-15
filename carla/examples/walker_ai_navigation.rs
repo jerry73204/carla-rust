@@ -16,19 +16,19 @@ use carla::{
 };
 use std::{thread, time::Duration};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Walker AI Navigation Test ===\n");
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("✓ Connected to CARLA server");
 
-    let mut world = client.world();
-    println!("✓ World: {}\n", world.map().name());
+    let mut world = client.world()?;
+    println!("✓ World: {}\n", world.map()?.name());
 
     // Get blueprint library
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Find walker blueprint
     let walker_bp = blueprint_library
@@ -44,7 +44,7 @@ fn main() {
     println!("✓ AI controller blueprint: {}", ai_controller_bp.id());
 
     // Get spawn points
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     if spawn_points.is_empty() {
         eprintln!("✗ No spawn points available");
         std::process::exit(1);
@@ -92,14 +92,14 @@ fn main() {
         }
         Err(actor) => {
             eprintln!("✗ Failed to cast to WalkerAIController");
-            actor.destroy();
-            walker.destroy();
+            actor.destroy()?;
+            walker.destroy()?;
             std::process::exit(1);
         }
     };
 
     println!("=== Test 1: get_random_location() ===");
-    match ai.get_random_location() {
+    match ai.get_random_location()? {
         Some(random_loc) => {
             println!(
                 "✓ get_random_location() returned: ({:.2}, {:.2}, {:.2})",
@@ -108,10 +108,10 @@ fn main() {
 
             // Test that we can use this location with go_to_location()
             println!("\n=== Test 2: go_to_location() with random location ===");
-            ai.start();
+            ai.start()?;
             println!("✓ AI controller started");
 
-            ai.go_to_location(&random_loc);
+            ai.go_to_location(&random_loc)?;
             println!("✓ go_to_location() called with random target");
             println!(
                 "  Target: ({:.2}, {:.2}, {:.2})",
@@ -119,14 +119,14 @@ fn main() {
             );
 
             // Set a reasonable walking speed
-            ai.set_max_speed(1.4);
+            ai.set_max_speed(1.4)?;
             println!("✓ Walking speed set to 1.4 m/s");
 
             // Wait a bit and check walker's position
             println!("\nWaiting 3 seconds to observe movement...");
             thread::sleep(Duration::from_secs(1));
 
-            let start_pos = walker.transform();
+            let start_pos = walker.transform()?;
             println!(
                 "  Walker position at t=0s: ({:.2}, {:.2}, {:.2})",
                 start_pos.location.x, start_pos.location.y, start_pos.location.z
@@ -134,7 +134,7 @@ fn main() {
 
             thread::sleep(Duration::from_secs(2));
 
-            let end_pos = walker.transform();
+            let end_pos = walker.transform()?;
             println!(
                 "  Walker position at t=3s: ({:.2}, {:.2}, {:.2})",
                 end_pos.location.x, end_pos.location.y, end_pos.location.z
@@ -149,7 +149,7 @@ fn main() {
                 println!("⚠ Walker hasn't moved much (might already be at target or stuck)");
             }
 
-            ai.stop();
+            ai.stop()?;
             println!("\n✓ AI controller stopped");
         }
         None => {
@@ -160,7 +160,7 @@ fn main() {
 
     // Test 3: Navigate to a specific location
     println!("\n=== Test 3: go_to_location() with custom destination ===");
-    let current_pos = walker.transform();
+    let current_pos = walker.transform()?;
     let destination = Location {
         x: current_pos.location.x + 50.0,
         y: current_pos.location.y + 30.0,
@@ -176,24 +176,24 @@ fn main() {
         destination.x, destination.y, destination.z
     );
 
-    ai.start();
-    ai.go_to_location(&destination);
+    ai.start()?;
+    ai.go_to_location(&destination)?;
     println!("✓ go_to_location() called with custom destination");
 
     thread::sleep(Duration::from_secs(1));
-    let new_pos = walker.transform();
+    let new_pos = walker.transform()?;
     println!(
         "  Position after 1s: ({:.2}, {:.2}, {:.2})",
         new_pos.location.x, new_pos.location.y, new_pos.location.z
     );
 
-    ai.stop();
+    ai.stop()?;
 
     // Cleanup
     println!("\n=== Cleanup ===");
-    ai.destroy();
+    ai.destroy()?;
     println!("✓ AI controller destroyed");
-    walker.destroy();
+    walker.destroy()?;
     println!("✓ Walker destroyed");
 
     println!("\n=== Test Results ===");
@@ -201,4 +201,6 @@ fn main() {
     println!("✓ get_random_location() -> Option<Location> - WORKING");
     println!("\n✓ Both methods are fully implemented and functional!");
     println!("  These should NOT be marked as DEFERRED in core-apis.md");
+
+    Ok(())
 }

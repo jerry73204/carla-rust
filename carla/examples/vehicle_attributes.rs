@@ -13,16 +13,16 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Find vehicle blueprint
     let vehicle_bp = blueprint_library
@@ -32,7 +32,7 @@ fn main() {
     println!("Blueprint: {}\n", vehicle_bp.id());
 
     // Spawn the vehicle
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle = world
@@ -42,7 +42,7 @@ fn main() {
     println!("Vehicle spawned: ID {}\n", vehicle.id());
 
     // Get all attributes
-    let attributes = vehicle.attributes();
+    let attributes = vehicle.attributes()?;
     println!("Vehicle attributes ({} total):", attributes.len());
 
     for attr in attributes.iter() {
@@ -68,4 +68,6 @@ fn main() {
     }
 
     println!("\nVehicle will remain in the simulation.");
+
+    Ok(())
 }

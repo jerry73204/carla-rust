@@ -18,18 +18,18 @@ use carla::{
 };
 use std::{thread, time::Duration};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
 
     // Get debug helper
-    let debug = world.debug();
+    let debug = world.debug()?;
 
     // Origin point for all drawings
     let origin = Location::new(0.0, 0.0, 0.5);
@@ -240,4 +240,6 @@ fn main() {
 
     println!("✓ Example complete!");
     println!("  Note: Visualizations will remain visible for 60 seconds total.");
+
+    Ok(())
 }

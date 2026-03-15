@@ -46,7 +46,7 @@ impl RadarSensor {
             .ok_or_else(|| eyre!("No player vehicle available"))?;
 
         // Get blueprint for sensor.other.radar
-        let blueprint_library = world.world.blueprint_library();
+        let blueprint_library = world.world.blueprint_library()?;
         let mut radar_bp = blueprint_library
             .find("sensor.other.radar")
             .ok_or_else(|| eyre!("sensor.other.radar blueprint not found"))?;
@@ -92,8 +92,9 @@ impl RadarSensor {
             }
 
             // Convert sensor data to radar measurement
-            if let Ok(radar_data) = RadarMeasurement::try_from(sensor_data) {
-                let debug = carla_world.debug();
+            if let Ok(radar_data) = RadarMeasurement::try_from(sensor_data)
+                && let Ok(debug) = carla_world.debug()
+            {
                 let detections = radar_data.as_slice();
 
                 // Draw each detection as a debug point
@@ -126,7 +127,7 @@ impl RadarSensor {
                     debug.draw_point(location, 0.1, color, 0.1, false);
                 }
             }
-        });
+        })?;
 
         self.sensor = Some(radar_sensor);
         info!("✓ Radar sensor spawned and listening");

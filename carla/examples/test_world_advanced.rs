@@ -18,11 +18,11 @@ use std::{thread, time::Duration};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== World Operations Tests ===\n");
 
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     let mut passed = 0;
@@ -133,7 +133,7 @@ where
 
 fn test_get_traffic_lights(world: &carla::client::World) -> TestResult {
     // Query all actors and filter for traffic lights
-    let actors = world.actors();
+    let actors = world.actors()?;
 
     // Traffic lights have type_id starting with "traffic.traffic_light"
     let mut traffic_light_count = 0;
@@ -155,7 +155,7 @@ fn test_traffic_light_state_change(world: &carla::client::World) -> TestResult {
     // Note: Individual traffic light state control API not yet available
     // This test verifies we can identify traffic lights through actors
 
-    let actors = world.actors();
+    let actors = world.actors()?;
     let traffic_lights: Vec<_> = actors
         .iter()
         .filter(|a| a.type_id().starts_with("traffic.traffic_light"))
@@ -169,7 +169,7 @@ fn test_traffic_light_state_change(world: &carla::client::World) -> TestResult {
 
         // Get properties of first traffic light
         if let Some(tl) = traffic_lights.first() {
-            let location = tl.location();
+            let location = tl.location()?;
             println!(
                 "  Traffic light location: ({:.1}, {:.1}, {:.1})",
                 location.x, location.y, location.z
@@ -185,7 +185,7 @@ fn test_traffic_light_timing(world: &carla::client::World) -> TestResult {
     // Note: Traffic light timing API not yet available
     // This test documents the limitation
 
-    let actors = world.actors();
+    let actors = world.actors()?;
     let traffic_light_count = actors
         .iter()
         .filter(|a| a.type_id().starts_with("traffic.traffic_light"))
@@ -203,11 +203,11 @@ fn test_traffic_light_timing(world: &carla::client::World) -> TestResult {
 fn test_traffic_light_freeze(world: &mut carla::client::World) -> TestResult {
     // Test freezing all traffic lights
     println!("  Freezing all traffic lights");
-    world.freeze_all_traffic_lights(true);
+    world.freeze_all_traffic_lights(true)?;
     thread::sleep(Duration::from_millis(100));
 
     println!("  Unfreezing all traffic lights");
-    world.freeze_all_traffic_lights(false);
+    world.freeze_all_traffic_lights(false)?;
     thread::sleep(Duration::from_millis(100));
 
     // Verify freeze/unfreeze completes without error
@@ -217,7 +217,7 @@ fn test_traffic_light_freeze(world: &mut carla::client::World) -> TestResult {
 fn test_reset_all_traffic_lights(world: &mut carla::client::World) -> TestResult {
     // Reset all traffic lights to default state
     println!("  Resetting all traffic lights to default");
-    world.reset_all_traffic_lights();
+    world.reset_all_traffic_lights()?;
     thread::sleep(Duration::from_millis(100));
 
     // Verify reset completes without error
@@ -230,7 +230,7 @@ fn test_get_landmarks(world: &carla::client::World) -> TestResult {
     // Note: Landmark API not yet available in Rust bindings
     // This test documents the limitation and tests what we can
 
-    let map = world.map();
+    let map = world.map()?;
     let name = map.name();
 
     println!("  Current map: {}", name);
@@ -246,8 +246,8 @@ fn test_get_landmarks(world: &carla::client::World) -> TestResult {
 fn test_landmarks_by_type(world: &carla::client::World) -> TestResult {
     // Note: Landmark filtering API not yet available
 
-    let map = world.map();
-    let waypoints = map.generate_waypoints(10.0);
+    let map = world.map()?;
+    let waypoints = map.generate_waypoints(10.0)?;
 
     println!(
         "  Generated {} waypoints (landmarks would be nearby)",
@@ -262,8 +262,8 @@ fn test_landmarks_by_type(world: &carla::client::World) -> TestResult {
 fn test_landmark_waypoints(world: &carla::client::World) -> TestResult {
     // Note: Landmark waypoint association API not yet available
 
-    let map = world.map();
-    let waypoints = map.generate_waypoints(10.0);
+    let map = world.map()?;
+    let waypoints = map.generate_waypoints(10.0)?;
 
     if !waypoints.is_empty()
         && let Some(wp) = waypoints.get(0)
@@ -285,7 +285,7 @@ fn test_landmark_waypoints(world: &carla::client::World) -> TestResult {
 
 fn test_environment_objects_query(world: &carla::client::World) -> TestResult {
     // Query all environment objects using full type mask
-    let objects = world.environment_objects(0xFF);
+    let objects = world.environment_objects(0xFF)?;
 
     println!("  Found {} environment objects", objects.len());
 
@@ -315,7 +315,7 @@ fn test_environment_objects_query(world: &carla::client::World) -> TestResult {
 
 fn test_environment_object_enable_disable(world: &carla::client::World) -> TestResult {
     // Get environment objects
-    let objects = world.environment_objects(0xFF);
+    let objects = world.environment_objects(0xFF)?;
 
     if objects.is_empty() {
         println!("  No environment objects to toggle");
@@ -333,11 +333,11 @@ fn test_environment_object_enable_disable(world: &carla::client::World) -> TestR
 
     if !ids_to_toggle.is_empty() {
         println!("  Disabling {} environment objects", ids_to_toggle.len());
-        world.enable_environment_objects(&ids_to_toggle, false);
+        world.enable_environment_objects(&ids_to_toggle, false)?;
         thread::sleep(Duration::from_millis(200));
 
         println!("  Re-enabling {} environment objects", ids_to_toggle.len());
-        world.enable_environment_objects(&ids_to_toggle, true);
+        world.enable_environment_objects(&ids_to_toggle, true)?;
         thread::sleep(Duration::from_millis(200));
     }
 
@@ -350,7 +350,7 @@ fn test_environment_object_enable_disable(world: &carla::client::World) -> TestR
 fn test_world_tick_timeout(world: &mut carla::client::World) -> TestResult {
     // Test world tick with default timeout
     println!("  Performing world tick");
-    let tick_result = world.tick();
+    let tick_result = world.tick()?;
 
     // Tick returns the frame number
     println!("  Tick completed, frame: {}", tick_result);
@@ -358,7 +358,7 @@ fn test_world_tick_timeout(world: &mut carla::client::World) -> TestResult {
     assert!(tick_result > 0, "Tick should return valid frame number");
 
     // Test multiple ticks
-    let tick2 = world.tick();
+    let tick2 = world.tick()?;
     println!("  Second tick completed, frame: {}", tick2);
 
     assert!(

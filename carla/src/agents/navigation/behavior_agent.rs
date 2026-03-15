@@ -350,14 +350,14 @@ impl BehaviorAgent {
     /// Detects pedestrian obstacles and returns (found, actor, distance).
     fn pedestrian_avoid_manager(&self) -> Result<(bool, Option<Actor>, f32)> {
         // Similar to vehicle detection but for walkers
-        let walker_list = self.core.world.actors().filter("*walker.pedestrian*");
-        let vehicle_location = self.core.vehicle.transform().location;
+        let walker_list = self.core.world.actors()?.filter("*walker.pedestrian*");
+        let vehicle_location = self.core.vehicle.transform()?.location;
 
         let params = self.behavior.params();
         let max_distance = params.min_proximity_threshold + params.safety_time * (self.speed / 3.6);
 
         for actor in walker_list.iter() {
-            let walker_location = actor.transform().location;
+            let walker_location = actor.transform()?.location;
 
             let dx = walker_location.x - vehicle_location.x;
             let dy = walker_location.y - vehicle_location.y;
@@ -467,7 +467,7 @@ impl BehaviorAgent {
             let ego_bbox = self.core.vehicle.bounding_box();
 
             // Get the obstacle vehicle and its bounding box
-            let vehicle_actor = self.core.world.actor(vehicle_id.unwrap()).unwrap();
+            let vehicle_actor = self.core.world.actor(vehicle_id.unwrap())?.unwrap();
             let obstacle_bbox = if let Ok(vehicle) = Vehicle::try_from(vehicle_actor) {
                 vehicle.bounding_box()
             } else {
@@ -539,12 +539,12 @@ impl BehaviorAgent {
             {
                 wp.transform().location
             } else {
-                self.core.vehicle.transform().location
+                self.core.vehicle.transform()?.location
             }
         } else if let Some((wp, _)) = self.core.local_planner.get_plan().last() {
             wp.transform().location
         } else {
-            self.core.vehicle.transform().location
+            self.core.vehicle.transform()?.location
         };
 
         let route = self

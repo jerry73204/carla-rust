@@ -13,17 +13,17 @@
 
 use carla::client::Client;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let world = client.world();
+    let world = client.world()?;
     println!("World ready!");
 
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Get all blueprints
     let all_blueprints = blueprint_library.filter("*");
@@ -75,4 +75,6 @@ fn main() {
     } else {
         println!("Tesla Model 3 not found");
     }
+
+    Ok(())
 }

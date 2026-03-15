@@ -60,7 +60,7 @@ struct CameraManager {
 
 impl CameraManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
 
         // Create RGB camera
         let rgb_bp = blueprint_library
@@ -131,7 +131,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         semantic_sensor.listen(move |data| {
             if let Ok(image) = CarlaImage::try_from(data)
@@ -139,7 +139,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         Ok(Self {
             rgb_sensor,
@@ -232,9 +232,9 @@ impl Hud {
         let mut y = y_offset;
 
         // Get vehicle data
-        let transform = vehicle.transform();
+        let transform = vehicle.transform().unwrap();
         let location = transform.location;
-        let velocity = vehicle.velocity();
+        let velocity = vehicle.velocity().unwrap();
         let speed_ms = velocity.length();
         let speed_kmh = speed_ms * 3.6;
 
@@ -351,8 +351,8 @@ async fn main() -> Result<()> {
     println!("Synchronous Mode GUI - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Enabling synchronous mode...");
 
@@ -362,7 +362,7 @@ async fn main() -> Result<()> {
         fixed_delta_seconds: Some(FIXED_DELTA_SECONDS as f64),
         ..Default::default()
     };
-    world.apply_settings(&settings, Duration::from_secs(2));
+    world.apply_settings(&settings, Duration::from_secs(2))?;
 
     println!("Synchronous mode enabled (30 FPS fixed timestep)");
 
@@ -383,10 +383,10 @@ async fn main() -> Result<()> {
         rayleigh_scattering_scale: 0.0331,
         dust_storm: 0.0,
     };
-    world.set_weather(&weather);
+    world.set_weather(&weather)?;
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.is_empty() {
@@ -394,7 +394,7 @@ async fn main() -> Result<()> {
     }
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -407,7 +407,7 @@ async fn main() -> Result<()> {
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
 
     // Disable physics for smooth waypoint following
-    vehicle.set_simulate_physics(false);
+    vehicle.set_simulate_physics(false)?;
 
     println!("Vehicle spawned: {}", vehicle.type_id());
 
@@ -426,16 +426,16 @@ async fn main() -> Result<()> {
     let mut last_frame_time = get_time();
 
     // Get initial waypoint
-    let initial_transform = vehicle.transform();
+    let initial_transform = vehicle.transform()?;
     let mut current_waypoint = map
-        .waypoint_at(&initial_transform.location)
+        .waypoint_at(&initial_transform.location)?
         .ok_or_else(|| anyhow::anyhow!("No waypoint at spawn location"))?;
 
     println!("Starting main loop...");
     println!("Press H for help");
 
     // Tick once to start
-    world.tick();
+    world.tick()?;
 
     loop {
         // Handle input
@@ -458,27 +458,27 @@ async fn main() -> Result<()> {
 
         if is_key_pressed(KeyCode::R) {
             println!("Resetting vehicle...");
-            vehicle.set_transform(spawn_point);
+            let _ = vehicle.set_transform(spawn_point);
             current_waypoint = map
-                .waypoint_at(&spawn_point.location)
+                .waypoint_at(&spawn_point.location)?
                 .ok_or_else(|| anyhow::anyhow!("No waypoint at spawn location"))?;
         }
 
         // Simulation tick
         if !paused {
             // Follow waypoints
-            let next_waypoints = current_waypoint.next(1.5);
+            let next_waypoints = current_waypoint.next(1.5)?;
             if !next_waypoints.is_empty() {
                 // Pick random next waypoint
                 let idx = (rand::gen_range(0, next_waypoints.len() as i32)) as usize;
                 current_waypoint = next_waypoints.get(idx).unwrap().clone();
 
                 // Teleport vehicle to waypoint
-                vehicle.set_transform(&current_waypoint.transform());
+                let _ = vehicle.set_transform(&current_waypoint.transform());
             }
 
             // Tick world
-            world.tick();
+            world.tick()?;
             frame_count += 1;
 
             // Calculate simulated FPS
@@ -517,11 +517,11 @@ async fn main() -> Result<()> {
         fixed_delta_seconds: None,
         ..Default::default()
     };
-    world.apply_settings(&settings, Duration::from_secs(2));
+    world.apply_settings(&settings, Duration::from_secs(2))?;
 
-    vehicle.destroy();
-    camera.rgb_sensor.destroy();
-    camera.semantic_sensor.destroy();
+    vehicle.destroy()?;
+    camera.rgb_sensor.destroy()?;
+    camera.semantic_sensor.destroy()?;
 
     println!("Done!");
 

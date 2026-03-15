@@ -37,23 +37,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Spawn a vehicle
     println!("Spawning vehicle...");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = Vehicle::try_from(actor).map_err(|_| "Failed to convert to vehicle")?;
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
     println!("✓ Vehicle spawned (ID: {})\n", vehicle.id());
 
     // Define sensor transforms
@@ -187,7 +187,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
         }
-    });
+    })?;
 
     // Depth listener
     let stats_depth = Arc::clone(&stats);
@@ -196,7 +196,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut s = stats_depth.lock().unwrap();
             s.depth_frames += 1;
         }
-    });
+    })?;
 
     // Semantic listener
     let stats_seg = Arc::clone(&stats);
@@ -205,7 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut s = stats_seg.lock().unwrap();
             s.semantic_frames += 1;
         }
-    });
+    })?;
 
     // Lidar listener
     let stats_lidar = Arc::clone(&stats);
@@ -223,7 +223,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
         }
-    });
+    })?;
 
     println!("✓ All sensors listening\n");
 
@@ -308,16 +308,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Cleanup
     println!("\nCleaning up...");
-    camera_rgb.stop();
-    camera_depth.stop();
-    camera_seg.stop();
-    lidar.stop();
+    camera_rgb.stop()?;
+    camera_depth.stop()?;
+    camera_seg.stop()?;
+    lidar.stop()?;
 
-    camera_rgb.destroy();
-    camera_depth.destroy();
-    camera_seg.destroy();
-    lidar.destroy();
-    vehicle.destroy();
+    camera_rgb.destroy()?;
+    camera_depth.destroy()?;
+    camera_seg.destroy()?;
+    lidar.destroy()?;
+    vehicle.destroy()?;
     println!("✓ All actors destroyed");
 
     println!("\n=== Sensor Synchronization Demo Complete ===");

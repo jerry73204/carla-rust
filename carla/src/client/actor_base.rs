@@ -1,9 +1,9 @@
 use super::{Actor, ActorAttributeValueList, World};
 use crate::{
+    error::ffi::with_ffi_error,
     geom::{BoundingBox, Location, Transform, Vector3D},
     rpc::{ActorId, ActorState},
 };
-use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::{client::FfiActor, geom::FfiVector3D};
 use cxx::SharedPtr;
 
@@ -19,20 +19,23 @@ use cxx::SharedPtr;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::{ActorBase, Client};
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
-/// # let bp_lib = world.blueprint_library();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
+/// # let bp_lib = world.blueprint_library()?;
 /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-/// # let spawn_points = world.map().recommended_spawn_points();
-/// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
 ///
 /// // All actors have these methods
 /// println!("Actor ID: {}", actor.id());
 /// println!("Type: {}", actor.type_id());
-/// println!("Location: {:?}", actor.location());
-/// println!("Velocity: {:?}", actor.velocity());
+/// println!("Location: {:?}", actor.location()?);
+/// println!("Velocity: {:?}", actor.velocity()?);
+/// # Ok(())
+/// # }
 /// ```
 pub trait ActorBase: Clone {
     /// Returns the underlying FFI actor pointer.
@@ -134,8 +137,8 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn parent(&self) -> Option<Actor> {
-        Actor::from_cxx(self.cxx_actor().GetParent())
+    fn parent(&self) -> crate::Result<Option<Actor>> {
+        with_ffi_error("parent", |e| Actor::from_cxx(self.cxx_actor().GetParent(e)))
     }
 
     /// Returns the actor's blueprint attributes (color, role_name, etc.).
@@ -155,9 +158,9 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn attributes(&self) -> ActorAttributeValueList<'_> {
-        let ptr = self.cxx_actor().GetAttributes().within_unique_ptr();
-        unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap_unchecked() }
+    fn attributes(&self) -> crate::Result<ActorAttributeValueList<'_>> {
+        let ptr = with_ffi_error("attributes", |e| self.cxx_actor().GetAttributes(e))?;
+        Ok(unsafe { ActorAttributeValueList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the world this actor belongs to.
@@ -177,8 +180,9 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn world(&self) -> World {
-        unsafe { World::from_cxx(self.cxx_actor().GetWorld()).unwrap_unchecked() }
+    fn world(&self) -> crate::Result<World> {
+        let world = with_ffi_error("world", |e| self.cxx_actor().GetWorld(e))?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Returns the actor's current location (position only).
@@ -198,8 +202,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn location(&self) -> Location {
-        Location::from_ffi(self.cxx_actor().GetLocation())
+    fn location(&self) -> crate::Result<Location> {
+        with_ffi_error("location", |e| {
+            Location::from_ffi(self.cxx_actor().GetLocation(e))
+        })
     }
 
     /// Returns the actor's current transform (position and rotation).
@@ -219,8 +225,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn transform(&self) -> Transform {
-        Transform::from_ffi(self.cxx_actor().GetTransform())
+    fn transform(&self) -> crate::Result<Transform> {
+        with_ffi_error("transform", |e| {
+            Transform::from_ffi(self.cxx_actor().GetTransform(e))
+        })
     }
 
     /// Returns the actor's velocity vector in m/s.
@@ -240,15 +248,15 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn velocity(&self) -> Vector3D {
+    fn velocity(&self) -> crate::Result<Vector3D> {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
-        unsafe {
-            let cpp_vec = self.cxx_actor().GetVelocity();
+        with_ffi_error("velocity", |e| unsafe {
+            let cpp_vec = self.cxx_actor().GetVelocity(e);
             Vector3D::from_ffi(std::mem::transmute::<
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-        }
+        })
     }
 
     /// Returns the actor's acceleration vector in m/s².
@@ -268,15 +276,15 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn acceleration(&self) -> Vector3D {
+    fn acceleration(&self) -> crate::Result<Vector3D> {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
-        unsafe {
-            let cpp_vec = self.cxx_actor().GetAcceleration();
+        with_ffi_error("acceleration", |e| unsafe {
+            let cpp_vec = self.cxx_actor().GetAcceleration(e);
             Vector3D::from_ffi(std::mem::transmute::<
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-        }
+        })
     }
 
     /// Returns the actor's angular velocity in radians/s.
@@ -296,15 +304,15 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn angular_velocity(&self) -> Vector3D {
+    fn angular_velocity(&self) -> crate::Result<Vector3D> {
         // SAFETY: carla::geom::Vector3D and FfiVector3D have identical memory layout
-        unsafe {
-            let cpp_vec = self.cxx_actor().GetAngularVelocity();
+        with_ffi_error("angular_velocity", |e| unsafe {
+            let cpp_vec = self.cxx_actor().GetAngularVelocity(e);
             Vector3D::from_ffi(std::mem::transmute::<
                 carla_sys::carla::geom::Vector3D,
                 FfiVector3D,
             >(cpp_vec))
-        }
+        })
     }
 
     /// Teleports the actor to a new location.
@@ -324,8 +332,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_location(&self, location: &Location) {
-        self.cxx_actor().SetLocation(location.as_ffi())
+    fn set_location(&self, location: &Location) -> crate::Result<()> {
+        with_ffi_error("set_location", |e| {
+            self.cxx_actor().SetLocation(location.as_ffi(), e)
+        })
     }
 
     /// Teleports the actor to a new transform (position and rotation).
@@ -345,8 +355,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_transform(&self, transform: &Transform) {
-        self.cxx_actor().SetTransform(transform.as_ffi())
+    fn set_transform(&self, transform: &Transform) -> crate::Result<()> {
+        with_ffi_error("set_transform", |e| {
+            self.cxx_actor().SetTransform(transform.as_ffi(), e)
+        })
     }
 
     /// Sets the target velocity for physics simulation (m/s).
@@ -366,13 +378,13 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_target_velocity(&self, vector: &Vector3D) {
+    fn set_target_velocity(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("set_target_velocity", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().SetTargetVelocity(cpp_vec)
-        }
+            self.cxx_actor().SetTargetVelocity(cpp_vec, e)
+        })
     }
 
     /// Sets the target angular velocity for physics simulation (rad/s).
@@ -392,13 +404,13 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_target_angular_velocity(&self, vector: &Vector3D) {
+    fn set_target_angular_velocity(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("set_target_angular_velocity", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().SetTargetAngularVelocity(cpp_vec)
-        }
+            self.cxx_actor().SetTargetAngularVelocity(cpp_vec, e)
+        })
     }
 
     /// Enables constant velocity mode (actor moves at fixed velocity regardless of physics).
@@ -418,13 +430,13 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn enable_constant_velocity(&self, vector: &Vector3D) {
+    fn enable_constant_velocity(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("enable_constant_velocity", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().EnableConstantVelocity(cpp_vec)
-        }
+            self.cxx_actor().EnableConstantVelocity(cpp_vec, e)
+        })
     }
 
     /// Disables constant velocity mode.
@@ -444,8 +456,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn disable_constant_velocity(&self) {
-        self.cxx_actor().DisableConstantVelocity()
+    fn disable_constant_velocity(&self) -> crate::Result<()> {
+        with_ffi_error("disable_constant_velocity", |e| {
+            self.cxx_actor().DisableConstantVelocity(e)
+        })
     }
 
     /// Applies an impulse (instantaneous velocity change) to the actor's center of mass.
@@ -465,25 +479,25 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn add_impulse(&self, vector: &Vector3D) {
+    fn add_impulse(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_impulse", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddImpulse1(cpp_vec)
-        }
+            self.cxx_actor().AddImpulse1(cpp_vec, e)
+        })
     }
 
     /// Applies an impulse at a specific location on the actor.
-    fn add_impulse_at(&self, vector: &Vector3D, location: &Vector3D) {
+    fn add_impulse_at(&self, vector: &Vector3D, location: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_impulse_at", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
             let cpp_loc = &*(location.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddImpulse2(cpp_vec, cpp_loc)
-        }
+            self.cxx_actor().AddImpulse2(cpp_vec, cpp_loc, e)
+        })
     }
 
     /// Applies a continuous force to the actor's center of mass.
@@ -503,25 +517,25 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn add_force(&self, vector: &Vector3D) {
+    fn add_force(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_force", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddForce1(cpp_vec)
-        }
+            self.cxx_actor().AddForce1(cpp_vec, e)
+        })
     }
 
     /// Applies a continuous force at a specific location on the actor.
-    fn add_force_at(&self, vector: &Vector3D, location: &Vector3D) {
+    fn add_force_at(&self, vector: &Vector3D, location: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_force_at", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
             let cpp_loc = &*(location.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddForce2(cpp_vec, cpp_loc)
-        }
+            self.cxx_actor().AddForce2(cpp_vec, cpp_loc, e)
+        })
     }
 
     /// Applies an angular impulse (instantaneous rotation change).
@@ -541,13 +555,13 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn add_angular_impulse(&self, vector: &Vector3D) {
+    fn add_angular_impulse(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_angular_impulse", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddAngularImpulse(cpp_vec)
-        }
+            self.cxx_actor().AddAngularImpulse(cpp_vec, e)
+        })
     }
 
     /// Applies a continuous torque (rotational force).
@@ -567,13 +581,13 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn add_torque(&self, vector: &Vector3D) {
+    fn add_torque(&self, vector: &Vector3D) -> crate::Result<()> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
-        unsafe {
+        with_ffi_error("add_torque", |e| unsafe {
             let cpp_vec = &*(vector.as_ffi() as *const FfiVector3D
                 as *const carla_sys::carla::geom::Vector3D);
-            self.cxx_actor().AddTorque(cpp_vec)
-        }
+            self.cxx_actor().AddTorque(cpp_vec, e)
+        })
     }
 
     /// Enables or disables physics simulation for this actor.
@@ -593,8 +607,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_simulate_physics(&self, enabled: bool) {
-        self.cxx_actor().SetSimulatePhysics(enabled)
+    fn set_simulate_physics(&self, enabled: bool) -> crate::Result<()> {
+        with_ffi_error("set_simulate_physics", |e| {
+            self.cxx_actor().SetSimulatePhysics(enabled, e)
+        })
     }
 
     /// Enables or disables gravity for this actor.
@@ -614,8 +630,10 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn set_enable_gravity(&self, enabled: bool) {
-        self.cxx_actor().SetEnableGravity(enabled)
+    fn set_enable_gravity(&self, enabled: bool) -> crate::Result<()> {
+        with_ffi_error("set_enable_gravity", |e| {
+            self.cxx_actor().SetEnableGravity(enabled, e)
+        })
     }
 
     /// Returns whether the actor still exists in the simulation.
@@ -697,16 +715,20 @@ pub trait ActorBase: Clone {
     ///
     /// **Available in CARLA 0.10.0+**
     #[cfg(carla_0100)]
-    fn actor_name(&self) -> String {
-        self.cxx_actor().GetActorName().to_string()
+    fn actor_name(&self) -> crate::Result<String> {
+        with_ffi_error("actor_name", |e| {
+            self.cxx_actor().GetActorName(e).to_string()
+        })
     }
 
     /// Returns the actor's class name in the Unreal Engine world.
     ///
     /// **Available in CARLA 0.10.0+**
     #[cfg(carla_0100)]
-    fn actor_class_name(&self) -> String {
-        self.cxx_actor().GetActorClassName().to_string()
+    fn actor_class_name(&self) -> crate::Result<String> {
+        with_ffi_error("actor_class_name", |e| {
+            self.cxx_actor().GetActorClassName(e).to_string()
+        })
     }
 
     /// Returns the actor's bounding box in world coordinates.
@@ -720,18 +742,21 @@ pub trait ActorBase: Clone {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::{ActorBase, Client};
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     ///
     /// let bbox = actor.bounding_box();
     /// println!("Bounding box extent: {:?}", bbox.extent);
     /// println!("Bounding box center: {:?}", bbox.transform.location);
+    /// # Ok(())
+    /// # }
     /// ```
     fn bounding_box(&self) -> BoundingBox {
         use autocxx::prelude::*;
@@ -753,21 +778,24 @@ pub trait ActorBase: Clone {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::{ActorBase, Client};
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     ///
     /// // Destroy the actor when done
-    /// let success = actor.destroy();
+    /// let success = actor.destroy()?;
     /// println!("Actor destroyed: {}", success);
+    /// # Ok(())
+    /// # }
     /// ```
-    fn destroy(&self) -> bool {
-        self.cxx_actor().Destroy()
+    fn destroy(&self) -> crate::Result<bool> {
+        with_ffi_error("destroy", |e| self.cxx_actor().Destroy(e))
     }
 
     /// Enables or disables collision detection for this actor.
@@ -781,8 +809,10 @@ pub trait ActorBase: Clone {
     ///
     /// * `enabled` - If true, collisions are enabled (default behavior)
     #[cfg(carla_0915)]
-    fn set_collisions(&self, enabled: bool) {
-        self.cxx_actor().SetCollisions(enabled);
+    fn set_collisions(&self, enabled: bool) -> crate::Result<()> {
+        with_ffi_error("set_collisions", |e| {
+            self.cxx_actor().SetCollisions(enabled, e)
+        })
     }
 
     /// Marks this actor as dead.
@@ -792,7 +822,7 @@ pub trait ActorBase: Clone {
     /// Sets the actor state to dead without immediately destroying it.
     /// This is used for ragdoll effects on walkers and similar scenarios.
     #[cfg(carla_0915)]
-    fn set_actor_dead(&self) {
-        self.cxx_actor().SetActorDead();
+    fn set_actor_dead(&self) -> crate::Result<()> {
+        with_ffi_error("set_actor_dead", |e| self.cxx_actor().SetActorDead(e))
     }
 }

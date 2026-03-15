@@ -93,7 +93,7 @@ struct LidarManager {
 
 impl LidarManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self, Box<dyn std::error::Error>> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let lidar_bp = blueprint_library
             .find("sensor.lidar.ray_cast")
             .ok_or("LiDAR blueprint not found")?;
@@ -129,7 +129,7 @@ impl LidarManager {
             {
                 *data_lock = Some(lidar_data);
             }
-        });
+        })?;
 
         Ok(Self {
             _sensor: sensor,
@@ -257,21 +257,21 @@ impl State for AppState {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== CARLA LiDAR 3D Point Cloud Viewer ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server");
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -299,4 +299,6 @@ fn main() {
 
     let state = AppState::new(lidar);
     window.render_loop(state);
+
+    Ok(())
 }

@@ -29,11 +29,11 @@ use std::{
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Advanced Sensor Tests ===\n");
 
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     let mut passed = 0;
@@ -138,7 +138,7 @@ where
 
 fn test_dvs_event_creation(world: &mut carla::client::World) -> TestResult {
     // Test creating a DVS camera sensor
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
         .find("sensor.camera.dvs")
         .ok_or("DVS camera blueprint not found")?;
@@ -163,7 +163,7 @@ fn test_dvs_event_creation(world: &mut carla::client::World) -> TestResult {
 
 fn test_dvs_camera_events(world: &mut carla::client::World) -> TestResult {
     // Spawn DVS camera and capture events
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
         .find("sensor.camera.dvs")
         .ok_or("DVS camera blueprint not found")?;
@@ -198,11 +198,11 @@ fn test_dvs_camera_events(world: &mut carla::client::World) -> TestResult {
 
             *events_captured_clone.lock().unwrap() = true;
         }
-    });
+    })?;
 
     // Wait for events
     thread::sleep(Duration::from_secs(2));
-    world.tick();
+    world.tick()?;
 
     let captured = *events_captured.lock().unwrap();
     if !captured {
@@ -214,7 +214,7 @@ fn test_dvs_camera_events(world: &mut carla::client::World) -> TestResult {
 
 fn test_dvs_event_stream(world: &mut carla::client::World) -> TestResult {
     // Test continuous DVS event streaming
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
         .find("sensor.camera.dvs")
         .ok_or("DVS camera blueprint not found")?;
@@ -240,12 +240,12 @@ fn test_dvs_event_stream(world: &mut carla::client::World) -> TestResult {
                 println!("  Frame {}: {} events", count, dvs_data.len());
             }
         }
-    });
+    })?;
 
     // Stream for a short time
     for _ in 0..3 {
         thread::sleep(Duration::from_millis(100));
-        world.tick();
+        world.tick()?;
     }
 
     let total_frames = *frame_count.lock().unwrap();
@@ -256,7 +256,7 @@ fn test_dvs_event_stream(world: &mut carla::client::World) -> TestResult {
 
 fn test_dvs_high_frequency(world: &mut carla::client::World) -> TestResult {
     // Test DVS high-frequency event capture
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
         .find("sensor.camera.dvs")
         .ok_or("DVS camera blueprint not found")?;
@@ -283,7 +283,7 @@ fn test_dvs_high_frequency(world: &mut carla::client::World) -> TestResult {
 
 fn test_optical_flow_capture(world: &mut carla::client::World) -> TestResult {
     // Test optical flow camera capture
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
         .find("sensor.camera.optical_flow")
         .ok_or("Optical flow camera blueprint not found")?;
@@ -324,11 +324,11 @@ fn test_optical_flow_capture(world: &mut carla::client::World) -> TestResult {
 
             *captured_clone.lock().unwrap() = true;
         }
-    });
+    })?;
 
     // Wait for capture
     thread::sleep(Duration::from_secs(1));
-    world.tick();
+    world.tick()?;
 
     let did_capture = *captured.lock().unwrap();
     assert!(did_capture, "Should capture optical flow data");
@@ -338,7 +338,7 @@ fn test_optical_flow_capture(world: &mut carla::client::World) -> TestResult {
 
 fn test_optical_flow_visualization(world: &mut carla::client::World) -> TestResult {
     // Test optical flow data for visualization
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
         .find("sensor.camera.optical_flow")
         .ok_or("Optical flow camera blueprint not found")?;
@@ -371,17 +371,17 @@ fn test_optical_flow_visualization(world: &mut carla::client::World) -> TestResu
                 non_zero_count, sample_count
             );
         }
-    });
+    })?;
 
     thread::sleep(Duration::from_secs(1));
-    world.tick();
+    world.tick()?;
 
     Ok(())
 }
 
 fn test_optical_flow_motion(world: &mut carla::client::World) -> TestResult {
     // Test optical flow captures motion
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
         .find("sensor.camera.optical_flow")
         .ok_or("Optical flow camera blueprint not found")?;
@@ -391,7 +391,7 @@ fn test_optical_flow_motion(world: &mut carla::client::World) -> TestResult {
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let vehicle_actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
@@ -428,10 +428,10 @@ fn test_optical_flow_motion(world: &mut carla::client::World) -> TestResult {
             let avg_magnitude = total_magnitude / sample_count as f32;
             println!("  Average flow magnitude: {:.4}", avg_magnitude);
         }
-    });
+    })?;
 
     thread::sleep(Duration::from_secs(1));
-    world.tick();
+    world.tick()?;
 
     Ok(())
 }
@@ -443,7 +443,7 @@ fn test_normals_sensor_capture(world: &mut carla::client::World) -> TestResult {
     // In CARLA Python API, this is sensor.camera.rgb with a specific shader/postprocessing
     // The Rust API may not have direct normals sensor, so we test what's available
 
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Try to find depth camera as proxy for testing similar advanced rendering
     let depth_bp = blueprint_library
@@ -476,10 +476,10 @@ fn test_normals_sensor_capture(world: &mut carla::client::World) -> TestResult {
 
             *captured_clone.lock().unwrap() = true;
         }
-    });
+    })?;
 
     thread::sleep(Duration::from_secs(1));
-    world.tick();
+    world.tick()?;
 
     let did_capture = *captured.lock().unwrap();
     assert!(did_capture, "Should capture depth/normals image");
@@ -494,7 +494,7 @@ fn test_normals_world_space(world: &mut carla::client::World) -> TestResult {
     // Test world-space normal information
     // Since dedicated normals API not available, we verify geometric information
 
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let depth_bp = blueprint_library
         .find("sensor.camera.depth")
         .ok_or("Depth camera blueprint not found")?;
@@ -522,10 +522,10 @@ fn test_normals_world_space(world: &mut carla::client::World) -> TestResult {
         );
 
         println!("  Sensor can access world-space coordinate information");
-    });
+    })?;
 
     thread::sleep(Duration::from_secs(1));
-    world.tick();
+    world.tick()?;
 
     println!("  Note: Dedicated world-space normals API not yet available");
     println!("  Verified sensor can access world coordinate system");
@@ -537,7 +537,7 @@ fn test_normals_world_space(world: &mut carla::client::World) -> TestResult {
 
 fn test_sensor_synchronization_advanced(world: &mut carla::client::World) -> TestResult {
     // Test synchronization between multiple advanced sensors
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Spawn RGB camera
     let rgb_bp = blueprint_library
@@ -570,7 +570,7 @@ fn test_sensor_synchronization_advanced(world: &mut carla::client::World) -> Tes
             let mut count = rgb_frames_clone.lock().unwrap();
             *count += 1;
         }
-    });
+    })?;
 
     let of_frames_clone = of_frames.clone();
     of_sensor.listen(move |data| {
@@ -578,11 +578,11 @@ fn test_sensor_synchronization_advanced(world: &mut carla::client::World) -> Tes
             let mut count = of_frames_clone.lock().unwrap();
             *count += 1;
         }
-    });
+    })?;
 
     // Tick multiple times to capture synchronized frames
     for _ in 0..3 {
-        world.tick();
+        world.tick()?;
         thread::sleep(Duration::from_millis(100));
     }
 

@@ -9,6 +9,7 @@
 #include "carla_rust/client/waypoint_list.hpp"
 #include "carla_rust/client/junction.hpp"
 #include "carla_rust/client/landmark_list.hpp"
+#include "carla_rust/client/result.hpp"
 #include "carla_rust/road.hpp"
 
 namespace carla_rust {
@@ -27,113 +28,140 @@ using carla_rust::road::element::FfiLaneMarking;
 
 class FfiWaypoint {
 public:
-    FfiWaypoint(SharedPtr<Waypoint>&& base) : inner_(std::move(base)) {}
+    FfiWaypoint(SharedPtr<Waypoint>&& base) noexcept : inner_(std::move(base)) {}
 
-    FfiWaypoint(const SharedPtr<Waypoint>& base) : inner_(base) {}
+    FfiWaypoint(const SharedPtr<Waypoint>& base) noexcept : inner_(base) {}
 
-    uint64_t GetId() const { return inner_->GetId(); }
+    uint64_t GetId() const noexcept { return inner_->GetId(); }
 
-    RoadId GetRoadId() const { return inner_->GetRoadId(); }
+    RoadId GetRoadId() const noexcept { return inner_->GetRoadId(); }
 
-    SectionId GetSectionId() const { return inner_->GetSectionId(); }
+    SectionId GetSectionId() const noexcept { return inner_->GetSectionId(); }
 
-    LaneId GetLaneId() const { return inner_->GetLaneId(); }
+    LaneId GetLaneId() const noexcept { return inner_->GetLaneId(); }
 
-    double GetDistance() const { return inner_->GetDistance(); }
+    double GetDistance() const noexcept { return inner_->GetDistance(); }
 
-    const FfiTransform GetTransform() const {
+    const FfiTransform GetTransform() const noexcept {
         auto trans = inner_->GetTransform();
         return FfiTransform(std::move(trans));
     }
 
-    JuncId GetJunctionId() const { return inner_->GetJunctionId(); }
+    JuncId GetJunctionId() const noexcept { return inner_->GetJunctionId(); }
 
-    bool IsJunction() const { return inner_->IsJunction(); }
+    bool IsJunction() const noexcept { return inner_->IsJunction(); }
 
-    std::shared_ptr<FfiJunction> GetJunction() const {
-        auto orig = inner_->GetJunction();
-        if (orig) {
-            return std::make_shared<FfiJunction>(std::move(orig));
-        } else {
-            return nullptr;
-        }
+    std::shared_ptr<FfiJunction> GetJunction(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiJunction>(nullptr), [&]() {
+            auto orig = inner_->GetJunction();
+            if (orig) {
+                return std::make_shared<FfiJunction>(std::move(orig));
+            } else {
+                return std::shared_ptr<FfiJunction>(nullptr);
+            }
+        });
     }
 
-    double GetLaneWidth() const { return inner_->GetLaneWidth(); }
+    double GetLaneWidth() const noexcept { return inner_->GetLaneWidth(); }
 
-    Lane::LaneType GetType() const { return inner_->GetType(); }
+    Lane::LaneType GetType() const noexcept { return inner_->GetType(); }
 
-    FfiWaypointList GetNext(double distance) const {
-        auto orig = inner_->GetNext(distance);
-        return FfiWaypointList(std::move(orig));
+    std::unique_ptr<FfiWaypointList> GetNext(double distance, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWaypointList>(nullptr), [&]() {
+            auto orig = inner_->GetNext(distance);
+            return std::make_unique<FfiWaypointList>(std::move(orig));
+        });
     }
 
-    FfiWaypointList GetPrevious(double distance) const {
-        auto orig = inner_->GetPrevious(distance);
-        return FfiWaypointList(std::move(orig));
+    std::unique_ptr<FfiWaypointList> GetPrevious(double distance, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWaypointList>(nullptr), [&]() {
+            auto orig = inner_->GetPrevious(distance);
+            return std::make_unique<FfiWaypointList>(std::move(orig));
+        });
     }
 
-    FfiWaypointList GetNextUntilLaneEnd(double distance) const {
-        auto orig = inner_->GetNextUntilLaneEnd(distance);
-        return FfiWaypointList(std::move(orig));
+    std::unique_ptr<FfiWaypointList> GetNextUntilLaneEnd(double distance, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWaypointList>(nullptr), [&]() {
+            auto orig = inner_->GetNextUntilLaneEnd(distance);
+            return std::make_unique<FfiWaypointList>(std::move(orig));
+        });
     }
 
-    FfiWaypointList GetPreviousUntilLaneStart(double distance) const {
-        auto orig = inner_->GetPreviousUntilLaneStart(distance);
-        return FfiWaypointList(std::move(orig));
+    std::unique_ptr<FfiWaypointList> GetPreviousUntilLaneStart(double distance,
+                                                               FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWaypointList>(nullptr), [&]() {
+            auto orig = inner_->GetPreviousUntilLaneStart(distance);
+            return std::make_unique<FfiWaypointList>(std::move(orig));
+        });
     }
 
-    std::shared_ptr<FfiWaypoint> GetRight() const {
-        auto ptr = inner_->GetRight();
-        if (ptr) {
-            return std::make_shared<FfiWaypoint>(std::move(ptr));
-        } else {
-            return nullptr;
-        }
+    std::shared_ptr<FfiWaypoint> GetRight(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiWaypoint>(nullptr), [&]() {
+            auto ptr = inner_->GetRight();
+            if (ptr) {
+                return std::make_shared<FfiWaypoint>(std::move(ptr));
+            } else {
+                return std::shared_ptr<FfiWaypoint>(nullptr);
+            }
+        });
     }
 
-    std::shared_ptr<FfiWaypoint> GetLeft() const {
-        auto ptr = inner_->GetLeft();
-        if (ptr) {
-            return std::make_shared<FfiWaypoint>(std::move(ptr));
-        } else {
-            return nullptr;
-        }
+    std::shared_ptr<FfiWaypoint> GetLeft(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiWaypoint>(nullptr), [&]() {
+            auto ptr = inner_->GetLeft();
+            if (ptr) {
+                return std::make_shared<FfiWaypoint>(std::move(ptr));
+            } else {
+                return std::shared_ptr<FfiWaypoint>(nullptr);
+            }
+        });
     }
 
-    std::unique_ptr<FfiLaneMarking> GetRightLaneMarking() const {
-        auto orig = inner_->GetRightLaneMarking();
-        if (orig) {
-            return std::make_unique<FfiLaneMarking>(std::move(*orig));
-        } else {
-            return nullptr;
-        }
+    std::unique_ptr<FfiLaneMarking> GetRightLaneMarking(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLaneMarking>(nullptr), [&]() {
+            auto orig = inner_->GetRightLaneMarking();
+            if (orig) {
+                return std::make_unique<FfiLaneMarking>(std::move(*orig));
+            } else {
+                return std::unique_ptr<FfiLaneMarking>(nullptr);
+            }
+        });
     }
 
-    std::unique_ptr<FfiLaneMarking> GetLeftLaneMarking() const {
-        auto orig = inner_->GetLeftLaneMarking();
-        if (orig) {
-            return std::make_unique<FfiLaneMarking>(std::move(*orig));
-        } else {
-            return nullptr;
-        }
+    std::unique_ptr<FfiLaneMarking> GetLeftLaneMarking(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLaneMarking>(nullptr), [&]() {
+            auto orig = inner_->GetLeftLaneMarking();
+            if (orig) {
+                return std::make_unique<FfiLaneMarking>(std::move(*orig));
+            } else {
+                return std::unique_ptr<FfiLaneMarking>(nullptr);
+            }
+        });
     }
 
-    LaneMarking::LaneChange GetLaneChange() const { return inner_->GetLaneChange(); }
+    LaneMarking::LaneChange GetLaneChange() const noexcept { return inner_->GetLaneChange(); }
 
-    FfiLandmarkList GetAllLandmarksInDistance(double distance, bool stop_at_junction) const {
-        auto orig = inner_->GetAllLandmarksInDistance(distance, stop_at_junction);
-        return FfiLandmarkList(std::move(orig));
+    std::unique_ptr<FfiLandmarkList> GetAllLandmarksInDistance(double distance,
+                                                               bool stop_at_junction,
+                                                               FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLandmarkList>(nullptr), [&]() {
+            auto orig = inner_->GetAllLandmarksInDistance(distance, stop_at_junction);
+            return std::make_unique<FfiLandmarkList>(std::move(orig));
+        });
     }
 
-    FfiLandmarkList GetLandmarksOfTypeInDistance(double distance, std::string filter_type,
-                                                 bool stop_at_junction) const {
-        auto orig = inner_->GetLandmarksOfTypeInDistance(distance, std::move(filter_type),
-                                                         stop_at_junction);
-        return FfiLandmarkList(std::move(orig));
+    std::unique_ptr<FfiLandmarkList> GetLandmarksOfTypeInDistance(double distance,
+                                                                  std::string filter_type,
+                                                                  bool stop_at_junction,
+                                                                  FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLandmarkList>(nullptr), [&]() {
+            auto orig = inner_->GetLandmarksOfTypeInDistance(distance, std::move(filter_type),
+                                                             stop_at_junction);
+            return std::make_unique<FfiLandmarkList>(std::move(orig));
+        });
     }
 
-    const SharedPtr<Waypoint>& inner() const { return inner_; }
+    const SharedPtr<Waypoint>& inner() const noexcept { return inner_; }
 
 private:
     SharedPtr<Waypoint> inner_;

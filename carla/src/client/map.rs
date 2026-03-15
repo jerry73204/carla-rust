@@ -2,6 +2,7 @@ use core::slice;
 
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
+    error::ffi::with_ffi_error,
     geom::{GeoLocation, Location, Transform},
     road::{LaneId, LaneType, RoadId},
 };
@@ -29,12 +30,12 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
-/// use carla::client::Client;
-/// use nalgebra::Translation3;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use carla::{client::Client, geom::Location};
 ///
-/// let client = Client::default();
-/// let world = client.world();
-/// let map = world.map();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let world = client.world()?;
+/// let map = world.map()?;
 ///
 /// // Get map name
 /// println!("Map: {}", map.name());
@@ -46,14 +47,16 @@ use static_assertions::assert_impl_all;
 /// }
 ///
 /// // Generate waypoints for navigation (every 2 meters)
-/// let waypoints = map.generate_waypoints(2.0);
+/// let waypoints = map.generate_waypoints(2.0)?;
 /// println!("Generated {} waypoints", waypoints.len());
 ///
 /// // Find nearest waypoint to a location
-/// let location = Translation3::new(100.0, 200.0, 1.0);
-/// if let Some(waypoint) = map.waypoint(&location) {
+/// let location = Location::new(100.0, 200.0, 1.0);
+/// if let Some(waypoint) = map.waypoint_at(&location)? {
 ///     println!("Nearest waypoint on lane {}", waypoint.lane_id());
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -161,22 +164,26 @@ impl Map {
     /// # Example
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
-    /// let client = Client::default();
-    /// let world = client.world();
-    /// let map = world.map();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let map = world.map()?;
     ///
     /// let location = Location::new(100.0, 50.0, 0.5);
-    /// if let Some(waypoint) = map.waypoint_at(&location) {
+    /// if let Some(waypoint) = map.waypoint_at(&location)? {
     ///     println!("Found waypoint at road {}", waypoint.road_id());
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn waypoint_at(&self, location: &Location) -> Option<Waypoint> {
-        let ptr = self
-            .inner
-            .GetWaypoint(location.as_ffi(), true, LaneType::Driving as i32);
-        Waypoint::from_cxx(ptr)
+    pub fn waypoint_at(&self, location: &Location) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("waypoint_at", |e| {
+            self.inner
+                .GetWaypoint(location.as_ffi(), true, LaneType::Driving as i32, e)
+        })?;
+        Ok(Waypoint::from_cxx(ptr))
     }
 
     /// Finds the nearest waypoint with custom options.
@@ -211,11 +218,12 @@ impl Map {
         location: &Location,
         project_to_road: bool,
         lane_type: LaneType,
-    ) -> Option<Waypoint> {
-        let ptr = self
-            .inner
-            .GetWaypoint(location.as_ffi(), project_to_road, lane_type as i32);
-        Waypoint::from_cxx(ptr)
+    ) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("waypoint_opt", |e| {
+            self.inner
+                .GetWaypoint(location.as_ffi(), project_to_road, lane_type as i32, e)
+        })?;
+        Ok(Waypoint::from_cxx(ptr))
     }
 
     /// Gets a waypoint by OpenDRIVE coordinates.
@@ -246,11 +254,12 @@ impl Map {
         road_id: RoadId,
         lane_id: LaneId,
         distance: f32,
-    ) -> Option<Waypoint> {
-        let ptr = self
-            .inner
-            .GetWaypointXODR(road_id.into(), lane_id.into(), distance);
-        Waypoint::from_cxx(ptr)
+    ) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("waypoint_xodr", |e| {
+            self.inner
+                .GetWaypointXODR(road_id.into(), lane_id.into(), distance, e)
+        })?;
+        Ok(Waypoint::from_cxx(ptr))
     }
 
     /// Generates a grid of waypoints covering the entire road network.
@@ -278,9 +287,11 @@ impl Map {
     /// # Returns
     ///
     /// A list of waypoints covering all drivable lanes.
-    pub fn generate_waypoints(&self, distance: f64) -> WaypointList {
-        let waypoints = self.inner.GenerateWaypoints(distance);
-        unsafe { WaypointList::from_cxx(waypoints).unwrap_unchecked() }
+    pub fn generate_waypoints(&self, distance: f64) -> crate::Result<WaypointList> {
+        let waypoints = with_ffi_error("generate_waypoints", |e| {
+            self.inner.GenerateWaypoints(distance, e)
+        })?;
+        Ok(unsafe { WaypointList::from_cxx(waypoints).unwrap_unchecked() })
     }
 
     /// Gets the junction associated with a waypoint.
@@ -304,9 +315,9 @@ impl Map {
     /// # Arguments
     ///
     /// * `waypoint` - Waypoint to query (should be inside a junction)
-    pub fn junction(&self, waypoint: &Waypoint) -> Junction {
-        let junction = self.inner.GetJunction(&waypoint.inner);
-        unsafe { Junction::from_cxx(junction).unwrap_unchecked() }
+    pub fn junction(&self, waypoint: &Waypoint) -> crate::Result<Junction> {
+        let junction = with_ffi_error("junction", |e| self.inner.GetJunction(&waypoint.inner, e))?;
+        Ok(unsafe { Junction::from_cxx(junction).unwrap_unchecked() })
     }
 
     /// Returns all landmarks in the map (traffic signs, lights, etc.).
@@ -326,9 +337,9 @@ impl Map {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn all_landmarks(&self) -> LandmarkList {
-        let ptr = self.inner.GetAllLandmarks().within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn all_landmarks(&self) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("all_landmarks", |e| self.inner.GetAllLandmarks(e))?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Finds landmarks by their OpenDRIVE ID.
@@ -352,9 +363,11 @@ impl Map {
     /// # Arguments
     ///
     /// * `id` - Landmark identifier from OpenDRIVE
-    pub fn landmarks_from_id(&self, id: &str) -> LandmarkList {
-        let ptr = self.inner.GetLandmarksFromId(id).within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn landmarks_from_id(&self, id: &str) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("landmarks_from_id", |e| {
+            self.inner.GetLandmarksFromId(id, e)
+        })?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Finds all landmarks of a specific type.
@@ -378,9 +391,11 @@ impl Map {
     /// # Arguments
     ///
     /// * `type_` - Landmark type (e.g., "1000001" for speed limit signs)
-    pub fn all_landmarks_of_type(&self, type_: &str) -> LandmarkList {
-        let ptr = self.inner.GetAllLandmarksOfType(type_).within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn all_landmarks_of_type(&self, type_: &str) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("all_landmarks_of_type", |e| {
+            self.inner.GetAllLandmarksOfType(type_, e)
+        })?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Gets all landmarks in the same group as the given landmark.
@@ -404,12 +419,11 @@ impl Map {
     /// # Arguments
     ///
     /// * `landmark` - Reference landmark
-    pub fn landmark_group(&self, landmark: &Landmark) -> LandmarkList {
-        let ptr = self
-            .inner
-            .GetLandmarkGroup(&landmark.inner)
-            .within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn landmark_group(&self, landmark: &Landmark) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("landmark_group", |e| {
+            self.inner.GetLandmarkGroup(&landmark.inner, e)
+        })?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the road network topology as pairs of connected waypoints.
@@ -442,13 +456,14 @@ impl Map {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
-    /// let map = world.map();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let map = world.map()?;
     ///
-    /// let topology = map.topology();
+    /// let topology = map.topology()?;
     /// println!("Road network has {} connections", topology.len());
     ///
     /// // Examine first connection
@@ -459,9 +474,11 @@ impl Map {
     ///         end.lane_id()
     ///     );
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn topology(&self) -> Vec<(Waypoint, Waypoint)> {
-        let topology_pairs = self.inner.GetTopology();
+    pub fn topology(&self) -> crate::Result<Vec<(Waypoint, Waypoint)>> {
+        let topology_pairs = with_ffi_error("topology", |e| self.inner.GetTopology(e))?;
         let mut result = Vec::with_capacity(topology_pairs.len());
 
         for pair in topology_pairs.iter() {
@@ -476,7 +493,7 @@ impl Map {
             }
         }
 
-        result
+        Ok(result)
     }
 
     /// Returns the geo-reference of the map (latitude, longitude, altitude origin).
@@ -519,24 +536,27 @@ impl Map {
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::Client;
 ///
-/// let client = Client::default();
-/// let world = client.world();
-/// let map = world.map();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let world = client.world()?;
+/// let map = world.map()?;
 ///
 /// let spawn_points = map.recommended_spawn_points();
 /// println!("Available spawn points: {}", spawn_points.len());
 ///
 /// // Use the first spawn point
 /// if let Some(transform) = spawn_points.get(0) {
-///     println!("Spawn at: {:?}", transform.translation);
+///     println!("Spawn at: {:?}", transform.location);
 /// }
 ///
 /// // Iterate over all spawn points
 /// for (i, transform) in spawn_points.iter().enumerate().take(5) {
 ///     println!("Spawn point {}: {:?}", i, transform);
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Derivative)]
 #[derivative(Debug)]

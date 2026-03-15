@@ -95,7 +95,7 @@ impl KeyboardControl {
 
             // Apply autopilot setting to vehicle
             if let Some(ref player) = world.player {
-                player.set_autopilot(self.autopilot_enabled);
+                let _ = player.set_autopilot(self.autopilot_enabled);
             }
 
             // Show notification
@@ -327,10 +327,12 @@ impl KeyboardControl {
             world.recording_enabled = !world.recording_enabled;
 
             if world.recording_enabled {
-                let result = client.start_recorder("manual_recording.log", false);
-                notification.set_text(format!("Recording ON: {}", result), 2.0);
+                match client.start_recorder("manual_recording.log", false) {
+                    Ok(result) => notification.set_text(format!("Recording ON: {}", result), 2.0),
+                    Err(e) => notification.set_text(format!("Recording failed: {}", e), 2.0),
+                }
             } else {
-                client.stop_recorder();
+                let _ = client.stop_recorder();
                 notification.set_text("Recording OFF", 2.0);
             }
         }
@@ -341,24 +343,25 @@ impl KeyboardControl {
             if self.autopilot_enabled {
                 self.autopilot_enabled = false;
                 if let Some(ref player) = world.player {
-                    player.set_autopilot(false);
+                    let _ = player.set_autopilot(false);
                 }
             }
 
-            let result = client.replay_file(
+            if let Ok(result) = client.replay_file(
                 "manual_recording.log",
                 world.recording_start as f32,
                 0.0,
                 0,
                 false,
-            );
-            notification.set_text(
-                format!(
-                    "Replay started at {:.1}s: {}",
-                    world.recording_start, result
-                ),
-                3.0,
-            );
+            ) {
+                notification.set_text(
+                    format!(
+                        "Replay started at {:.1}s: {}",
+                        world.recording_start, result
+                    ),
+                    3.0,
+                );
+            }
         }
 
         // ✅ Subphase 12.10.2: Ctrl+Minus/Plus - Adjust replay start time
@@ -403,10 +406,10 @@ impl KeyboardControl {
 
             if world.doors_are_open {
                 // Try to open all doors - handle gracefully if vehicle doesn't support doors
-                player.open_door(VehicleDoor::All);
+                let _ = player.open_door(VehicleDoor::All);
                 notification.set_text("Opening doors", 2.0);
             } else {
-                player.close_door(VehicleDoor::All);
+                let _ = player.close_door(VehicleDoor::All);
                 notification.set_text("Closing doors", 2.0);
             }
         }
@@ -423,10 +426,10 @@ impl KeyboardControl {
             if world.constant_velocity_enabled {
                 // 60 km/h = 16.67 m/s ≈ 17 m/s
                 let velocity = Vector3D::new(17.0, 0.0, 0.0);
-                player.enable_constant_velocity(&velocity);
+                let _ = player.enable_constant_velocity(&velocity);
                 notification.set_text("Constant velocity mode ON (60 km/h)", 2.0);
             } else {
-                player.disable_constant_velocity();
+                let _ = player.disable_constant_velocity();
                 notification.set_text("Constant velocity mode OFF", 2.0);
             }
         }
@@ -436,7 +439,7 @@ impl KeyboardControl {
             && let Some(ref player) = world.player
         {
             world.show_vehicle_telemetry = !world.show_vehicle_telemetry;
-            player.show_debug_telemetry(world.show_vehicle_telemetry);
+            let _ = player.show_debug_telemetry(world.show_vehicle_telemetry);
 
             let message = if world.show_vehicle_telemetry {
                 "Vehicle telemetry ON"
@@ -521,7 +524,7 @@ impl KeyboardControl {
             && let Some(ref player) = world.player
         {
             // Apply vehicle control
-            player.apply_control(&self.control);
+            player.apply_control(&self.control)?;
 
             // ✅ Subphase 12.7.2: Automatically set brake and reverse lights
             let mut current_lights = self.lights;
@@ -541,7 +544,7 @@ impl KeyboardControl {
             }
 
             // Apply light state (now type-safe with no unsafe code!)
-            player.set_light_state(&current_lights);
+            let _ = player.set_light_state(&current_lights);
         }
         Ok(())
     }

@@ -20,12 +20,12 @@ use std::time::Duration;
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Debug Drawing and Color Tests ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     // Setup scenario
@@ -116,12 +116,17 @@ fn setup_scenario(world: &mut carla::client::World) {
     println!("Setting up test scenario...");
 
     // Spawn a vehicle at a spawn point for reference
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world
+        .map()
+        .expect("Failed to get map")
+        .recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let _vehicle = world
@@ -129,14 +134,14 @@ fn setup_scenario(world: &mut carla::client::World) {
         .expect("Failed to spawn vehicle");
 
     // Position spectator camera to view debug shapes
-    let spectator = world.spectator();
+    let spectator = world.spectator().expect("Failed to get spectator");
     let camera_location = Location::new(
         spawn_point.location.x + 10.0,
         spawn_point.location.y,
         spawn_point.location.z + 5.0,
     );
     let camera_rotation = Rotation::new(0.0, 180.0, 0.0);
-    spectator.set_transform(&carla::geom::Transform {
+    let _ = spectator.set_transform(&carla::geom::Transform {
         location: camera_location,
         rotation: camera_rotation,
     });
@@ -205,7 +210,7 @@ fn test_color_to_native(_world: &carla::client::World) -> TestResult {
 // ===== Integration Tests =====
 
 fn test_debug_draw_point(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let location = Location::new(0.0, 0.0, 1.0);
 
     // Draw a point and verify it doesn't panic
@@ -217,7 +222,7 @@ fn test_debug_draw_point(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_draw_line(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let begin = Location::new(0.0, 0.0, 1.0);
     let end = Location::new(10.0, 0.0, 1.0);
 
@@ -229,7 +234,7 @@ fn test_debug_draw_line(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_draw_arrow(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let begin = Location::new(0.0, 0.0, 1.0);
     let end = Location::new(0.0, 0.0, 5.0);
 
@@ -241,7 +246,7 @@ fn test_debug_draw_arrow(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_draw_box(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let bbox = BoundingBox::new(Location::new(0.0, 0.0, 1.0), Vector3D::new(2.0, 1.0, 1.0));
     let rotation = Rotation::new(0.0, 45.0, 0.0);
 
@@ -253,7 +258,7 @@ fn test_debug_draw_box(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_draw_string(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let location = Location::new(0.0, 0.0, 5.0);
 
     // Draw text label
@@ -264,7 +269,7 @@ fn test_debug_draw_string(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_shapes_lifetime(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
     let location = Location::new(5.0, 0.0, 1.0);
 
     // Draw a shape with short lifetime (0.5 seconds)
@@ -278,7 +283,7 @@ fn test_debug_shapes_lifetime(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_multiple_shapes(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
 
     // Draw multiple shapes simultaneously
     for i in 0..5 {
@@ -291,7 +296,7 @@ fn test_debug_multiple_shapes(world: &mut carla::client::World) -> TestResult {
 }
 
 fn test_debug_shape_colors(world: &mut carla::client::World) -> TestResult {
-    let debug = world.debug();
+    let debug = world.debug()?;
 
     // Draw shapes in different colors
     let colors = [

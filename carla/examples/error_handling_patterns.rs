@@ -16,12 +16,12 @@ use carla::{
 };
 use std::time::Duration;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== CARLA Error Handling Patterns Demo ===\n");
 
     // Connect to CARLA server
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
 
     println!("Connected to CARLA server\n");
 
@@ -38,6 +38,8 @@ fn main() {
     demo_error_classification();
 
     println!("\n=== Error handling demo complete ===");
+
+    Ok(())
 }
 
 /// Demo 1: Handling resource not found errors
@@ -70,7 +72,10 @@ fn demo_operation_errors_with_retry(world: &mut carla::client::World) {
     println!("--- Demo 2: Operation Errors with Retry ---");
 
     // Get a spawn point
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world
+        .map()
+        .expect("API call failed")
+        .recommended_spawn_points();
     let spawn_point = match spawn_points.get(0) {
         Some(p) => p.clone(),
         None => {
@@ -81,7 +86,11 @@ fn demo_operation_errors_with_retry(world: &mut carla::client::World) {
     };
 
     // Try to spawn with retry logic
-    let blueprint = match world.blueprint_library().find("vehicle.tesla.model3") {
+    let blueprint = match world
+        .blueprint_library()
+        .expect("API call failed")
+        .find("vehicle.tesla.model3")
+    {
         Some(bp) => bp,
         None => {
             println!("Blueprint not found");
@@ -94,7 +103,7 @@ fn demo_operation_errors_with_retry(world: &mut carla::client::World) {
         Ok(actor) => {
             println!("✓ Successfully spawned actor: ID {}", actor.id());
             // Clean up
-            let _ = actor.destroy();
+            let _ = actor.destroy().expect("API call failed");
         }
         Err(e) => {
             println!("✗ Failed to spawn after retries: {}", e);

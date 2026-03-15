@@ -58,7 +58,7 @@ impl CollisionSensor {
             .ok_or_else(|| eyre!("No player vehicle available"))?;
 
         // Get blueprint for sensor.other.collision
-        let blueprint_library = world.world.blueprint_library();
+        let blueprint_library = world.world.blueprint_library()?;
         let collision_bp = blueprint_library
             .find("sensor.other.collision")
             .ok_or_else(|| eyre!("sensor.other.collision blueprint not found"))?;
@@ -115,7 +115,7 @@ impl CollisionSensor {
                     }
                 }
             }
-        });
+        })?;
 
         self.sensor = Some(collision_sensor);
         info!("✓ Collision sensor spawned and listening");

@@ -4,7 +4,7 @@ use super::{
     Map, Waypoint, WorldSnapshot,
 };
 use crate::{
-    error::{OperationError, Result},
+    error::{OperationError, Result, ffi::with_ffi_error},
     geom::{Location, Transform, Vector3D},
     road::JuncId,
     rpc::{
@@ -60,23 +60,26 @@ const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::Client;
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
 ///
 /// // Get simulation info
 /// println!("World ID: {}", world.id());
-/// let map = world.map();
+/// let map = world.map()?;
 /// println!("Map: {}", map.name());
 ///
 /// // Spawn an actor
-/// let bp_lib = world.blueprint_library();
+/// let bp_lib = world.blueprint_library()?;
 /// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
 /// let spawn_points = map.recommended_spawn_points();
 /// if let Some(spawn_point) = spawn_points.get(0) {
-///     let actor = world.spawn_actor(&vehicle_bp, &spawn_point);
+///     let actor = world.spawn_actor(&vehicle_bp, &spawn_point)?;
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -129,9 +132,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn map(&self) -> Map {
-        let ptr = self.inner.GetMap();
-        unsafe { Map::from_cxx(ptr).unwrap_unchecked() }
+    pub fn map(&self) -> crate::Result<Map> {
+        let ptr = with_ffi_error("map", |e| self.inner.GetMap(e))?;
+        Ok(unsafe { Map::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the light manager for controlling street lights and vehicle lights.
@@ -151,8 +154,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_manager(&self) -> LightManager {
-        unsafe { LightManager::from_cxx(self.inner.GetLightManager()).unwrap_unchecked() }
+    pub fn light_manager(&self) -> crate::Result<LightManager> {
+        let ptr = with_ffi_error("light_manager", |e| self.inner.GetLightManager(e))?;
+        Ok(unsafe { LightManager::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Loads a map layer (e.g., buildings, props, roads).
@@ -174,8 +178,10 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn load_level_layer(&self, map_layers: MapLayer) {
-        self.inner.LoadLevelLayer(map_layers as u16);
+    pub fn load_level_layer(&self, map_layers: MapLayer) -> crate::Result<()> {
+        with_ffi_error("load_level_layer", |e| {
+            self.inner.LoadLevelLayer(map_layers as u16, e)
+        })
     }
 
     /// Unloads a map layer.
@@ -195,8 +201,10 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn unload_level_layer(&self, map_layers: MapLayer) {
-        self.inner.UnloadLevelLayer(map_layers as u16);
+    pub fn unload_level_layer(&self, map_layers: MapLayer) -> crate::Result<()> {
+        with_ffi_error("unload_level_layer", |e| {
+            self.inner.UnloadLevelLayer(map_layers as u16, e)
+        })
     }
 
     /// Returns the blueprint library containing all available actor blueprints.
@@ -222,19 +230,22 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
-    /// let bp_lib = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let bp_lib = world.blueprint_library()?;
     ///
     /// // Find all vehicle blueprints
     /// let vehicles = bp_lib.filter("vehicle.*");
     /// println!("Found {} vehicle types", vehicles.len());
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn blueprint_library(&self) -> BlueprintLibrary {
-        let ptr = self.inner.GetBlueprintLibrary();
-        unsafe { BlueprintLibrary::from_cxx(ptr).unwrap_unchecked() }
+    pub fn blueprint_library(&self) -> crate::Result<BlueprintLibrary> {
+        let ptr = with_ffi_error("blueprint_library", |e| self.inner.GetBlueprintLibrary(e))?;
+        Ok(unsafe { BlueprintLibrary::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the light state of all vehicles in the world.
@@ -254,9 +265,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn vehicle_light_states(&self) -> VehicleLightStateList {
-        let ptr = self.inner.GetVehiclesLightStates().within_unique_ptr();
-        unsafe { VehicleLightStateList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn vehicle_light_states(&self) -> crate::Result<VehicleLightStateList> {
+        let ptr = with_ffi_error("vehicle_light_states", |e| {
+            self.inner.GetVehiclesLightStates(e)
+        })?;
+        Ok(unsafe { VehicleLightStateList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns a random navigable location (on roads/sidewalks).
@@ -278,9 +291,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn random_location_from_navigation(&self) -> Location {
-        let cpp_loc = self.inner.GetRandomLocationFromNavigation();
-        Location::from_ffi(cpp_loc.as_ref().unwrap().clone())
+    pub fn random_location_from_navigation(&self) -> crate::Result<Location> {
+        let ptr = with_ffi_error("random_location_from_navigation", |e| {
+            self.inner.GetRandomLocationFromNavigation(e)
+        })?;
+        Ok(Location::from_ffi(ptr.as_ref().unwrap().clone()))
     }
 
     /// Returns the spectator actor (the free-flying camera).
@@ -302,9 +317,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn spectator(&self) -> Actor {
-        let actor = self.inner.GetSpectator();
-        unsafe { Actor::from_cxx(actor).unwrap_unchecked() }
+    pub fn spectator(&self) -> crate::Result<Actor> {
+        let ptr = with_ffi_error("spectator", |e| self.inner.GetSpectator(e))?;
+        Ok(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the current simulation settings.
@@ -326,9 +341,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn settings(&self) -> EpisodeSettings {
-        let ptr = self.inner.GetSettings().within_unique_ptr();
-        EpisodeSettings::from_cxx(&ptr)
+    pub fn settings(&self) -> crate::Result<EpisodeSettings> {
+        let ptr = with_ffi_error("settings", |e| self.inner.GetSettings(e))?;
+        Ok(EpisodeSettings::from_cxx(&ptr))
     }
 
     /// Returns a snapshot of the current world state.
@@ -350,9 +365,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn snapshot(&self) -> WorldSnapshot {
-        let ptr = self.inner.GetSnapshot();
-        unsafe { WorldSnapshot::from_cxx(ptr).unwrap_unchecked() }
+    pub fn snapshot(&self) -> crate::Result<WorldSnapshot> {
+        let ptr = with_ffi_error("snapshot", |e| self.inner.GetSnapshot(e))?;
+        Ok(unsafe { WorldSnapshot::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns names of all environment objects in the world.
@@ -372,12 +387,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn names_of_all_objects(&self) -> Vec<String> {
-        self.inner
-            .GetNamesOfAllObjects()
-            .iter()
-            .map(|s| s.to_string())
-            .collect()
+    pub fn names_of_all_objects(&self) -> crate::Result<Vec<String>> {
+        let names = with_ffi_error("names_of_all_objects", |e| {
+            self.inner.GetNamesOfAllObjects(e)
+        })?;
+        Ok(names.iter().map(|s| s.to_string()).collect())
     }
 
     /// Finds an actor by its ID.
@@ -399,9 +413,9 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn actor(&self, actor_id: ActorId) -> Option<Actor> {
-        let ptr = self.inner.GetActor(actor_id);
-        Actor::from_cxx(ptr)
+    pub fn actor(&self, actor_id: ActorId) -> crate::Result<Option<Actor>> {
+        let ptr = with_ffi_error("actor", |e| self.inner.GetActor(actor_id, e))?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     /// Returns a list of all actors currently in the world.
@@ -425,16 +439,19 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
-    /// let actors = world.actors();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let actors = world.actors()?;
     /// println!("Total actors: {}", actors.len());
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn actors(&self) -> ActorList {
-        let ptr = self.inner.GetActors();
-        unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn actors(&self) -> crate::Result<ActorList> {
+        let ptr = with_ffi_error("actors", |e| self.inner.GetActors(e))?;
+        Ok(unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns a list of actors matching the given IDs.
@@ -454,14 +471,14 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn actors_by_ids(&self, ids: &[ActorId]) -> ActorList {
+    pub fn actors_by_ids(&self, ids: &[ActorId]) -> crate::Result<ActorList> {
         let mut vec = CxxVector::new_typed();
         ids.iter().cloned().for_each(|id| {
             vec.pin_mut().push(id);
         });
 
-        let ptr = self.inner.GetActorsByIds(&vec);
-        unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("actors_by_ids", |e| self.inner.GetActorsByIds(&vec, e))?;
+        Ok(unsafe { ActorList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns traffic lights affecting a waypoint within a certain distance.
@@ -485,12 +502,16 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_lights_from_waypoint(&self, waypoint: &Waypoint, distance: f64) -> ActorVec {
-        let ptr = self
-            .inner
-            .GetTrafficLightsFromWaypoint(&waypoint.inner, distance)
-            .within_unique_ptr();
-        unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
+    pub fn traffic_lights_from_waypoint(
+        &self,
+        waypoint: &Waypoint,
+        distance: f64,
+    ) -> crate::Result<ActorVec> {
+        let ptr = with_ffi_error("traffic_lights_from_waypoint", |e| {
+            self.inner
+                .GetTrafficLightsFromWaypoint(&waypoint.inner, distance, e)
+        })?;
+        Ok(unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns all traffic lights in a junction.
@@ -513,12 +534,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> ActorVec {
-        let ptr = self
-            .inner
-            .GetTrafficLightsInJunction(junc_id.into())
-            .within_unique_ptr();
-        unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() }
+    pub fn traffic_lights_in_junction(&self, junc_id: JuncId) -> crate::Result<ActorVec> {
+        let ptr = with_ffi_error("traffic_lights_in_junction", |e| {
+            self.inner.GetTrafficLightsInJunction(junc_id.into(), e)
+        })?;
+        Ok(unsafe { ActorVec::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Applies new simulation settings.
@@ -553,21 +573,30 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     /// use std::time::Duration;
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
     ///
-    /// let mut settings = world.settings();
+    /// let mut settings = world.settings()?;
     /// settings.synchronous_mode = true;
     /// settings.fixed_delta_seconds = Some(0.05);
-    /// world.apply_settings(&settings, Duration::from_secs(2));
+    /// world.apply_settings(&settings, Duration::from_secs(2))?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn apply_settings(&mut self, settings: &EpisodeSettings, timeout: Duration) -> u64 {
-        let settings = settings.to_cxx();
+    pub fn apply_settings(
+        &mut self,
+        settings: &EpisodeSettings,
+        timeout: Duration,
+    ) -> crate::Result<u64> {
+        let ffi_settings = settings.to_cxx();
         let millis = timeout.as_millis() as usize;
-        self.inner.pin_mut().ApplySettings(&settings, millis)
+        with_ffi_error("apply_settings", |e| {
+            self.inner.pin_mut().ApplySettings(&ffi_settings, millis, e)
+        })
     }
 
     /// Spawns an actor in the world.
@@ -601,21 +630,24 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::{ActorBase, Client};
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
     ///
-    /// let bp_lib = world.blueprint_library();
+    /// let bp_lib = world.blueprint_library()?;
     /// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
     ///
-    /// let spawn_points = world.map().recommended_spawn_points();
+    /// let spawn_points = world.map()?.recommended_spawn_points();
     /// if let Some(spawn_point) = spawn_points.get(0) {
     ///     match world.spawn_actor(&vehicle_bp, &spawn_point) {
     ///         Ok(actor) => println!("Spawned actor {}", actor.id()),
     ///         Err(e) => eprintln!("Failed to spawn: {}", e),
     ///     }
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn spawn_actor(
         &mut self,
@@ -644,31 +676,36 @@ impl World {
     /// Attaching a camera to a vehicle:
     ///
     /// ```no_run
-    /// use carla::client::Client;
-    /// use carla::rpc::AttachmentType;
-    /// use nalgebra::{Isometry3, Translation3, UnitQuaternion};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use carla::{
+    ///     client::Client,
+    ///     geom::{Location, Rotation, Transform},
+    ///     rpc::AttachmentType,
+    /// };
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let vehicle_actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = vehicle_actor.try_into().unwrap();
     ///
     /// // Spawn camera attached to vehicle
     /// let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
-    /// let camera_transform = Isometry3::from_parts(
-    ///     Translation3::new(0.0, 0.0, 2.0),
-    ///     UnitQuaternion::identity()
-    /// );
+    /// let camera_transform = Transform {
+    ///     location: Location::new(0.0, 0.0, 2.0),
+    ///     rotation: Rotation::default(),
+    /// };
     ///
     /// let camera = world.spawn_actor_opt(
     ///     &camera_bp,
     ///     &camera_transform,
     ///     Some(&vehicle),
-    ///     AttachmentType::Rigid
-    /// ).unwrap();
+    ///     AttachmentType::Rigid,
+    /// )?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn spawn_actor_opt<A, T>(
         &mut self,
@@ -740,35 +777,37 @@ impl World {
     /// Attaching a camera sensor to a vehicle:
     ///
     /// ```no_run
-    /// use carla::{client::Client, rpc::AttachmentType};
-    /// use nalgebra::{Isometry3, Translation3, UnitQuaternion};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use carla::{
+    ///     client::Client,
+    ///     geom::{Location, Rotation, Transform},
+    ///     rpc::AttachmentType,
+    /// };
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
-    /// let bp_lib = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
+    /// let bp_lib = world.blueprint_library()?;
     ///
     /// // Spawn a vehicle
     /// let vehicle_bp = bp_lib.filter("vehicle.tesla.model3").get(0).unwrap();
-    /// let spawn_points = world.map().recommended_spawn_points();
-    /// let vehicle = world
-    ///     .spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())
-    ///     .unwrap();
+    /// let spawn_points = world.map()?.recommended_spawn_points();
+    /// let vehicle = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     ///
     /// // Attach a camera to the vehicle's roof
     /// let camera_bp = bp_lib.find("sensor.camera.rgb").unwrap();
-    /// let camera_transform = Isometry3::from_parts(
-    ///     Translation3::new(0.0, 0.0, 2.5).into(), // 2.5m above vehicle center
-    ///     UnitQuaternion::identity(),
-    /// );
+    /// let camera_transform = Transform {
+    ///     location: Location::new(0.0, 0.0, 2.5), // 2.5m above vehicle center
+    ///     rotation: Rotation::default(),
+    /// };
     ///
-    /// let camera = world
-    ///     .spawn_actor_attached(
-    ///         &camera_bp,
-    ///         &camera_transform,
-    ///         &vehicle,
-    ///         AttachmentType::Rigid, // Camera moves rigidly with vehicle
-    ///     )
-    ///     .unwrap();
+    /// let camera = world.spawn_actor_attached(
+    ///     &camera_bp,
+    ///     &camera_transform,
+    ///     &vehicle,
+    ///     AttachmentType::Rigid, // Camera moves rigidly with vehicle
+    /// )?;
+    /// # Ok(())
+    /// # }
     /// ```
     ///
     /// See also: [`spawn_actor_opt`](Self::spawn_actor_opt) for spawning with optional parent
@@ -814,14 +853,17 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
     ///
     /// // Wait for next tick
-    /// let snapshot = world.wait_for_tick().unwrap();
+    /// let snapshot = world.wait_for_tick()?;
     /// println!("Frame: {}", snapshot.frame());
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn wait_for_tick(&self) -> Result<WorldSnapshot> {
         self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)
@@ -862,8 +904,9 @@ impl World {
     /// # Returns
     ///
     /// The frame number after the tick.
-    pub fn tick_or_timeout(&mut self, timeout: Duration) -> u64 {
-        self.inner.pin_mut().Tick(timeout.as_millis() as usize)
+    pub fn tick_or_timeout(&mut self, timeout: Duration) -> crate::Result<u64> {
+        let millis = timeout.as_millis() as usize;
+        with_ffi_error("tick", |e| self.inner.pin_mut().Tick(millis, e))
     }
 
     /// Advances the simulation by one tick (synchronous mode only).
@@ -885,7 +928,7 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn tick(&mut self) -> u64 {
+    pub fn tick(&mut self) -> crate::Result<u64> {
         self.tick_or_timeout(DEFAULT_TICK_TIMEOUT)
     }
 
@@ -910,8 +953,12 @@ impl World {
     /// # Arguments
     ///
     /// * `percentage` - Value from 0.0 to 1.0 (0% to 100%)
-    pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) {
-        self.inner.pin_mut().SetPedestriansCrossFactor(percentage);
+    pub fn set_pedestrians_cross_factor(&mut self, percentage: f32) -> crate::Result<()> {
+        with_ffi_error("set_pedestrians_cross_factor", |e| {
+            self.inner
+                .pin_mut()
+                .SetPedestriansCrossFactor(percentage, e)
+        })
     }
 
     /// Sets the random seed for pedestrian behavior.
@@ -931,9 +978,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_pedestrians_seed(&mut self, seed: usize) {
+    pub fn set_pedestrians_seed(&mut self, seed: usize) -> crate::Result<()> {
         let seed = c_uint(seed as std::os::raw::c_uint);
-        self.inner.pin_mut().SetPedestriansSeed(seed);
+        with_ffi_error("set_pedestrians_seed", |e| {
+            self.inner.pin_mut().SetPedestriansSeed(seed, e)
+        })
     }
 
     /// Returns the traffic sign actor at the given landmark location.
@@ -953,12 +1002,13 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_sign_at(&self, landmark: &Landmark) -> Option<Actor> {
+    pub fn traffic_sign_at(&self, landmark: &Landmark) -> crate::Result<Option<Actor>> {
         // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
-        let ptr = self
-            .inner
-            .GetTrafficSign(unsafe { landmark.inner.as_ref().unwrap_unchecked() });
-        Actor::from_cxx(ptr)
+        let ptr = with_ffi_error("traffic_sign_at", |e| {
+            self.inner
+                .GetTrafficSign(unsafe { landmark.inner.as_ref().unwrap_unchecked() }, e)
+        })?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     /// Returns the traffic light actor at the given landmark location.
@@ -978,12 +1028,13 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_light_at(&self, landmark: &Landmark) -> Option<Actor> {
+    pub fn traffic_light_at(&self, landmark: &Landmark) -> crate::Result<Option<Actor>> {
         // SAFETY: Landmark.inner is guaranteed non-null (see landmark.rs from_cxx())
-        let ptr = self
-            .inner
-            .GetTrafficLight(unsafe { landmark.inner.as_ref().unwrap_unchecked() });
-        Actor::from_cxx(ptr)
+        let ptr = with_ffi_error("traffic_light_at", |e| {
+            self.inner
+                .GetTrafficLight(unsafe { landmark.inner.as_ref().unwrap_unchecked() }, e)
+        })?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     /// Returns the traffic light actor with the given OpenDRIVE sign ID.
@@ -1003,10 +1054,12 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_light_from_open_drive(&self, sign_id: &str) -> Option<Actor> {
+    pub fn traffic_light_from_open_drive(&self, sign_id: &str) -> crate::Result<Option<Actor>> {
         let_cxx_string!(sign_id = sign_id);
-        let ptr = self.inner.GetTrafficLightFromOpenDRIVE(&sign_id);
-        Actor::from_cxx(ptr)
+        let ptr = with_ffi_error("traffic_light_from_open_drive", |e| {
+            self.inner.GetTrafficLightFromOpenDRIVE(&sign_id, e)
+        })?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     /// Freezes or unfreezes all traffic lights in the world.
@@ -1026,8 +1079,10 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn freeze_all_traffic_lights(&mut self, frozen: bool) {
-        self.inner.pin_mut().FreezeAllTrafficLights(frozen);
+    pub fn freeze_all_traffic_lights(&mut self, frozen: bool) -> crate::Result<()> {
+        with_ffi_error("freeze_all_traffic_lights", |e| {
+            self.inner.pin_mut().FreezeAllTrafficLights(frozen, e)
+        })
     }
 
     /// Resets all traffic lights to their initial state.
@@ -1047,8 +1102,10 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn reset_all_traffic_lights(&mut self) {
-        self.inner.pin_mut().ResetAllTrafficLights();
+    pub fn reset_all_traffic_lights(&mut self) -> crate::Result<()> {
+        with_ffi_error("reset_all_traffic_lights", |e| {
+            self.inner.pin_mut().ResetAllTrafficLights(e)
+        })
     }
 
     /// Returns bounding boxes for environment objects matching the queried tag.
@@ -1068,9 +1125,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn level_bounding_boxes(&self, queried_tag: u8) -> BoundingBoxList {
-        let ptr = self.inner.GetLevelBBs(queried_tag);
-        unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn level_bounding_boxes(&self, queried_tag: u8) -> crate::Result<BoundingBoxList> {
+        let ptr = with_ffi_error("level_bounding_boxes", |e| {
+            self.inner.GetLevelBBs(queried_tag, e)
+        })?;
+        Ok(unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the current weather parameters.
@@ -1090,8 +1149,8 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn weather(&self) -> WeatherParameters {
-        self.inner.GetWeather()
+    pub fn weather(&self) -> crate::Result<WeatherParameters> {
+        with_ffi_error("weather", |e| self.inner.GetWeather(e))
     }
 
     /// Sets the weather parameters (sun, clouds, precipitation, fog, etc.).
@@ -1115,26 +1174,31 @@ impl World {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::{client::Client, rpc::WeatherParameters};
     ///
-    /// let client = Client::default();
-    /// let mut world = client.world();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
     ///
-    /// let mut weather = world.weather();
+    /// let mut weather = world.weather()?;
     /// weather.cloudiness = 80.0;
     /// weather.precipitation = 50.0;
-    /// world.set_weather(&weather);
+    /// world.set_weather(&weather)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn set_weather(&mut self, weather: &WeatherParameters) {
-        self.inner.pin_mut().SetWeather(weather)
+    pub fn set_weather(&mut self, weather: &WeatherParameters) -> crate::Result<()> {
+        with_ffi_error("set_weather", |e| {
+            self.inner.pin_mut().SetWeather(weather, e)
+        })
     }
 
     /// Returns whether weather simulation is enabled.
     ///
     /// **Available in CARLA 0.10.0+**
     #[cfg(carla_0100)]
-    pub fn is_weather_enabled(&self) -> bool {
-        self.inner.IsWeatherEnabled()
+    pub fn is_weather_enabled(&self) -> crate::Result<bool> {
+        with_ffi_error("is_weather_enabled", |e| self.inner.IsWeatherEnabled(e))
     }
 
     /// Returns environment objects matching the queried tag.
@@ -1154,12 +1218,11 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn environment_objects(&self, queried_tag: u8) -> EnvironmentObjectList {
-        let ptr = self
-            .inner
-            .GetEnvironmentObjects(queried_tag)
-            .within_unique_ptr();
-        unsafe { EnvironmentObjectList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn environment_objects(&self, queried_tag: u8) -> crate::Result<EnvironmentObjectList> {
+        let ptr = with_ffi_error("environment_objects", |e| {
+            self.inner.GetEnvironmentObjects(queried_tag, e)
+        })?;
+        Ok(unsafe { EnvironmentObjectList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Enables or disables environment objects by their IDs.
@@ -1179,12 +1242,12 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) {
+    pub fn enable_environment_objects(&self, ids: &[u64], enable: bool) -> crate::Result<()> {
         let ptr = ids.as_ptr();
         let len = ids.len();
-        unsafe {
-            self.inner.EnableEnvironmentObjects(ptr, len, enable);
-        }
+        with_ffi_error("enable_environment_objects", |e| unsafe {
+            self.inner.EnableEnvironmentObjects(ptr, len, enable, e)
+        })
     }
 
     pub fn project_point(
@@ -1192,21 +1255,22 @@ impl World {
         location: &Location,
         direction: &Vector3D,
         search_distance: f32,
-    ) -> Option<LabelledPoint> {
+    ) -> crate::Result<Option<LabelledPoint>> {
         // SAFETY: FfiVector3D and carla::geom::Vector3D have identical memory layout
         let cpp_dir = unsafe {
             std::mem::transmute::<FfiVector3D, carla_sys::carla::geom::Vector3D>(
                 direction.into_ffi(),
             )
         };
-        let ptr = self
-            .inner
-            .ProjectPoint(location.into_ffi(), cpp_dir, search_distance);
+        let ptr = with_ffi_error("project_point", |e| {
+            self.inner
+                .ProjectPoint(location.into_ffi(), cpp_dir, search_distance, e)
+        })?;
 
         if ptr.is_null() {
-            None
+            Ok(None)
         } else {
-            Some((*ptr).clone())
+            Ok(Some((*ptr).clone()))
         }
     }
 
@@ -1214,24 +1278,24 @@ impl World {
         &self,
         location: &Location,
         search_distance: f32,
-    ) -> Option<LabelledPoint> {
-        let ptr = self
-            .inner
-            .GroundProjection(location.into_ffi(), search_distance);
+    ) -> crate::Result<Option<LabelledPoint>> {
+        let ptr = with_ffi_error("ground_projection", |e| {
+            self.inner
+                .GroundProjection(location.into_ffi(), search_distance, e)
+        })?;
 
         if ptr.is_null() {
-            None
+            Ok(None)
         } else {
-            Some((*ptr).clone())
+            Ok(Some((*ptr).clone()))
         }
     }
 
-    pub fn cast_ray(&self, start: &Location, end: &Location) -> LabelledPointList {
-        let ptr = self
-            .inner
-            .CastRay(start.into_ffi(), end.into_ffi())
-            .within_unique_ptr();
-        unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn cast_ray(&self, start: &Location, end: &Location) -> crate::Result<LabelledPointList> {
+        let ptr = with_ffi_error("cast_ray", |e| {
+            self.inner.CastRay(start.into_ffi(), end.into_ffi(), e)
+        })?;
+        Ok(unsafe { LabelledPointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Creates a debug helper for drawing visualization primitives.
@@ -1253,9 +1317,9 @@ impl World {
     /// // Draw a red point at the origin
     /// debug.draw_point(Location::new(0.0, 0.0, 0.0), 0.5, Color::RED, 5.0, false);
     /// ```
-    pub fn debug(&mut self) -> DebugHelper {
-        let ptr = self.inner.pin_mut().MakeDebugHelper();
-        DebugHelper { inner: ptr }
+    pub fn debug(&mut self) -> crate::Result<DebugHelper> {
+        let ptr = with_ffi_error("debug", |e| self.inner.pin_mut().MakeDebugHelper(e))?;
+        Ok(DebugHelper { inner: ptr })
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {

@@ -171,7 +171,7 @@ struct CameraSensor {
 
 impl CameraSensor {
     fn spawn(world: &mut CarlaWorld, transform: &Transform, parent: &Vehicle) -> Result<Self> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
             .iter()
             .find(|bp| bp.id() == "sensor.camera.rgb")
@@ -192,7 +192,7 @@ impl CameraSensor {
             if let Ok(image) = Image::try_from(data) {
                 *image_clone.lock().unwrap() = Some(image);
             }
-        });
+        })?;
 
         Ok(Self {
             _sensor: sensor,
@@ -222,7 +222,7 @@ struct LidarSensor {
 
 impl LidarSensor {
     fn spawn(world: &mut CarlaWorld, parent: &Vehicle, is_semantic: bool) -> Result<Self> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let blueprint_id = if is_semantic {
             "sensor.lidar.ray_cast_semantic"
         } else {
@@ -269,7 +269,7 @@ impl LidarSensor {
                         .collect();
                     *points_clone.lock().unwrap() = Some(points);
                 }
-            });
+            })?;
         } else {
             sensor.listen(move |data| {
                 if let Ok(measurement) = LidarMeasurement::try_from(data) {
@@ -280,7 +280,7 @@ impl LidarSensor {
                         .collect();
                     *points_clone.lock().unwrap() = Some(points);
                 }
-            });
+            })?;
         }
 
         Ok(Self {
@@ -365,21 +365,21 @@ async fn main() -> Result<()> {
     println!("=== CARLA Multiple Sensor Grid View ===");
     println!("Connecting to CARLA...");
 
-    let mut client = Client::connect("127.0.0.1", 2000, Some(2));
-    client.set_timeout(Duration::from_secs(10));
+    let mut client = Client::connect("127.0.0.1", 2000, Some(2))?;
+    client.set_timeout(Duration::from_secs(10))?;
 
-    let mut world = client.world();
-    println!("Connected to world: {}", world.map().name());
+    let mut world = client.world()?;
+    println!("Connected to world: {}", world.map()?.name());
 
     // Spawn vehicle
     println!("Spawning vehicle...");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .iter()
         .find(|bp| bp.id() == "vehicle.tesla.model3")
         .context("Failed to find vehicle blueprint")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).context("No spawn points available")?;
 
     let vehicle_actor = world
@@ -389,7 +389,7 @@ async fn main() -> Result<()> {
     let vehicle = Vehicle::try_from(vehicle_actor)
         .map_err(|_| anyhow::anyhow!("Failed to convert actor to vehicle"))?;
 
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
     println!("Vehicle spawned with autopilot enabled");
 
     // Setup display manager

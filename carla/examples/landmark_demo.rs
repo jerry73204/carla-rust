@@ -15,9 +15,9 @@ fn main() -> Result<()> {
     println!("Landmark Detection Demo - Connecting to CARLA...\n");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let world = client.world();
-    let map = world.map();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let world = client.world()?;
+    let map = world.map()?;
 
     println!("Map: {}\n", map.name());
 
@@ -32,7 +32,7 @@ fn main() -> Result<()> {
 
     // Check landmarks around first few spawn points
     for (i, spawn_transform) in spawn_points.as_slice().iter().take(5).enumerate() {
-        let waypoint = match map.waypoint_at(&spawn_transform.location) {
+        let waypoint = match map.waypoint_at(&spawn_transform.location)? {
             Some(wp) => wp,
             None => {
                 println!("Spawn point {}: No waypoint found", i);
@@ -48,7 +48,7 @@ fn main() -> Result<()> {
         );
 
         // Method 1: Get all landmarks within 50 meters (Rust-idiomatic method)
-        let landmarks = waypoint.all_landmarks_in_distance(50.0, false);
+        let landmarks = waypoint.all_landmarks_in_distance(50.0, false)?;
         println!("  Found {} landmarks within 50m", landmarks.len());
 
         if !landmarks.is_empty() {
@@ -73,9 +73,9 @@ fn main() -> Result<()> {
 
     // Demonstrate Python-compatible method aliases
     let spawn_transform = &spawn_points.as_slice()[0];
-    if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
+    if let Some(waypoint) = map.waypoint_at(&spawn_transform.location)? {
         // Method 2: Python-compatible alias (same functionality)
-        let landmarks = waypoint.get_landmarks(100.0, false);
+        let landmarks = waypoint.get_landmarks(100.0, false)?;
         println!(
             "Using get_landmarks(): Found {} landmarks within 100m",
             landmarks.len()
@@ -110,10 +110,10 @@ fn main() -> Result<()> {
     ];
 
     for spawn_transform in spawn_points.as_slice().iter().take(10) {
-        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
+        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location)? {
             for (type_code, type_name) in &test_types {
                 // Method 3: Filter by type (Rust-idiomatic)
-                let filtered = waypoint.landmarks_of_type_in_distance(100.0, type_code, false);
+                let filtered = waypoint.landmarks_of_type_in_distance(100.0, type_code, false)?;
 
                 if !filtered.is_empty() {
                     println!(
@@ -147,8 +147,8 @@ fn main() -> Result<()> {
     println!("\n=== Using Python-Compatible Type Filtering ===\n");
 
     // Method 4: Python-compatible type filtering alias
-    if let Some(waypoint) = map.waypoint_at(&spawn_points.as_slice()[0].location) {
-        let speed_limits = waypoint.get_landmarks_of_type(150.0, "1000001", false);
+    if let Some(waypoint) = map.waypoint_at(&spawn_points.as_slice()[0].location)? {
+        let speed_limits = waypoint.get_landmarks_of_type(150.0, "1000001", false)?;
 
         if !speed_limits.is_empty() {
             println!("Speed limits ahead:");
@@ -169,8 +169,8 @@ fn main() -> Result<()> {
 
     // Find any landmark to demonstrate all available properties
     for spawn_transform in spawn_points.as_slice().iter() {
-        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location) {
-            let landmarks = waypoint.get_landmarks(200.0, false);
+        if let Some(waypoint) = map.waypoint_at(&spawn_transform.location)? {
+            let landmarks = waypoint.get_landmarks(200.0, false)?;
 
             if let Some(landmark) = landmarks.get(0) {
                 println!("Detailed landmark properties:");

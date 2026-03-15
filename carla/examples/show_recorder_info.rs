@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let mut client = Client::connect("localhost", 2000, None);
+    let mut client = Client::connect("localhost", 2000, None)?;
     println!("✓ Connected!\n");
 
     let recording_filename = "recording01.log";
@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Query 1: File Information ===");
     println!("Requesting file info (summary)...\n");
 
-    let file_info = client.show_recorder_file_info(recording_filename, false);
+    let file_info = client.show_recorder_file_info(recording_filename, false)?;
     println!("{}", file_info);
     println!();
 
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Query 2: Detailed File Information ===");
     println!("Requesting file info (detailed)...\n");
 
-    let detailed_info = client.show_recorder_file_info(recording_filename, true);
+    let detailed_info = client.show_recorder_file_info(recording_filename, true)?;
     println!("{}", detailed_info);
     println!();
 
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         recording_filename,
         'v', // vehicles
         'a', // any type
-    );
+    )?;
     println!("{}", collision_info);
     println!();
 
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         recording_filename,
         'a', // any
         'a', // any
-    );
+    )?;
     println!("{}", all_collisions);
     println!();
 
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         recording_filename,
         10.0, // minimum time blocked (seconds)
         10.0, // minimum distance (meters)
-    );
+    )?;
     println!("{}", blocked_info);
     println!();
 

@@ -43,19 +43,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("==========================\n");
 
     // Connect to CARLA server
-    let mut client = Client::default();
-    let mut world = client.world();
+    let mut client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
     let mut rng = rand::rng();
 
     println!("Connected to CARLA simulator");
-    println!("Map: {}\n", world.map().name());
+    println!("Map: {}\n", world.map()?.name());
 
     // Configure pedestrian behavior
-    world.set_pedestrians_seed(rng.random_range(0..100000));
-    world.set_pedestrians_cross_factor(0.2); // 20% chance to cross roads
+    world.set_pedestrians_seed(rng.random_range(0..100000))?;
+    world.set_pedestrians_cross_factor(0.2)?; // 20% chance to cross roads
 
-    let bp_lib = world.blueprint_library();
-    let spawn_points = world.map().recommended_spawn_points();
+    let bp_lib = world.blueprint_library()?;
+    let spawn_points = world.map()?.recommended_spawn_points();
 
     // ========================================================================
     // PART 1: Spawn Vehicles with Autopilot
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Spawning vehicles in batch...");
-    let vehicle_responses = client.apply_batch_sync(vehicle_spawn_commands, false);
+    let vehicle_responses = client.apply_batch_sync(vehicle_spawn_commands, false)?;
 
     let mut vehicle_ids = Vec::new();
     for (i, response) in vehicle_responses.iter().enumerate() {
@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for &vehicle_id in &vehicle_ids {
         autopilot_commands.push(Command::set_autopilot(vehicle_id, true, 8000));
     }
-    client.apply_batch_sync(autopilot_commands, false);
+    client.apply_batch_sync(autopilot_commands, false)?;
     println!("✓ Autopilot enabled\n");
 
     // ========================================================================
@@ -128,7 +128,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .ok_or("Failed to get walker blueprint")?;
 
         // Get random location from navigation system
-        let location = world.random_location_from_navigation();
+        let location = world.random_location_from_navigation()?;
         let rotation = carla::geom::Rotation {
             pitch: 0.0,
             yaw: 0.0,
@@ -139,7 +139,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Spawning walkers in batch...");
-    let walker_responses = client.apply_batch_sync(walker_spawn_commands, false);
+    let walker_responses = client.apply_batch_sync(walker_spawn_commands, false)?;
 
     let mut walker_ids = Vec::new();
     for (i, response) in walker_responses.iter().enumerate() {
@@ -186,7 +186,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Spawning AI controllers in batch...");
-    let controller_responses = client.apply_batch_sync(controller_spawn_commands, false);
+    let controller_responses = client.apply_batch_sync(controller_spawn_commands, false)?;
 
     let mut controller_ids = Vec::new();
     for response in controller_responses {
@@ -211,19 +211,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut walker_controllers = Vec::new();
     for &controller_id in &controller_ids {
-        if let Some(actor) = world.actor(controller_id)
+        if let Ok(Some(actor)) = world.actor(controller_id)
             && let Ok(controller) = WalkerAIController::try_from(actor)
         {
             // Start the AI
-            controller.start();
+            controller.start()?;
 
             // Set walking speed (random between 0.5 and 2.0 m/s)
             let speed = rng.random_range(0.5..2.0);
-            controller.set_max_speed(speed);
+            controller.set_max_speed(speed)?;
 
             // Set random destination
-            if let Some(destination) = controller.get_random_location() {
-                controller.go_to_location(&destination);
+            if let Some(destination) = controller.get_random_location()? {
+                controller.go_to_location(&destination)?;
             }
 
             walker_controllers.push(controller);
@@ -268,7 +268,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Stop walker AI controllers
     println!("Stopping walker AI controllers...");
     for controller in walker_controllers {
-        controller.stop();
+        controller.stop()?;
     }
 
     // Destroy all spawned actors
@@ -286,7 +286,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         destroy_commands.push(Command::destroy_actor(vehicle_id));
     }
 
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     println!("✓ Cleanup complete\n");
 

@@ -13,16 +13,16 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Get all walker blueprints
     let walker_blueprints = blueprint_library.filter("walker.pedestrian.*");
@@ -34,7 +34,7 @@ fn main() {
         .expect("No walker blueprints available");
 
     // Get spawn points
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     println!("Available spawn points: {}", spawn_points.len());
 
     // Spawn 3 walkers (or fewer if not enough spawn points)
@@ -62,7 +62,7 @@ fn main() {
     // Display information about spawned walkers
     println!("\nWalker summary:");
     for (i, walker) in walkers.iter().enumerate() {
-        let location = walker.location();
+        let location = walker.location()?;
         println!(
             "  Walker {}: ID={}, type={}, alive={}, location=({:.1}, {:.1}, {:.1})",
             i + 1,
@@ -77,4 +77,6 @@ fn main() {
 
     println!("\nWalkers will remain in the simulation.");
     println!("Note: Walkers have no AI controller and won't move automatically.");
+
+    Ok(())
 }

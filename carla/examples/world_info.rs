@@ -13,18 +13,18 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let world = client.world();
+    let world = client.world()?;
     println!("World ready!");
 
     // Get map information
-    let map = world.map();
+    let map = world.map()?;
     let map_name = map.name();
     println!("\nCurrent map: {}", map_name);
 
@@ -40,7 +40,7 @@ fn main() {
     }
 
     // Get all actors in the world
-    let actors = world.actors();
+    let actors = world.actors()?;
     println!("\nActors in world: {}", actors.len());
 
     // List actors by type
@@ -56,4 +56,6 @@ fn main() {
     for (category, count) in actor_types.iter() {
         println!("  {}: {}", category, count);
     }
+
+    Ok(())
 }

@@ -6,13 +6,14 @@
 //! # Examples
 //!
 //! ```no_run
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! # use carla::client::Client;
 //! # use carla::geom::{Location, Rotation};
 //! # use carla::rpc::Color;
 //! #
-//! # let mut client = Client::connect("localhost", 2000, None).unwrap();
-//! # let mut world = client.world();
-//! let debug = world.debug();
+//! # let mut client = Client::connect("localhost", 2000, None)?;
+//! # let mut world = client.world()?;
+//! let debug = world.debug()?;
 //!
 //! // Draw a red point at origin
 //! debug.draw_point(Location::new(0.0, 0.0, 0.0), 0.5, Color::RED, 5.0, false);
@@ -36,6 +37,8 @@
 //!     5.0,
 //!     false,
 //! );
+//! # Ok(())
+//! # }
 //! ```
 
 use crate::{
@@ -76,16 +79,19 @@ impl DebugHelper {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
     /// # use carla::rpc::Color;
     /// #
-    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
-    /// # let mut world = client.world();
-    /// let debug = world.debug();
+    /// # let mut client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// let debug = world.debug()?;
     ///
     /// // Draw a large red point at origin for 5 seconds
     /// debug.draw_point(Location::new(0.0, 0.0, 0.0), 1.0, Color::RED, 5.0, false);
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn draw_point(
         &self,
@@ -120,13 +126,14 @@ impl DebugHelper {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
     /// # use carla::rpc::Color;
     /// #
-    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
-    /// # let mut world = client.world();
-    /// let debug = world.debug();
+    /// # let mut client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// let debug = world.debug()?;
     ///
     /// // Draw a green line along the X axis
     /// debug.draw_line(
@@ -137,6 +144,8 @@ impl DebugHelper {
     ///     5.0,
     ///     false,
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn draw_line(
         &self,
@@ -174,13 +183,14 @@ impl DebugHelper {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
     /// # use carla::rpc::Color;
     /// #
-    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
-    /// # let mut world = client.world();
-    /// let debug = world.debug();
+    /// # let mut client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// let debug = world.debug()?;
     ///
     /// // Draw a blue arrow pointing up
     /// debug.draw_arrow(
@@ -192,6 +202,8 @@ impl DebugHelper {
     ///     5.0,
     ///     false,
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     #[allow(clippy::too_many_arguments)]
     pub fn draw_arrow(
@@ -231,13 +243,14 @@ impl DebugHelper {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::{BoundingBox, Location, Rotation, Vector3D};
     /// # use carla::rpc::Color;
     /// #
-    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
-    /// # let mut world = client.world();
-    /// let debug = world.debug();
+    /// # let mut client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// let debug = world.debug()?;
     ///
     /// // Draw a rotated bounding box
     /// let bbox = BoundingBox::new(Location::new(0.0, 0.0, 1.0), Vector3D::new(2.0, 1.0, 1.0));
@@ -249,6 +262,8 @@ impl DebugHelper {
     ///     5.0,
     ///     false,
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn draw_box(
         &self,
@@ -290,13 +305,14 @@ impl DebugHelper {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::geom::Location;
     /// # use carla::rpc::Color;
     /// #
-    /// # let mut client = Client::connect("localhost", 2000, None).unwrap();
-    /// # let mut world = client.world();
-    /// let debug = world.debug();
+    /// # let mut client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// let debug = world.debug()?;
     ///
     /// // Draw text label with shadow
     /// debug.draw_string(
@@ -307,6 +323,8 @@ impl DebugHelper {
     ///     5.0,
     ///     false,
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn draw_string(
         &self,

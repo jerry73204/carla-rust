@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let mut client = Client::connect("localhost", 2000, None);
+    let mut client = Client::connect("localhost", 2000, None)?;
     println!("✓ Connected!\n");
 
     // Replay configuration
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         duration,
         follow_id,
         replay_sensors,
-    );
+    )?;
 
     println!("✓ Replay started: {}\n", result);
 
@@ -66,15 +66,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Stop replay
     println!("\nStopping replayer...");
-    client.stop_replayer(false); // false = destroy actors after replay stops
+    client.stop_replayer(false)?; // false = destroy actors after replay stops
     println!("✓ Replay stopped");
 
     println!("\n=== Replay Complete ===");
     println!("\nReplay controls:");
-    println!("  • client.replay_file(...) - Start replay");
-    println!("  • client.stop_replayer(keep_actors) - Stop replay");
-    println!("  • client.set_replayer_time_factor(speed) - Adjust playback speed");
-    println!("  • client.set_replayer_ignore_hero(true) - Ignore hero vehicle");
+    println!("  • client.replay_file(...)? - Start replay");
+    println!("  • client.stop_replayer(keep_actors)? - Stop replay");
+    println!("  • client.set_replayer_time_factor(speed)? - Adjust playback speed");
+    println!("  • client.set_replayer_ignore_hero(true)? - Ignore hero vehicle");
 
     Ok(())
 }

@@ -239,7 +239,7 @@ impl LocalPlanner {
     /// - Uses distance-based pruning that scales with vehicle speed
     pub fn run_step(&mut self, debug: bool) -> Result<VehicleControl> {
         // Purge waypoints queue of obsolete waypoints (passed waypoints)
-        let vehicle_location = self.vehicle.transform().location;
+        let vehicle_location = self.vehicle.transform()?.location;
         let vehicle_speed = get_speed(&self.vehicle) / 3.6; // Convert km/h to m/s
         let min_distance = self.base_min_distance + self.distance_ratio * vehicle_speed;
 

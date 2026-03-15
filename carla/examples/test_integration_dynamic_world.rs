@@ -17,12 +17,12 @@
 use carla::{client::Client, geom::Location};
 use std::time::Duration;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Dynamic World Manipulation Integration Test ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server");
 
     // Test 1: Query world information
@@ -56,7 +56,7 @@ fn test_world_info(world: &carla::client::World) {
     println!("✓ World ID: {}", world_id);
 
     // Get map name
-    let map = world.map();
+    let map = world.map().expect("map");
     let map_name = map.name();
     println!("✓ Map name: {}", map_name);
 
@@ -65,7 +65,7 @@ fn test_world_info(world: &carla::client::World) {
     println!("✓ Available spawn points: {}", spawn_points.len());
 
     // Get topology
-    let topology = map.topology();
+    let topology = map.topology().expect("API call failed");
     println!("✓ Road topology segments: {}", topology.len());
 
     assert!(!map_name.is_empty(), "Map name should not be empty");
@@ -74,7 +74,7 @@ fn test_world_info(world: &carla::client::World) {
 
 fn test_environment_objects(world: &carla::client::World) {
     // Query all environment objects
-    let objects = world.environment_objects(0xFF);
+    let objects = world.environment_objects(0xFF).expect("API call failed");
     println!("✓ Found {} environment objects", objects.len());
 
     if !objects.is_empty() {
@@ -89,11 +89,15 @@ fn test_environment_objects(world: &carla::client::World) {
 
         if !ids_to_toggle.is_empty() {
             println!("  Disabling {} objects...", ids_to_toggle.len());
-            world.enable_environment_objects(&ids_to_toggle, false);
+            let _ = world
+                .enable_environment_objects(&ids_to_toggle, false)
+                .expect("API call failed");
             std::thread::sleep(Duration::from_millis(500));
 
             println!("  Re-enabling objects...");
-            world.enable_environment_objects(&ids_to_toggle, true);
+            let _ = world
+                .enable_environment_objects(&ids_to_toggle, true)
+                .expect("API call failed");
             println!("✓ Successfully toggled environment objects");
         }
     }
@@ -102,25 +106,25 @@ fn test_environment_objects(world: &carla::client::World) {
 fn test_traffic_lights(world: &mut carla::client::World) {
     // Freeze all traffic lights
     println!("  Freezing all traffic lights...");
-    world.freeze_all_traffic_lights(true);
+    let _ = world.freeze_all_traffic_lights(true);
     std::thread::sleep(Duration::from_millis(500));
     println!("✓ Traffic lights frozen");
 
     // Reset all traffic lights
     println!("  Resetting all traffic lights...");
-    world.reset_all_traffic_lights();
+    let _ = world.reset_all_traffic_lights();
     std::thread::sleep(Duration::from_millis(500));
     println!("✓ Traffic lights reset");
 
     // Unfreeze traffic lights
     println!("  Unfreezing traffic lights...");
-    world.freeze_all_traffic_lights(false);
+    let _ = world.freeze_all_traffic_lights(false);
     println!("✓ Traffic lights unfrozen");
 }
 
 fn test_weather_changes(world: &mut carla::client::World) {
     // Test 1: Default weather
-    let original_weather = world.weather();
+    let original_weather = world.weather().expect("weather");
     println!("  Original weather:");
     println!("    Cloudiness: {:.1}", original_weather.cloudiness);
     println!("    Precipitation: {:.1}", original_weather.precipitation);
@@ -131,15 +135,15 @@ fn test_weather_changes(world: &mut carla::client::World) {
 
     // Test 2: Set rainy weather
     println!("\n  Setting rainy weather...");
-    let mut rainy_weather = world.weather();
+    let mut rainy_weather = world.weather().expect("weather");
     rainy_weather.cloudiness = 90.0;
     rainy_weather.precipitation = 80.0;
     rainy_weather.precipitation_deposits = 50.0;
     rainy_weather.wetness = 80.0;
-    world.set_weather(&rainy_weather);
+    let _ = world.set_weather(&rainy_weather).expect("API call failed");
     std::thread::sleep(Duration::from_millis(500));
 
-    let current_weather = world.weather();
+    let current_weather = world.weather().expect("weather");
     assert!(
         (current_weather.cloudiness - 90.0).abs() < 1.0,
         "Cloudiness should be set"
@@ -152,15 +156,15 @@ fn test_weather_changes(world: &mut carla::client::World) {
 
     // Test 3: Set sunny weather
     println!("\n  Setting sunny weather...");
-    let mut sunny_weather = world.weather();
+    let mut sunny_weather = world.weather().expect("weather");
     sunny_weather.cloudiness = 10.0;
     sunny_weather.precipitation = 0.0;
     sunny_weather.wetness = 0.0;
     sunny_weather.sun_altitude_angle = 45.0;
-    world.set_weather(&sunny_weather);
+    let _ = world.set_weather(&sunny_weather).expect("API call failed");
     std::thread::sleep(Duration::from_millis(500));
 
-    let current_weather = world.weather();
+    let current_weather = world.weather().expect("weather");
     assert!(
         (current_weather.cloudiness - 10.0).abs() < 1.0,
         "Cloudiness should be low"
@@ -173,16 +177,18 @@ fn test_weather_changes(world: &mut carla::client::World) {
 
     // Test 4: Restore original weather
     println!("\n  Restoring original weather...");
-    world.set_weather(&original_weather);
+    let _ = world
+        .set_weather(&original_weather)
+        .expect("API call failed");
     println!("✓ Weather restored");
 }
 
 fn test_map_operations(world: &carla::client::World) {
-    let map = world.map();
+    let map = world.map().expect("map");
 
     // Test waypoint lookup
     let test_location = Location::new(0.0, 0.0, 0.0);
-    if let Some(waypoint) = map.waypoint_at(&test_location) {
+    if let Some(waypoint) = map.waypoint_at(&test_location).ok().flatten() {
         println!("✓ Found waypoint at test location");
         println!(
             "  Waypoint location: ({:.1}, {:.1}, {:.1})",
@@ -192,29 +198,29 @@ fn test_map_operations(world: &carla::client::World) {
         );
 
         // Test waypoint navigation
-        let next_waypoints = waypoint.next(5.0);
+        let next_waypoints = waypoint.next(5.0).expect("API call failed");
         println!("✓ Next waypoints: {} found", next_waypoints.len());
     } else {
         println!("⚠️  No waypoint found at (0,0,0) - using spawn point instead");
 
         let spawn_points = map.recommended_spawn_points();
         if let Some(spawn_point) = spawn_points.get(0)
-            && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+            && let Some(waypoint) = map.waypoint_at(&spawn_point.location).ok().flatten()
         {
             println!("✓ Found waypoint at spawn point");
-            let next_waypoints = waypoint.next(5.0);
+            let next_waypoints = waypoint.next(5.0).expect("API call failed");
             println!("✓ Next waypoints: {} found", next_waypoints.len());
         }
     }
 
     // Test topology
-    let topology = map.topology();
+    let topology = map.topology().expect("API call failed");
     if !topology.is_empty() {
         println!("✓ Topology has {} road segments", topology.len());
 
         // Get waypoints from first topology segment
         if let Some((start_wp, _end_wp)) = topology.first() {
-            let next_wps = start_wp.next(1.0);
+            let next_wps = start_wp.next(1.0).expect("API call failed");
             println!(
                 "✓ Can navigate from topology waypoint: {} next waypoints",
                 next_wps.len()
@@ -223,7 +229,7 @@ fn test_map_operations(world: &carla::client::World) {
     }
 
     // Test waypoint generation
-    let all_waypoints = map.generate_waypoints(2.0);
+    let all_waypoints = map.generate_waypoints(2.0).expect("API call failed");
     println!("✓ Generated {} waypoints across map", all_waypoints.len());
     assert!(!all_waypoints.is_empty(), "Should generate waypoints");
 }

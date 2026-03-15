@@ -1,9 +1,9 @@
 use super::{LightList, LightState};
 use crate::{
+    error::ffi::with_ffi_error,
     rpc::{LightGroup, LightId},
     sensor::data::Color,
 };
-use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiLightManager;
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -36,19 +36,20 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::{client::Client, rpc::LightGroup, sensor::data::Color};
 ///
-/// let client = Client::default();
-/// let world = client.world();
-/// let light_manager = world.light_manager();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let world = client.world()?;
+/// let light_manager = world.light_manager()?;
 ///
 /// // Get all street lights
-/// let street_lights = light_manager.all_lights(LightGroup::Street);
+/// let street_lights = light_manager.all_lights(LightGroup::Street)?;
 ///
 /// // Turn on all street lights with red color
 /// for light in street_lights.iter() {
 ///     let id = light.id();
-///     light_manager.set_active(id, true);
+///     light_manager.set_active(id, true)?;
 ///     light_manager.set_color(
 ///         id,
 ///         Color {
@@ -57,9 +58,11 @@ use static_assertions::assert_impl_all;
 ///             b: 0,
 ///             a: 255,
 ///         },
-///     );
-///     light_manager.set_intensity(id, 100.0);
+///     )?;
+///     light_manager.set_intensity(id, 100.0)?;
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -87,9 +90,9 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn all_lights(&self, group: LightGroup) -> LightList {
-        let list = self.inner.GetAllLights(group).within_unique_ptr();
-        unsafe { LightList::from_cxx(list).unwrap_unchecked() }
+    pub fn all_lights(&self, group: LightGroup) -> crate::Result<LightList> {
+        let ptr = with_ffi_error("all_lights", |e| self.inner.GetAllLights(group, e))?;
+        Ok(unsafe { LightList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the color of the light with the given ID.
@@ -109,8 +112,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn color(&self, id: LightId) -> Color {
-        self.inner.GetColor(id)
+    pub fn color(&self, id: LightId) -> crate::Result<Color> {
+        with_ffi_error("color", |e| self.inner.GetColor(id, e))
     }
 
     /// Returns the intensity of the light with the given ID.
@@ -130,8 +133,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn intensity(&self, id: LightId) -> f32 {
-        self.inner.GetIntensity(id)
+    pub fn intensity(&self, id: LightId) -> crate::Result<f32> {
+        with_ffi_error("intensity", |e| self.inner.GetIntensity(id, e))
     }
 
     /// Returns the state of the light with the given ID.
@@ -151,8 +154,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_state(&self, id: LightId) -> LightState {
-        self.inner.GetLightState(id)
+    pub fn light_state(&self, id: LightId) -> crate::Result<LightState> {
+        with_ffi_error("light_state", |e| self.inner.GetLightState(id, e))
     }
 
     /// Returns the group of the light with the given ID.
@@ -172,8 +175,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_group(&self, id: LightId) -> LightGroup {
-        self.inner.GetLightGroup(id)
+    pub fn light_group(&self, id: LightId) -> crate::Result<LightGroup> {
+        with_ffi_error("light_group", |e| self.inner.GetLightGroup(id, e))
     }
 
     /// Returns true if the light with the given ID is active (on).
@@ -193,8 +196,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_active(&self, id: LightId) -> bool {
-        self.inner.IsActive(id)
+    pub fn is_active(&self, id: LightId) -> crate::Result<bool> {
+        with_ffi_error("is_active", |e| self.inner.IsActive(id, e))
     }
 
     /// Sets whether the light with the given ID is active (on/off).
@@ -214,8 +217,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_active(&self, id: LightId, active: bool) {
-        self.inner.SetActive(id, active);
+    pub fn set_active(&self, id: LightId, active: bool) -> crate::Result<()> {
+        with_ffi_error("set_active", |e| self.inner.SetActive(id, active, e))
     }
 
     /// Sets the color of the light with the given ID.
@@ -235,8 +238,8 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_color(&self, id: LightId, color: Color) {
-        self.inner.SetColor(id, color);
+    pub fn set_color(&self, id: LightId, color: Color) -> crate::Result<()> {
+        with_ffi_error("set_color", |e| self.inner.SetColor(id, color, e))
     }
 
     /// Sets the intensity of the light with the given ID.
@@ -256,8 +259,10 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_intensity(&self, id: LightId, intensity: f32) {
-        self.inner.SetIntensity(id, intensity);
+    pub fn set_intensity(&self, id: LightId, intensity: f32) -> crate::Result<()> {
+        with_ffi_error("set_intensity", |e| {
+            self.inner.SetIntensity(id, intensity, e)
+        })
     }
 
     /// Sets the complete state of the light with the given ID.
@@ -277,8 +282,10 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_light_state(&self, id: LightId, state: &LightState) {
-        self.inner.SetLightState(id, state);
+    pub fn set_light_state(&self, id: LightId, state: &LightState) -> crate::Result<()> {
+        with_ffi_error("set_light_state", |e| {
+            self.inner.SetLightState(id, state, e)
+        })
     }
 
     /// Sets the group of the light with the given ID.
@@ -298,8 +305,10 @@ impl LightManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_light_group(&self, id: LightId, group: LightGroup) {
-        self.inner.SetLightGroup(id, group);
+    pub fn set_light_group(&self, id: LightId, group: LightGroup) -> crate::Result<()> {
+        with_ffi_error("set_light_group", |e| {
+            self.inner.SetLightGroup(id, group, e)
+        })
     }
 
     pub fn from_cxx(ptr: SharedPtr<FfiLightManager>) -> Option<Self> {

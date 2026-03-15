@@ -152,12 +152,12 @@ impl ConstantVelocityAgent {
             {
                 wp.transform().location
             } else {
-                self.core.vehicle.transform().location
+                self.core.vehicle.transform()?.location
             }
         } else if let Some((wp, _)) = self.core.local_planner.get_plan().last() {
             wp.transform().location
         } else {
-            self.core.vehicle.transform().location
+            self.core.vehicle.transform()?.location
         };
 
         let route = self

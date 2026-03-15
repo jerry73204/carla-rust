@@ -8,6 +8,7 @@
 #include "carla/rpc/LightState.h"
 #include "carla_rust/client/light_state.hpp"
 #include "carla_rust/client/light_list.hpp"
+#include "carla_rust/client/result.hpp"
 #include "carla_rust/sensor/data/color.hpp"
 #include "light.hpp"
 
@@ -28,139 +29,184 @@ public:
 
     FfiLightManager(SharedPtr<LightManager>&& base) : inner_(std::move(base)) {}
 
-    FfiLightList GetAllLights(FfiRpcLightGroup type) const {
-        auto type_ = static_cast<LightGroup>(type);
-        auto orig = inner_->GetAllLights(type_);
-        return FfiLightList(std::move(orig));
+    std::unique_ptr<FfiLightList> GetAllLights(FfiRpcLightGroup type, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLightList>(nullptr), [&]() {
+            auto type_ = static_cast<LightGroup>(type);
+            auto orig = inner_->GetAllLights(type_);
+            return std::make_unique<FfiLightList>(std::move(orig));
+        });
     }
 
-    void TurnOnList(FfiLightList& lights) const { inner_->TurnOn(lights.inner()); }
-
-    void TurnOffList(FfiLightList& lights) const { inner_->TurnOff(lights.inner()); }
-
-    void SetActiveList(FfiLightList& lights, std::vector<bool>& active) const {
-        inner_->SetActive(lights.inner(), active);
+    void TurnOnList(FfiLightList& lights, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->TurnOn(lights.inner()); });
     }
 
-    std::vector<bool> IsActiveList(FfiLightList& lights) const {
-        return inner_->IsActive(lights.inner());
+    void TurnOffList(FfiLightList& lights, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->TurnOff(lights.inner()); });
     }
 
-    FfiLightList GetTurnedOnLights(FfiRpcLightGroup type) const {
-        auto type_ = static_cast<LightGroup>(type);
-        auto orig = inner_->GetTurnedOnLights(type_);
-        return FfiLightList(std::move(orig));
+    void SetActiveList(FfiLightList& lights, std::vector<bool>& active, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetActive(lights.inner(), active); });
     }
 
-    FfiLightList GetTurnedOffLights(FfiRpcLightGroup type) const {
-        auto type_ = static_cast<LightGroup>(type);
-        auto orig = inner_->GetTurnedOffLights(type_);
-        return FfiLightList(std::move(orig));
+    std::vector<bool> IsActiveList(FfiLightList& lights, FfiError& error) const {
+        return ffi_call(error, std::vector<bool>(),
+                        [&]() { return inner_->IsActive(lights.inner()); });
     }
 
-    void SetColorList1(FfiLightList& lights, FfiColor color) const {
-        inner_->SetColor(lights.inner(), color.as_builtin());
+    std::unique_ptr<FfiLightList> GetTurnedOnLights(FfiRpcLightGroup type, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLightList>(nullptr), [&]() {
+            auto type_ = static_cast<LightGroup>(type);
+            auto orig = inner_->GetTurnedOnLights(type_);
+            return std::make_unique<FfiLightList>(std::move(orig));
+        });
     }
 
-    void SetColorList2(FfiLightList& lights, std::vector<Color>& colors) {
-        inner_->SetColor(lights.inner(), colors);
+    std::unique_ptr<FfiLightList> GetTurnedOffLights(FfiRpcLightGroup type, FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiLightList>(nullptr), [&]() {
+            auto type_ = static_cast<LightGroup>(type);
+            auto orig = inner_->GetTurnedOffLights(type_);
+            return std::make_unique<FfiLightList>(std::move(orig));
+        });
     }
 
-    std::vector<Color> GetColorList(std::vector<Light>& lights) const {
-        return inner_->GetColor(lights);
+    void SetColorList1(FfiLightList& lights, FfiColor color, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetColor(lights.inner(), color.as_builtin()); });
     }
 
-    void SetIntensityList1(FfiLightList& lights, float intensity) const {
-        inner_->SetIntensity(lights.inner(), intensity);
+    void SetColorList2(FfiLightList& lights, std::vector<Color>& colors, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_->SetColor(lights.inner(), colors); });
     }
 
-    void SetIntensityList2(FfiLightList& lights, std::vector<float>& intensities) const {
-        inner_->SetIntensity(lights.inner(), intensities);
+    std::vector<Color> GetColorList(std::vector<Light>& lights, FfiError& error) const {
+        return ffi_call(error, std::vector<Color>(), [&]() { return inner_->GetColor(lights); });
     }
 
-    std::vector<float> GetIntensityList(FfiLightList& lights) const {
-        return inner_->GetIntensity(lights.inner());
+    void SetIntensityList1(FfiLightList& lights, float intensity, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetIntensity(lights.inner(), intensity); });
     }
 
-    void SetLightGroupList1(FfiLightList& lights, FfiRpcLightGroup group) const {
-        auto group_ = static_cast<LightGroup>(group);
-        inner_->SetLightGroup(lights.inner(), group_);
+    void SetIntensityList2(FfiLightList& lights, std::vector<float>& intensities,
+                           FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetIntensity(lights.inner(), intensities); });
     }
 
-    void SetLightGroupList2(FfiLightList& lights, std::vector<FfiRpcLightGroup>& groups) const {
-        std::vector<LightGroup> groups_;
-
-        for (auto g : groups) {
-            groups_.push_back(static_cast<LightGroup>(g));
-        }
-
-        inner_->SetLightGroup(lights.inner(), groups_);
+    std::vector<float> GetIntensityList(FfiLightList& lights, FfiError& error) const {
+        return ffi_call(error, std::vector<float>(),
+                        [&]() { return inner_->GetIntensity(lights.inner()); });
     }
 
-    std::vector<FfiRpcLightGroup> GetLightGroupList(FfiLightList& lights) const {
-        auto groups = inner_->GetLightGroup(lights.inner());
-
-        std::vector<FfiRpcLightGroup> groups_;
-
-        for (auto g : groups) {
-            groups_.push_back(static_cast<FfiRpcLightGroup>(g));
-        }
-
-        return groups_;
+    void SetLightGroupList1(FfiLightList& lights, FfiRpcLightGroup group, FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            auto group_ = static_cast<LightGroup>(group);
+            inner_->SetLightGroup(lights.inner(), group_);
+        });
     }
 
-    void SetLightStateList1(FfiLightList& lights, FfiClientLightState state) const {
-        inner_->SetLightState(lights.inner(), state.as_builtin());
+    void SetLightGroupList2(FfiLightList& lights, std::vector<FfiRpcLightGroup>& groups,
+                            FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            std::vector<LightGroup> groups_;
+
+            for (auto g : groups) {
+                groups_.push_back(static_cast<LightGroup>(g));
+            }
+
+            inner_->SetLightGroup(lights.inner(), groups_);
+        });
     }
 
-    void SetLightStateList2(FfiLightList& lights, std::vector<FfiClientLightState>& states) {
-        std::vector<LightState>& casted = reinterpret_cast<std::vector<LightState>&>(states);
-        inner_->SetLightState(lights.inner(), casted);
+    std::vector<FfiRpcLightGroup> GetLightGroupList(FfiLightList& lights, FfiError& error) const {
+        return ffi_call(error, std::vector<FfiRpcLightGroup>(), [&]() {
+            auto groups = inner_->GetLightGroup(lights.inner());
+
+            std::vector<FfiRpcLightGroup> groups_;
+
+            for (auto g : groups) {
+                groups_.push_back(static_cast<FfiRpcLightGroup>(g));
+            }
+
+            return groups_;
+        });
     }
 
-    std::vector<FfiClientLightState> GetLightStateList(FfiLightList& lights) const {
-        auto orig = inner_->GetLightState(lights.inner());
-        std::vector<FfiClientLightState> vec;
-
-        for (auto&& item : orig) {
-            vec.push_back(std::move(item));
-        }
-
-        return vec;
+    void SetLightStateList1(FfiLightList& lights, FfiClientLightState state,
+                            FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetLightState(lights.inner(), state.as_builtin()); });
     }
 
-    FfiColor GetColor(uint32_t id) const {
-        auto orig = inner_->GetColor(id);
-        return FfiColor(std::move(orig));
+    void SetLightStateList2(FfiLightList& lights, std::vector<FfiClientLightState>& states,
+                            FfiError& error) {
+        ffi_call_void(error, [&]() {
+            std::vector<LightState>& casted = reinterpret_cast<std::vector<LightState>&>(states);
+            inner_->SetLightState(lights.inner(), casted);
+        });
     }
 
-    float GetIntensity(uint32_t id) const { return inner_->GetIntensity(id); }
+    std::vector<FfiClientLightState> GetLightStateList(FfiLightList& lights,
+                                                       FfiError& error) const {
+        return ffi_call(error, std::vector<FfiClientLightState>(), [&]() {
+            auto orig = inner_->GetLightState(lights.inner());
+            std::vector<FfiClientLightState> vec;
 
-    FfiClientLightState GetLightState(uint32_t id) const {
-        auto orig = inner_->GetLightState(id);
-        return FfiClientLightState(std::move(orig));
+            for (auto&& item : orig) {
+                vec.push_back(std::move(item));
+            }
+
+            return vec;
+        });
     }
 
-    FfiRpcLightGroup GetLightGroup(uint32_t id) const {
-        auto group = inner_->GetLightGroup(id);
-        return static_cast<FfiRpcLightGroup>(group);
+    FfiColor GetColor(uint32_t id, FfiError& error) const {
+        return ffi_call(error, FfiColor(Color(0, 0, 0, 0)), [&]() {
+            auto orig = inner_->GetColor(id);
+            return FfiColor(std::move(orig));
+        });
     }
 
-    bool IsActive(uint32_t id) const { return inner_->IsActive(id); }
-
-    void SetActive(uint32_t id, bool active) const { inner_->SetActive(id, active); }
-
-    void SetColor(uint32_t id, FfiColor color) const { inner_->SetColor(id, color.as_builtin()); }
-
-    void SetIntensity(uint32_t id, float intensity) const { inner_->SetIntensity(id, intensity); }
-
-    void SetLightState(uint32_t id, const FfiClientLightState& new_state) const {
-        inner_->SetLightState(id, new_state.as_builtin());
+    float GetIntensity(uint32_t id, FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetIntensity(id); });
     }
 
-    void SetLightGroup(uint32_t id, FfiRpcLightGroup group) const {
-        auto group_ = static_cast<LightGroup>(group);
-        inner_->SetLightGroup(id, group_);
+    FfiClientLightState GetLightState(uint32_t id, FfiError& error) const {
+        return ffi_call(error, FfiClientLightState(LightState()), [&]() {
+            auto orig = inner_->GetLightState(id);
+            return FfiClientLightState(std::move(orig));
+        });
+    }
+
+    FfiRpcLightGroup GetLightGroup(uint32_t id, FfiError& error) const {
+        return ffi_call(error, static_cast<FfiRpcLightGroup>(0), [&]() {
+            auto group = inner_->GetLightGroup(id);
+            return static_cast<FfiRpcLightGroup>(group);
+        });
+    }
+
+    bool IsActive(uint32_t id, FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsActive(id); });
+    }
+
+    void SetActive(uint32_t id, bool active, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetActive(id, active); });
+    }
+
+    void SetColor(uint32_t id, FfiColor color, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetColor(id, color.as_builtin()); });
+    }
+
+    void SetIntensity(uint32_t id, float intensity, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetIntensity(id, intensity); });
+    }
+
+    void SetLightState(uint32_t id, const FfiClientLightState& new_state, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetLightState(id, new_state.as_builtin()); });
+    }
+
+    void SetLightGroup(uint32_t id, FfiRpcLightGroup group, FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            auto group_ = static_cast<LightGroup>(group);
+            inner_->SetLightGroup(id, group_);
+        });
     }
 
 private:

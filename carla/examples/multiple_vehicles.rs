@@ -13,16 +13,16 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Find Tesla Model 3 blueprint
     let vehicle_bp = blueprint_library
@@ -30,7 +30,7 @@ fn main() {
         .expect("Tesla Model 3 not found");
 
     // Get spawn points
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     println!("Available spawn points: {}", spawn_points.len());
 
     // Spawn 5 vehicles (or fewer if not enough spawn points)
@@ -58,7 +58,7 @@ fn main() {
     // Display information about spawned vehicles
     println!("\nVehicle summary:");
     for (i, vehicle) in vehicles.iter().enumerate() {
-        let location = vehicle.location();
+        let location = vehicle.location()?;
         println!(
             "  Vehicle {}: ID={}, alive={}, location=({:.1}, {:.1}, {:.1})",
             i + 1,
@@ -72,4 +72,6 @@ fn main() {
 
     println!("\nVehicles will remain in the simulation.");
     println!("Restart CARLA to clean up spawned actors.");
+
+    Ok(())
 }

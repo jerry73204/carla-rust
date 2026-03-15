@@ -14,15 +14,15 @@ use carla::{
     rpc::{BoneTransformDataIn, WalkerBoneControlIn},
 };
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to CARLA server
     println!("Connecting to CARLA server at 127.0.0.1:2000");
-    let client = Client::connect("127.0.0.1", 2000, None);
+    let client = Client::connect("127.0.0.1", 2000, None)?;
 
-    let mut world = client.world();
+    let mut world = client.world()?;
 
     // Get walker blueprints
-    let bp_lib = world.blueprint_library();
+    let bp_lib = world.blueprint_library()?;
     let walker_bp = match bp_lib.filter("walker.pedestrian.*").get(0) {
         Some(bp) => bp,
         None => {
@@ -32,7 +32,7 @@ fn main() {
     };
 
     // Get spawn point
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = match spawn_points.get(0) {
         Some(point) => point,
         None => {
@@ -118,7 +118,7 @@ fn main() {
         ],
     };
 
-    walker.set_bones(&custom_bones);
+    walker.set_bones(&custom_bones)?;
     println!(
         "Applied custom transforms to {} bones",
         custom_bones.bone_transforms.len()
@@ -126,7 +126,7 @@ fn main() {
 
     // Show custom pose
     println!("\n=== Showing custom pose ===");
-    walker.show_pose();
+    walker.show_pose()?;
     println!("Custom pose is now visible (blend factor: 1.0)");
 
     // Wait a bit to see the pose
@@ -134,14 +134,14 @@ fn main() {
 
     // Blend 50/50
     println!("\n=== Blending pose (50% animation, 50% custom) ===");
-    walker.blend_pose(0.5);
+    walker.blend_pose(0.5)?;
     println!("Pose blended at 50%");
 
     std::thread::sleep(std::time::Duration::from_secs(2));
 
     // Hide custom pose
     println!("\n=== Hiding custom pose ===");
-    walker.hide_pose();
+    walker.hide_pose()?;
     println!("Returned to animation pose (blend factor: 0.0)");
 
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -172,4 +172,6 @@ fn main() {
     }
 
     println!("\n=== Walker bone control demo complete ===");
+
+    Ok(())
 }

@@ -142,7 +142,7 @@ struct CameraManager {
 
 impl CameraManager {
     fn new(world: &mut CarlaWorld) -> anyhow::Result<Self> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
             .find("sensor.camera.rgb")
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
@@ -154,7 +154,7 @@ impl CameraManager {
         let _ = camera_bp.set_attribute("fov", &fov.to_string());
 
         // Spawn camera at a good vantage point
-        let spawn_points = world.map().recommended_spawn_points();
+        let spawn_points = world.map()?.recommended_spawn_points();
         let spawn_point = spawn_points
             .get(0)
             .ok_or_else(|| anyhow::anyhow!("No spawn points available"))?;
@@ -188,7 +188,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         let intrinsics = CameraIntrinsics::new(fov, CAMERA_WIDTH, CAMERA_HEIGHT);
 
@@ -241,8 +241,8 @@ struct SkeletonVisualizer {
 
 impl SkeletonVisualizer {
     fn new() -> anyhow::Result<Self> {
-        let client = Client::connect("127.0.0.1", 2000, None);
-        let mut world = client.world();
+        let client = Client::connect("127.0.0.1", 2000, None)?;
+        let mut world = client.world()?;
 
         println!("Connected to CARLA server");
 
@@ -266,14 +266,14 @@ impl SkeletonVisualizer {
     }
 
     fn spawn_walkers(world: &mut CarlaWorld) -> anyhow::Result<Vec<WalkerInfo>> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let walker_blueprints = blueprint_library.filter("walker.pedestrian.*");
 
         if walker_blueprints.is_empty() {
             return Err(anyhow::anyhow!("No walker blueprints found"));
         }
 
-        let spawn_points = world.map().recommended_spawn_points();
+        let spawn_points = world.map()?.recommended_spawn_points();
         if spawn_points.is_empty() {
             return Err(anyhow::anyhow!("No spawn points available"));
         }
@@ -317,8 +317,8 @@ impl SkeletonVisualizer {
                             && let Ok(controller) =
                                 carla::client::WalkerAIController::try_from(controller_actor)
                         {
-                            controller.start();
-                            controller.set_max_speed(1.4); // Normal walking speed
+                            controller.start()?;
+                            controller.set_max_speed(1.4)?; // Normal walking speed
                         }
 
                         let color = colors[i % colors.len()];
@@ -520,7 +520,7 @@ impl SkeletonVisualizer {
                 bone_positions.get(*bone1_name),
                 bone_positions.get(*bone2_name),
             ) {
-                self.world.debug().draw_line(
+                self.world.debug().unwrap().draw_line(
                     pos1,
                     pos2,
                     0.02, // thickness
@@ -533,7 +533,7 @@ impl SkeletonVisualizer {
 
         // Draw spheres at joints
         for bone in &bone_transforms.bone_transforms {
-            self.world.debug().draw_point(
+            self.world.debug().unwrap().draw_point(
                 bone.world.location,
                 0.03, // size
                 carla_color,
@@ -582,7 +582,7 @@ impl SkeletonVisualizer {
 
     async fn run(&mut self) {
         // Check if world is in synchronous mode
-        let settings = self.world.settings();
+        let settings = self.world.settings().unwrap();
         let is_sync = settings.synchronous_mode;
 
         let mut frame_count = 0;
@@ -603,7 +603,7 @@ impl SkeletonVisualizer {
             if frame_count % 2 == 0 {
                 if is_sync {
                     // In synchronous mode, we must call tick() to advance simulation
-                    self.world.tick();
+                    let _ = self.world.tick();
                 } else {
                     // In asynchronous mode, wait for next tick
                     if let Err(e) = self.world.wait_for_tick() {

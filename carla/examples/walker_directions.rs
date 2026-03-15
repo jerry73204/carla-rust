@@ -17,16 +17,16 @@ use carla::{
     rpc::WalkerControl,
 };
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Spawn a walker
     let walker_bp = blueprint_library
@@ -34,7 +34,7 @@ fn main() {
         .get(0)
         .expect("Failed to find walker blueprint");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let walker_actor = world
@@ -97,7 +97,7 @@ fn main() {
             }
         };
 
-        walker.apply_control(&control);
+        walker.apply_control(&control)?;
 
         println!(
             "✓ {} - Direction: ({:.1}, {:.1}, {:.1})",
@@ -123,7 +123,7 @@ fn main() {
         }
     };
 
-    walker.apply_control(&diagonal_control);
+    walker.apply_control(&diagonal_control)?;
     println!(
         "✓ Diagonal (+X+Y) - Direction: ({:.3}, {:.3}, {:.3})",
         diagonal_control.direction.x, diagonal_control.direction.y, diagonal_control.direction.z
@@ -131,4 +131,6 @@ fn main() {
 
     println!("\nNote: The last control command is active.");
     println!("Walker is now walking diagonally in the simulation.");
+
+    Ok(())
 }

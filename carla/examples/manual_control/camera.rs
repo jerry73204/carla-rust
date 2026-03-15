@@ -360,7 +360,7 @@ impl CameraManager {
         let sensor_def = &self.sensors[self.current_sensor].clone();
 
         // Get blueprint for current sensor
-        let blueprint_library = world.world.blueprint_library();
+        let blueprint_library = world.world.blueprint_library()?;
         let mut sensor_bp = blueprint_library
             .find(&sensor_def.blueprint_id)
             .ok_or_else(|| eyre!("{} blueprint not found", sensor_def.blueprint_id))?;
@@ -435,7 +435,7 @@ impl CameraManager {
                         Arc::clone(&recording_frame_clone),
                     );
                 }
-            });
+            })?;
         } else {
             // LiDAR sensor
             let lidar_points_clone = Arc::clone(&self.lidar_points);
@@ -453,7 +453,7 @@ impl CameraManager {
                         height,
                     );
                 }
-            });
+            })?;
         }
 
         self.sensor = Some(sensor);
@@ -471,7 +471,7 @@ impl CameraManager {
     pub fn toggle_camera(&mut self, world: &mut crate::world::World) -> Result<()> {
         // Destroy current sensor
         if let Some(ref sensor) = self.sensor {
-            sensor.destroy();
+            let _ = sensor.destroy();
         }
         self.sensor = None;
 
@@ -491,7 +491,7 @@ impl CameraManager {
     pub fn next_sensor(&mut self, world: &mut crate::world::World) -> Result<String> {
         // Destroy current sensor
         if let Some(ref sensor) = self.sensor {
-            sensor.destroy();
+            let _ = sensor.destroy();
         }
         self.sensor = None;
 
@@ -524,7 +524,7 @@ impl CameraManager {
 
         // Destroy current sensor
         if let Some(ref sensor) = self.sensor {
-            sensor.destroy();
+            let _ = sensor.destroy();
         }
         self.sensor = None;
 
@@ -758,7 +758,7 @@ impl CameraManager {
     pub fn destroy(&mut self) {
         if let Some(ref sensor) = self.sensor {
             info!("Destroying camera sensor...");
-            sensor.destroy();
+            let _ = sensor.destroy();
         }
         self.sensor = None;
     }

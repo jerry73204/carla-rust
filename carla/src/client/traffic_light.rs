@@ -1,6 +1,5 @@
 use super::{Actor, ActorBase, BoundingBoxList, TrafficLightList, WaypointList};
-use crate::{geom::BoundingBox, road::SignId, rpc::TrafficLightState};
-use autocxx::WithinUniquePtr;
+use crate::{error::ffi::with_ffi_error, geom::BoundingBox, road::SignId, rpc::TrafficLightState};
 use carla_sys::carla_rust::client::{FfiActor, FfiTrafficLight};
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -17,28 +16,34 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
-/// use carla::{client::Client, rpc::TrafficLightState};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use carla::{
+///     client::{ActorBase, Client},
+///     rpc::TrafficLightState,
+/// };
 ///
-/// let client = Client::default();
-/// let world = client.world();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let world = client.world()?;
 ///
-/// # let bp_lib = world.blueprint_library();
+/// # let bp_lib = world.blueprint_library()?;
 /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-/// # let spawn_points = world.map().recommended_spawn_points();
-/// # let vehicle = world.spawn_actor(&vehicle_bp, spawn_points.get(0).unwrap()).unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let vehicle = world.spawn_actor(&vehicle_bp, spawn_points.get(0).unwrap())?;
 /// # let vehicle: carla::client::Vehicle = vehicle.try_into().unwrap();
-/// # let waypoint = world.map().waypoint_at(&vehicle.location()).unwrap();
+/// # let waypoint = world.map()?.waypoint_at(&vehicle.location()?)?.unwrap();
 /// // Get traffic lights affecting a waypoint
-/// let traffic_lights = world.traffic_lights_from_waypoint(&waypoint, 50.0);
+/// let traffic_lights = world.traffic_lights_from_waypoint(&waypoint, 50.0)?;
 ///
 /// if let Some(light) = traffic_lights.get(0) {
 ///     println!("Current state: {:?}", light.state());
 ///     println!("Green time: {}s", light.green_time());
 ///
 ///     // Change the traffic light state
-///     light.set_state(TrafficLightState::Green);
-///     light.freeze(true); // Freeze in this state
+///     light.set_state(TrafficLightState::Green)?;
+///     light.freeze(true)?; // Freeze in this state
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -130,8 +135,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_state(&self, state: TrafficLightState) {
-        self.inner.SetState(state);
+    pub fn set_state(&self, state: TrafficLightState) -> crate::Result<()> {
+        with_ffi_error("set_state", |e| self.inner.SetState(state, e))
     }
 
     /// Returns the duration of the green light phase in seconds.
@@ -217,8 +222,8 @@ impl TrafficLight {
     ///
     /// # Arguments
     /// * `time` - Duration in seconds
-    pub fn set_green_time(&self, time: f32) {
-        self.inner.SetGreenTime(time)
+    pub fn set_green_time(&self, time: f32) -> crate::Result<()> {
+        with_ffi_error("set_green_time", |e| self.inner.SetGreenTime(time, e))
     }
 
     /// Sets the duration of the yellow light phase.
@@ -241,8 +246,8 @@ impl TrafficLight {
     ///
     /// # Arguments
     /// * `time` - Duration in seconds
-    pub fn set_yellow_time(&self, time: f32) {
-        self.inner.SetYellowTime(time)
+    pub fn set_yellow_time(&self, time: f32) -> crate::Result<()> {
+        with_ffi_error("set_yellow_time", |e| self.inner.SetYellowTime(time, e))
     }
 
     /// Sets the duration of the red light phase.
@@ -265,8 +270,8 @@ impl TrafficLight {
     ///
     /// # Arguments
     /// * `time` - Duration in seconds
-    pub fn set_red_time(&self, time: f32) {
-        self.inner.SetRedTime(time)
+    pub fn set_red_time(&self, time: f32) -> crate::Result<()> {
+        with_ffi_error("set_red_time", |e| self.inner.SetRedTime(time, e))
     }
 
     /// Returns the time elapsed since the current phase started.
@@ -312,8 +317,8 @@ impl TrafficLight {
     ///
     /// # Arguments
     /// * `freeze` - `true` to freeze, `false` to unfreeze
-    pub fn freeze(&self, freeze: bool) {
-        self.inner.Freeze(freeze)
+    pub fn freeze(&self, freeze: bool) -> crate::Result<()> {
+        with_ffi_error("freeze", |e| self.inner.Freeze(freeze, e))
     }
 
     /// Returns whether the traffic light is frozen.
@@ -375,9 +380,11 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn group_traffic_lights(&self) -> TrafficLightList {
-        let ptr = self.inner.GetGroupTrafficLights().within_unique_ptr();
-        unsafe { TrafficLightList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn group_traffic_lights(&self) -> crate::Result<TrafficLightList> {
+        let ptr = with_ffi_error("group_traffic_lights", |e| {
+            self.inner.GetGroupTrafficLights(e)
+        })?;
+        Ok(unsafe { TrafficLightList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Resets the state of the entire traffic light group.
@@ -400,8 +407,8 @@ impl TrafficLight {
     ///
     /// This affects all traffic lights in the synchronized group,
     /// resetting their timing and state.
-    pub fn reset_group(&self) {
-        self.inner.ResetGroup();
+    pub fn reset_group(&self) -> crate::Result<()> {
+        with_ffi_error("reset_group", |e| self.inner.ResetGroup(e))
     }
 
     /// Returns waypoints affected by this traffic light.
@@ -423,9 +430,11 @@ impl TrafficLight {
     )]
     ///
     /// Returns waypoints on lanes controlled by this traffic light.
-    pub fn affected_lane_waypoints(&self) -> WaypointList {
-        let ptr = self.inner.GetAffectedLaneWaypoints().within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn affected_lane_waypoints(&self) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("affected_lane_waypoints", |e| {
+            self.inner.GetAffectedLaneWaypoints(e)
+        })?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the bounding boxes of the light bulbs.
@@ -445,9 +454,9 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_boxes(&self) -> BoundingBoxList {
-        let ptr = self.inner.GetLightBoxes().within_unique_ptr();
-        unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn light_boxes(&self) -> crate::Result<BoundingBoxList> {
+        let ptr = with_ffi_error("light_boxes", |e| self.inner.GetLightBoxes(e))?;
+        Ok(unsafe { BoundingBoxList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the OpenDRIVE ID of this traffic light.
@@ -467,8 +476,9 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn opendrive_id(&self) -> SignId {
-        self.inner.GetOpenDRIVEID().to_string()
+    pub fn opendrive_id(&self) -> crate::Result<SignId> {
+        let id = with_ffi_error("opendrive_id", |e| self.inner.GetOpenDRIVEID(e))?;
+        Ok(id.to_string())
     }
 
     /// Returns waypoints where vehicles should stop for this traffic light.
@@ -488,9 +498,9 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn stop_waypoints(&self) -> WaypointList {
-        let ptr = self.inner.GetStopWaypoints().within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn stop_waypoints(&self) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("stop_waypoints", |e| self.inner.GetStopWaypoints(e))?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiTrafficLight>) -> Option<Self> {

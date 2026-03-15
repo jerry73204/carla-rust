@@ -24,12 +24,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Get all vehicle blueprints
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_blueprints: Vec<_> = blueprint_library
         .iter()
         .filter(|bp| bp.id().starts_with("vehicle."))
@@ -38,11 +38,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Found {} vehicle blueprints\n", vehicle_blueprints.len());
 
     // Get spawn point
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Get spectator for camera control
-    let spectator = world.spectator();
+    let spectator = world.spectator()?;
     println!("Spectator camera ready\n");
 
     println!("=== Vehicle Gallery ===");
@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(actor) => {
                 if let Ok(vehicle) = Vehicle::try_from(actor) {
                     // Position camera to view the vehicle
-                    let vehicle_transform = vehicle.transform();
+                    let vehicle_transform = vehicle.transform()?;
                     let vehicle_location = vehicle_transform.location;
 
                     // Create camera transform: 8m behind and 3m above the vehicle
@@ -80,13 +80,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         rotation: Rotation::new(0.0, 0.0, -20.0_f32.to_degrees()),
                     };
 
-                    spectator.set_transform(&camera_transform);
+                    spectator.set_transform(&camera_transform)?;
 
                     // Display vehicle for 3 seconds
                     thread::sleep(Duration::from_secs(3));
 
                     // Clean up vehicle
-                    vehicle.destroy();
+                    vehicle.destroy()?;
                     println!("  ✓ Displayed and cleaned up\n");
                 } else {
                     println!("  ⚠ Failed to convert to vehicle\n");

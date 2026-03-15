@@ -58,26 +58,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Enable synchronous mode for precise control
     println!("Enabling synchronous mode...");
-    let mut settings = world.settings();
+    let mut settings = world.settings()?;
     settings.synchronous_mode = true;
     settings.fixed_delta_seconds = Some(0.05); // 20 FPS
-    world.apply_settings(&settings, Duration::from_secs(5));
+    world.apply_settings(&settings, Duration::from_secs(5))?;
     println!("✓ Synchronous mode enabled (delta: 0.05s)\n");
 
     // Get vehicle blueprint
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Tesla Model 3 blueprint not found")?;
 
     // Get spawn points
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
 
     // Demo 1: Apply Impulse (Instantaneous velocity change)
     println!("=== Demo 1: Apply Impulse ===");
@@ -86,26 +86,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vehicle1 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 0)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle1.id());
-    println!("Initial position: {:?}", vehicle1.transform().location);
+    println!("Initial position: {:?}", vehicle1.transform()?.location);
 
     // Tick the simulation to settle the vehicle
     for _ in 0..10 {
-        world.tick();
+        world.tick()?;
     }
 
     // Apply upward impulse (lift the vehicle)
     println!("\nApplying upward impulse (0, 0, 5000 N·s)...");
     let impulse = Vector3D::new(0.0, 0.0, 5000.0);
-    vehicle1.add_impulse(&impulse);
+    vehicle1.add_impulse(&impulse)?;
 
     // Observe the effect over time
     println!("Observing vehicle motion for 3 seconds...");
     for i in 0..60 {
-        world.tick();
+        world.tick()?;
 
         if i % 10 == 0 {
-            let pos = vehicle1.transform().location;
-            let vel = vehicle1.velocity();
+            let pos = vehicle1.transform()?.location;
+            let vel = vehicle1.velocity()?;
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",
                 i as f32 * 0.05,
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("✓ Impulse demo complete\n");
-    // NOTE: Actor.destroy() not yet implemented
+    // NOTE: Actor.destroy()? not yet implemented
 
     // Demo 2: Apply Force (Continuous acceleration)
     println!("=== Demo 2: Apply Force ===");
@@ -129,11 +129,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vehicle2 = spawn_vehicle_with_retry(&mut world, &vehicle_bp, &spawn_points, 1)?;
 
     println!("✓ Vehicle spawned (ID: {})", vehicle2.id());
-    println!("Initial position: {:?}", vehicle2.transform().location);
+    println!("Initial position: {:?}", vehicle2.transform()?.location);
 
     // Tick to settle
     for _ in 0..10 {
-        world.tick();
+        world.tick()?;
     }
 
     // Apply continuous forward force
@@ -142,12 +142,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for i in 0..60 {
         // Apply force each tick (continuous acceleration)
-        vehicle2.add_force(&force);
-        world.tick();
+        vehicle2.add_force(&force)?;
+        world.tick()?;
 
         if i % 10 == 0 {
-            let pos = vehicle2.transform().location;
-            let vel = vehicle2.velocity();
+            let pos = vehicle2.transform()?.location;
+            let vel = vehicle2.velocity()?;
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",
                 i as f32 * 0.05,
@@ -173,7 +173,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Tick to settle
     for _ in 0..10 {
-        world.tick();
+        world.tick()?;
     }
 
     // Apply torque to spin the vehicle
@@ -181,12 +181,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let torque = Vector3D::new(0.0, 0.0, 10000.0);
 
     for i in 0..60 {
-        vehicle3.add_torque(&torque);
-        world.tick();
+        vehicle3.add_torque(&torque)?;
+        world.tick()?;
 
         if i % 10 == 0 {
-            let angular_vel = vehicle3.angular_velocity();
-            let transform = vehicle3.transform();
+            let angular_vel = vehicle3.angular_velocity()?;
+            let transform = vehicle3.transform()?;
             println!(
                 "  t={:.1}s: angular_vel=({:.1}, {:.1}, {:.1}), yaw={:.1}°",
                 i as f32 * 0.05,
@@ -210,7 +210,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Tick to settle
     for _ in 0..10 {
-        world.tick();
+        world.tick()?;
     }
 
     // Apply multiple forces simultaneously
@@ -219,16 +219,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Force: (1000, 500, 0) N");
 
     // Initial impulse
-    vehicle4.add_impulse(&Vector3D::new(2000.0, 0.0, 3000.0));
+    vehicle4.add_impulse(&Vector3D::new(2000.0, 0.0, 3000.0))?;
 
     // Continuous force
     for i in 0..60 {
-        vehicle4.add_force(&Vector3D::new(1000.0, 500.0, 0.0));
-        world.tick();
+        vehicle4.add_force(&Vector3D::new(1000.0, 500.0, 0.0))?;
+        world.tick()?;
 
         if i % 15 == 0 {
-            let pos = vehicle4.transform().location;
-            let vel = vehicle4.velocity();
+            let pos = vehicle4.transform()?.location;
+            let vel = vehicle4.velocity()?;
             println!(
                 "  t={:.1}s: pos=({:.1}, {:.1}, {:.1}), vel=({:.1}, {:.1}, {:.1})",
                 i as f32 * 0.05,
@@ -248,7 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Restoring asynchronous mode...");
     settings.synchronous_mode = false;
     settings.fixed_delta_seconds = None;
-    world.apply_settings(&settings, Duration::from_secs(5));
+    world.apply_settings(&settings, Duration::from_secs(5))?;
     println!("✓ Asynchronous mode restored");
 
     // Cleanup

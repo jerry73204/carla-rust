@@ -56,7 +56,7 @@ struct CameraManager {
 impl CameraManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
         // Create RGB camera
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
             .find("sensor.camera.rgb")
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
@@ -103,7 +103,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         Ok(Self {
             sensor,
@@ -179,9 +179,9 @@ impl Hud {
         let mut y = y_offset;
 
         // Get vehicle data
-        let transform = vehicle.transform();
+        let transform = vehicle.transform().unwrap();
         let location = transform.location;
-        let velocity = vehicle.velocity();
+        let velocity = vehicle.velocity().unwrap();
         let speed_ms = velocity.length();
         let speed_kmh = speed_ms * 3.6;
 
@@ -325,13 +325,13 @@ async fn main() -> Result<()> {
     println!("Automatic Control GUI - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Setting up scene...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.len() < 2 {
@@ -339,7 +339,7 @@ async fn main() -> Result<()> {
     }
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -400,7 +400,7 @@ async fn main() -> Result<()> {
                 println!("Agent enabled");
             } else {
                 println!("Agent disabled - switching to autopilot");
-                vehicle.set_autopilot(true);
+                vehicle.set_autopilot(true)?;
             }
         }
 
@@ -411,7 +411,7 @@ async fn main() -> Result<()> {
             let new_dest_idx = (rand::gen_range(0, spawn_points.len())) as usize;
 
             let new_spawn = &spawn_points.as_slice()[new_spawn_idx];
-            vehicle.set_transform(new_spawn);
+            vehicle.set_transform(new_spawn)?;
 
             let dest_transform = &spawn_points.as_slice()[new_dest_idx];
             let dest_isometry = dest_transform.to_na();
@@ -448,7 +448,7 @@ async fn main() -> Result<()> {
             } else {
                 // Get control from agent
                 let control = agent.run_step()?;
-                vehicle.apply_control(&control);
+                vehicle.apply_control(&control)?;
             }
         }
 
@@ -465,8 +465,8 @@ async fn main() -> Result<()> {
     }
 
     println!("Cleaning up...");
-    vehicle.destroy();
-    camera.sensor.destroy();
+    vehicle.destroy()?;
+    camera.sensor.destroy()?;
     println!("Done!");
 
     Ok(())

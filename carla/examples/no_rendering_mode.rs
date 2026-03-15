@@ -127,14 +127,14 @@ impl VehicleManager {
     }
 
     fn spawn_vehicles(&mut self, world: &mut CarlaWorld, count: usize) -> Result<usize> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.*").iter().collect();
 
         if vehicle_blueprints.is_empty() {
             return Err(anyhow::anyhow!("No vehicle blueprints found"));
         }
 
-        let map = world.map();
+        let map = world.map()?;
         let spawn_points = map.recommended_spawn_points();
 
         if spawn_points.is_empty() {
@@ -159,7 +159,7 @@ impl VehicleManager {
                 world.spawn_actor_opt::<Actor, _>(vehicle_bp, spawn_point, None::<&Actor>, None)
                 && let Ok(vehicle) = Vehicle::try_from(actor)
             {
-                vehicle.set_autopilot(true);
+                vehicle.set_autopilot(true)?;
                 self.vehicles.push(vehicle);
                 spawned += 1;
             }
@@ -175,7 +175,7 @@ impl VehicleManager {
 
         for _ in 0..to_destroy {
             if let Some(vehicle) = self.vehicles.pop() {
-                vehicle.destroy();
+                let _ = vehicle.destroy();
             }
         }
 
@@ -184,7 +184,7 @@ impl VehicleManager {
 
     fn destroy_all(&mut self) {
         for vehicle in self.vehicles.drain(..) {
-            vehicle.destroy();
+            let _ = vehicle.destroy();
         }
     }
 
@@ -472,8 +472,8 @@ impl HelpOverlay {
 async fn main() -> Result<()> {
     println!("No Rendering Mode - Connecting to CARLA...");
 
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Enabling no rendering mode...");
 
@@ -484,7 +484,7 @@ async fn main() -> Result<()> {
         fixed_delta_seconds: None,
         ..Default::default()
     };
-    world.apply_settings(&settings, Duration::from_secs(2));
+    world.apply_settings(&settings, Duration::from_secs(2))?;
 
     println!("No rendering mode enabled");
     println!("This improves simulation performance by 2-5x!");
@@ -610,7 +610,7 @@ async fn main() -> Result<()> {
         fixed_delta_seconds: None,
         ..Default::default()
     };
-    world.apply_settings(&settings, Duration::from_secs(2));
+    world.apply_settings(&settings, Duration::from_secs(2))?;
 
     vehicle_manager.destroy_all();
 

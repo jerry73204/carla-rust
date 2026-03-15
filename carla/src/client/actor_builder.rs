@@ -14,7 +14,7 @@ pub struct ActorBuilder<'a> {
 
 impl<'a> ActorBuilder<'a> {
     pub fn new(world: &'a mut World, key: &str) -> Result<Self> {
-        let lib = world.blueprint_library();
+        let lib = world.blueprint_library()?;
         let blueprint = lib.find(key).ok_or_else(|| ResourceError::NotFound {
             resource_type: ResourceType::Blueprint,
             identifier: key.to_string(),

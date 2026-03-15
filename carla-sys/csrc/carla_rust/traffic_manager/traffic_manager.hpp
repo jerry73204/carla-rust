@@ -11,6 +11,7 @@
 #include "carla/rpc/MapLayer.h"
 #include "carla/geom/Location.h"
 #include "carla_rust/client/actor.hpp"
+#include "carla_rust/client/result.hpp"
 #include "carla_rust/client/waypoint.hpp"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/rpc/actor_id.hpp"
@@ -26,7 +27,10 @@ using carla::traffic_manager::ActorPtr;
 using carla::traffic_manager::RoadOption;
 using carla::traffic_manager::TrafficManager;
 using carla::traffic_manager::WaypointPtr;
+using carla_rust::client::ffi_call;
+using carla_rust::client::ffi_call_void;
 using carla_rust::client::FfiActor;
+using carla_rust::client::FfiError;
 using carla_rust::client::FfiWaypoint;
 using carla_rust::geom::FfiLocation;
 using carla_rust::rpc::FfiActorId;
@@ -78,176 +82,224 @@ public:
 
     bool IsValidPort() const { return inner_.IsValidPort(); }
 
-    void SetOSMMode(const bool mode_switch) { inner_.SetOSMMode(mode_switch); }
-
-    void SetCustomPath(const FfiActor& actor, const FfiPath& path, const bool empty_buffer) {
-        std::vector<Location> casted_path;
-
-        for (const auto& orig : path) {
-            casted_path.push_back(orig.as_native());
-        }
-
-        inner_.SetCustomPath(actor.inner(), casted_path, empty_buffer);
+    void SetOSMMode(const bool mode_switch, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetOSMMode(mode_switch); });
     }
 
-    void RemoveUploadPath(const FfiActorId& actor_id, const bool remove_path) {
-        inner_.RemoveUploadPath(actor_id, remove_path);
+    void SetCustomPath(const FfiActor& actor, const FfiPath& path, const bool empty_buffer,
+                       FfiError& error) {
+        ffi_call_void(error, [&]() {
+            std::vector<Location> casted_path;
+
+            for (const auto& orig : path) {
+                casted_path.push_back(orig.as_native());
+            }
+
+            inner_.SetCustomPath(actor.inner(), casted_path, empty_buffer);
+        });
     }
 
-    void UpdateUploadPath(const FfiActorId& actor_id, const FfiPath& path) {
-        std::vector<Location> casted_path;
-
-        for (const auto& orig : path) {
-            casted_path.push_back(orig.as_native());
-        }
-
-        inner_.UpdateUploadPath(actor_id, casted_path);
+    void RemoveUploadPath(const FfiActorId& actor_id, const bool remove_path, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.RemoveUploadPath(actor_id, remove_path); });
     }
 
-    void SetImportedRoute(const FfiActor& actor, const FfiRoute& route, const bool empty_buffer) {
-        inner_.SetImportedRoute(actor.as_builtin(), route, empty_buffer);
+    void UpdateUploadPath(const FfiActorId& actor_id, const FfiPath& path, FfiError& error) {
+        ffi_call_void(error, [&]() {
+            std::vector<Location> casted_path;
+
+            for (const auto& orig : path) {
+                casted_path.push_back(orig.as_native());
+            }
+
+            inner_.UpdateUploadPath(actor_id, casted_path);
+        });
     }
 
-    void RemoveImportedRoute(const FfiActorId& actor_id, const bool remove_path) {
-        inner_.RemoveImportedRoute(actor_id, remove_path);
+    void SetImportedRoute(const FfiActor& actor, const FfiRoute& route, const bool empty_buffer,
+                          FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetImportedRoute(actor.as_builtin(), route, empty_buffer); });
     }
 
-    void UpdateImportedRoute(const FfiActorId& actor_id, const FfiRoute& route) {
-        inner_.UpdateImportedRoute(actor_id, route);
+    void RemoveImportedRoute(const FfiActorId& actor_id, const bool remove_path, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.RemoveImportedRoute(actor_id, remove_path); });
     }
 
-    void SetRespawnDormantVehicles(const bool mode_switch) {
-        inner_.SetRespawnDormantVehicles(mode_switch);
+    void UpdateImportedRoute(const FfiActorId& actor_id, const FfiRoute& route, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.UpdateImportedRoute(actor_id, route); });
     }
 
-    void SetBoundariesRespawnDormantVehicles(const float lower_bound, const float upper_bound) {
-        inner_.SetBoundariesRespawnDormantVehicles(lower_bound, upper_bound);
+    void SetRespawnDormantVehicles(const bool mode_switch, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetRespawnDormantVehicles(mode_switch); });
     }
 
-    void SetMaxBoundaries(const float lower, const float upper) {
-        inner_.SetMaxBoundaries(lower, upper);
+    void SetBoundariesRespawnDormantVehicles(const float lower_bound, const float upper_bound,
+                                             FfiError& error) {
+        ffi_call_void(
+            error, [&]() { inner_.SetBoundariesRespawnDormantVehicles(lower_bound, upper_bound); });
     }
 
-    void SetHybridPhysicsMode(const bool mode_switch) { inner_.SetHybridPhysicsMode(mode_switch); }
-
-    void SetHybridPhysicsRadius(const float radius) { inner_.SetHybridPhysicsRadius(radius); }
-
-    void RegisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size) {
-        std::vector<ActorPtr> new_list;
-        for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size; ptr += 1) {
-            new_list.push_back((*ptr)->as_builtin());
-        }
-
-        inner_.RegisterVehicles(new_list);
+    void SetMaxBoundaries(const float lower, const float upper, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetMaxBoundaries(lower, upper); });
     }
 
-    void UnregisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size) {
-        std::vector<ActorPtr> new_list;
-        for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size; ptr += 1) {
-            new_list.push_back((*ptr)->as_builtin());
-        }
-
-        inner_.UnregisterVehicles(new_list);
+    void SetHybridPhysicsMode(const bool mode_switch, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetHybridPhysicsMode(mode_switch); });
     }
 
-    void SetPercentageSpeedDifference(const FfiActor& actor, const float percentage) {
-        inner_.SetPercentageSpeedDifference(actor.as_builtin(), percentage);
+    void SetHybridPhysicsRadius(const float radius, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetHybridPhysicsRadius(radius); });
     }
 
-    void SetLaneOffset(const FfiActor& actor, const float offset) {
-        inner_.SetLaneOffset(actor.as_builtin(), offset);
+    void RegisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size,
+                          FfiError& error) {
+        ffi_call_void(error, [&]() {
+            std::vector<ActorPtr> new_list;
+            for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size;
+                 ptr += 1) {
+                new_list.push_back((*ptr)->as_builtin());
+            }
+
+            inner_.RegisterVehicles(new_list);
+        });
     }
 
-    void SetDesiredSpeed(const FfiActor& actor, const float value) {
-        inner_.SetDesiredSpeed(actor.as_builtin(), value);
+    void UnregisterVehicles(const std::shared_ptr<FfiActor>* const actor_ptr, size_t size,
+                            FfiError& error) {
+        ffi_call_void(error, [&]() {
+            std::vector<ActorPtr> new_list;
+            for (const std::shared_ptr<FfiActor>* ptr = actor_ptr; ptr != actor_ptr + size;
+                 ptr += 1) {
+                new_list.push_back((*ptr)->as_builtin());
+            }
+
+            inner_.UnregisterVehicles(new_list);
+        });
     }
 
-    void SetGlobalPercentageSpeedDifference(float const percentage) {
-        inner_.SetGlobalPercentageSpeedDifference(percentage);
+    void SetPercentageSpeedDifference(const FfiActor& actor, const float percentage,
+                                      FfiError& error) {
+        ffi_call_void(
+            error, [&]() { inner_.SetPercentageSpeedDifference(actor.as_builtin(), percentage); });
     }
 
-    void SetGlobalLaneOffset(float const offset) { inner_.SetGlobalLaneOffset(offset); }
+    void SetLaneOffset(const FfiActor& actor, const float offset, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetLaneOffset(actor.as_builtin(), offset); });
+    }
 
-    void SetUpdateVehicleLights(const FfiActor& actor, const bool do_update) {
-        inner_.SetUpdateVehicleLights(actor.as_builtin(), do_update);
+    void SetDesiredSpeed(const FfiActor& actor, const float value, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetDesiredSpeed(actor.as_builtin(), value); });
+    }
+
+    void SetGlobalPercentageSpeedDifference(float const percentage, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetGlobalPercentageSpeedDifference(percentage); });
+    }
+
+    void SetGlobalLaneOffset(float const offset, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetGlobalLaneOffset(offset); });
+    }
+
+    void SetUpdateVehicleLights(const FfiActor& actor, const bool do_update, FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetUpdateVehicleLights(actor.as_builtin(), do_update); });
     }
 
     void SetCollisionDetection(const FfiActor& reference_actor, const FfiActor& other_actor,
-                               const bool detect_collision) {
-        inner_.SetCollisionDetection(reference_actor.as_builtin(), other_actor.as_builtin(),
-                                     detect_collision);
+                               const bool detect_collision, FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.SetCollisionDetection(reference_actor.as_builtin(), other_actor.as_builtin(),
+                                         detect_collision);
+        });
     }
 
-    void SetForceLaneChange(const FfiActor& actor, const bool direction) {
-        inner_.SetForceLaneChange(actor.as_builtin(), direction);
+    void SetForceLaneChange(const FfiActor& actor, const bool direction, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetForceLaneChange(actor.as_builtin(), direction); });
     }
 
-    void SetAutoLaneChange(const FfiActor& actor, const bool enable) {
-        inner_.SetAutoLaneChange(actor.as_builtin(), enable);
+    void SetAutoLaneChange(const FfiActor& actor, const bool enable, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetAutoLaneChange(actor.as_builtin(), enable); });
     }
 
-    void SetDistanceToLeadingVehicle(const FfiActor& actor, const float distance) {
-        inner_.SetDistanceToLeadingVehicle(actor.as_builtin(), distance);
+    void SetDistanceToLeadingVehicle(const FfiActor& actor, const float distance, FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetDistanceToLeadingVehicle(actor.as_builtin(), distance); });
     }
 
-    void SetPercentageIgnoreWalkers(const FfiActor& actor, const float perc) {
-        inner_.SetPercentageIgnoreWalkers(actor.as_builtin(), perc);
+    void SetPercentageIgnoreWalkers(const FfiActor& actor, const float perc, FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetPercentageIgnoreWalkers(actor.as_builtin(), perc); });
     }
 
-    void SetPercentageIgnoreVehicles(const FfiActor& actor, const float perc) {
-        inner_.SetPercentageIgnoreVehicles(actor.as_builtin(), perc);
+    void SetPercentageIgnoreVehicles(const FfiActor& actor, const float perc, FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetPercentageIgnoreVehicles(actor.as_builtin(), perc); });
     }
 
-    void SetPercentageRunningSign(const FfiActor& actor, const float perc) {
-        inner_.SetPercentageRunningSign(actor.as_builtin(), perc);
+    void SetPercentageRunningSign(const FfiActor& actor, const float perc, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetPercentageRunningSign(actor.as_builtin(), perc); });
     }
 
-    void SetPercentageRunningLight(const FfiActor& actor, const float perc) {
-        inner_.SetPercentageRunningLight(actor.as_builtin(), perc);
+    void SetPercentageRunningLight(const FfiActor& actor, const float perc, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetPercentageRunningLight(actor.as_builtin(), perc); });
     }
 
-    void SetSynchronousMode(bool mode) { inner_.SetSynchronousMode(mode); }
-
-    void SetSynchronousModeTimeOutInMiliSecond(double time) {
-        inner_.SetSynchronousModeTimeOutInMiliSecond(time);
+    void SetSynchronousMode(bool mode, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetSynchronousMode(mode); });
     }
 
-    bool SynchronousTick() { return inner_.SynchronousTick(); }
+    void SetSynchronousModeTimeOutInMiliSecond(double time, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetSynchronousModeTimeOutInMiliSecond(time); });
+    }
 
-    void SetGlobalDistanceToLeadingVehicle(const float distance) {
-        inner_.SetGlobalDistanceToLeadingVehicle(distance);
+    bool SynchronousTick(FfiError& error) {
+        return ffi_call(error, false, [&]() { return inner_.SynchronousTick(); });
+    }
+
+    void SetGlobalDistanceToLeadingVehicle(const float distance, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetGlobalDistanceToLeadingVehicle(distance); });
     }
 
 #ifndef CARLA_VERSION_0916
-    void SetKeepRightPercentage(const FfiActor& actor, const float percentage) {
-        inner_.SetKeepRightPercentage(actor.as_builtin(), percentage);
+    void SetKeepRightPercentage(const FfiActor& actor, const float percentage, FfiError& error) {
+        ffi_call_void(error,
+                      [&]() { inner_.SetKeepRightPercentage(actor.as_builtin(), percentage); });
     }
 #endif
 
-    void SetRandomLeftLaneChangePercentage(const FfiActor& actor, const float percentage) {
-        inner_.SetRandomLeftLaneChangePercentage(actor.as_builtin(), percentage);
+    void SetRandomLeftLaneChangePercentage(const FfiActor& actor, const float percentage,
+                                           FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.SetRandomLeftLaneChangePercentage(actor.as_builtin(), percentage);
+        });
     }
 
-    void SetRandomRightLaneChangePercentage(const FfiActor& actor, const float percentage) {
-        inner_.SetRandomRightLaneChangePercentage(actor.as_builtin(), percentage);
+    void SetRandomRightLaneChangePercentage(const FfiActor& actor, const float percentage,
+                                            FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.SetRandomRightLaneChangePercentage(actor.as_builtin(), percentage);
+        });
     }
 
-    void SetRandomDeviceSeed(const uint64_t seed) {
-        inner_.SetRandomDeviceSeed(seed);
+    void SetRandomDeviceSeed(const uint64_t seed, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.SetRandomDeviceSeed(seed); });
     }
 
-    void ShutDown() {
-        inner_.ShutDown();
+    void ShutDown(FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.ShutDown(); });
     }
 
-    FfiAction GetNextAction(const FfiActorId& actor_id) {
-        auto orig = inner_.GetNextAction(actor_id);
-        return FfiAction(std::move(orig));
+    std::unique_ptr<FfiAction> GetNextAction(const FfiActorId& actor_id, FfiError& error) {
+        return ffi_call(error, std::unique_ptr<FfiAction>(nullptr), [&]() {
+            auto orig = inner_.GetNextAction(actor_id);
+            return std::make_unique<FfiAction>(std::move(orig));
+        });
     }
 
-    FfiActionBuffer GetActionBuffer(const FfiActorId& actor_id) {
-        auto orig = inner_.GetActionBuffer(actor_id);
-        return FfiActionBuffer(std::move(orig));
+    std::unique_ptr<FfiActionBuffer> GetActionBuffer(const FfiActorId& actor_id, FfiError& error) {
+        return ffi_call(error, std::unique_ptr<FfiActionBuffer>(nullptr), [&]() {
+            auto orig = inner_.GetActionBuffer(actor_id);
+            return std::make_unique<FfiActionBuffer>(std::move(orig));
+        });
     }
 
 private:

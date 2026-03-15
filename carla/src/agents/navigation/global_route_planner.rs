@@ -48,7 +48,7 @@ impl GlobalRoutePlanner {
     /// # Arguments
     /// * `map` - CARLA map instance
     /// * `sampling_resolution` - Distance between route waypoints in meters
-    pub fn new(map: Map, sampling_resolution: f32) -> Self {
+    pub fn new(map: Map, sampling_resolution: f32) -> Result<Self> {
         let mut planner = Self {
             map,
             sampling_resolution,
@@ -56,14 +56,14 @@ impl GlobalRoutePlanner {
             waypoint_to_node: HashMap::new(),
         };
 
-        planner.build_graph();
-        planner
+        planner.build_graph()?;
+        Ok(planner)
     }
 
     /// Builds the road topology graph from the CARLA map.
-    fn build_graph(&mut self) {
+    fn build_graph(&mut self) -> Result<()> {
         // Get topology from map
-        let topology = self.map.topology();
+        let topology = self.map.topology()?;
 
         // Phase 1: Create nodes for all waypoints in topology
         for (start_wp, end_wp) in topology.iter() {
@@ -124,6 +124,8 @@ impl GlobalRoutePlanner {
 
         // Phase 3: Add lane change edges
         self.add_lane_change_edges();
+
+        Ok(())
     }
 
     /// Adds lane change edges to the graph.
@@ -140,7 +142,7 @@ impl GlobalRoutePlanner {
             let waypoint = node.waypoint.clone();
 
             // Check for left lane
-            if let Some(left_wp) = waypoint.left()
+            if let Ok(Some(left_wp)) = waypoint.left()
                 && let Some(&left_idx) = self.waypoint_to_node.get(&left_wp.id())
             {
                 // Add lane change left edge
@@ -152,7 +154,7 @@ impl GlobalRoutePlanner {
             }
 
             // Check for right lane
-            if let Some(right_wp) = waypoint.right()
+            if let Ok(Some(right_wp)) = waypoint.right()
                 && let Some(&right_idx) = self.waypoint_to_node.get(&right_wp.id())
             {
                 // Add lane change right edge
@@ -217,7 +219,7 @@ impl GlobalRoutePlanner {
         // Get starting and ending waypoints
         let start_wp = self
             .map
-            .waypoint_at(&origin)
+            .waypoint_at(&origin)?
             .ok_or_else(|| MapError::InvalidWaypoint {
                 location: format!("{:?}", origin),
                 reason: "Could not find waypoint at origin".to_string(),
@@ -225,7 +227,7 @@ impl GlobalRoutePlanner {
 
         let end_wp =
             self.map
-                .waypoint_at(&destination)
+                .waypoint_at(&destination)?
                 .ok_or_else(|| MapError::InvalidWaypoint {
                     location: format!("{:?}", destination),
                     reason: "Could not find waypoint at destination".to_string(),

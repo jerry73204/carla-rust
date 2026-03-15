@@ -45,7 +45,7 @@ impl LaneInvasionSensor {
             .ok_or_else(|| eyre!("No player vehicle available"))?;
 
         // Get blueprint for sensor.other.lane_invasion
-        let blueprint_library = world.world.blueprint_library();
+        let blueprint_library = world.world.blueprint_library()?;
         let lane_invasion_bp = blueprint_library
             .find("sensor.other.lane_invasion")
             .ok_or_else(|| eyre!("sensor.other.lane_invasion blueprint not found"))?;
@@ -92,7 +92,7 @@ impl LaneInvasionSensor {
                     }
                 }
             }
-        });
+        })?;
 
         self.sensor = Some(lane_invasion_sensor);
         info!("✓ Lane invasion sensor spawned and listening");

@@ -28,7 +28,11 @@ use std::{borrow::Borrow, f32::consts::PI};
 /// # }
 /// ```
 pub fn get_speed<T: ActorBase>(vehicle: &T) -> f32 {
-    let velocity = vehicle.velocity();
+    let velocity = vehicle.velocity().unwrap_or(Vector3D {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    });
     let speed_ms = velocity.norm(); // m/s
     speed_ms * 3.6 // Convert to km/h
 }

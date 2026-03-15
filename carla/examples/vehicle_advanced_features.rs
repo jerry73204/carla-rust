@@ -20,18 +20,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to CARLA
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
-    println!("Connected! Current map: {}", world.map().name());
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
+    println!("Connected! Current map: {}", world.map()?.name());
 
     // Get a vehicle blueprint
-    let bp_lib = world.blueprint_library();
+    let bp_lib = world.blueprint_library()?;
     let vehicle_bp = bp_lib
         .find("vehicle.tesla.model3")
         .ok_or("No Tesla Model 3 blueprint found")?;
 
     // Spawn the vehicle
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     println!("\nSpawning vehicle at spawn point 0...");
@@ -46,17 +46,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Demo 1: Vehicle Door Control
     println!("\n--- Demo 1: Vehicle Door Control ---");
     println!("Opening all doors...");
-    vehicle.open_door(VehicleDoor::FL); // Front Left
-    vehicle.open_door(VehicleDoor::FR); // Front Right
-    vehicle.open_door(VehicleDoor::RL); // Rear Left
-    vehicle.open_door(VehicleDoor::RR); // Rear Right
+    vehicle.open_door(VehicleDoor::FL)?; // Front Left
+    vehicle.open_door(VehicleDoor::FR)?; // Front Right
+    vehicle.open_door(VehicleDoor::RL)?; // Rear Left
+    vehicle.open_door(VehicleDoor::RR)?; // Rear Right
     println!("✓ All doors opened");
 
     thread::sleep(Duration::from_secs(2));
 
     println!("Closing front doors...");
-    vehicle.close_door(VehicleDoor::FL);
-    vehicle.close_door(VehicleDoor::FR);
+    vehicle.close_door(VehicleDoor::FL)?;
+    vehicle.close_door(VehicleDoor::FR)?;
     println!("✓ Front doors closed");
 
     // Demo 2: Ackermann Control (0.9.14+)
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "  Steer: {:.2}, Speed: {:.2} m/s",
         ackermann_control.steer, ackermann_control.speed
     );
-    vehicle.apply_ackermann_control(&ackermann_control);
+    vehicle.apply_ackermann_control(&ackermann_control)?;
     println!("✓ Ackermann control applied");
 
     thread::sleep(Duration::from_secs(3));
@@ -102,7 +102,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "  Throttle: {:.2}, Steer: {:.2}",
         standard_control.throttle, standard_control.steer
     );
-    vehicle.apply_control(&standard_control);
+    vehicle.apply_control(&standard_control)?;
     println!("✓ Standard control applied");
 
     thread::sleep(Duration::from_secs(2));
@@ -156,27 +156,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Setting wheel pitch angles...");
 
         // Set pitch for all wheels (useful for off-road scenarios)
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FL_Wheel, 10.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FR_Wheel, 10.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BL_Wheel, -5.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BR_Wheel, -5.0);
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FL_Wheel, 10.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FR_Wheel, 10.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BL_Wheel, -5.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BR_Wheel, -5.0)?;
 
         println!("Current wheel pitch angles:");
         println!(
             "  Front Left: {:.2}°",
-            vehicle.wheel_pitch_angle(VehicleWheelLocation::FL_Wheel)
+            vehicle.wheel_pitch_angle(VehicleWheelLocation::FL_Wheel)?
         );
         println!(
             "  Front Right: {:.2}°",
-            vehicle.wheel_pitch_angle(VehicleWheelLocation::FR_Wheel)
+            vehicle.wheel_pitch_angle(VehicleWheelLocation::FR_Wheel)?
         );
         println!(
             "  Back Left: {:.2}°",
-            vehicle.wheel_pitch_angle(VehicleWheelLocation::BL_Wheel)
+            vehicle.wheel_pitch_angle(VehicleWheelLocation::BL_Wheel)?
         );
         println!(
             "  Back Right: {:.2}°",
-            vehicle.wheel_pitch_angle(VehicleWheelLocation::BR_Wheel)
+            vehicle.wheel_pitch_angle(VehicleWheelLocation::BR_Wheel)?
         );
         println!("✓ Wheel pitch control demonstrated");
 
@@ -184,10 +184,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Reset wheel pitch
         println!("Resetting wheel pitch to 0°...");
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FL_Wheel, 0.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FR_Wheel, 0.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BL_Wheel, 0.0);
-        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BR_Wheel, 0.0);
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FL_Wheel, 0.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::FR_Wheel, 0.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BL_Wheel, 0.0)?;
+        vehicle.set_wheel_pitch_angle(VehicleWheelLocation::BR_Wheel, 0.0)?;
         println!("✓ Wheel pitch reset");
     }
 
@@ -211,7 +211,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Restore PhysX if needed
         println!("Ensuring PhysX physics is active...");
-        vehicle.restore_phys_x_physics();
+        vehicle.restore_phys_x_physics()?;
         println!("✓ PhysX physics active");
     }
 
@@ -232,7 +232,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         manual_gear_shift: false,
         gear: 0,
     };
-    vehicle.apply_control(&stop_control);
+    vehicle.apply_control(&stop_control)?;
 
     thread::sleep(Duration::from_secs(1));
 

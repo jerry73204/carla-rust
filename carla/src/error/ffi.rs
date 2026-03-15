@@ -4,6 +4,7 @@
 //! boundary into structured Rust error types.
 
 use super::*;
+use autocxx::prelude::*;
 use carla_sys::carla_rust::client::FfiError;
 use std::time::Duration;
 
@@ -24,6 +25,28 @@ use std::time::Duration;
 /// // ... call C++ function that populates error ...
 /// check_ffi_error(error.as_ref().unwrap(), "load_world")?;
 /// ```
+/// Invoke a closure that calls a C++ FFI method with an `FfiError` out-parameter,
+/// then check the error and convert to `Result<T>`.
+///
+/// This eliminates the 5-line boilerplate pattern per FFI call.
+///
+/// # Examples
+///
+/// ```ignore
+/// pub fn weather(&self) -> Result<WeatherParameters> {
+///     with_ffi_error("weather", |e| self.inner.GetWeather(e))
+/// }
+/// ```
+pub fn with_ffi_error<T, F>(operation: &str, f: F) -> Result<T>
+where
+    F: FnOnce(std::pin::Pin<&mut FfiError>) -> T,
+{
+    let mut error = FfiError::new().within_unique_ptr();
+    let result = f(error.pin_mut());
+    check_ffi_error(error.as_ref().unwrap(), operation)?;
+    Ok(result)
+}
+
 pub fn check_ffi_error(error: &FfiError, operation: &str) -> Result<()> {
     if error.has_error() {
         let msg = error.message();

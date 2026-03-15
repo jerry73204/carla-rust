@@ -33,9 +33,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Step 1: Connect to CARLA
     println!("Step 1: Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
-    let mut world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
     // Create output directory for sensor data
     let output_dir = Path::new("./tutorial_output");
@@ -48,13 +48,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Step 2: Spawning vehicle with autopilot...");
 
     // Get vehicle blueprint
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Tesla Model 3 blueprint not found")?;
 
     // Get spawn point
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Spawn vehicle
@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Vehicle spawned (ID: {})", vehicle.id());
 
     // Enable autopilot
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
     println!("✓ Autopilot enabled\n");
 
     // Let vehicle drive a bit
@@ -137,7 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-    });
+    })?;
 
     println!("✓ Camera listening. Capturing images for 20 seconds...\n");
 
@@ -149,13 +149,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Cleanup
     println!("\n=== Cleanup ===");
-    camera.stop();
+    camera.stop()?;
     println!("✓ Camera stopped");
 
-    let camera_destroyed = camera.destroy();
+    let camera_destroyed = camera.destroy()?;
     println!("✓ Camera destroyed: {}", camera_destroyed);
 
-    let vehicle_destroyed = vehicle.destroy();
+    let vehicle_destroyed = vehicle.destroy()?;
     println!("✓ Vehicle destroyed: {}", vehicle_destroyed);
 
     let total_frames = *frame_count.lock().unwrap();

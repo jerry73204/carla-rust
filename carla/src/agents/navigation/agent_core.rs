@@ -108,14 +108,14 @@ impl AgentCore {
         config: AgentCoreConfig,
         local_config: LocalPlannerConfig,
     ) -> Result<Self> {
-        let world = vehicle.world();
+        let world = vehicle.world()?;
 
-        let map = if let Some(m) = map { m } else { world.map() };
+        let map = if let Some(m) = map { m } else { world.map()? };
 
         let global_planner = if let Some(grp) = grp_inst {
             grp
         } else {
-            GlobalRoutePlanner::new(map.clone(), config.sampling_resolution)
+            GlobalRoutePlanner::new(map.clone(), config.sampling_resolution)?
         };
 
         let local_planner = LocalPlanner::new(vehicle.clone(), local_config);
@@ -170,11 +170,11 @@ impl AgentCore {
 
         // Get traffic lights if not cached
         if self.lights_list.is_none() {
-            self.lights_list = Some(self.world.actors().filter("*traffic_light*"));
+            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*"));
         }
 
         // Simplified implementation: check if any traffic light is red and nearby
-        let vehicle_location = self.vehicle.transform().location;
+        let vehicle_location = self.vehicle.transform()?.location;
 
         if let Some(ref lights) = self.lights_list {
             for actor in lights.iter() {
@@ -187,7 +187,7 @@ impl AgentCore {
                     }
 
                     // Check distance
-                    let light_location = traffic_light.transform().location;
+                    let light_location = traffic_light.transform()?.location;
                     let distance = ((vehicle_location.x - light_location.x).powi(2)
                         + (vehicle_location.y - light_location.y).powi(2))
                     .sqrt();
@@ -226,14 +226,14 @@ impl AgentCore {
 
         // Get traffic lights if not cached
         if self.lights_list.is_none() {
-            self.lights_list = Some(self.world.actors().filter("*traffic_light*"));
+            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*"));
         }
 
         // Get vehicle waypoint
-        let vehicle_location = self.vehicle.transform().location;
+        let vehicle_location = self.vehicle.transform()?.location;
         let vehicle_waypoint =
             self.map
-                .waypoint_at(&vehicle_location)
+                .waypoint_at(&vehicle_location)?
                 .ok_or_else(|| MapError::InvalidWaypoint {
                     location: format!("{:?}", vehicle_location),
                     reason: "Failed to get waypoint for vehicle location".to_string(),
@@ -251,7 +251,7 @@ impl AgentCore {
                     }
 
                     // Get affected lane waypoints (trigger volume)
-                    let affected_waypoints = traffic_light.affected_lane_waypoints();
+                    let affected_waypoints = traffic_light.affected_lane_waypoints()?;
 
                     // Check if vehicle's waypoint is in the affected waypoints
                     for trigger_wp in affected_waypoints.iter() {
@@ -298,18 +298,17 @@ impl AgentCore {
             });
         }
 
-        let vehicle_list = self.world.actors().filter("*vehicle*");
+        let vehicle_list = self.world.actors()?.filter("*vehicle*");
 
-        let ego_transform = self.vehicle.transform();
+        let ego_transform = self.vehicle.transform()?;
         let ego_location = ego_transform.location;
-        let ego_waypoint = self.map.waypoint_at(&ego_location);
-
-        if ego_waypoint.is_none() {
-            // Can't determine lane, fall back to simple distance check
-            return self.simple_vehicle_obstacle_detected(max_distance, &vehicle_list);
-        }
-
-        let ego_waypoint = ego_waypoint.unwrap();
+        let ego_waypoint = match self.map.waypoint_at(&ego_location)? {
+            Some(wp) => wp,
+            None => {
+                // Can't determine lane, fall back to simple distance check
+                return self.simple_vehicle_obstacle_detected(max_distance, &vehicle_list);
+            }
+        };
 
         // Get the next waypoint from the plan (look ahead 3 steps)
         let next_waypoint = self
@@ -332,7 +331,7 @@ impl AgentCore {
                 continue;
             }
 
-            let target_transform = actor.transform();
+            let target_transform = actor.transform()?;
             let target_location = target_transform.location;
 
             // Check max distance first
@@ -345,11 +344,10 @@ impl AgentCore {
             }
 
             // Get target waypoint
-            let target_waypoint = self.map.waypoint_at(&target_location);
-            if target_waypoint.is_none() {
-                continue;
-            }
-            let target_waypoint = target_waypoint.unwrap();
+            let target_waypoint = match self.map.waypoint_at(&target_location)? {
+                Some(wp) => wp,
+                None => continue,
+            };
 
             // Check if target is in same lane or in next waypoint's lane
             let mut in_same_lane = target_waypoint.road_id() == ego_waypoint.road_id()
@@ -409,7 +407,7 @@ impl AgentCore {
         max_distance: f32,
         vehicle_list: &crate::client::ActorList,
     ) -> Result<ObstacleDetectionResult> {
-        let vehicle_transform = self.vehicle.transform();
+        let vehicle_transform = self.vehicle.transform()?;
         let vehicle_location = vehicle_transform.location;
         let vehicle_forward = vehicle_transform.rotation.forward_vector();
 
@@ -419,7 +417,7 @@ impl AgentCore {
                 continue;
             }
 
-            let other_location = actor.transform().location;
+            let other_location = actor.transform()?.location;
 
             // Check distance
             let dx = other_location.x - vehicle_location.x;
@@ -538,8 +536,8 @@ impl AgentCore {
         let route_polygon = GeoPolygon::new(LineString::from(route_coords), vec![]);
 
         // Check each vehicle for intersection
-        let vehicle_list = self.world.actors().filter("*vehicle*");
-        let vehicle_location = self.vehicle.transform().location;
+        let vehicle_list = self.world.actors()?.filter("*vehicle*");
+        let vehicle_location = self.vehicle.transform()?.location;
 
         for actor in vehicle_list.iter() {
             // Skip self
@@ -548,7 +546,7 @@ impl AgentCore {
             }
 
             // Distance check first for efficiency
-            let other_transform = actor.transform();
+            let other_transform = actor.transform()?;
             let other_location = other_transform.location;
 
             let dx = other_location.x - vehicle_location.x;
@@ -649,7 +647,10 @@ impl AgentCore {
 
         for _ in 0..same_lane_steps {
             path.push((current_wp.clone(), RoadOption::LaneFollow));
-            let next_wps = current_wp.next(step_distance as f64);
+            let next_wps = match current_wp.next(step_distance as f64) {
+                Ok(wps) => wps,
+                Err(_) => return Vec::new(),
+            };
             if next_wps.is_empty() {
                 return Vec::new(); // Can't continue
             }
@@ -658,8 +659,8 @@ impl AgentCore {
 
         // Check if lane change is possible
         let target_lane_wp = match direction {
-            LaneChangeDirection::Left => current_wp.left(),
-            LaneChangeDirection::Right => current_wp.right(),
+            LaneChangeDirection::Left => current_wp.left().ok().flatten(),
+            LaneChangeDirection::Right => current_wp.right().ok().flatten(),
         };
 
         // Check if target lane exists
@@ -670,7 +671,10 @@ impl AgentCore {
 
         if check {
             // Check if target lane exists by trying to get next waypoint
-            let target_next = target_lane_wp.next(1.0);
+            let target_next = match target_lane_wp.next(1.0) {
+                Ok(wps) => wps,
+                Err(_) => return Vec::new(),
+            };
             if target_next.is_empty() {
                 return Vec::new(); // Lane change not possible
             }
@@ -688,7 +692,10 @@ impl AgentCore {
             path.push((current_wp.clone(), road_option));
 
             // Try to move towards target lane
-            let next_wps = current_wp.next(step_distance as f64);
+            let next_wps = match current_wp.next(step_distance as f64) {
+                Ok(wps) => wps,
+                Err(_) => return path,
+            };
             if next_wps.is_empty() {
                 return path; // End of road
             }
@@ -697,8 +704,9 @@ impl AgentCore {
             // Gradually move to target lane during the transition
             if i == lane_change_steps / 2 {
                 // At midpoint, try to switch to target lane
-                let target_next = target_lane_wp.next((step_distance * (i as f32)) as f64);
-                if !target_next.is_empty() {
+                if let Ok(target_next) = target_lane_wp.next((step_distance * (i as f32)) as f64)
+                    && !target_next.is_empty()
+                {
                     current_wp = target_next.get(0).unwrap().clone();
                 }
             }
@@ -708,7 +716,10 @@ impl AgentCore {
         let other_lane_steps = (distance_other_lane / step_distance).ceil() as usize;
         for _ in 0..other_lane_steps {
             path.push((current_wp.clone(), RoadOption::LaneFollow));
-            let next_wps = current_wp.next(step_distance as f64);
+            let next_wps = match current_wp.next(step_distance as f64) {
+                Ok(wps) => wps,
+                Err(_) => break,
+            };
             if next_wps.is_empty() {
                 break; // End of road
             }

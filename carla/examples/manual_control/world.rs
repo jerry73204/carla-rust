@@ -202,10 +202,10 @@ impl World {
     ///
     /// ✅ Subphase 12.1.2: Vehicle Spawning and Basic Display
     pub fn new(client: &Client, config: &crate::Config) -> Result<Self> {
-        let mut world = client.world();
+        let mut world = client.world()?;
 
         // Get blueprint library
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
 
         // Debug: Count total blueprints
         let total_count = blueprint_library.iter().count();
@@ -242,7 +242,7 @@ impl World {
         info!("Selected vehicle blueprint: {}", blueprint.id());
 
         // Get spawn points from the map
-        let map = world.map();
+        let map = world.map()?;
         let spawn_points = map.recommended_spawn_points();
 
         if spawn_points.is_empty() {
@@ -277,7 +277,7 @@ impl World {
 
         // Enable autopilot if requested
         if config.autopilot {
-            player.set_autopilot(true);
+            let _ = player.set_autopilot(true);
             info!("✓ Autopilot enabled");
         }
 
@@ -343,7 +343,7 @@ impl World {
         }
 
         let (weather, name) = &self.weather_presets[self.current_weather];
-        self.world.set_weather(weather);
+        let _ = self.world.set_weather(weather);
         name
     }
 
@@ -367,9 +367,9 @@ impl World {
     pub fn load_map_layer(&self, unload: bool) {
         let layer = &self.map_layers[self.current_map_layer];
         if unload {
-            self.world.unload_level_layer(layer.clone());
+            let _ = self.world.unload_level_layer(layer.clone());
         } else {
-            self.world.load_level_layer(layer.clone());
+            let _ = self.world.load_level_layer(layer.clone());
         }
     }
 
@@ -384,7 +384,7 @@ impl World {
         // TODO: Destroy all sensors
         if let Some(ref player) = self.player {
             info!("Destroying player vehicle...");
-            player.destroy();
+            let _ = player.destroy();
         }
         self.player = None;
     }

@@ -13,23 +13,23 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Spawn a vehicle
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Tesla Model 3 not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle = world
@@ -39,7 +39,7 @@ fn main() {
     println!("Vehicle spawned: ID {}\n", vehicle.id());
 
     // Get vehicle transform (position + rotation)
-    let transform = vehicle.transform();
+    let transform = vehicle.transform()?;
     println!("Transform:");
     println!("  Translation:");
     println!("    x: {:.2}", transform.location.x);
@@ -48,14 +48,14 @@ fn main() {
     println!("  Rotation: {:?}", transform.rotation);
 
     // Get just the location (convenience method)
-    let location = vehicle.location();
+    let location = vehicle.location()?;
     println!("\nLocation (shortcut):");
     println!("  x: {:.2}", location.x);
     println!("  y: {:.2}", location.y);
     println!("  z: {:.2}", location.z);
 
     // Get velocity
-    let velocity = vehicle.velocity();
+    let velocity = vehicle.velocity()?;
     println!("\nVelocity:");
     println!("  x: {:.2} m/s", velocity.x);
     println!("  y: {:.2} m/s", velocity.y);
@@ -66,4 +66,6 @@ fn main() {
     println!("  Speed: {:.2} m/s ({:.2} km/h)", speed, speed * 3.6);
 
     println!("\nVehicle will remain in the simulation.");
+
+    Ok(())
 }

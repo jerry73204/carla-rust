@@ -16,11 +16,11 @@ use carla::{client::Client, geom::Location};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Navigation Tests ===\n");
 
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let world = client.world()?;
     println!("Connected to CARLA server\n");
 
     let mut passed = 0;
@@ -103,7 +103,7 @@ where
 // ===== Waypoint Tests =====
 
 fn test_get_waypoint_at_location(world: &carla::client::World) -> TestResult {
-    let map = world.map();
+    let map = world.map()?;
 
     // Try to get waypoint at spawn point (more likely to be on road)
     let spawn_points = map.recommended_spawn_points();
@@ -116,7 +116,7 @@ fn test_get_waypoint_at_location(world: &carla::client::World) -> TestResult {
         );
 
         // Get waypoint at location
-        if let Some(waypoint) = map.waypoint_at(&location) {
+        if let Some(waypoint) = map.waypoint_at(&location)? {
             let wp_loc = waypoint.transform().location;
             println!(
                 "  Found waypoint at ({:.1}, {:.1}, {:.1})",
@@ -126,7 +126,7 @@ fn test_get_waypoint_at_location(world: &carla::client::World) -> TestResult {
         } else {
             // Try with origin as fallback
             let origin = Location::new(0.0, 0.0, 0.0);
-            let _wp = map.waypoint_at(&origin);
+            let _wp = map.waypoint_at(&origin)?;
             println!("  Waypoint query API working (tested with origin)");
         }
     }
@@ -135,23 +135,23 @@ fn test_get_waypoint_at_location(world: &carla::client::World) -> TestResult {
 }
 
 fn test_waypoint_next(world: &carla::client::World) -> TestResult {
-    let map = world.map();
+    let map = world.map()?;
 
     // Get a spawn point on the road
     let spawn_points = map.recommended_spawn_points();
     if let Some(spawn_point) = spawn_points.get(0)
-        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)?
     {
         // Test getting next waypoints at different distances
         println!("  Testing next waypoint queries");
 
-        let next_1m = waypoint.next(1.0);
+        let next_1m = waypoint.next(1.0)?;
         println!("  Next waypoints at 1.0m: {} found", next_1m.len());
 
-        let next_5m = waypoint.next(5.0);
+        let next_5m = waypoint.next(5.0)?;
         println!("  Next waypoints at 5.0m: {} found", next_5m.len());
 
-        let next_10m = waypoint.next(10.0);
+        let next_10m = waypoint.next(10.0)?;
         println!("  Next waypoints at 10.0m: {} found", next_10m.len());
 
         // Verify we get some waypoints
@@ -176,11 +176,11 @@ fn test_waypoint_next(world: &carla::client::World) -> TestResult {
 fn test_waypoint_lane_change(world: &carla::client::World) -> TestResult {
     // Note: Lane change API (get_left_lane/get_right_lane) not yet available
 
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if let Some(spawn_point) = spawn_points.get(0)
-        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)
+        && let Some(waypoint) = map.waypoint_at(&spawn_point.location)?
     {
         println!(
             "  Current waypoint at ({:.1}, {:.1}, {:.1})",
@@ -196,12 +196,12 @@ fn test_waypoint_lane_change(world: &carla::client::World) -> TestResult {
 }
 
 fn test_waypoint_transform(world: &carla::client::World) -> TestResult {
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if let Some(spawn_point) = spawn_points.get(0) {
         // Get waypoint and verify transform
-        if let Some(waypoint) = map.waypoint_at(&spawn_point.location) {
+        if let Some(waypoint) = map.waypoint_at(&spawn_point.location)? {
             let transform = waypoint.transform();
 
             println!("  Waypoint transform:");
@@ -233,11 +233,11 @@ fn test_waypoint_transform(world: &carla::client::World) -> TestResult {
 // ===== Topology Tests =====
 
 fn test_topology_generation(world: &carla::client::World) -> TestResult {
-    let map = world.map();
+    let map = world.map()?;
 
     // Generate topology
     println!("  Generating road topology");
-    let topology = map.topology();
+    let topology = map.topology()?;
 
     println!("  Topology has {} road segments", topology.len());
     assert!(!topology.is_empty(), "Most maps should have topology");
@@ -258,7 +258,7 @@ fn test_topology_generation(world: &carla::client::World) -> TestResult {
         );
 
         // Test navigation along topology
-        let next_wps = start_wp.next(1.0);
+        let next_wps = start_wp.next(1.0)?;
         println!(
             "    Can navigate from start: {} next waypoints",
             next_wps.len()
@@ -274,7 +274,7 @@ fn test_route_planning(world: &carla::client::World) -> TestResult {
     // Note: Dedicated route planning API not yet available
     // We can simulate simple routing by using waypoint.next() to follow the road
 
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.len() >= 2 {
@@ -291,7 +291,7 @@ fn test_route_planning(world: &carla::client::World) -> TestResult {
         );
 
         // Get waypoints at start and end
-        if let Some(start_wp) = map.waypoint_at(&start_loc) {
+        if let Some(start_wp) = map.waypoint_at(&start_loc)? {
             println!("  Found waypoint at start");
 
             // Simulate basic route by following waypoints
@@ -300,7 +300,7 @@ fn test_route_planning(world: &carla::client::World) -> TestResult {
             let max_iterations = 10;
 
             for i in 0..max_iterations {
-                let next = current_wp.next(5.0);
+                let next = current_wp.next(5.0)?;
                 if let Some(next_wp) = next.get(0) {
                     waypoint_path.push(next_wp.clone());
                     current_wp = next_wp.clone();
@@ -322,11 +322,11 @@ fn test_route_planning(world: &carla::client::World) -> TestResult {
 fn test_route_waypoints(world: &carla::client::World) -> TestResult {
     // Test generating waypoints along a path using next()
 
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if let Some(spawn_point) = spawn_points.get(0)
-        && let Some(start_wp) = map.waypoint_at(&spawn_point.location)
+        && let Some(start_wp) = map.waypoint_at(&spawn_point.location)?
     {
         println!("  Generating waypoint sequence from spawn point");
 
@@ -335,7 +335,7 @@ fn test_route_waypoints(world: &carla::client::World) -> TestResult {
 
         // Generate a sequence of waypoints
         for _ in 0..5 {
-            let next = current.next(5.0);
+            let next = current.next(5.0)?;
             if let Some(next_wp) = next.get(0) {
                 waypoints.push(next_wp.clone());
                 current = next_wp.clone();

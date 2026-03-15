@@ -128,7 +128,7 @@ impl VehiclePIDController {
         waypoint: &Location,
     ) -> crate::error::Result<VehicleControl> {
         // Get vehicle state
-        let vehicle_transform = vehicle.transform();
+        let vehicle_transform = vehicle.transform()?;
         let current_speed = get_speed(vehicle);
 
         // Apply lateral offset to waypoint

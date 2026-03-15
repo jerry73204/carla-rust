@@ -15,6 +15,7 @@
 #include "carla_rust/rpc/actor_id.hpp"
 #include "carla_rust/client/actor_attribute.hpp"
 #include "carla_rust/client/actor_attribute_value_list.hpp"
+#include "carla_rust/client/result.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -45,14 +46,18 @@ public:
 
     const SharedPtr<Actor>& inner() const { return inner_; }
 
-    FfiLocation GetLocation() const {
-        auto location = inner_->GetLocation();
-        return FfiLocation(std::move(location));
+    FfiLocation GetLocation(FfiError& error) const {
+        return ffi_call(error, FfiLocation(), [&]() {
+            auto location = inner_->GetLocation();
+            return FfiLocation(std::move(location));
+        });
     }
 
-    FfiTransform GetTransform() const {
-        auto transform = inner_->GetTransform();
-        return FfiTransform(std::move(transform));
+    FfiTransform GetTransform(FfiError& error) const {
+        return ffi_call(error, FfiTransform(), [&]() {
+            auto transform = inner_->GetTransform();
+            return FfiTransform(std::move(transform));
+        });
     }
 
     FfiActorId GetId() const { return inner_->GetId(); }
@@ -65,123 +70,157 @@ public:
 
     const std::vector<uint8_t>& GetSemanticTags() const { return inner_->GetSemanticTags(); }
 
-    std::shared_ptr<FfiActor> GetParent() const {
-        auto parent = inner_->GetParent();
-        if (parent == nullptr) {
-            return nullptr;
-        } else {
-            return std::make_shared<FfiActor>(std::move(parent));
-        }
+    std::shared_ptr<FfiActor> GetParent(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiActor>(), [&]() -> std::shared_ptr<FfiActor> {
+            auto parent = inner_->GetParent();
+            if (parent == nullptr) {
+                return nullptr;
+            } else {
+                return std::make_shared<FfiActor>(std::move(parent));
+            }
+        });
     }
 
-    std::unique_ptr<FfiWorld> GetWorld() const {
-        auto world = inner_->GetWorld();
-        return std::make_unique<FfiWorld>(std::move(world));
+    std::unique_ptr<FfiWorld> GetWorld(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWorld>(nullptr), [&]() {
+            auto world = inner_->GetWorld();
+            return std::make_unique<FfiWorld>(std::move(world));
+        });
     }
 
-    FfiActorAttributeValueList GetAttributes() const {
-        auto& orig = inner_->GetAttributes();
-        auto new_ = FfiActorAttributeValueList(orig);
-        return new_;
+    std::unique_ptr<FfiActorAttributeValueList> GetAttributes(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiActorAttributeValueList>(nullptr), [&]() {
+            auto& orig = inner_->GetAttributes();
+            return std::make_unique<FfiActorAttributeValueList>(orig);
+        });
     }
 
-    Vector3D GetVelocity() const { return inner_->GetVelocity(); }
-
-    Vector3D GetAngularVelocity() const { return inner_->GetAngularVelocity(); }
-
-    Vector3D GetAcceleration() const { return inner_->GetAcceleration(); }
-
-    void SetLocation(const FfiLocation& location) const {
-        return inner_->SetLocation(location.as_native());
+    Vector3D GetVelocity(FfiError& error) const {
+        return ffi_call(error, Vector3D(), [&]() { return inner_->GetVelocity(); });
     }
 
-    void SetTransform(const FfiTransform& transform) const {
-        return inner_->SetTransform(transform.as_native());
+    Vector3D GetAngularVelocity(FfiError& error) const {
+        return ffi_call(error, Vector3D(), [&]() { return inner_->GetAngularVelocity(); });
     }
 
-    void SetTargetVelocity(const Vector3D& vector) const {
-        return inner_->SetTargetVelocity(vector);
+    Vector3D GetAcceleration(FfiError& error) const {
+        return ffi_call(error, Vector3D(), [&]() { return inner_->GetAcceleration(); });
     }
 
-    void SetTargetAngularVelocity(const Vector3D& vector) const {
-        return inner_->SetTargetAngularVelocity(vector);
+    void SetLocation(const FfiLocation& location, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetLocation(location.as_native()); });
     }
 
-    void EnableConstantVelocity(const Vector3D& vector) const {
-        return inner_->EnableConstantVelocity(vector);
+    void SetTransform(const FfiTransform& transform, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetTransform(transform.as_native()); });
     }
 
-    void DisableConstantVelocity() const { return inner_->DisableConstantVelocity(); }
-
-    void AddImpulse1(const Vector3D& vector) const { return inner_->AddImpulse(vector); }
-
-    void AddImpulse2(const Vector3D& impulse, const Vector3D& location) const {
-        return inner_->AddImpulse(impulse, location);
+    void SetTargetVelocity(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetTargetVelocity(vector); });
     }
 
-    void AddForce1(const Vector3D& force) const { return inner_->AddForce(force); }
-
-    void AddForce2(const Vector3D& force, const Vector3D& location) const {
-        return inner_->AddForce(force, location);
+    void SetTargetAngularVelocity(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetTargetAngularVelocity(vector); });
     }
 
-    void AddAngularImpulse(const Vector3D& vector) const {
-        return inner_->AddAngularImpulse(vector);
+    void EnableConstantVelocity(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->EnableConstantVelocity(vector); });
     }
 
-    void AddTorque(const Vector3D& vector) const { return inner_->AddTorque(vector); }
+    void DisableConstantVelocity(FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->DisableConstantVelocity(); });
+    }
 
-    void SetSimulatePhysics(bool enabled) const { return inner_->SetSimulatePhysics(enabled); }
+    void AddImpulse1(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddImpulse(vector); });
+    }
 
-    void SetEnableGravity(bool enabled) const { return inner_->SetEnableGravity(enabled); }
+    void AddImpulse2(const Vector3D& impulse, const Vector3D& location, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddImpulse(impulse, location); });
+    }
+
+    void AddForce1(const Vector3D& force, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddForce(force); });
+    }
+
+    void AddForce2(const Vector3D& force, const Vector3D& location, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddForce(force, location); });
+    }
+
+    void AddAngularImpulse(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddAngularImpulse(vector); });
+    }
+
+    void AddTorque(const Vector3D& vector, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->AddTorque(vector); });
+    }
+
+    void SetSimulatePhysics(bool enabled, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetSimulatePhysics(enabled); });
+    }
+
+    void SetEnableGravity(bool enabled, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetEnableGravity(enabled); });
+    }
 
     geom::BoundingBox GetBoundingBox() const { return inner_->GetBoundingBox(); }
 
 #ifdef CARLA_VERSION_0916
-    geom::Transform GetComponentWorldTransform(const std::string& component_name) const {
-        return inner_->GetComponentWorldTransform(component_name);
+    geom::Transform GetComponentWorldTransform(const std::string& component_name,
+                                               FfiError& error) const {
+        return ffi_call(error, geom::Transform(),
+                        [&]() { return inner_->GetComponentWorldTransform(component_name); });
     }
 
-    geom::Transform GetComponentRelativeTransform(const std::string& component_name) const {
-        return inner_->GetComponentRelativeTransform(component_name);
+    geom::Transform GetComponentRelativeTransform(const std::string& component_name,
+                                                  FfiError& error) const {
+        return ffi_call(error, geom::Transform(),
+                        [&]() { return inner_->GetComponentRelativeTransform(component_name); });
     }
 
-    std::vector<geom::Transform> GetBoneWorldTransforms() const {
-        return inner_->GetBoneWorldTransforms();
+    std::vector<geom::Transform> GetBoneWorldTransforms(FfiError& error) const {
+        return ffi_call(error, std::vector<geom::Transform>(),
+                        [&]() { return inner_->GetBoneWorldTransforms(); });
     }
 
-    std::vector<geom::Transform> GetBoneRelativeTransforms() const {
-        return inner_->GetBoneRelativeTransforms();
+    std::vector<geom::Transform> GetBoneRelativeTransforms(FfiError& error) const {
+        return ffi_call(error, std::vector<geom::Transform>(),
+                        [&]() { return inner_->GetBoneRelativeTransforms(); });
     }
 
-    std::vector<std::string> GetComponentNames() const {
-        return inner_->GetComponentNames();
+    std::vector<std::string> GetComponentNames(FfiError& error) const {
+        return ffi_call(error, std::vector<std::string>(),
+                        [&]() { return inner_->GetComponentNames(); });
     }
 
-    std::vector<std::string> GetBoneNames() const {
-        return inner_->GetBoneNames();
+    std::vector<std::string> GetBoneNames(FfiError& error) const {
+        return ffi_call(error, std::vector<std::string>(),
+                        [&]() { return inner_->GetBoneNames(); });
     }
 
-    std::vector<geom::Transform> GetSocketWorldTransforms() const {
-        return inner_->GetSocketWorldTransforms();
+    std::vector<geom::Transform> GetSocketWorldTransforms(FfiError& error) const {
+        return ffi_call(error, std::vector<geom::Transform>(),
+                        [&]() { return inner_->GetSocketWorldTransforms(); });
     }
 
-    std::vector<geom::Transform> GetSocketRelativeTransforms() const {
-        return inner_->GetSocketRelativeTransforms();
+    std::vector<geom::Transform> GetSocketRelativeTransforms(FfiError& error) const {
+        return ffi_call(error, std::vector<geom::Transform>(),
+                        [&]() { return inner_->GetSocketRelativeTransforms(); });
     }
 
-    std::vector<std::string> GetSocketNames() const {
-        return inner_->GetSocketNames();
+    std::vector<std::string> GetSocketNames(FfiError& error) const {
+        return ffi_call(error, std::vector<std::string>(),
+                        [&]() { return inner_->GetSocketNames(); });
     }
 #endif
 
 #ifdef CARLA_VERSION_0915_PLUS
-    void SetCollisions(bool enabled = true) const {
-        return inner_->SetCollisions(enabled);
+    void SetCollisions(bool enabled, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetCollisions(enabled); });
     }
 
-    void SetActorDead() const {
-        return inner_->SetActorDead();
+    void SetActorDead(FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetActorDead(); });
     }
 #endif
 
@@ -202,17 +241,17 @@ public:
     }
 
 #ifdef CARLA_VERSION_0100
-    std::string GetActorName() const {
-        return inner_->GetActorName();
+    std::string GetActorName(FfiError& error) const {
+        return ffi_call(error, std::string(), [&]() { return inner_->GetActorName(); });
     }
 
-    std::string GetActorClassName() const {
-        return inner_->GetActorClassName();
+    std::string GetActorClassName(FfiError& error) const {
+        return ffi_call(error, std::string(), [&]() { return inner_->GetActorClassName(); });
     }
 #endif
 
-    bool Destroy() const {
-        return inner_->Destroy();
+    bool Destroy(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->Destroy(); });
     }
 
     const SharedPtr<Actor>& as_builtin() const {

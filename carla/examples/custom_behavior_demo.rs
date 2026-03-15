@@ -18,13 +18,13 @@ fn main() -> Result<()> {
     println!("Custom Behavior Profile Demo - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Spawning vehicle...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.len() < 2 {
@@ -32,7 +32,7 @@ fn main() -> Result<()> {
     }
 
     // Spawn a vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -85,9 +85,9 @@ fn main() -> Result<()> {
 
     println!("Running super cautious agent for 100 steps...");
     for i in 0..100 {
-        world.tick();
+        world.tick()?;
         let control = agent.run_step()?;
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         if i % 50 == 0 {
             println!(
@@ -130,9 +130,9 @@ fn main() -> Result<()> {
 
     println!("Running sporty agent for 100 steps...");
     for i in 0..100 {
-        world.tick();
+        world.tick()?;
         let control = agent.run_step()?;
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         if i % 50 == 0 {
             println!(
@@ -170,9 +170,9 @@ fn main() -> Result<()> {
 
     println!("Running modified agent for 100 steps...");
     for i in 0..100 {
-        world.tick();
+        world.tick()?;
         let control = agent.run_step()?;
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         if i % 50 == 0 {
             println!(

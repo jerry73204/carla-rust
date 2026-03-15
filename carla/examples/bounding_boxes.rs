@@ -146,7 +146,7 @@ struct CameraManager {
 
 impl CameraManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
             .find("sensor.camera.rgb")
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
@@ -191,7 +191,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         let intrinsics = CameraIntrinsics::new(fov, CAMERA_WIDTH, CAMERA_HEIGHT);
 
@@ -268,7 +268,7 @@ fn get_bounding_box_2d(
     camera_transform: &Transform,
     intrinsics: &CameraIntrinsics,
 ) -> Option<BoundingBox2D> {
-    let actor_transform = actor.transform();
+    let actor_transform = actor.transform().ok()?;
     let actor_location = &actor_transform.location;
 
     // Calculate distance
@@ -410,7 +410,7 @@ fn draw_bounding_boxes(boxes: &[BoundingBox2D]) {
 }
 
 fn draw_3d_bounding_box(world: &mut CarlaWorld, actor: &Actor, color: Color, life_time: f32) {
-    let transform = actor.transform();
+    let transform = actor.transform().expect("API call failed");
 
     #[cfg(carla_version_0916)]
     let bbox = actor.bounding_box();
@@ -476,15 +476,17 @@ fn draw_3d_bounding_box(world: &mut CarlaWorld, actor: &Actor, color: Color, lif
         (3, 7),
     ];
 
-    for (i, j) in &edges {
-        world.debug().draw_line(
-            world_corners[*i],
-            world_corners[*j],
-            0.1,
-            color,
-            life_time,
-            false,
-        );
+    if let Ok(debug) = world.debug() {
+        for (i, j) in &edges {
+            debug.draw_line(
+                world_corners[*i],
+                world_corners[*j],
+                0.1,
+                color,
+                life_time,
+                false,
+            );
+        }
     }
 }
 
@@ -562,13 +564,13 @@ impl HelpOverlay {
 async fn main() -> Result<()> {
     println!("Bounding Boxes Visualization - Connecting to CARLA...");
 
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Setting up scene...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.is_empty() {
@@ -576,7 +578,7 @@ async fn main() -> Result<()> {
     }
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -589,7 +591,7 @@ async fn main() -> Result<()> {
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
 
     // Enable autopilot
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
 
     println!("Vehicle spawned: {}", vehicle.type_id());
 
@@ -648,11 +650,11 @@ async fn main() -> Result<()> {
         }
 
         // Update camera
-        let vehicle_transform = vehicle.transform();
+        let vehicle_transform = vehicle.transform()?;
         camera.update(&vehicle_transform);
 
         // Get all actors
-        let actors = world.actors();
+        let actors = world.actors()?;
         let mut bounding_boxes = Vec::new();
 
         // Compute bounding boxes for visible actors
@@ -751,8 +753,8 @@ async fn main() -> Result<()> {
     }
 
     println!("Cleaning up...");
-    vehicle.destroy();
-    camera.sensor.destroy();
+    vehicle.destroy()?;
+    camera.sensor.destroy()?;
     println!("Done!");
 
     Ok(())

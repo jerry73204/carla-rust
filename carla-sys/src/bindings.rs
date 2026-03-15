@@ -117,8 +117,6 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiBoneTransformDataIn")
     generate!("carla_rust::rpc::FfiBoneTransformDataOut")
     generate!("carla_rust::client::FfiError")
-    generate!("carla_rust::client::ffi_try_connect")
-    generate!("carla_rust::client::ffi_try_get_world")
     generate!("carla_rust::rpc::FfiWalkerBoneControlIn")
     generate!("carla_rust::rpc::FfiWalkerBoneControlOut")
 

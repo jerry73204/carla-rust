@@ -1,5 +1,5 @@
 use super::{Actor, ActorBase};
-use crate::sensor::SensorData;
+use crate::{error::ffi::with_ffi_error, sensor::SensorData};
 use autocxx::c_void;
 use carla_sys::carla_rust::{
     client::{FfiActor, FfiSensor},
@@ -34,17 +34,17 @@ type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 /// # Examples
 ///
 /// ```no_run
-/// use carla::{client::Client, sensor::data::Image};
-/// use nalgebra::Isometry3;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use carla::{client::Client, geom::Transform, sensor::data::Image};
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
 ///
 /// // Spawn a camera sensor
-/// let bp_lib = world.blueprint_library();
+/// let bp_lib = world.blueprint_library()?;
 /// let camera_bp = bp_lib.filter("sensor.camera.rgb").get(0).unwrap();
-/// let transform = Isometry3::identity();
-/// let camera = world.spawn_actor(&camera_bp, &transform).unwrap();
+/// let transform = Transform::default();
+/// let camera = world.spawn_actor(&camera_bp, &transform)?;
 /// let sensor: carla::client::Sensor = camera.try_into().unwrap();
 ///
 /// // Listen for data
@@ -52,7 +52,9 @@ type Callback = dyn FnMut(SharedPtr<FfiSensorData>) + Send + 'static;
 ///     if let Ok(image) = Image::try_from(data) {
 ///         println!("Received {}x{} image", image.width(), image.height());
 ///     }
-/// });
+/// })?;
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -82,8 +84,10 @@ impl Sensor {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn stop(&self) {
-        self.inner.Stop();
+    pub fn stop(&self) -> crate::Result<()> {
+        with_ffi_error("stop", |e| {
+            self.inner.Stop(e);
+        })
     }
 
     /// Returns whether the sensor is currently listening (generating data).
@@ -135,33 +139,35 @@ impl Sensor {
     /// # Examples
     ///
     /// See struct-level documentation for a complete example.
-    pub fn listen<F>(&self, mut callback: F)
+    pub fn listen<F>(&self, mut callback: F) -> crate::Result<()>
     where
         F: FnMut(SensorData) + Send + 'static,
     {
-        unsafe {
-            let fn_ptr = {
-                let fn_ = move |ptr: SharedPtr<FfiSensorData>| {
-                    let data = SensorData::from_cxx(ptr);
-                    (callback)(data);
+        with_ffi_error("listen", |e| {
+            unsafe {
+                let fn_ptr = {
+                    let fn_ = move |ptr: SharedPtr<FfiSensorData>| {
+                        let data = SensorData::from_cxx(ptr);
+                        (callback)(data);
+                    };
+                    // Double boxing pattern for FFI:
+                    // 1. Box<Callback> creates a trait object (fat pointer: data ptr + vtable ptr)
+                    // 2. Box<Box<Callback>> boxes the fat pointer itself, giving us a thin pointer
+                    //    to a heap location that contains the fat pointer
+                    // 3. Box::into_raw converts to *mut Box<Callback>, which is a thin raw pointer
+                    //    suitable for passing through C FFI (which cannot handle fat pointers)
+                    let fn_: Box<Callback> = Box::new(fn_);
+                    let fn_ = Box::new(fn_);
+                    let fn_: *mut Box<Callback> = Box::into_raw(fn_);
+                    fn_ as *mut c_void
                 };
-                // Double boxing pattern for FFI:
-                // 1. Box<Callback> creates a trait object (fat pointer: data ptr + vtable ptr)
-                // 2. Box<Box<Callback>> boxes the fat pointer itself, giving us a thin pointer
-                //    to a heap location that contains the fat pointer
-                // 3. Box::into_raw converts to *mut Box<Callback>, which is a thin raw pointer
-                //    suitable for passing through C FFI (which cannot handle fat pointers)
-                let fn_: Box<Callback> = Box::new(fn_);
-                let fn_ = Box::new(fn_);
-                let fn_: *mut Box<Callback> = Box::into_raw(fn_);
-                fn_ as *mut c_void
-            };
 
-            let caller_ptr = caller as *mut c_void;
-            let deleter_ptr = deleter as *mut c_void;
+                let caller_ptr = caller as *mut c_void;
+                let deleter_ptr = deleter as *mut c_void;
 
-            self.inner.Listen(caller_ptr, fn_ptr, deleter_ptr);
-        }
+                self.inner.Listen(caller_ptr, fn_ptr, deleter_ptr, e);
+            }
+        })
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensor>) -> Option<Self> {

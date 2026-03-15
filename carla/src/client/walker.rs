@@ -1,7 +1,10 @@
 //! Walker (pedestrian) actor type for the CARLA client.
 
 use super::{Actor, ActorBase};
-use crate::rpc::{WalkerBoneControlIn, WalkerBoneControlOut, WalkerControl};
+use crate::{
+    error::ffi::with_ffi_error,
+    rpc::{WalkerBoneControlIn, WalkerBoneControlOut, WalkerControl},
+};
 use autocxx::WithinBox;
 use carla_sys::carla_rust::client::{FfiActor, FfiWalker};
 use cxx::SharedPtr;
@@ -41,13 +44,14 @@ use static_assertions::assert_impl_all;
 ///     rpc::WalkerControl,
 /// };
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
 ///
-/// # let bp_lib = world.blueprint_library();
+/// # let bp_lib = world.blueprint_library()?;
 /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-/// # let spawn_points = world.map().recommended_spawn_points();
-/// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
 /// let walker: carla::client::Walker = actor.try_into().unwrap();
 ///
 /// // Control the walker
@@ -59,7 +63,9 @@ use static_assertions::assert_impl_all;
 /// };
 /// control.speed = 1.5; // m/s
 /// control.jump = false;
-/// walker.apply_control(&control);
+/// walker.apply_control(&control)?;
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -95,13 +101,14 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
     /// use carla::{geom::Vector3D, rpc::WalkerControl};
     ///
@@ -112,10 +119,14 @@ impl Walker {
     ///     z: 0.0,
     /// };
     /// control.speed = 2.0;
-    /// walker.apply_control(&control);
+    /// walker.apply_control(&control)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn apply_control(&self, control: &WalkerControl) {
-        self.inner.ApplyControl(control);
+    pub fn apply_control(&self, control: &WalkerControl) -> crate::Result<()> {
+        with_ffi_error("apply_control", |e| {
+            self.inner.ApplyControl(control, e);
+        })
     }
 
     /// Gets the current walker control state.
@@ -168,13 +179,14 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
     /// use carla::{
     ///     geom::Transform,
@@ -187,11 +199,15 @@ impl Walker {
     ///         transform: Transform::default(),
     ///     }],
     /// };
-    /// walker.set_bones(&bone_control);
+    /// walker.set_bones(&bone_control)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn set_bones(&self, bones: &WalkerBoneControlIn) {
+    pub fn set_bones(&self, bones: &WalkerBoneControlIn) -> crate::Result<()> {
         let ffi_bones = bones.to_ffi();
-        self.inner.SetBonesTransformFfi(&ffi_bones);
+        with_ffi_error("set_bones", |e| {
+            self.inner.SetBonesTransformFfi(&ffi_bones, e);
+        })
     }
 
     /// Blends the current pose with the animation pose.
@@ -219,19 +235,24 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
     /// // Blend 50% animation, 50% custom pose
-    /// walker.blend_pose(0.5);
+    /// walker.blend_pose(0.5)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn blend_pose(&self, blend: f32) {
-        self.inner.BlendPose(blend);
+    pub fn blend_pose(&self, blend: f32) -> crate::Result<()> {
+        with_ffi_error("blend_pose", |e| {
+            self.inner.BlendPose(blend, e);
+        })
     }
 
     /// Shows the custom pose (blend factor 1.0).
@@ -257,18 +278,21 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
-    /// walker.show_pose();
+    /// walker.show_pose()?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn show_pose(&self) {
-        self.blend_pose(1.0);
+    pub fn show_pose(&self) -> crate::Result<()> {
+        self.blend_pose(1.0)
     }
 
     /// Hides the custom pose (blend factor 0.0).
@@ -294,18 +318,21 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
-    /// walker.hide_pose();
+    /// walker.hide_pose()?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn hide_pose(&self) {
-        self.blend_pose(0.0);
+    pub fn hide_pose(&self) -> crate::Result<()> {
+        self.blend_pose(0.0)
     }
 
     /// Gets the current bone transforms.
@@ -332,13 +359,14 @@ impl Walker {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let walker_bp = bp_lib.filter("walker.pedestrian.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&walker_bp, spawn_points.get(0).unwrap())?;
     /// # let walker: carla::client::Walker = actor.try_into().unwrap();
     /// let bone_transforms = walker.get_bones_transform();
     ///
@@ -348,6 +376,8 @@ impl Walker {
     ///     println!("  Component: {:?}", bone.component);
     ///     println!("  Relative: {:?}", bone.relative);
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn get_bones_transform(&self) -> WalkerBoneControlOut {
         let mut ffi_bones = self.inner.GetBonesTransformFfi().within_box();
@@ -360,8 +390,10 @@ impl Walker {
     /// Use [`blend_pose()`](Self::blend_pose) or [`show_pose()`](Self::show_pose) to apply
     /// the captured pose, then modify individual bones with
     /// [`set_bones()`](Self::set_bones).
-    pub fn get_pose_from_animation(&self) {
-        self.inner.GetPoseFromAnimation();
+    pub fn get_pose_from_animation(&self) -> crate::Result<()> {
+        with_ffi_error("get_pose_from_animation", |e| {
+            self.inner.GetPoseFromAnimation(e);
+        })
     }
 
     #[allow(dead_code)]

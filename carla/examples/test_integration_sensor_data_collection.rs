@@ -43,21 +43,21 @@ struct SensorStats {
     lidar_frames: AtomicUsize,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Sensor Data Collection Pipeline Integration Test ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server");
 
     // Setup scenario
     println!("\n--- Setting up test scenario ---");
-    let (vehicle, sensors, stats) = setup_scenario(&mut world);
+    let (vehicle, sensors, stats) = setup_scenario(&mut world).expect("setup failed");
 
     // Enable autopilot
     println!("Enabling autopilot...");
-    vehicle.set_autopilot(true);
+    vehicle.set_autopilot(true)?;
 
     // Test 1: Collect data under normal conditions
     println!("\n--- Test 1: Collecting data (normal weather) ---");
@@ -119,26 +119,28 @@ fn main() {
 
     // Cleanup
     println!("\n--- Cleaning up ---");
-    vehicle.set_autopilot(false);
+    vehicle.set_autopilot(false)?;
     for sensor in sensors {
-        sensor.destroy();
+        sensor.destroy()?;
     }
-    vehicle.destroy();
+    vehicle.destroy()?;
 
     println!("\n✅ Integration test completed successfully!");
     std::process::exit(0);
 }
 
-fn setup_scenario(world: &mut carla::client::World) -> (Vehicle, Vec<Sensor>, Arc<SensorStats>) {
+fn setup_scenario(
+    world: &mut carla::client::World,
+) -> Result<(Vehicle, Vec<Sensor>, Arc<SensorStats>), Box<dyn std::error::Error>> {
     let stats = Arc::new(SensorStats::default());
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -173,7 +175,7 @@ fn setup_scenario(world: &mut carla::client::World) -> (Vehicle, Vec<Sensor>, Ar
         println!("✓ Attached LiDAR sensor");
     }
 
-    (vehicle, sensors, stats)
+    Ok((vehicle, sensors, stats))
 }
 
 fn attach_rgb_camera(
@@ -181,7 +183,7 @@ fn attach_rgb_camera(
     vehicle: &Vehicle,
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut camera_bp = blueprint_library.find("sensor.camera.rgb")?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
@@ -204,11 +206,13 @@ fn attach_rgb_camera(
 
     let sensor = Sensor::try_from(camera_actor).ok()?;
 
-    sensor.listen(move |data| {
-        if let Ok(_image) = Image::try_from(data) {
-            stats.rgb_frames.fetch_add(1, Ordering::Relaxed);
-        }
-    });
+    sensor
+        .listen(move |data| {
+            if let Ok(_image) = Image::try_from(data) {
+                stats.rgb_frames.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+        .ok()?;
 
     Some(sensor)
 }
@@ -218,7 +222,7 @@ fn attach_depth_camera(
     vehicle: &Vehicle,
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut camera_bp = blueprint_library.find("sensor.camera.depth")?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
@@ -240,11 +244,13 @@ fn attach_depth_camera(
 
     let sensor = Sensor::try_from(camera_actor).ok()?;
 
-    sensor.listen(move |data| {
-        if let Ok(_image) = Image::try_from(data) {
-            stats.depth_frames.fetch_add(1, Ordering::Relaxed);
-        }
-    });
+    sensor
+        .listen(move |data| {
+            if let Ok(_image) = Image::try_from(data) {
+                stats.depth_frames.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+        .ok()?;
 
     Some(sensor)
 }
@@ -254,7 +260,7 @@ fn attach_semantic_camera(
     vehicle: &Vehicle,
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut camera_bp = blueprint_library.find("sensor.camera.semantic_segmentation")?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
@@ -276,11 +282,13 @@ fn attach_semantic_camera(
 
     let sensor = Sensor::try_from(camera_actor).ok()?;
 
-    sensor.listen(move |data| {
-        if let Ok(_image) = Image::try_from(data) {
-            stats.semantic_frames.fetch_add(1, Ordering::Relaxed);
-        }
-    });
+    sensor
+        .listen(move |data| {
+            if let Ok(_image) = Image::try_from(data) {
+                stats.semantic_frames.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+        .ok()?;
 
     Some(sensor)
 }
@@ -290,7 +298,7 @@ fn attach_lidar_sensor(
     vehicle: &Vehicle,
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast")?;
 
     let _ = lidar_bp.set_attribute("channels", &LIDAR_CHANNELS.to_string());
@@ -314,30 +322,32 @@ fn attach_lidar_sensor(
 
     let sensor = Sensor::try_from(lidar_actor).ok()?;
 
-    sensor.listen(move |data| {
-        if let Ok(_lidar_data) = LidarMeasurement::try_from(data) {
-            stats.lidar_frames.fetch_add(1, Ordering::Relaxed);
-        }
-    });
+    sensor
+        .listen(move |data| {
+            if let Ok(_lidar_data) = LidarMeasurement::try_from(data) {
+                stats.lidar_frames.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+        .ok()?;
 
     Some(sensor)
 }
 
 fn set_rainy_weather(world: &mut carla::client::World) {
-    let mut weather = world.weather();
+    let mut weather = world.weather().expect("API call failed");
     weather.precipitation = 80.0;
     weather.precipitation_deposits = 50.0;
     weather.wetness = 80.0;
     weather.cloudiness = 90.0;
-    world.set_weather(&weather);
+    let _ = world.set_weather(&weather);
 }
 
 fn set_night_weather(world: &mut carla::client::World) {
-    let mut weather = world.weather();
+    let mut weather = world.weather().expect("API call failed");
     weather.sun_altitude_angle = -90.0; // Night time
     weather.cloudiness = 10.0;
     weather.precipitation = 0.0;
-    world.set_weather(&weather);
+    let _ = world.set_weather(&weather);
 }
 
 fn print_stats(stats: &SensorStats, elapsed: Duration) {

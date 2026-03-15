@@ -1,12 +1,11 @@
 use super::World;
 use crate::{
+    error::ffi::with_ffi_error,
     rpc::{Command, CommandResponse, OpendriveGenerationParameters},
     traffic_manager::{TrafficManager, constants::Networking::TM_DEFAULT_PORT},
 };
 use autocxx::prelude::*;
-use carla_sys::carla_rust::client::{
-    FfiClient, FfiCommandBatch, FfiError, ffi_try_connect, ffi_try_get_world,
-};
+use carla_sys::carla_rust::client::{FfiClient, FfiCommandBatch, FfiError};
 use cxx::{UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
@@ -49,14 +48,15 @@ use std::time::Duration;
 /// use carla::client::Client;
 ///
 /// // Connect to a local CARLA server
-/// let client = Client::connect("localhost", 2000, None);
+/// let client = Client::connect("localhost", 2000, None)?;
 ///
 /// // Check version compatibility
-/// println!("Client: {}", client.client_version());
-/// println!("Server: {}", client.server_version());
+/// println!("Client: {}", client.client_version()?);
+/// println!("Server: {}", client.server_version()?);
 ///
 /// // Access the simulation world
-/// let world = client.world();
+/// let world = client.world()?;
+/// # Ok::<(), carla::error::CarlaError>(())
 /// ```
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -75,44 +75,24 @@ impl Client {
     /// * `port` - Server port (default is 2000)
     /// * `worker_threads` - Number of worker threads for async operations (0 = auto)
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the connection to the server fails (e.g., server
+    /// unreachable, timeout).
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
     /// // Connect to local server with default settings
-    /// let client = Client::connect("localhost", 2000, None);
+    /// let client = Client::connect("localhost", 2000, None)?;
     ///
     /// // Connect with 4 worker threads
-    /// let client = Client::connect("localhost", 2000, Some(4));
+    /// let client = Client::connect("localhost", 2000, Some(4))?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn connect<W>(host: &str, port: u16, worker_threads: W) -> Self
-    where
-        W: Into<Option<usize>>,
-    {
-        let_cxx_string!(host_cxx = host);
-        let worker_threads = worker_threads.into().unwrap_or(0);
-
-        Self {
-            inner: FfiClient::new(&host_cxx, port, worker_threads).within_unique_ptr(),
-        }
-    }
-
-    /// Fallible version of [`connect`](Self::connect).
-    ///
-    /// Returns `Err` instead of panicking when the server is unreachable.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use carla::client::Client;
-    ///
-    /// match Client::try_connect("localhost", 2000, None) {
-    ///     Ok(client) => println!("Connected!"),
-    ///     Err(e) => eprintln!("Failed: {e}"),
-    /// }
-    /// ```
-    pub fn try_connect<W>(host: &str, port: u16, worker_threads: W) -> crate::Result<Self>
+    pub fn connect<W>(host: &str, port: u16, worker_threads: W) -> crate::Result<Self>
     where
         W: Into<Option<usize>>,
     {
@@ -121,7 +101,7 @@ impl Client {
         let_cxx_string!(host_cxx = host);
         let worker_threads = worker_threads.into().unwrap_or(0);
         let mut error = FfiError::new().within_unique_ptr();
-        let client_ptr = ffi_try_connect(&host_cxx, port, worker_threads, error.pin_mut());
+        let client_ptr = FfiClient::Create(&host_cxx, port, worker_threads, error.pin_mut());
         if client_ptr.is_null() {
             let msg = error.message();
             return Err(parse_ffi_error(
@@ -133,58 +113,43 @@ impl Client {
         Ok(Self { inner: client_ptr })
     }
 
-    /// Fallible version of [`world`](Self::world).
-    ///
-    /// Returns `Err` instead of panicking on timeout or server error.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use carla::client::Client;
-    ///
-    /// let client = Client::default();
-    /// match client.try_world() {
-    ///     Ok(world) => println!("World ID: {}", world.id()),
-    ///     Err(e) => eprintln!("Failed: {e}"),
-    /// }
-    /// ```
-    pub fn try_world(&self) -> crate::Result<World> {
-        use crate::error::ffi::parse_ffi_error;
-
-        let mut error = FfiError::new().within_unique_ptr();
-        let world_ptr = ffi_try_get_world(self.inner.as_ref().unwrap(), error.pin_mut());
-        if world_ptr.is_null() {
-            let msg = error.message();
-            return Err(parse_ffi_error(
-                error.kind(),
-                msg.to_str().unwrap_or("unknown"),
-                Some("get_world"),
-            ));
-        }
-        Ok(unsafe { World::from_cxx(world_ptr).unwrap_unchecked() })
-    }
-
     /// Returns the client library version string.
     ///
     /// Use this with [`server_version()`](Self::server_version) to check
     /// version compatibility between client and server.
-    pub fn client_version(&self) -> String {
-        self.inner.GetClientVersion().to_string()
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying C++ call fails.
+    pub fn client_version(&self) -> crate::Result<String> {
+        with_ffi_error("client_version", |e| {
+            self.inner.GetClientVersion(e).to_string()
+        })
     }
 
     /// Returns the CARLA server version string.
     ///
     /// The client and server versions should match to ensure compatibility.
-    pub fn server_version(&self) -> String {
-        self.inner.GetServerVersion().to_string()
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the server is unreachable or the call fails.
+    pub fn server_version(&self) -> crate::Result<String> {
+        with_ffi_error("server_version", |e| {
+            self.inner.GetServerVersion(e).to_string()
+        })
     }
 
     /// Returns the current network timeout for server operations.
     ///
     /// Operations that exceed this timeout will fail. Default is typically 5 seconds.
-    pub fn timeout(&mut self) -> Duration {
-        let millis = self.inner.pin_mut().GetTimeout();
-        Duration::from_millis(millis as u64)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying C++ call fails.
+    pub fn timeout(&mut self) -> crate::Result<Duration> {
+        let millis = with_ffi_error("timeout", |e| self.inner.pin_mut().GetTimeout(e))?;
+        Ok(Duration::from_millis(millis as u64))
     }
 
     /// Sets the network timeout for server operations.
@@ -193,41 +158,50 @@ impl Client {
     ///
     /// * `timeout` - Maximum time to wait for server responses
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying C++ call fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     /// use std::time::Duration;
     ///
-    /// let mut client = Client::default();
-    /// client.set_timeout(Duration::from_secs(10));
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.set_timeout(Duration::from_secs(10))?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn set_timeout(&mut self, timeout: Duration) {
+    pub fn set_timeout(&mut self, timeout: Duration) -> crate::Result<()> {
         let millis = timeout.as_millis() as usize;
-        self.inner.pin_mut().SetTimeout(millis);
+        with_ffi_error("set_timeout", |e| {
+            self.inner.pin_mut().SetTimeout(millis, e)
+        })
     }
 
     /// Returns a list of available map names on the server.
     ///
     /// Map names can be used with [`load_world()`](Self::load_world) to switch maps.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the server is unreachable or the call fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let maps = client.avaiable_maps();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let maps = client.avaiable_maps()?;
     /// for map in maps {
     ///     println!("Available map: {}", map);
     /// }
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn avaiable_maps(&self) -> Vec<String> {
-        self.inner
-            .GetAvailableMaps()
-            .iter()
-            .map(|s| s.to_string())
-            .collect()
+    pub fn avaiable_maps(&self) -> crate::Result<Vec<String>> {
+        let maps = with_ffi_error("available_maps", |e| self.inner.GetAvailableMaps(e))?;
+        Ok(maps.iter().map(|s| s.to_string()).collect())
     }
 
     /// Loads a new map/world, resetting simulation settings to defaults.
@@ -239,15 +213,20 @@ impl Client {
     ///
     /// * `map_name` - Name of the map to load (e.g., "Town01", "Town02")
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the map cannot be loaded.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.load_world("Town03");
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.load_world("Town03")?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn load_world(&self, map_name: &str) -> World {
+    pub fn load_world(&self, map_name: &str) -> crate::Result<World> {
         self.load_world_opt(map_name, true)
     }
 
@@ -257,12 +236,15 @@ impl Client {
     ///
     /// * `map_name` - Name of the map to load
     /// * `reset_settings` - If true, resets simulation settings to defaults
-    pub fn load_world_opt(&self, map_name: &str, reset_settings: bool) -> World {
-        let world = self
-            .inner
-            .LoadWorld(map_name, reset_settings)
-            .within_unique_ptr();
-        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the map cannot be loaded.
+    pub fn load_world_opt(&self, map_name: &str, reset_settings: bool) -> crate::Result<World> {
+        let world = with_ffi_error("load_world", |e| {
+            self.inner.LoadWorld(map_name, reset_settings, e)
+        })?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Loads a new map/world only if it's different from the current one.
@@ -280,19 +262,24 @@ impl Client {
     ///
     /// * `map_name` - Name of the map to load
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the map cannot be loaded.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
+    /// let client = Client::connect("localhost", 2000, None)?;
     /// // Only loads if different from current map
-    /// let world = client.load_world_if_different("Town03");
+    /// let world = client.load_world_if_different("Town03")?;
     /// // This won't reload since Town03 is already loaded
-    /// let world2 = client.load_world_if_different("Town03");
+    /// let world2 = client.load_world_if_different("Town03")?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     #[cfg(carla_0915)]
-    pub fn load_world_if_different(&self, map_name: &str) -> World {
+    pub fn load_world_if_different(&self, map_name: &str) -> crate::Result<World> {
         self.load_world_if_different_opt(map_name, true)
     }
 
@@ -304,19 +291,30 @@ impl Client {
     ///
     /// * `map_name` - Name of the map to load
     /// * `reset_settings` - If true, resets simulation settings to defaults
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the map cannot be loaded.
     #[cfg(carla_0915)]
-    pub fn load_world_if_different_opt(&self, map_name: &str, reset_settings: bool) -> World {
-        let world = self
-            .inner
-            .LoadWorldIfDifferent(map_name, reset_settings)
-            .within_unique_ptr();
-        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    pub fn load_world_if_different_opt(
+        &self,
+        map_name: &str,
+        reset_settings: bool,
+    ) -> crate::Result<World> {
+        let world = with_ffi_error("load_world_if_different", |e| {
+            self.inner.LoadWorldIfDifferent(map_name, reset_settings, e)
+        })?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Reloads the current world, resetting simulation settings to defaults.
     ///
     /// This destroys all actors and reloads the same map.
-    pub fn reload_world(&self) -> World {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the world cannot be reloaded.
+    pub fn reload_world(&self) -> crate::Result<World> {
         self.reload_world_opt(true)
     }
 
@@ -325,9 +323,15 @@ impl Client {
     /// # Arguments
     ///
     /// * `reset_settings` - If true, resets simulation settings to defaults
-    pub fn reload_world_opt(&self, reset_settings: bool) -> World {
-        let world = self.inner.ReloadWorld(reset_settings).within_unique_ptr();
-        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the world cannot be reloaded.
+    pub fn reload_world_opt(&self, reset_settings: bool) -> crate::Result<World> {
+        let world = with_ffi_error("reload_world", |e| {
+            self.inner.ReloadWorld(reset_settings, e)
+        })?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Generates a world from an OpenDRIVE string.
@@ -339,35 +343,44 @@ impl Client {
     /// * `opendrive` - OpenDRIVE XML content as a string
     /// * `params` - Generation parameters for mesh and road properties
     /// * `reset_settings` - If true, resets simulation settings to defaults
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the world cannot be generated from the OpenDRIVE data.
     pub fn generate_open_drive_world(
         &self,
         opendrive: &str,
         params: &OpendriveGenerationParameters,
         reset_settings: bool,
-    ) -> World {
-        let world = self
-            .inner
-            .GenerateOpenDriveWorld(opendrive, params, reset_settings)
-            .within_unique_ptr();
-        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    ) -> crate::Result<World> {
+        let world = with_ffi_error("generate_open_drive_world", |e| {
+            self.inner
+                .GenerateOpenDriveWorld(opendrive, params, reset_settings, e)
+        })?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Returns the current simulation world.
     ///
     /// This is the primary way to access the simulation and interact with actors.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the world cannot be retrieved (e.g., timeout, disconnection).
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
     /// let actors = world.actors();
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn world(&self) -> World {
-        let world = self.inner.GetWorld().within_unique_ptr();
-        unsafe { World::from_cxx(world).unwrap_unchecked() }
+    pub fn world(&self) -> crate::Result<World> {
+        let world = with_ffi_error("world", |e| self.inner.GetWorld(e))?;
+        Ok(unsafe { World::from_cxx(world).unwrap_unchecked() })
     }
 
     /// Creates or retrieves a Traffic Manager instance.
@@ -379,21 +392,27 @@ impl Client {
     ///
     /// * `port` - Traffic Manager port (default is 8000)
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the Traffic Manager cannot be created or retrieved.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let mut tm = client.instance_tm(None); // Uses default port 8000
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut tm = client.instance_tm(None)?; // Uses default port 8000
+    ///
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn instance_tm<P>(&self, port: P) -> TrafficManager
+    pub fn instance_tm<P>(&self, port: P) -> crate::Result<TrafficManager>
     where
         P: Into<Option<u16>>,
     {
         let port = port.into().unwrap_or(TM_DEFAULT_PORT);
-        let ptr = self.inner.GetInstanceTM(port).within_unique_ptr();
-        unsafe { TrafficManager::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("instance_tm", |e| self.inner.GetInstanceTM(port, e))?;
+        Ok(unsafe { TrafficManager::from_cxx(ptr).unwrap_unchecked() })
     }
 
     // ========================================================================
@@ -408,11 +427,17 @@ impl Client {
     ///
     /// * `path` - Local directory path for file storage
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying C++ call fails.
+    ///
     /// # Returns
     ///
     /// `true` if the folder was set successfully, `false` otherwise
-    pub fn set_files_base_folder(&mut self, path: &str) -> bool {
-        self.inner.pin_mut().SetFilesBaseFolder(path.to_string())
+    pub fn set_files_base_folder(&mut self, path: &str) -> crate::Result<bool> {
+        with_ffi_error("set_files_base_folder", |e| {
+            self.inner.pin_mut().SetFilesBaseFolder(path.to_string(), e)
+        })
     }
 
     /// Returns a list of files required by the server.
@@ -424,15 +449,18 @@ impl Client {
     /// * `folder` - Server folder to query (empty string for root)
     /// * `download` - If true, downloads the files automatically
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the underlying C++ call fails.
+    ///
     /// # Returns
     ///
     /// List of required file names
-    pub fn get_required_files(&self, folder: &str, download: bool) -> Vec<String> {
-        self.inner
-            .GetRequiredFiles(folder.to_string(), download)
-            .iter()
-            .map(|s| s.to_string())
-            .collect()
+    pub fn get_required_files(&self, folder: &str, download: bool) -> crate::Result<Vec<String>> {
+        let files = with_ffi_error("get_required_files", |e| {
+            self.inner.GetRequiredFiles(folder.to_string(), download, e)
+        })?;
+        Ok(files.iter().map(|s| s.to_string()).collect())
     }
 
     /// Requests a specific file from the server.
@@ -442,8 +470,14 @@ impl Client {
     /// # Arguments
     ///
     /// * `name` - Name of the file to request
-    pub fn request_file(&self, name: &str) {
-        self.inner.RequestFile(name.to_string());
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file request fails.
+    pub fn request_file(&self, name: &str) -> crate::Result<()> {
+        with_ffi_error("request_file", |e| {
+            self.inner.RequestFile(name.to_string(), e)
+        })
     }
 
     // ========================================================================
@@ -460,6 +494,10 @@ impl Client {
     /// * `filename` - Name of the recording file (e.g., "my_recording.log")
     /// * `additional_data` - If true, records non-essential data like sensor data
     ///
+    /// # Errors
+    ///
+    /// Returns an error if recording cannot be started.
+    ///
     /// # Returns
     ///
     /// A message string indicating success or failure
@@ -469,33 +507,45 @@ impl Client {
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// let result = client.start_recorder("test_recording.log", false);
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// let result = client.start_recorder("test_recording.log", false)?;
     /// println!("Recording started: {}", result);
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn start_recorder(&mut self, filename: &str, additional_data: bool) -> String {
-        self.inner
-            .pin_mut()
-            .StartRecorder(filename, additional_data)
-            .to_string()
+    pub fn start_recorder(
+        &mut self,
+        filename: &str,
+        additional_data: bool,
+    ) -> crate::Result<String> {
+        with_ffi_error("start_recorder", |e| {
+            self.inner
+                .pin_mut()
+                .StartRecorder(filename, additional_data, e)
+                .to_string()
+        })
     }
 
     /// Stops the current recording session.
     ///
     /// The recording file is finalized and can be used for replay.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if stopping the recorder fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// client.start_recorder("test.log", false);
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.start_recorder("test.log", false)?;
     /// // ... perform actions ...
-    /// client.stop_recorder();
+    /// client.stop_recorder()?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn stop_recorder(&mut self) {
-        self.inner.pin_mut().StopRecorder();
+    pub fn stop_recorder(&mut self) -> crate::Result<()> {
+        with_ffi_error("stop_recorder", |e| self.inner.pin_mut().StopRecorder(e))
     }
 
     /// Retrieves information about a recorded simulation file.
@@ -508,6 +558,10 @@ impl Client {
     /// * `filename` - Name of the recording file
     /// * `show_all` - If true, returns detailed info; if false, returns summary
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the recording file cannot be read.
+    ///
     /// # Returns
     ///
     /// A formatted string containing the recording information
@@ -517,15 +571,22 @@ impl Client {
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let info = client.show_recorder_file_info("test.log", false);
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// let info = client.show_recorder_file_info("test.log", false)?;
     /// println!("Recording info:\n{}", info);
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn show_recorder_file_info(&mut self, filename: &str, show_all: bool) -> String {
-        self.inner
-            .pin_mut()
-            .ShowRecorderFileInfo(filename, show_all)
-            .to_string()
+    pub fn show_recorder_file_info(
+        &mut self,
+        filename: &str,
+        show_all: bool,
+    ) -> crate::Result<String> {
+        with_ffi_error("show_recorder_file_info", |e| {
+            self.inner
+                .pin_mut()
+                .ShowRecorderFileInfo(filename, show_all, e)
+                .to_string()
+        })
     }
 
     /// Queries collision events from a recorded simulation.
@@ -544,6 +605,10 @@ impl Client {
     /// * `category1` - First actor type filter
     /// * `category2` - Second actor type filter
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the recording file cannot be read.
+    ///
     /// # Returns
     ///
     /// A formatted string listing collision events
@@ -553,21 +618,24 @@ impl Client {
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
+    /// let mut client = Client::connect("localhost", 2000, None)?;
     /// // Show all vehicle-to-vehicle collisions
-    /// let collisions = client.show_recorder_collisions("test.log", 'v', 'v');
+    /// let collisions = client.show_recorder_collisions("test.log", 'v', 'v')?;
     /// println!("Collisions:\n{}", collisions);
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     pub fn show_recorder_collisions(
         &mut self,
         filename: &str,
         category1: char,
         category2: char,
-    ) -> String {
-        self.inner
-            .pin_mut()
-            .ShowRecorderCollisions(filename, category1 as i8, category2 as i8)
-            .to_string()
+    ) -> crate::Result<String> {
+        with_ffi_error("show_recorder_collisions", |e| {
+            self.inner
+                .pin_mut()
+                .ShowRecorderCollisions(filename, category1 as i8, category2 as i8, e)
+                .to_string()
+        })
     }
 
     /// Finds actors that were blocked (stuck) during the recording.
@@ -581,6 +649,10 @@ impl Client {
     /// * `min_time` - Minimum time in seconds to consider an actor blocked
     /// * `min_distance` - Minimum distance in meters the actor should have moved
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the recording file cannot be read.
+    ///
     /// # Returns
     ///
     /// A formatted string listing blocked actors
@@ -590,21 +662,24 @@ impl Client {
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
+    /// let mut client = Client::connect("localhost", 2000, None)?;
     /// // Find actors that didn't move 1m in 60 seconds
-    /// let blocked = client.show_recorder_actors_blocked("test.log", 60.0, 1.0);
+    /// let blocked = client.show_recorder_actors_blocked("test.log", 60.0, 1.0)?;
     /// println!("Blocked actors:\n{}", blocked);
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     pub fn show_recorder_actors_blocked(
         &mut self,
         filename: &str,
         min_time: f32,
         min_distance: f32,
-    ) -> String {
-        self.inner
-            .pin_mut()
-            .ShowRecorderActorsBlocked(filename, min_time as f64, min_distance as f64)
-            .to_string()
+    ) -> crate::Result<String> {
+        with_ffi_error("show_recorder_actors_blocked", |e| {
+            self.inner
+                .pin_mut()
+                .ShowRecorderActorsBlocked(filename, min_time as f64, min_distance as f64, e)
+                .to_string()
+        })
     }
 
     // ========================================================================
@@ -623,6 +698,10 @@ impl Client {
     /// * `follow_id` - Actor ID to follow with camera (0 = no following)
     /// * `replay_sensors` - If true, replays sensor data
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the replay cannot be started.
+    ///
     /// # Returns
     ///
     /// A message string indicating success or failure
@@ -632,10 +711,11 @@ impl Client {
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
+    /// let mut client = Client::connect("localhost", 2000, None)?;
     /// // Replay from start, follow actor 42
-    /// let result = client.replay_file("test.log", 0.0, 0.0, 42, false);
+    /// let result = client.replay_file("test.log", 0.0, 0.0, 42, false)?;
     /// println!("Replay started: {}", result);
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     pub fn replay_file(
         &mut self,
@@ -644,17 +724,20 @@ impl Client {
         duration: f32,
         follow_id: u32,
         replay_sensors: bool,
-    ) -> String {
-        self.inner
-            .pin_mut()
-            .ReplayFile(
-                filename,
-                start_time as f64,
-                duration as f64,
-                follow_id,
-                replay_sensors,
-            )
-            .to_string()
+    ) -> crate::Result<String> {
+        with_ffi_error("replay_file", |e| {
+            self.inner
+                .pin_mut()
+                .ReplayFile(
+                    filename,
+                    start_time as f64,
+                    duration as f64,
+                    follow_id,
+                    replay_sensors,
+                    e,
+                )
+                .to_string()
+        })
     }
 
     /// Stops the current replay session.
@@ -663,18 +746,25 @@ impl Client {
     ///
     /// * `keep_actors` - If true, actors remain in the world after stopping
     ///
+    /// # Errors
+    ///
+    /// Returns an error if stopping the replay fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false)?;
     /// // ... wait for replay ...
-    /// client.stop_replayer(false);
+    /// client.stop_replayer(false)?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn stop_replayer(&mut self, keep_actors: bool) {
-        self.inner.pin_mut().StopReplayer(keep_actors);
+    pub fn stop_replayer(&mut self, keep_actors: bool) -> crate::Result<()> {
+        with_ffi_error("stop_replayer", |e| {
+            self.inner.pin_mut().StopReplayer(keep_actors, e)
+        })
     }
 
     /// Sets the time factor for replay playback speed.
@@ -683,19 +773,27 @@ impl Client {
     ///
     /// * `time_factor` - Speed multiplier (1.0 = normal, 2.0 = 2x speed, 0.5 = half speed)
     ///
+    /// # Errors
+    ///
+    /// Returns an error if setting the time factor fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
-    /// client.set_replayer_time_factor(2.0); // Play at 2x speed
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false)?;
+    /// client.set_replayer_time_factor(2.0)?; // Play at 2x speed
+    ///
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn set_replayer_time_factor(&mut self, time_factor: f32) {
-        self.inner
-            .pin_mut()
-            .SetReplayerTimeFactor(time_factor as f64);
+    pub fn set_replayer_time_factor(&mut self, time_factor: f32) -> crate::Result<()> {
+        with_ffi_error("set_replayer_time_factor", |e| {
+            self.inner
+                .pin_mut()
+                .SetReplayerTimeFactor(time_factor as f64, e)
+        })
     }
 
     /// Controls whether the hero vehicle is ignored during replay.
@@ -704,17 +802,25 @@ impl Client {
     ///
     /// * `ignore_hero` - If true, the hero vehicle's recorded movements are not replayed
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
-    /// client.set_replayer_ignore_hero(true); // Skip hero vehicle replay
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false)?;
+    /// client.set_replayer_ignore_hero(true)?; // Skip hero vehicle replay
+    ///
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn set_replayer_ignore_hero(&mut self, ignore_hero: bool) {
-        self.inner.pin_mut().SetReplayerIgnoreHero(ignore_hero);
+    pub fn set_replayer_ignore_hero(&mut self, ignore_hero: bool) -> crate::Result<()> {
+        with_ffi_error("set_replayer_ignore_hero", |e| {
+            self.inner.pin_mut().SetReplayerIgnoreHero(ignore_hero, e)
+        })
     }
 
     /// Controls whether the spectator is ignored during replay.
@@ -725,20 +831,28 @@ impl Client {
     ///
     /// * `ignore_spectator` - If true, the spectator's recorded movements are not replayed
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::client::Client;
     ///
-    /// let mut client = Client::default();
-    /// client.replay_file("test.log", 0.0, 0.0, 0, false);
-    /// client.set_replayer_ignore_spectator(true); // Skip spectator replay
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// client.replay_file("test.log", 0.0, 0.0, 0, false)?;
+    /// client.set_replayer_ignore_spectator(true)?; // Skip spectator replay
+    ///
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     #[cfg(carla_0915)]
-    pub fn set_replayer_ignore_spectator(&mut self, ignore_spectator: bool) {
-        self.inner
-            .pin_mut()
-            .SetReplayerIgnoreSpectator(ignore_spectator);
+    pub fn set_replayer_ignore_spectator(&mut self, ignore_spectator: bool) -> crate::Result<()> {
+        with_ffi_error("set_replayer_ignore_spectator", |e| {
+            self.inner
+                .pin_mut()
+                .SetReplayerIgnoreSpectator(ignore_spectator, e)
+        })
     }
 
     // ========================================================================
@@ -759,31 +873,38 @@ impl Client {
     /// * `commands` - Vector of commands to execute
     /// * `do_tick_cue` - If true, sends a tick cue after executing the batch
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the batch execution fails.
+    ///
     /// # Examples
     ///
     /// ```no_run
     /// use carla::{client::Client, rpc::Command};
     ///
-    /// let mut client = Client::default();
-    /// let world = client.world();
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
     ///
     /// let commands = vec![
     ///     Command::console_command("weather.sun_altitude 45.0".to_string()),
     ///     Command::console_command("weather.cloudiness 50.0".to_string()),
     /// ];
     ///
-    /// client.apply_batch(commands, false);
+    /// client.apply_batch(commands, false)?;
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
-    pub fn apply_batch(&mut self, commands: Vec<Command>, do_tick_cue: bool) {
+    pub fn apply_batch(&mut self, commands: Vec<Command>, do_tick_cue: bool) -> crate::Result<()> {
         let mut batch = FfiCommandBatch::new().within_unique_ptr();
 
         for command in &commands {
             command.add(&mut batch);
         }
 
-        self.inner
-            .pin_mut()
-            .ApplyBatch(batch.pin_mut(), do_tick_cue);
+        with_ffi_error("apply_batch", |e| {
+            self.inner
+                .pin_mut()
+                .ApplyBatch(batch.pin_mut(), do_tick_cue, e)
+        })
     }
 
     /// Executes a batch of commands and returns responses for each.
@@ -800,6 +921,10 @@ impl Client {
     /// * `commands` - Vector of commands to execute
     /// * `do_tick_cue` - If true, sends a tick cue after executing the batch
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the batch execution fails.
+    ///
     /// # Returns
     ///
     /// Vector of [`CommandResponse`] with results for each command
@@ -809,8 +934,8 @@ impl Client {
     /// ```no_run
     /// use carla::{client::Client, rpc::Command};
     ///
-    /// let mut client = Client::default();
-    /// let world = client.world();
+    /// let mut client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
     /// let blueprint_library = world.blueprint_library();
     ///
     /// // Spawn multiple vehicles at once
@@ -826,7 +951,7 @@ impl Client {
     ///     ));
     /// }
     ///
-    /// let responses = client.apply_batch_sync(commands, true);
+    /// let responses = client.apply_batch_sync(commands, true)?;
     /// for (i, response) in responses.iter().enumerate() {
     ///     if let Some(actor_id) = response.actor_id() {
     ///         println!("Spawned vehicle {}: actor ID {}", i, actor_id);
@@ -834,36 +959,29 @@ impl Client {
     ///         eprintln!("Failed to spawn vehicle {}: {}", i, error);
     ///     }
     /// }
+    /// # Ok::<(), carla::error::CarlaError>(())
     /// ```
     pub fn apply_batch_sync(
         &mut self,
         commands: Vec<Command>,
         do_tick_cue: bool,
-    ) -> Vec<CommandResponse> {
+    ) -> crate::Result<Vec<CommandResponse>> {
         let mut batch = FfiCommandBatch::new().within_unique_ptr();
 
         for command in &commands {
             command.add(&mut batch);
         }
 
-        let ffi_responses = self
-            .inner
-            .pin_mut()
-            .ApplyBatchSync(batch.pin_mut(), do_tick_cue);
+        let ffi_responses = with_ffi_error("apply_batch_sync", |e| {
+            self.inner
+                .pin_mut()
+                .ApplyBatchSync(batch.pin_mut(), do_tick_cue, e)
+        })?;
 
-        ffi_responses
+        Ok(ffi_responses
             .iter()
             .map(CommandResponse::from_ffi)
-            .collect()
-    }
-}
-
-impl Default for Client {
-    /// Creates a client connected to localhost:2000 with default settings.
-    ///
-    /// This is equivalent to `Client::connect("localhost", 2000, None)`.
-    fn default() -> Self {
-        Self::connect("localhost", 2000, None)
+            .collect())
     }
 }
 

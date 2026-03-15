@@ -133,12 +133,12 @@ impl BasicAgent {
             {
                 wp.transform().location
             } else {
-                self.core.vehicle.transform().location
+                self.core.vehicle.transform()?.location
             }
         } else if let Some((wp, _)) = self.core.local_planner.get_plan().last() {
             wp.transform().location
         } else {
-            self.core.vehicle.transform().location
+            self.core.vehicle.transform()?.location
         };
 
         // Compute route using global planner
@@ -309,10 +309,10 @@ impl BasicAgent {
             wp
         } else {
             // Use vehicle location if no waypoint in queue
-            let vehicle_location = self.core.vehicle.transform().location;
+            let vehicle_location = self.core.vehicle.transform()?.location;
             self.core
                 .map
-                .waypoint_at(&vehicle_location)
+                .waypoint_at(&vehicle_location)?
                 .ok_or_else(|| MapError::InvalidWaypoint {
                     location: format!("{:?}", vehicle_location),
                     reason: "Failed to get waypoint from vehicle location".to_string(),

@@ -19,38 +19,38 @@ use carla::{
 use std::{thread, time::Duration};
 
 /// Helper function to connect to CARLA
-fn connect_to_carla() -> Client {
-    Client::default()
+fn connect_to_carla() -> Result<Client, Box<dyn std::error::Error>> {
+    Ok(Client::connect("localhost", 2000, None)?)
 }
 
 /// Helper function to spawn a walker
-fn spawn_walker(client: &Client) -> Walker {
-    let mut world = client.world();
-    let bp_lib = world.blueprint_library();
+fn spawn_walker(client: &Client) -> Result<Walker, Box<dyn std::error::Error>> {
+    let mut world = client.world()?;
+    let bp_lib = world.blueprint_library()?;
 
     let walker_bp = bp_lib
         .filter("walker.pedestrian.*")
         .get(0)
         .expect("No walker blueprints found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
 
     // Try multiple spawn points in case some are occupied
     for i in 0..spawn_points.len().min(10) {
         let spawn_point = spawn_points.get(i).expect("No spawn points available");
 
         if let Ok(actor) = world.spawn_actor(&walker_bp, spawn_point) {
-            return actor.try_into().expect("Failed to cast to Walker");
+            return Ok(actor.try_into().expect("Failed to cast to Walker"));
         }
     }
 
-    panic!("Failed to spawn walker after trying multiple spawn points");
+    Err("Failed to spawn walker after trying multiple spawn points".into())
 }
 
 /// Helper function to spawn a WalkerAIController attached to a walker
 fn spawn_walker_ai_controller(client: &Client, walker: &Walker) -> WalkerAIController {
-    let mut world = client.world();
-    let bp_lib = world.blueprint_library();
+    let mut world = client.world().expect("API call failed");
+    let bp_lib = world.blueprint_library().expect("API call failed");
 
     let ai_bp = bp_lib
         .find("controller.ai.walker")
@@ -74,8 +74,8 @@ fn spawn_walker_ai_controller(client: &Client, walker: &Walker) -> WalkerAIContr
 
 fn demo_walker_spawn() {
     println!("\n--- Demo 1: Walker Spawn ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
 
     println!("✓ Walker spawned with ID: {}", walker.id());
     println!("✓ Walker is alive: {}", walker.is_alive());
@@ -83,8 +83,8 @@ fn demo_walker_spawn() {
 
 fn demo_walker_control() {
     println!("\n--- Demo 2: Walker Control ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
 
     println!("Walker ID: {}", walker.id());
 
@@ -109,7 +109,7 @@ fn demo_walker_control() {
         "Applying control: speed={} m/s, direction=(1, 0, 0)",
         control.speed
     );
-    walker.apply_control(&control);
+    let _ = walker.apply_control(&control);
 
     thread::sleep(Duration::from_millis(100));
 
@@ -119,29 +119,29 @@ fn demo_walker_control() {
 
 fn demo_walker_blend_pose() {
     println!("\n--- Demo 3: Walker Pose Blending ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
 
     println!("Walker ID: {}", walker.id());
 
     println!("Setting blend to 0.0 (full animation)...");
-    walker.blend_pose(0.0);
+    let _ = walker.blend_pose(0.0);
     thread::sleep(Duration::from_millis(100));
 
     println!("Setting blend to 0.5 (50% blend)...");
-    walker.blend_pose(0.5);
+    let _ = walker.blend_pose(0.5);
     thread::sleep(Duration::from_millis(100));
 
     println!("Setting blend to 1.0 (full custom pose)...");
-    walker.blend_pose(1.0);
+    let _ = walker.blend_pose(1.0);
     thread::sleep(Duration::from_millis(100));
 
     println!("Calling show_pose() [blend=1.0]...");
-    walker.show_pose();
+    let _ = walker.show_pose();
     thread::sleep(Duration::from_millis(100));
 
     println!("Calling hide_pose() [blend=0.0]...");
-    walker.hide_pose();
+    let _ = walker.hide_pose();
     thread::sleep(Duration::from_millis(100));
 
     println!("✓ Pose blending methods work correctly");
@@ -149,10 +149,10 @@ fn demo_walker_blend_pose() {
 
 fn demo_walker_location() {
     println!("\n--- Demo 4: Walker Location ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
 
-    let location = walker.location();
+    let location = walker.location().expect("API call failed");
     println!(
         "Walker location: ({:.2}, {:.2}, {:.2})",
         location.x, location.y, location.z
@@ -167,8 +167,8 @@ fn demo_walker_location() {
 
 fn demo_walker_ai_controller_spawn() {
     println!("\n--- Demo 5: WalkerAIController Spawn ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
     let ai_controller = spawn_walker_ai_controller(&client, &walker);
 
     println!("✓ AI controller spawned with ID: {}", ai_controller.id());
@@ -178,8 +178,8 @@ fn demo_walker_ai_controller_spawn() {
 
 fn demo_walker_ai_controller_control() {
     println!("\n--- Demo 6: WalkerAIController Start/Stop ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
     let ai_controller = spawn_walker_ai_controller(&client, &walker);
 
     println!(
@@ -189,15 +189,15 @@ fn demo_walker_ai_controller_control() {
     );
 
     println!("Starting AI control...");
-    ai_controller.start();
+    let _ = ai_controller.start();
     thread::sleep(Duration::from_millis(100));
 
     println!("Stopping AI control...");
-    ai_controller.stop();
+    let _ = ai_controller.stop();
     thread::sleep(Duration::from_millis(100));
 
     println!("Restarting AI control...");
-    ai_controller.start();
+    let _ = ai_controller.start();
     thread::sleep(Duration::from_millis(100));
 
     println!("✓ AI controller start/stop methods work correctly");
@@ -205,8 +205,8 @@ fn demo_walker_ai_controller_control() {
 
 fn demo_walker_ai_controller_speed() {
     println!("\n--- Demo 7: WalkerAIController Speed Control ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
     let ai_controller = spawn_walker_ai_controller(&client, &walker);
 
     println!(
@@ -216,15 +216,15 @@ fn demo_walker_ai_controller_speed() {
     );
 
     println!("Setting speed to 1.0 m/s (slow walk)...");
-    ai_controller.set_max_speed(1.0);
+    let _ = ai_controller.set_max_speed(1.0);
     thread::sleep(Duration::from_millis(100));
 
     println!("Setting speed to 1.4 m/s (normal walk)...");
-    ai_controller.set_max_speed(1.4);
+    let _ = ai_controller.set_max_speed(1.4);
     thread::sleep(Duration::from_millis(100));
 
     println!("Setting speed to 2.5 m/s (fast walk/jog)...");
-    ai_controller.set_max_speed(2.5);
+    let _ = ai_controller.set_max_speed(2.5);
     thread::sleep(Duration::from_millis(100));
 
     println!("✓ AI controller speed control works correctly");
@@ -232,24 +232,24 @@ fn demo_walker_ai_controller_speed() {
 
 fn demo_walker_with_ai_movement() {
     println!("\n--- Demo 8: Walker with AI Movement ---");
-    let client = connect_to_carla();
-    let walker = spawn_walker(&client);
+    let client = connect_to_carla().expect("Failed to connect");
+    let walker = spawn_walker(&client).expect("Failed to spawn walker");
     let ai_controller = spawn_walker_ai_controller(&client, &walker);
 
-    let initial_location = walker.location();
+    let initial_location = walker.location().expect("API call failed");
     println!(
         "Initial location: ({:.2}, {:.2}, {:.2})",
         initial_location.x, initial_location.y, initial_location.z
     );
 
     println!("Starting AI with speed 1.5 m/s...");
-    ai_controller.set_max_speed(1.5);
-    ai_controller.start();
+    let _ = ai_controller.set_max_speed(1.5);
+    let _ = ai_controller.start();
 
     println!("Waiting 2 seconds for movement...");
     thread::sleep(Duration::from_secs(2));
 
-    let new_location = walker.location();
+    let new_location = walker.location().expect("API call failed");
     println!(
         "New location: ({:.2}, {:.2}, {:.2})",
         new_location.x, new_location.y, new_location.z
@@ -268,7 +268,7 @@ fn demo_walker_with_ai_movement() {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Walker Integration Demo ===");
     println!("This demo requires a running CARLA simulator on localhost:2000");
     println!("Each demo spawns new actors that are NOT cleaned up automatically.");
@@ -289,4 +289,6 @@ fn main() {
     println!(
         "To clean up, either restart the CARLA simulator or use Python API to destroy actors."
     );
+
+    Ok(())
 }

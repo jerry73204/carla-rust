@@ -28,7 +28,7 @@ fn default_transform() -> Transform {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Walker Bone Control Demo ===\n");
 
     // 1. Create a simple bone transform
@@ -168,4 +168,6 @@ fn main() {
     println!(
         "Advanced bone manipulation methods (set_bones, get_bones_transform) are currently deferred."
     );
+
+    Ok(())
 }

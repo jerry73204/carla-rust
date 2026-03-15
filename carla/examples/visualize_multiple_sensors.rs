@@ -66,20 +66,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all("_out/sensors")?;
 
     // Connect to CARLA
-    let client = Client::default();
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
 
     println!("Connected to CARLA simulator");
-    println!("Map: {}\n", world.map().name());
+    println!("Map: {}\n", world.map()?.name());
 
     // Spawn vehicle
     println!("Spawning vehicle...");
-    let bp_lib = world.blueprint_library();
+    let bp_lib = world.blueprint_library()?;
     let vehicle_bp = bp_lib
         .find("vehicle.tesla.model3")
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     if spawn_points.is_empty() {
         return Err("No spawn points available".into());
     }
@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(vehicle_actor) => match Vehicle::try_from(vehicle_actor) {
                 Ok(v) => {
                     println!(" Vehicle spawned at spawn point {} with autopilot", i);
-                    v.set_autopilot(true);
+                    v.set_autopilot(true)?;
                     vehicle = Some(v);
                     break;
                 }
@@ -180,7 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut frame = frame_rgb.lock().unwrap();
             frame.rgb_image = Some(image);
         }
-    });
+    })?;
 
     // Depth listener
     let frame_depth = current_frame.clone();
@@ -189,7 +189,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut frame = frame_depth.lock().unwrap();
             frame.depth_image = Some(image);
         }
-    });
+    })?;
 
     // Semantic listener
     let frame_semantic = current_frame.clone();
@@ -198,7 +198,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut frame = frame_semantic.lock().unwrap();
             frame.semantic_image = Some(image);
         }
-    });
+    })?;
 
     // LiDAR listener
     let frame_lidar = current_frame.clone();
@@ -207,7 +207,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut frame = frame_lidar.lock().unwrap();
             frame.lidar_measurement = Some(measurement);
         }
-    });
+    })?;
 
     println!(" All sensors listening\n");
 
@@ -269,10 +269,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(" Sensor data saved to _out/sensors/\n");
 
     println!("Cleaning up...");
-    rgb_sensor.stop();
-    depth_sensor.stop();
-    semantic_sensor.stop();
-    lidar_sensor.stop();
+    rgb_sensor.stop()?;
+    depth_sensor.stop()?;
+    semantic_sensor.stop()?;
+    lidar_sensor.stop()?;
 
     // Note: Explicit destroy() calls are omitted to avoid race conditions.
     // CARLA automatically cleans up actors when the client disconnects.
@@ -310,6 +310,8 @@ fn spawn_sensor(
     transform: &Transform,
     parent: &Vehicle,
 ) -> Result<Sensor, Box<dyn std::error::Error>> {
-    let actor = world.spawn_actor_opt(bp, transform, Some(parent), AttachmentType::Rigid)?;
+    let actor = world
+        .spawn_actor_opt(bp, transform, Some(parent), AttachmentType::Rigid)
+        .expect("API call failed");
     Sensor::try_from(actor).map_err(|_| "Failed to convert to Sensor".into())
 }

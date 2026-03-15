@@ -86,24 +86,5 @@ void ffi_call_void(FfiError& error, F fn) {
     }
 }
 
-// ============================================================================
-// Legacy per-function wrappers (to be replaced by ffi_call/ffi_call_void)
-// ============================================================================
-
-/// Try to connect to CARLA. Returns nullptr on failure, populates error.
-inline std::unique_ptr<FfiClient> ffi_try_connect(const std::string& host, uint16_t port,
-                                                  size_t worker_threads, FfiError& error) {
-    return ffi_call(error, std::unique_ptr<FfiClient>(nullptr),
-                    [&]() { return std::make_unique<FfiClient>(host, port, worker_threads); });
-}
-
-/// Try to get world from client. Returns nullptr on failure, populates error.
-inline std::unique_ptr<FfiWorld> ffi_try_get_world(const FfiClient& client, FfiError& error) {
-    return ffi_call(error, std::unique_ptr<FfiWorld>(nullptr), [&]() {
-        auto world = client.GetWorld();
-        return std::make_unique<FfiWorld>(std::move(world));
-    });
-}
-
 }  // namespace client
 }  // namespace carla_rust

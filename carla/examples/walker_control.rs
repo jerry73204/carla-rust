@@ -17,16 +17,16 @@ use carla::{
     rpc::WalkerControl,
 };
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Spawn a walker
     let walker_bp = blueprint_library
@@ -34,7 +34,7 @@ fn main() {
         .get(0)
         .expect("Failed to find walker blueprint");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let walker_actor = world
@@ -74,7 +74,7 @@ fn main() {
     println!("  Jump: {}", control.jump);
 
     // Apply control
-    walker.apply_control(&control);
+    walker.apply_control(&control)?;
 
     println!("✓ Control applied successfully!");
 
@@ -90,4 +90,6 @@ fn main() {
 
     println!("\nWalker is now walking forward.");
     println!("The walker will continue moving in the simulation.");
+
+    Ok(())
 }

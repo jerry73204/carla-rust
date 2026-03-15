@@ -14,13 +14,13 @@ fn main() -> Result<()> {
     println!("Vehicle Bounding Box Demo - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Spawning vehicle...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.is_empty() {
@@ -28,7 +28,7 @@ fn main() -> Result<()> {
     }
 
     // Spawn a vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -80,7 +80,7 @@ fn main() -> Result<()> {
 
     // Cleanup
     println!("\nCleaning up...");
-    vehicle.destroy();
+    vehicle.destroy()?;
 
     println!("Done!");
     Ok(())

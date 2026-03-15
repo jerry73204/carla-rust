@@ -18,13 +18,13 @@ fn main() -> Result<()> {
     println!("ConstantVelocityAgent Demo - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Spawning vehicle...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.len() < 2 {
@@ -32,7 +32,7 @@ fn main() -> Result<()> {
     }
 
     // Spawn a vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.tesla.model3")
         .iter()
@@ -85,10 +85,10 @@ fn main() -> Result<()> {
         let control = agent.run_step()?;
 
         // Apply control to vehicle
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         // Tick the world
-        world.tick();
+        world.tick()?;
 
         if step % 20 == 0 {
             let speed = carla::agents::tools::get_speed(&vehicle);
@@ -110,8 +110,8 @@ fn main() -> Result<()> {
         }
 
         let control = agent.run_step()?;
-        vehicle.apply_control(&control);
-        world.tick();
+        vehicle.apply_control(&control)?;
+        world.tick()?;
 
         if step % 5 == 0 {
             let speed = carla::agents::tools::get_speed(&vehicle);
@@ -139,8 +139,8 @@ fn main() -> Result<()> {
         }
 
         let control = basic_agent.run_step()?;
-        vehicle.apply_control(&control);
-        world.tick();
+        vehicle.apply_control(&control)?;
+        world.tick()?;
 
         if step % 5 == 0 {
             println!(
@@ -161,13 +161,13 @@ fn main() -> Result<()> {
         }
 
         let control = agent.run_step()?;
-        vehicle.apply_control(&control);
-        world.tick();
+        vehicle.apply_control(&control)?;
+        world.tick()?;
     }
 
     // Cleanup
     println!("\nCleaning up...");
-    vehicle.destroy();
+    vehicle.destroy()?;
 
     println!("\n✅ SUCCESS: ConstantVelocityAgent demo completed!");
     Ok(())

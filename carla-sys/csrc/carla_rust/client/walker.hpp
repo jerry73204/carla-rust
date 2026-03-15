@@ -7,6 +7,7 @@
 #include "carla/rpc/WalkerControl.h"
 #include "carla/rpc/WalkerBoneControlIn.h"
 #include "carla/rpc/WalkerBoneControlOut.h"
+#include "carla_rust/client/result.hpp"
 #include "../rpc/walker_bone_control.hpp"
 
 namespace carla_rust {
@@ -23,17 +24,19 @@ class FfiWalker {
 public:
     FfiWalker(SharedPtr<Walker>&& base) : inner_(std::move(base)) {}
 
-    void ApplyControl(const WalkerControl& control) const { inner_->ApplyControl(control); }
+    void ApplyControl(const WalkerControl& control, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->ApplyControl(control); });
+    }
 
     WalkerControl GetWalkerControl() const { return inner_->GetWalkerControl(); }
 
-    void SetBonesTransform(const WalkerBoneControlIn& bones) const {
-        inner_->SetBonesTransform(bones);
+    void SetBonesTransform(const WalkerBoneControlIn& bones, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetBonesTransform(bones); });
     }
 
     // Wrapper version using FfiWalkerBoneControlIn
-    void SetBonesTransformFfi(const rpc::FfiWalkerBoneControlIn& bones) const {
-        inner_->SetBonesTransform(bones.ToCpp());
+    void SetBonesTransformFfi(const rpc::FfiWalkerBoneControlIn& bones, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->SetBonesTransform(bones.ToCpp()); });
     }
 
     WalkerBoneControlOut GetBonesTransform() const { return inner_->GetBonesTransform(); }
@@ -43,9 +46,13 @@ public:
         return rpc::FfiWalkerBoneControlOut::FromCpp(inner_->GetBonesTransform());
     }
 
-    void BlendPose(float blend) const { inner_->BlendPose(blend); }
+    void BlendPose(float blend, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->BlendPose(blend); });
+    }
 
-    void GetPoseFromAnimation() const { inner_->GetPoseFromAnimation(); }
+    void GetPoseFromAnimation(FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->GetPoseFromAnimation(); });
+    }
 
     std::shared_ptr<FfiActor> to_actor() const {
         SharedPtr<Actor> ptr = carla_static_pointer_cast<Actor>(inner_);

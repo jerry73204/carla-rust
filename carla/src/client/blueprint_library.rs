@@ -21,11 +21,12 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::Client;
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
-/// let library = world.blueprint_library();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
+/// let library = world.blueprint_library()?;
 ///
 /// // Find a specific vehicle by ID
 /// if let Some(tesla_bp) = library.find("vehicle.tesla.model3") {
@@ -46,6 +47,8 @@ use static_assertions::assert_impl_all;
 /// if let Some(first_bp) = library.get(0) {
 ///     println!("First blueprint: {}", first_bp.id());
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -76,11 +79,12 @@ impl BlueprintLibrary {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use carla::client::Client;
     ///
-    /// let client = Client::default();
-    /// let world = client.world();
-    /// let library = world.blueprint_library();
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let library = world.blueprint_library()?;
     ///
     /// // Get all vehicles
     /// let vehicles = library.filter("vehicle.*");
@@ -90,6 +94,8 @@ impl BlueprintLibrary {
     ///
     /// // Get all Tesla vehicles
     /// let teslas = library.filter("vehicle.tesla.*");
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn filter(&self, pattern: &str) -> Self {
         let_cxx_string!(pattern = pattern);

@@ -13,14 +13,16 @@
 
 use carla::client::Client;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
 
     // Connect to CARLA simulator (default: localhost:2000)
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
 
     // Get and display server version
-    let version = client.server_version();
+    let version = client.server_version()?;
     println!("Successfully connected!");
     println!("CARLA Server version: {}", version);
+
+    Ok(())
 }

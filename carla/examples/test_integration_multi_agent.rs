@@ -25,12 +25,12 @@ const NUM_VEHICLES: usize = 20; // Reduced from 50 for faster testing
 const NUM_WALKERS: usize = 30; // Reduced from 100 for faster testing
 const SIMULATION_TIME_SECS: u64 = 15;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Multi-Agent Simulation Integration Test ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server");
 
     // Test 1: Spawn multiple vehicles
@@ -74,7 +74,7 @@ fn main() {
 }
 
 fn spawn_vehicles(world: &mut carla::client::World, count: usize) -> Vec<Vehicle> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().expect("bp lib");
     let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.*").iter().collect();
 
     if vehicle_blueprints.is_empty() {
@@ -82,7 +82,7 @@ fn spawn_vehicles(world: &mut carla::client::World, count: usize) -> Vec<Vehicle
         return vec![];
     }
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map().expect("map").recommended_spawn_points();
     let mut vehicles = Vec::new();
 
     for i in 0..count.min(spawn_points.len()) {
@@ -108,7 +108,7 @@ fn spawn_vehicles(world: &mut carla::client::World, count: usize) -> Vec<Vehicle
 }
 
 fn spawn_walkers(world: &mut carla::client::World, count: usize) -> Vec<Walker> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().expect("bp lib");
     let walker_blueprints: Vec<_> = blueprint_library
         .filter("walker.pedestrian.*")
         .iter()
@@ -123,7 +123,9 @@ fn spawn_walkers(world: &mut carla::client::World, count: usize) -> Vec<Walker> 
 
     for i in 0..count {
         // Get a random navigation location for walker spawning
-        let location = world.random_location_from_navigation();
+        let location = world
+            .random_location_from_navigation()
+            .expect("nav location");
 
         // Create transform slightly above ground
         let transform = Transform {
@@ -153,7 +155,7 @@ fn spawn_walkers(world: &mut carla::client::World, count: usize) -> Vec<Walker> 
 
 fn enable_autopilot_for_vehicles(vehicles: &[Vehicle]) {
     for vehicle in vehicles {
-        vehicle.set_autopilot(true);
+        let _ = vehicle.set_autopilot(true);
     }
 }
 
@@ -173,7 +175,7 @@ fn monitor_simulation(world: &mut carla::client::World, vehicles: &[Vehicle], wa
 
     while start.elapsed() < Duration::from_secs(SIMULATION_TIME_SECS) {
         // Tick the world
-        world.tick();
+        let _ = world.tick();
 
         // Report status every 3 seconds
         if last_report.elapsed() >= Duration::from_secs(3) {
@@ -206,12 +208,12 @@ fn monitor_simulation(world: &mut carla::client::World, vehicles: &[Vehicle], wa
 }
 
 fn visualize_agents(world: &mut carla::client::World, vehicles: &[Vehicle], walkers: &[Walker]) {
-    let debug = world.debug();
+    let debug = world.debug().expect("debug");
 
     // Draw markers above vehicles (blue)
     for vehicle in vehicles.iter().take(10) {
         if vehicle.is_alive() {
-            let transform = vehicle.transform();
+            let transform = vehicle.transform().unwrap();
             let marker_location = Location::new(
                 transform.location.x,
                 transform.location.y,
@@ -224,7 +226,7 @@ fn visualize_agents(world: &mut carla::client::World, vehicles: &[Vehicle], walk
     // Draw markers above walkers (green)
     for walker in walkers.iter().take(10) {
         if walker.is_alive() {
-            let transform = walker.transform();
+            let transform = walker.transform().unwrap();
             let marker_location = Location::new(
                 transform.location.x,
                 transform.location.y,
@@ -245,7 +247,7 @@ fn cleanup_agents(vehicles: Vec<Vehicle>, walkers: Vec<Walker>) {
     // Disable autopilot before destroying
     for vehicle in &vehicles {
         if vehicle.is_alive() {
-            vehicle.set_autopilot(false);
+            let _ = vehicle.set_autopilot(false);
         }
     }
 
@@ -253,14 +255,14 @@ fn cleanup_agents(vehicles: Vec<Vehicle>, walkers: Vec<Walker>) {
 
     for vehicle in vehicles {
         if vehicle.is_alive() {
-            vehicle.destroy();
+            let _ = vehicle.destroy();
             destroyed_count += 1;
         }
     }
 
     for walker in walkers {
         if walker.is_alive() {
-            walker.destroy();
+            let _ = walker.destroy();
             destroyed_count += 1;
         }
     }

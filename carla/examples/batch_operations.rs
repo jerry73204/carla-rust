@@ -25,16 +25,16 @@ use carla::{
 };
 use std::time::Instant;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== CARLA Batch Operations Example ===\n");
 
     println!("Connecting to CARLA simulator...");
-    let mut client = Client::connect("localhost", 2000, None);
-    let world = client.world();
-    println!("✓ Connected! Current map: {}\n", world.map().name());
+    let mut client = Client::connect("localhost", 2000, None)?;
+    let world = client.world()?;
+    println!("✓ Connected! Current map: {}\n", world.map()?.name());
 
-    let blueprint_library = world.blueprint_library();
-    let spawn_points = world.map().recommended_spawn_points();
+    let blueprint_library = world.blueprint_library()?;
+    let spawn_points = world.map()?.recommended_spawn_points();
     println!("Available spawn points: {}", spawn_points.len());
 
     // Find vehicle blueprints
@@ -64,7 +64,7 @@ fn main() {
 
     // Execute batch spawn
     let start = Instant::now();
-    let spawn_responses = client.apply_batch_sync(spawn_commands, false);
+    let spawn_responses = client.apply_batch_sync(spawn_commands, false)?;
     let batch_duration = start.elapsed();
 
     println!(
@@ -102,7 +102,7 @@ fn main() {
 
     if vehicle_ids.is_empty() {
         println!("No vehicles spawned, exiting.");
-        return;
+        return Ok(());
     }
 
     // ========================================================================
@@ -147,7 +147,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let control_responses = client.apply_batch_sync(control_commands, false);
+    let control_responses = client.apply_batch_sync(control_commands, false)?;
     let control_duration = start.elapsed();
 
     println!(
@@ -176,7 +176,7 @@ fn main() {
         autopilot_commands.push(Command::set_autopilot(actor_id, true, 8000));
     }
 
-    let autopilot_responses = client.apply_batch_sync(autopilot_commands, false);
+    let autopilot_responses = client.apply_batch_sync(autopilot_commands, false)?;
     let autopilot_success = autopilot_responses
         .iter()
         .filter(|r| r.actor_id().is_some())
@@ -207,7 +207,7 @@ fn main() {
         });
     }
 
-    let teleport_responses = client.apply_batch_sync(teleport_commands, false);
+    let teleport_responses = client.apply_batch_sync(teleport_commands, false)?;
     let teleport_success = teleport_responses
         .iter()
         .filter(|r| r.actor_id().is_some())
@@ -249,7 +249,7 @@ fn main() {
         destroy_commands.push(Command::destroy_actor(actor_id));
     }
 
-    let destroy_responses = client.apply_batch_sync(destroy_commands, false);
+    let destroy_responses = client.apply_batch_sync(destroy_commands, false)?;
     let destroy_success = destroy_responses
         .iter()
         .filter(|r| r.actor_id().is_some())
@@ -258,4 +258,6 @@ fn main() {
     println!("Successfully destroyed {} vehicles", destroy_success);
 
     println!("\n✓ Batch operations example completed!");
+
+    Ok(())
 }

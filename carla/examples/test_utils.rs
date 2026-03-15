@@ -19,12 +19,12 @@ use carla::{
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Utility Functions Tests ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     // Setup minimal scenario
@@ -170,12 +170,17 @@ fn main() {
 fn setup_scenario(world: &mut carla::client::World) -> Vehicle {
     println!("Setting up test scenario...");
 
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world
+        .blueprint_library()
+        .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world
+        .map()
+        .expect("Failed to get map")
+        .recommended_spawn_points();
 
     // Try multiple spawn points in case some are occupied
     for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
@@ -326,7 +331,7 @@ fn test_transform_chain() -> TestResult {
 
 fn test_transform_parent_child(vehicle: &Vehicle) -> TestResult {
     // Test that vehicle has a transform (parent coordinate system)
-    let transform = vehicle.transform();
+    let transform = vehicle.transform()?;
 
     // Verify transform components exist
     assert!(transform.location.x.is_finite());
@@ -409,8 +414,8 @@ fn test_episode_id_string_conversion(world: &carla::client::World) -> TestResult
 
 fn test_get_client_version() -> TestResult {
     // Get client version via Client::connect
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let version = client.client_version();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let version = client.client_version()?;
 
     println!("  Client version: {}", version);
     assert!(!version.is_empty(), "Client version should not be empty");
@@ -419,8 +424,8 @@ fn test_get_client_version() -> TestResult {
 
 fn test_get_server_version(_world: &carla::client::World) -> TestResult {
     // Get server version via client
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let version = client.server_version();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let version = client.server_version()?;
 
     println!("  Server version: {}", version);
     assert!(!version.is_empty(), "Server version should not be empty");
@@ -429,9 +434,9 @@ fn test_get_server_version(_world: &carla::client::World) -> TestResult {
 
 fn test_version_comparison() -> TestResult {
     // Test version comparison using actual client/server versions
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let client_ver = client.client_version();
-    let server_ver = client.server_version();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let client_ver = client.client_version()?;
+    let server_ver = client.server_version()?;
 
     println!(
         "  Comparing: client='{}' vs server='{}'",
@@ -501,10 +506,10 @@ fn test_timeout_config(_client: &Client) -> TestResult {
     // Test timeout configuration access and modification
     use std::time::Duration;
 
-    let mut client = Client::connect("127.0.0.1", 2000, None);
+    let mut client = Client::connect("127.0.0.1", 2000, None)?;
 
     // Get current timeout
-    let original_timeout = client.timeout();
+    let original_timeout = client.timeout()?;
     println!("  Original timeout: {:?}", original_timeout);
     assert!(
         original_timeout.as_millis() > 0,
@@ -513,16 +518,16 @@ fn test_timeout_config(_client: &Client) -> TestResult {
 
     // Set new timeout
     let new_timeout = Duration::from_secs(10);
-    client.set_timeout(new_timeout);
+    client.set_timeout(new_timeout)?;
 
     // Verify timeout was set
-    let current_timeout = client.timeout();
+    let current_timeout = client.timeout()?;
     println!("  New timeout: {:?}", current_timeout);
     assert_eq!(current_timeout, new_timeout, "Timeout should be updated");
 
     // Restore original timeout
-    client.set_timeout(original_timeout);
-    let restored = client.timeout();
+    client.set_timeout(original_timeout)?;
+    let restored = client.timeout()?;
     assert_eq!(restored, original_timeout, "Timeout should be restored");
 
     Ok(())

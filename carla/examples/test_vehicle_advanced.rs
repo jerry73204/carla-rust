@@ -21,15 +21,15 @@ use std::{thread, time::Duration};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Advanced Vehicle Features Tests ===\n");
 
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     // Setup test scenario
-    let vehicle = setup_test_scenario(&mut world);
+    let vehicle = setup_test_scenario(&mut world).expect("setup failed");
 
     let mut passed = 0;
     let mut failed = 0;
@@ -124,15 +124,17 @@ fn main() {
     std::process::exit(if failed > 0 { 1 } else { 0 });
 }
 
-fn setup_test_scenario(world: &mut carla::client::World) -> Vehicle {
+fn setup_test_scenario(
+    world: &mut carla::client::World,
+) -> Result<Vehicle, Box<dyn std::error::Error>> {
     println!("Setting up test scenario...");
 
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -141,7 +143,7 @@ fn setup_test_scenario(world: &mut carla::client::World) -> Vehicle {
 
     let vehicle = Vehicle::try_from(vehicle_actor).expect("Failed to cast to Vehicle");
     println!("Test scenario ready\n");
-    vehicle
+    Ok(vehicle)
 }
 
 fn run_test<F>(name: &str, test_fn: F, passed: &mut i32, failed: &mut i32)
@@ -165,23 +167,23 @@ where
 
 fn test_vehicle_door_open_close(vehicle: &Vehicle) -> TestResult {
     // Test opening individual doors
-    vehicle.open_door(VehicleDoor::FL);
+    vehicle.open_door(VehicleDoor::FL)?;
     thread::sleep(Duration::from_millis(100));
 
-    vehicle.open_door(VehicleDoor::FR);
+    vehicle.open_door(VehicleDoor::FR)?;
     thread::sleep(Duration::from_millis(100));
 
-    vehicle.open_door(VehicleDoor::RL);
+    vehicle.open_door(VehicleDoor::RL)?;
     thread::sleep(Duration::from_millis(100));
 
-    vehicle.open_door(VehicleDoor::RR);
+    vehicle.open_door(VehicleDoor::RR)?;
     thread::sleep(Duration::from_millis(100));
 
     // Test closing doors
-    vehicle.close_door(VehicleDoor::FL);
-    vehicle.close_door(VehicleDoor::FR);
-    vehicle.close_door(VehicleDoor::RL);
-    vehicle.close_door(VehicleDoor::RR);
+    vehicle.close_door(VehicleDoor::FL)?;
+    vehicle.close_door(VehicleDoor::FR)?;
+    vehicle.close_door(VehicleDoor::RL)?;
+    vehicle.close_door(VehicleDoor::RR)?;
 
     Ok(())
 }
@@ -190,20 +192,20 @@ fn test_vehicle_door_states(vehicle: &Vehicle) -> TestResult {
     // Test opening and closing in different patterns
 
     // Open front doors only
-    vehicle.open_door(VehicleDoor::FL);
-    vehicle.open_door(VehicleDoor::FR);
+    vehicle.open_door(VehicleDoor::FL)?;
+    vehicle.open_door(VehicleDoor::FR)?;
     thread::sleep(Duration::from_millis(200));
 
     // Close front, open rear
-    vehicle.close_door(VehicleDoor::FL);
-    vehicle.close_door(VehicleDoor::FR);
-    vehicle.open_door(VehicleDoor::RL);
-    vehicle.open_door(VehicleDoor::RR);
+    vehicle.close_door(VehicleDoor::FL)?;
+    vehicle.close_door(VehicleDoor::FR)?;
+    vehicle.open_door(VehicleDoor::RL)?;
+    vehicle.open_door(VehicleDoor::RR)?;
     thread::sleep(Duration::from_millis(200));
 
     // Close all
-    vehicle.close_door(VehicleDoor::RL);
-    vehicle.close_door(VehicleDoor::RR);
+    vehicle.close_door(VehicleDoor::RL)?;
+    vehicle.close_door(VehicleDoor::RR)?;
 
     Ok(())
 }
@@ -215,14 +217,14 @@ fn test_vehicle_wheel_count(vehicle: &Vehicle) -> TestResult {
     // API provides FL_Wheel and FR_Wheel
 
     // Set steering angles for front wheels
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 15.0);
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 15.0);
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 15.0)?;
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 15.0)?;
 
     thread::sleep(Duration::from_millis(100));
 
     // Reset to center
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 0.0);
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 0.0);
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 0.0)?;
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 0.0)?;
 
     Ok(())
 }
@@ -231,10 +233,10 @@ fn test_vehicle_wheel_states(vehicle: &Vehicle) -> TestResult {
     // Test wheel steering angles
     let test_angle = 20.0;
 
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, test_angle);
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, test_angle)?;
     thread::sleep(Duration::from_millis(100));
 
-    let angle_fl = vehicle.wheel_steer_angle(VehicleWheelLocation::FL_Wheel);
+    let angle_fl = vehicle.wheel_steer_angle(VehicleWheelLocation::FL_Wheel)?;
 
     // The angle might not be exactly what we set due to physics
     // Just verify we can query it
@@ -244,12 +246,12 @@ fn test_vehicle_wheel_states(vehicle: &Vehicle) -> TestResult {
     );
 
     // Test front right wheel
-    let angle_fr = vehicle.wheel_steer_angle(VehicleWheelLocation::FR_Wheel);
+    let angle_fr = vehicle.wheel_steer_angle(VehicleWheelLocation::FR_Wheel)?;
     assert!(angle_fr.is_finite());
 
     // Reset steering
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 0.0);
-    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 0.0);
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FL_Wheel, 0.0)?;
+    vehicle.set_wheel_steer_direction(VehicleWheelLocation::FR_Wheel, 0.0)?;
 
     Ok(())
 }
@@ -348,17 +350,17 @@ fn test_light_state_flags() -> TestResult {
 fn test_apply_light_state(vehicle: &Vehicle) -> TestResult {
     // Test setting position and low beam lights
     let lights = VehicleLightState::POSITION | VehicleLightState::LOW_BEAM;
-    vehicle.set_light_state(&lights);
+    vehicle.set_light_state(&lights)?;
     thread::sleep(Duration::from_millis(200));
 
     // Turn on high beams
     let lights_high =
         VehicleLightState::POSITION | VehicleLightState::LOW_BEAM | VehicleLightState::HIGH_BEAM;
-    vehicle.set_light_state(&lights_high);
+    vehicle.set_light_state(&lights_high)?;
     thread::sleep(Duration::from_millis(200));
 
     // Turn off all lights
-    vehicle.set_light_state(&VehicleLightState::NONE);
+    vehicle.set_light_state(&VehicleLightState::NONE)?;
 
     Ok(())
 }
@@ -366,7 +368,7 @@ fn test_apply_light_state(vehicle: &Vehicle) -> TestResult {
 fn test_vehicle_light_query(vehicle: &Vehicle) -> TestResult {
     // Set some lights
     let test_lights = VehicleLightState::POSITION | VehicleLightState::LOW_BEAM;
-    vehicle.set_light_state(&test_lights);
+    vehicle.set_light_state(&test_lights)?;
     thread::sleep(Duration::from_millis(200));
 
     // Query the current state
@@ -385,7 +387,7 @@ fn test_vehicle_light_query(vehicle: &Vehicle) -> TestResult {
     );
 
     // Turn off lights
-    vehicle.set_light_state(&VehicleLightState::NONE);
+    vehicle.set_light_state(&VehicleLightState::NONE)?;
     thread::sleep(Duration::from_millis(100));
 
     // Query again
@@ -402,32 +404,32 @@ fn test_multiple_light_states(vehicle: &Vehicle) -> TestResult {
 
     // Test 1: Turn signals
     let left_signal = VehicleLightState::POSITION | VehicleLightState::LEFT_BLINKER;
-    vehicle.set_light_state(&left_signal);
+    vehicle.set_light_state(&left_signal)?;
     thread::sleep(Duration::from_millis(200));
 
     let right_signal = VehicleLightState::POSITION | VehicleLightState::RIGHT_BLINKER;
-    vehicle.set_light_state(&right_signal);
+    vehicle.set_light_state(&right_signal)?;
     thread::sleep(Duration::from_millis(200));
 
     // Test 2: Brake lights
     let braking =
         VehicleLightState::POSITION | VehicleLightState::LOW_BEAM | VehicleLightState::BRAKE;
-    vehicle.set_light_state(&braking);
+    vehicle.set_light_state(&braking)?;
     thread::sleep(Duration::from_millis(200));
 
     // Test 3: Reverse lights
     let reversing =
         VehicleLightState::POSITION | VehicleLightState::REVERSE | VehicleLightState::BRAKE;
-    vehicle.set_light_state(&reversing);
+    vehicle.set_light_state(&reversing)?;
     thread::sleep(Duration::from_millis(200));
 
     // Test 4: Fog lights
     let foggy = VehicleLightState::POSITION | VehicleLightState::LOW_BEAM | VehicleLightState::FOG;
-    vehicle.set_light_state(&foggy);
+    vehicle.set_light_state(&foggy)?;
     thread::sleep(Duration::from_millis(200));
 
     // Reset
-    vehicle.set_light_state(&VehicleLightState::NONE);
+    vehicle.set_light_state(&VehicleLightState::NONE)?;
 
     Ok(())
 }

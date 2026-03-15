@@ -13,18 +13,18 @@
 
 use carla::client::{ActorBase, Client};
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to CARLA simulator...");
-    let client = Client::connect("localhost", 2000, None);
+    let client = Client::connect("localhost", 2000, None)?;
     println!("Connected!");
 
     // Get the current world
     println!("\nGetting current world...");
-    let mut world = client.world();
+    let mut world = client.world()?;
     println!("World ready!");
 
     // Get blueprint library
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
 
     // Find Tesla Model 3 blueprint
     let vehicle_bp = blueprint_library
@@ -34,7 +34,7 @@ fn main() {
     println!("Found blueprint: {}", vehicle_bp.id());
 
     // Get spawn points
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     println!("Available spawn points: {}", spawn_points.len());
 
     // Use first spawn point
@@ -53,7 +53,7 @@ fn main() {
     println!("  Alive: {}", vehicle.is_alive());
 
     // Get location
-    let location = vehicle.location();
+    let location = vehicle.location()?;
     println!(
         "  Location: x={:.2}, y={:.2}, z={:.2}",
         location.x, location.y, location.z
@@ -61,4 +61,6 @@ fn main() {
 
     println!("\nVehicle will remain in the simulation.");
     println!("Restart CARLA to clean up spawned actors.");
+
+    Ok(())
 }

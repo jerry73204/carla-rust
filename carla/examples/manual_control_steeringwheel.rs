@@ -359,7 +359,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         Ok(Self {
             sensor,
@@ -370,7 +370,7 @@ impl CameraManager {
     }
 
     fn spawn_camera(world: &mut CarlaWorld, vehicle: &Vehicle, view: usize) -> Result<Sensor> {
-        let blueprint_library = world.blueprint_library();
+        let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
             .find("sensor.camera.rgb")
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
@@ -412,7 +412,7 @@ impl CameraManager {
 
     fn switch_view(&mut self, world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<()> {
         // Destroy old camera
-        self.sensor.destroy();
+        self.sensor.destroy()?;
 
         // Cycle through views
         self.current_view = (self.current_view + 1) % 3;
@@ -428,7 +428,7 @@ impl CameraManager {
             {
                 *img = Some(image);
             }
-        });
+        })?;
 
         Ok(())
     }
@@ -495,9 +495,9 @@ impl Hud {
         let mut y = y_offset;
 
         // Get vehicle data
-        let transform = vehicle.transform();
+        let transform = vehicle.transform().expect("API call failed");
         let location = transform.location;
-        let velocity = vehicle.velocity();
+        let velocity = vehicle.velocity().expect("API call failed");
         let speed_ms = velocity.length();
         let speed_kmh = speed_ms * 3.6;
 
@@ -686,18 +686,18 @@ async fn main() -> Result<()> {
     }
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
 
     println!("Connected to CARLA server");
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or_else(|| anyhow::anyhow!("Vehicle blueprint not found"))?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points
         .get(0)
         .ok_or_else(|| anyhow::anyhow!("No spawn points available"))?;
@@ -763,7 +763,7 @@ async fn main() -> Result<()> {
             } else {
                 VehicleLightState::NONE
             };
-            vehicle.set_light_state(&light_state);
+            let _ = vehicle.set_light_state(&light_state);
         }
 
         // Apply vehicle control
@@ -776,11 +776,11 @@ async fn main() -> Result<()> {
             manual_gear_shift: false,
             gear: 0,
         };
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         // Apply force feedback
         if gamepad.has_gamepad() {
-            let velocity = vehicle.velocity();
+            let velocity = vehicle.velocity()?;
             let speed_kmh = velocity.length() * 3.6;
             gamepad.apply_force_feedback(speed_kmh);
         }
@@ -808,8 +808,8 @@ async fn main() -> Result<()> {
     println!("\nCleaning up...");
 
     // Cleanup
-    camera.sensor.destroy();
-    vehicle.destroy();
+    camera.sensor.destroy()?;
+    vehicle.destroy()?;
 
     println!("Done!");
     Ok(())

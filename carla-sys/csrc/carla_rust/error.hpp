@@ -3,7 +3,6 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
-#include <cstring>
 
 namespace carla_rust {
 namespace error {
@@ -72,59 +71,6 @@ inline ErrorKind classify_exception(const std::exception& e) {
 
     // Unknown error
     return ErrorKind::Unknown;
-}
-
-/// Error information structure for passing across FFI boundary.
-///
-/// This struct contains all information needed to reconstruct
-/// a CarlaError in Rust.
-struct ErrorInfo {
-    ErrorKind kind;
-    char message[512];  // Fixed size for C compatibility
-
-    ErrorInfo() : kind(ErrorKind::Success) { message[0] = '\0'; }
-
-    ErrorInfo(ErrorKind k, const char* msg) : kind(k) {
-        std::strncpy(message, msg, sizeof(message) - 1);
-        message[sizeof(message) - 1] = '\0';
-    }
-
-    ErrorInfo(ErrorKind k, const std::string& msg) : kind(k) {
-        std::strncpy(message, msg.c_str(), sizeof(message) - 1);
-        message[sizeof(message) - 1] = '\0';
-    }
-};
-
-/// Helper macro to wrap FFI functions with exception handling.
-///
-/// Usage:
-/// ```cpp
-/// CARLA_TRY {
-///     // Your code that might throw
-///     return some_operation();
-/// } CARLA_CATCH(error_info_out);
-/// return default_value;  // On error
-/// ```
-#define CARLA_TRY try
-
-#define CARLA_CATCH(error_out)                                                             \
-    catch (const std::exception& e) {                                                      \
-        auto kind = carla_rust::error::classify_exception(e);                              \
-        *(error_out) = carla_rust::error::ErrorInfo(kind, e.what());                       \
-    }                                                                                      \
-    catch (...) {                                                                          \
-        *(error_out) = carla_rust::error::ErrorInfo(carla_rust::error::ErrorKind::Unknown, \
-                                                    "Unknown C++ exception");              \
-    }
-
-/// Helper to create success ErrorInfo
-inline ErrorInfo success() {
-    return ErrorInfo();
-}
-
-/// Helper to check if ErrorInfo represents an error
-inline bool is_error(const ErrorInfo& info) {
-    return info.kind != ErrorKind::Success;
 }
 
 }  // namespace error

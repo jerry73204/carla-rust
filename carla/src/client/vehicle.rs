@@ -2,6 +2,7 @@ use super::{Actor, ActorBase, TrafficLight};
 #[cfg(carla_version_0916)]
 use crate::rpc::VehicleTelemetryData;
 use crate::{
+    error::ffi::with_ffi_error,
     geom::BoundingBox,
     rpc::{
         AckermannControllerSettings, TrafficLightState, VehicleAckermannControl, VehicleControl,
@@ -9,7 +10,6 @@ use crate::{
         VehicleWheelLocation,
     },
 };
-use autocxx::prelude::*;
 use carla_sys::{
     carla::traffic_manager::constants::Networking::TM_DEFAULT_PORT,
     carla_rust::client::{FfiActor, FfiVehicle},
@@ -47,25 +47,28 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::Client;
 ///
-/// let client = Client::default();
-/// let mut world = client.world();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
 ///
-/// # let bp_lib = world.blueprint_library();
+/// # let bp_lib = world.blueprint_library()?;
 /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-/// # let spawn_points = world.map().recommended_spawn_points();
-/// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
 /// let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
 ///
 /// // Control the vehicle
 /// let mut control = vehicle.control();
 /// control.throttle = 0.7;
 /// control.steer = -0.3;
-/// vehicle.apply_control(&control);
+/// vehicle.apply_control(&control)?;
 ///
 /// // Enable autopilot
-/// vehicle.set_autopilot(true);
+/// vehicle.set_autopilot(true)?;
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -97,17 +100,20 @@ impl Vehicle {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
-    /// vehicle.set_autopilot(true);
+    /// vehicle.set_autopilot(true)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn set_autopilot(&self, enabled: bool) {
+    pub fn set_autopilot(&self, enabled: bool) -> crate::Result<()> {
         self.set_autopilot_opt(enabled, TM_DEFAULT_PORT)
     }
 
@@ -128,8 +134,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) {
-        self.inner.SetAutopilot(enabled, tm_port);
+    pub fn set_autopilot_opt(&self, enabled: bool, tm_port: u16) -> crate::Result<()> {
+        with_ffi_error("set_autopilot", |e| {
+            self.inner.SetAutopilot(enabled, tm_port, e);
+        })
     }
 
     /// Enables or disables debug telemetry display.
@@ -149,8 +157,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn show_debug_telemetry(&self, enabled: bool) {
-        self.inner.ShowDebugTelemetry(enabled);
+    pub fn show_debug_telemetry(&self, enabled: bool) -> crate::Result<()> {
+        with_ffi_error("show_debug_telemetry", |e| {
+            self.inner.ShowDebugTelemetry(enabled, e);
+        })
     }
 
     /// Applies vehicle control (throttle, steering, braking, etc.).
@@ -174,22 +184,27 @@ impl Vehicle {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// let mut control = vehicle.control();
     /// control.throttle = 1.0; // Full throttle
     /// control.steer = 0.5; // Steer right
     /// control.brake = 0.0; // No braking
-    /// vehicle.apply_control(&control);
+    /// vehicle.apply_control(&control)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn apply_control(&self, control: &VehicleControl) {
-        self.inner.ApplyControl(control);
+    pub fn apply_control(&self, control: &VehicleControl) -> crate::Result<()> {
+        with_ffi_error("apply_control", |e| {
+            self.inner.ApplyControl(control, e);
+        })
     }
 
     /// Returns the current vehicle control state.
@@ -232,9 +247,11 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) {
+    pub fn apply_physics_control(&self, control: &VehiclePhysicsControl) -> crate::Result<()> {
         let control = control.to_cxx();
-        self.inner.ApplyPhysicsControl(&control);
+        with_ffi_error("apply_physics_control", |e| {
+            self.inner.ApplyPhysicsControl(&control, e);
+        })
     }
 
     /// Returns the current physics control parameters.
@@ -254,8 +271,9 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn physics_control(&self) -> VehiclePhysicsControl {
-        VehiclePhysicsControl::from_cxx(&self.inner.GetPhysicsControl().within_unique_ptr())
+    pub fn physics_control(&self) -> crate::Result<VehiclePhysicsControl> {
+        let ptr = with_ffi_error("physics_control", |e| self.inner.GetPhysicsControl(e))?;
+        Ok(VehiclePhysicsControl::from_cxx(&ptr))
     }
 
     /// Applies Ackermann steering control (used for bicycle-like steering models).
@@ -275,8 +293,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) {
-        self.inner.ApplyAckermannControl(control);
+    pub fn apply_ackermann_control(&self, control: &VehicleAckermannControl) -> crate::Result<()> {
+        with_ffi_error("apply_ackermann_control", |e| {
+            self.inner.ApplyAckermannControl(control, e);
+        })
     }
 
     /// Configures Ackermann controller settings.
@@ -296,8 +316,13 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn apply_ackermann_controller_settings(&self, settings: &AckermannControllerSettings) {
-        self.inner.ApplyAckermannControllerSettings(settings)
+    pub fn apply_ackermann_controller_settings(
+        &self,
+        settings: &AckermannControllerSettings,
+    ) -> crate::Result<()> {
+        with_ffi_error("apply_ackermann_controller_settings", |e| {
+            self.inner.ApplyAckermannControllerSettings(settings, e);
+        })
     }
 
     /// Returns the current Ackermann controller settings.
@@ -317,8 +342,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn ackermann_controller_settings(&self) -> AckermannControllerSettings {
-        self.inner.GetAckermannControllerSettings()
+    pub fn ackermann_controller_settings(&self) -> crate::Result<AckermannControllerSettings> {
+        with_ffi_error("ackermann_controller_settings", |e| {
+            self.inner.GetAckermannControllerSettings(e)
+        })
     }
 
     /// Opens a vehicle door.
@@ -338,8 +365,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn open_door(&self, door: VehicleDoor) {
-        self.inner.OpenDoor(door);
+    pub fn open_door(&self, door: VehicleDoor) -> crate::Result<()> {
+        with_ffi_error("open_door", |e| {
+            self.inner.OpenDoor(door, e);
+        })
     }
 
     /// Closes a vehicle door.
@@ -359,8 +388,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn close_door(&self, door: VehicleDoor) {
-        self.inner.CloseDoor(door);
+    pub fn close_door(&self, door: VehicleDoor) -> crate::Result<()> {
+        with_ffi_error("close_door", |e| {
+            self.inner.CloseDoor(door, e);
+        })
     }
 
     /// Sets the vehicle light state (headlights, brake lights, turn signals, etc.).
@@ -384,22 +415,27 @@ impl Vehicle {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::rpc::VehicleLightState;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// // Turn on position and low beam lights
     /// let lights = VehicleLightState::POSITION | VehicleLightState::LOW_BEAM;
-    /// vehicle.set_light_state(&lights);
+    /// vehicle.set_light_state(&lights)?;
+    /// # Ok(())
+    /// # }
     /// ```
-    pub fn set_light_state(&self, light_state: &VehicleLightState) {
+    pub fn set_light_state(&self, light_state: &VehicleLightState) -> crate::Result<()> {
         let ffi_state = light_state.to_ffi();
-        self.inner.SetLightState(&ffi_state);
+        with_ffi_error("set_light_state", |e| {
+            self.inner.SetLightState(&ffi_state, e);
+        })
     }
 
     /// Sets the steering angle for a specific wheel (in degrees).
@@ -419,8 +455,15 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_wheel_steer_direction(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
-        self.inner.SetWheelSteerDirection(wheel_location, degrees);
+    pub fn set_wheel_steer_direction(
+        &self,
+        wheel_location: VehicleWheelLocation,
+        degrees: f32,
+    ) -> crate::Result<()> {
+        with_ffi_error("set_wheel_steer_direction", |e| {
+            self.inner
+                .SetWheelSteerDirection(wheel_location, degrees, e);
+        })
     }
 
     /// Returns the steering angle for a specific wheel (in degrees).
@@ -440,8 +483,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
-        self.inner.GetWheelSteerAngle(wheel_location)
+    pub fn wheel_steer_angle(&self, wheel_location: VehicleWheelLocation) -> crate::Result<f32> {
+        with_ffi_error("wheel_steer_angle", |e| {
+            self.inner.GetWheelSteerAngle(wheel_location, e)
+        })
     }
 
     /// Returns the current light state.
@@ -465,19 +510,22 @@ impl Vehicle {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
     /// # use carla::rpc::VehicleLightState;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// let lights = vehicle.light_state();
     /// if lights.contains(VehicleLightState::LOW_BEAM) {
     ///     println!("Low beams are on");
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn light_state(&self) -> VehicleLightState {
         let ffi_state = self.inner.GetLightState();
@@ -530,9 +578,9 @@ impl Vehicle {
     ///
     /// Only returns a value when the vehicle is at a traffic light
     /// (i.e., when [`is_at_traffic_light()`](Self::is_at_traffic_light) returns `true`).
-    pub fn traffic_light(&self) -> Option<TrafficLight> {
-        let ptr = self.inner.GetTrafficLight();
-        TrafficLight::from_cxx(ptr)
+    pub fn traffic_light(&self) -> crate::Result<Option<TrafficLight>> {
+        let ptr = with_ffi_error("traffic_light", |e| self.inner.GetTrafficLight(e))?;
+        Ok(TrafficLight::from_cxx(ptr))
     }
 
     /// Returns the vehicle's current failure state.
@@ -629,15 +677,16 @@ impl Vehicle {
     /// # Examples
     ///
     /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use carla::client::Client;
-    /// # let client = Client::default();
-    /// # let mut world = client.world();
-    /// # let bp_lib = world.blueprint_library();
+    /// # let client = Client::connect("localhost", 2000, None)?;
+    /// # let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
     /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map().recommended_spawn_points();
-    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap()).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
-    /// let telemetry = vehicle.telemetry_data();
+    /// let telemetry = vehicle.telemetry_data()?;
     /// println!("Speed: {} m/s", telemetry.speed);
     /// println!("Engine RPM: {}", telemetry.engine_rpm);
     /// println!("Gear: {}", telemetry.gear);
@@ -647,10 +696,13 @@ impl Vehicle {
     ///         i, wheel.tire_friction, wheel.lat_slip
     ///     );
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     #[cfg(carla_version_0916)]
-    pub fn telemetry_data(&self) -> VehicleTelemetryData {
-        (&*self.inner.GetTelemetryData().within_unique_ptr()).into()
+    pub fn telemetry_data(&self) -> crate::Result<VehicleTelemetryData> {
+        let ptr = with_ffi_error("telemetry_data", |e| self.inner.GetTelemetryData(e))?;
+        Ok((&*ptr).into())
     }
 
     /// Sets the pitch angle for a specific wheel (in degrees).
@@ -673,8 +725,14 @@ impl Vehicle {
         doc = " in the Python API."
     )]
     #[cfg(carla_version_0916)]
-    pub fn set_wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation, degrees: f32) {
-        self.inner.SetWheelPitchAngle(wheel_location, degrees);
+    pub fn set_wheel_pitch_angle(
+        &self,
+        wheel_location: VehicleWheelLocation,
+        degrees: f32,
+    ) -> crate::Result<()> {
+        with_ffi_error("set_wheel_pitch_angle", |e| {
+            self.inner.SetWheelPitchAngle(wheel_location, degrees, e);
+        })
     }
 
     /// Returns the pitch angle for a specific wheel (in degrees).
@@ -697,8 +755,10 @@ impl Vehicle {
         doc = " in the Python API."
     )]
     #[cfg(carla_version_0916)]
-    pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> f32 {
-        self.inner.GetWheelPitchAngle(wheel_location)
+    pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> crate::Result<f32> {
+        with_ffi_error("wheel_pitch_angle", |e| {
+            self.inner.GetWheelPitchAngle(wheel_location, e)
+        })
     }
 
     // TODO: Implement vehicle_bone_world_transforms() when autocxx can handle std::vector<Transform>
@@ -755,8 +815,10 @@ impl Vehicle {
         doc = " in the Python API."
     )]
     #[cfg(carla_version_0916)]
-    pub fn restore_phys_x_physics(&self) {
-        self.inner.RestorePhysXPhysics();
+    pub fn restore_phys_x_physics(&self) -> crate::Result<()> {
+        with_ffi_error("restore_phys_x_physics", |e| {
+            self.inner.RestorePhysXPhysics(e);
+        })
     }
 
     /// Enables CarSim physics simulation with the given configuration file.
@@ -776,8 +838,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn enable_car_sim(&self, simfile_path: &str) {
-        self.inner.EnableCarSim(simfile_path)
+    pub fn enable_car_sim(&self, simfile_path: &str) -> crate::Result<()> {
+        with_ffi_error("enable_car_sim", |e| {
+            self.inner.EnableCarSim(simfile_path, e);
+        })
     }
 
     /// Enables or disables using the CarSim road for physics.
@@ -797,8 +861,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn use_car_sim_road(&self, enabled: bool) {
-        self.inner.UseCarSimRoad(enabled);
+    pub fn use_car_sim_road(&self, enabled: bool) -> crate::Result<()> {
+        with_ffi_error("use_car_sim_road", |e| {
+            self.inner.UseCarSimRoad(enabled, e);
+        })
     }
 
     /// Enables Chrono physics engine for high-fidelity vehicle simulation.
@@ -828,15 +894,18 @@ impl Vehicle {
         powertrain_json: &str,
         tire_json: &str,
         base_json_path: &str,
-    ) {
-        self.inner.EnableChronoPhysics(
-            max_substeps,
-            max_substep_delta_time,
-            vehicle_json,
-            powertrain_json,
-            tire_json,
-            base_json_path,
-        );
+    ) -> crate::Result<()> {
+        with_ffi_error("enable_chrono_physics", |e| {
+            self.inner.EnableChronoPhysics(
+                max_substeps,
+                max_substep_delta_time,
+                vehicle_json,
+                powertrain_json,
+                tire_json,
+                base_json_path,
+                e,
+            );
+        })
     }
 
     /// Converts this vehicle into a generic [`Actor`].

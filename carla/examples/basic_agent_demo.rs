@@ -17,13 +17,13 @@ fn main() -> Result<()> {
     println!("BasicAgent Demo - Connecting to CARLA...");
 
     // Connect to CARLA
-    let client = Client::connect("localhost", 2000, 0);
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, 0)?;
+    let mut world = client.world()?;
 
     println!("Connected! Getting spawn points...");
 
     // Get spawn points
-    let map = world.map();
+    let map = world.map()?;
     let spawn_points = map.recommended_spawn_points();
 
     if spawn_points.len() < 2 {
@@ -32,7 +32,7 @@ fn main() -> Result<()> {
 
     // Spawn a vehicle
     println!("Spawning vehicle...");
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .filter("vehicle.*")
         .iter()
@@ -70,16 +70,16 @@ fn main() -> Result<()> {
         step_count += 1;
 
         // Tick the world
-        world.tick();
+        world.tick()?;
 
         // Get control from agent
         let control = agent.run_step_debug(step_count % 100 == 0)?;
 
         // Apply control to vehicle
-        vehicle.apply_control(&control);
+        vehicle.apply_control(&control)?;
 
         if step_count % 100 == 0 {
-            let transform = vehicle.transform();
+            let transform = vehicle.transform()?;
             let location = transform.location;
             println!(
                 "Step {}: Location ({:.1}, {:.1}, {:.1}), throttle={:.2}, brake={:.2}, steer={:.2}",
@@ -105,7 +105,7 @@ fn main() -> Result<()> {
 
     // Cleanup
     println!("Destroying vehicle...");
-    vehicle.destroy();
+    vehicle.destroy()?;
 
     println!("Done!");
     Ok(())

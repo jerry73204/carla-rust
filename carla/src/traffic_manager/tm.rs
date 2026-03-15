@@ -6,8 +6,10 @@
 // - as_ref() on a non-null SharedPtr is guaranteed to succeed
 
 use super::{Action, ActionBuffer, PrivateAction};
-use crate::{client::ActorBase, geom::Location, rpc::ActorId, utils::CxxVectorExt};
-use autocxx::WithinUniquePtr;
+use crate::{
+    client::ActorBase, error::ffi::with_ffi_error, geom::Location, rpc::ActorId,
+    utils::CxxVectorExt,
+};
 use carla_sys::carla_rust::{client::FfiActor, traffic_manager::FfiTrafficManager};
 use cxx::{CxxVector, SharedPtr, UniquePtr};
 use derivative::Derivative;
@@ -104,8 +106,8 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_osm_mode(&mut self, yes: bool) {
-        self.inner.pin_mut().SetOSMMode(yes);
+    pub fn set_osm_mode(&mut self, yes: bool) -> crate::Result<()> {
+        with_ffi_error("set_osm_mode", |e| self.inner.pin_mut().SetOSMMode(yes, e))
     }
 
     /// Sets a custom path for a vehicle to follow.
@@ -125,7 +127,12 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_custom_path<A, P>(&mut self, actor: &A, path: &[P], empty_buffer: bool)
+    pub fn set_custom_path<A, P>(
+        &mut self,
+        actor: &A,
+        path: &[P],
+        empty_buffer: bool,
+    ) -> crate::Result<()>
     where
         A: ActorBase,
         P: AsRef<Location>,
@@ -137,23 +144,32 @@ impl TrafficManager {
         });
 
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetCustomPath(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            &path,
-            empty_buffer,
-        );
+        with_ffi_error("set_custom_path", |e| {
+            self.inner.pin_mut().SetCustomPath(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                &path,
+                empty_buffer,
+                e,
+            )
+        })
     }
 
     /// Removes an uploaded path for a vehicle.
-    pub fn remove_upload_path(&mut self, actor_id: ActorId, remove_path: bool) {
+    pub fn remove_upload_path(
+        &mut self,
+        actor_id: ActorId,
+        remove_path: bool,
+    ) -> crate::Result<()> {
         let actor_id = autocxx::c_uint(actor_id);
-        self.inner
-            .pin_mut()
-            .RemoveUploadPath(&actor_id, remove_path);
+        with_ffi_error("remove_upload_path", |e| {
+            self.inner
+                .pin_mut()
+                .RemoveUploadPath(&actor_id, remove_path, e)
+        })
     }
 
     /// Updates an uploaded path for a vehicle.
-    pub fn update_upload_path<P>(&mut self, actor_id: ActorId, path: &[P])
+    pub fn update_upload_path<P>(&mut self, actor_id: ActorId, path: &[P]) -> crate::Result<()>
     where
         P: AsRef<Location>,
     {
@@ -164,7 +180,9 @@ impl TrafficManager {
         });
 
         let actor_id = autocxx::c_uint(actor_id);
-        self.inner.pin_mut().UpdateUploadPath(&actor_id, &path);
+        with_ffi_error("update_upload_path", |e| {
+            self.inner.pin_mut().UpdateUploadPath(&actor_id, &path, e)
+        })
     }
 
     /// Sets an imported route for a vehicle to follow.
@@ -184,39 +202,55 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_import_route<A: ActorBase>(&mut self, actor: &A, route: &[u8], empty_buffer: bool) {
+    pub fn set_import_route<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        route: &[u8],
+        empty_buffer: bool,
+    ) -> crate::Result<()> {
         let route = route.iter().fold(CxxVector::new_typed(), |mut vec, &val| {
             vec.pin_mut().push(val);
             vec
         });
 
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetImportedRoute(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            route.as_ref().unwrap(),
-            empty_buffer,
-        );
+        with_ffi_error("set_import_route", |e| {
+            self.inner.pin_mut().SetImportedRoute(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                route.as_ref().unwrap(),
+                empty_buffer,
+                e,
+            )
+        })
     }
 
     /// Removes an imported route for a vehicle.
-    pub fn remove_imported_route(&mut self, actor_id: ActorId, remove_path: bool) {
+    pub fn remove_imported_route(
+        &mut self,
+        actor_id: ActorId,
+        remove_path: bool,
+    ) -> crate::Result<()> {
         let actor_id = autocxx::c_uint(actor_id);
-        self.inner
-            .pin_mut()
-            .RemoveImportedRoute(&actor_id, remove_path);
+        with_ffi_error("remove_imported_route", |e| {
+            self.inner
+                .pin_mut()
+                .RemoveImportedRoute(&actor_id, remove_path, e)
+        })
     }
 
     /// Updates an imported route for a vehicle.
-    pub fn update_imported_route(&mut self, actor_id: ActorId, route: &[u8]) {
+    pub fn update_imported_route(&mut self, actor_id: ActorId, route: &[u8]) -> crate::Result<()> {
         let route = route.iter().fold(CxxVector::new_typed(), |mut vec, &val| {
             vec.pin_mut().push(val);
             vec
         });
 
         let actor_id = autocxx::c_uint(actor_id);
-        self.inner
-            .pin_mut()
-            .UpdateImportedRoute(&actor_id, route.as_ref().unwrap());
+        with_ffi_error("update_imported_route", |e| {
+            self.inner
+                .pin_mut()
+                .UpdateImportedRoute(&actor_id, route.as_ref().unwrap(), e)
+        })
     }
 
     /// Enables or disables respawning of dormant vehicles.
@@ -236,8 +270,10 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_respawn_dormant_vehicles(&mut self, yes: bool) {
-        self.inner.pin_mut().SetRespawnDormantVehicles(yes);
+    pub fn set_respawn_dormant_vehicles(&mut self, yes: bool) -> crate::Result<()> {
+        with_ffi_error("set_respawn_dormant_vehicles", |e| {
+            self.inner.pin_mut().SetRespawnDormantVehicles(yes, e)
+        })
     }
 
     /// Sets the boundaries for respawning dormant vehicles.
@@ -257,15 +293,23 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_boundaries_respawn_dormant_vehicles(&mut self, lower_bound: f32, upper_bound: f32) {
-        self.inner
-            .pin_mut()
-            .SetBoundariesRespawnDormantVehicles(lower_bound, upper_bound);
+    pub fn set_boundaries_respawn_dormant_vehicles(
+        &mut self,
+        lower_bound: f32,
+        upper_bound: f32,
+    ) -> crate::Result<()> {
+        with_ffi_error("set_boundaries_respawn_dormant_vehicles", |e| {
+            self.inner
+                .pin_mut()
+                .SetBoundariesRespawnDormantVehicles(lower_bound, upper_bound, e)
+        })
     }
 
     /// Sets the maximum boundaries for the simulation.
-    pub fn set_max_boundaries(&mut self, lower: f32, upper: f32) {
-        self.inner.pin_mut().SetMaxBoundaries(lower, upper);
+    pub fn set_max_boundaries(&mut self, lower: f32, upper: f32) -> crate::Result<()> {
+        with_ffi_error("set_max_boundaries", |e| {
+            self.inner.pin_mut().SetMaxBoundaries(lower, upper, e)
+        })
     }
 
     /// Enables or disables hybrid physics mode for performance optimization.
@@ -287,8 +331,10 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_hybrid_physics_mode(&mut self, yes: bool) {
-        self.inner.pin_mut().SetHybridPhysicsMode(yes);
+    pub fn set_hybrid_physics_mode(&mut self, yes: bool) -> crate::Result<()> {
+        with_ffi_error("set_hybrid_physics_mode", |e| {
+            self.inner.pin_mut().SetHybridPhysicsMode(yes, e)
+        })
     }
 
     /// Sets the radius for hybrid physics mode.
@@ -310,12 +356,14 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_hybrid_physics_radius(&mut self, radius: f32) {
-        self.inner.pin_mut().SetHybridPhysicsRadius(radius);
+    pub fn set_hybrid_physics_radius(&mut self, radius: f32) -> crate::Result<()> {
+        with_ffi_error("set_hybrid_physics_radius", |e| {
+            self.inner.pin_mut().SetHybridPhysicsRadius(radius, e)
+        })
     }
 
     /// Registers vehicles with the traffic manager for autopilot control.
-    pub fn register_vehicles<A>(&mut self, actors: &[A])
+    pub fn register_vehicles<A>(&mut self, actors: &[A]) -> crate::Result<()>
     where
         A: ActorBase,
     {
@@ -323,13 +371,15 @@ impl TrafficManager {
             actors.iter().map(|actor| actor.cxx_actor()).collect();
         let ptr = actors.as_ptr();
         let len = actors.len();
-        unsafe { self.inner.pin_mut().RegisterVehicles(ptr, len) };
+        with_ffi_error("register_vehicles", |e| unsafe {
+            self.inner.pin_mut().RegisterVehicles(ptr, len, e)
+        })
     }
 
     /// Unregisters vehicles from the traffic manager.
     ///
     /// Removes vehicles from autopilot control.
-    pub fn unregister_vehicles<A>(&mut self, actors: &[A])
+    pub fn unregister_vehicles<A>(&mut self, actors: &[A]) -> crate::Result<()>
     where
         A: ActorBase,
     {
@@ -337,7 +387,9 @@ impl TrafficManager {
             actors.iter().map(|actor| actor.cxx_actor()).collect();
         let ptr = actors.as_ptr();
         let len = actors.len();
-        unsafe { self.inner.pin_mut().UnregisterVehicles(ptr, len) };
+        with_ffi_error("unregister_vehicles", |e| unsafe {
+            self.inner.pin_mut().UnregisterVehicles(ptr, len, e)
+        })
     }
 
     /// Sets the percentage difference from the speed limit for a vehicle.
@@ -360,15 +412,22 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_percentage_speed_difference<A>(&mut self, actor: &A, percentage: f32)
+    pub fn set_percentage_speed_difference<A>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()>
     where
         A: ActorBase,
     {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetPercentageSpeedDifference(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_percentage_speed_difference", |e| {
+            self.inner.pin_mut().SetPercentageSpeedDifference(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the lane offset for a vehicle.
@@ -391,21 +450,29 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_lane_offset<A: ActorBase>(&mut self, actor: &A, offset: f32) {
+    pub fn set_lane_offset<A: ActorBase>(&mut self, actor: &A, offset: f32) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetLaneOffset(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, offset);
+        with_ffi_error("set_lane_offset", |e| {
+            self.inner.pin_mut().SetLaneOffset(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                offset,
+                e,
+            )
+        })
     }
 
     /// Sets a specific desired speed for a vehicle in m/s.
     ///
     /// This overrides the speed limit-based speed calculation.
-    pub fn set_desired_speed<A: ActorBase>(&mut self, actor: &A, value: f32) {
+    pub fn set_desired_speed<A: ActorBase>(&mut self, actor: &A, value: f32) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetDesiredSpeed(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, value);
+        with_ffi_error("set_desired_speed", |e| {
+            self.inner.pin_mut().SetDesiredSpeed(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                value,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage difference from the speed limit for all vehicles.
@@ -427,18 +494,22 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_global_percentage_speed_difference(&mut self, percentage: f32) {
-        self.inner
-            .pin_mut()
-            .SetGlobalPercentageSpeedDifference(percentage);
+    pub fn set_global_percentage_speed_difference(&mut self, percentage: f32) -> crate::Result<()> {
+        with_ffi_error("set_global_percentage_speed_difference", |e| {
+            self.inner
+                .pin_mut()
+                .SetGlobalPercentageSpeedDifference(percentage, e)
+        })
     }
 
     /// Sets the lane offset for all vehicles.
     ///
     /// A positive offset makes vehicles drive to the right of the lane center,
     /// negative makes them drive to the left.
-    pub fn set_global_lane_offset(&mut self, offset: f32) {
-        self.inner.pin_mut().SetGlobalLaneOffset(offset);
+    pub fn set_global_lane_offset(&mut self, offset: f32) -> crate::Result<()> {
+        with_ffi_error("set_global_lane_offset", |e| {
+            self.inner.pin_mut().SetGlobalLaneOffset(offset, e)
+        })
     }
 
     /// Enables or disables automatic vehicle light updates for a vehicle.
@@ -461,11 +532,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_update_vehicle_lights<A: ActorBase>(&mut self, actor: &A, do_update: bool) {
+    pub fn set_update_vehicle_lights<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        do_update: bool,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetUpdateVehicleLights(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, do_update);
+        with_ffi_error("set_update_vehicle_lights", |e| {
+            self.inner.pin_mut().SetUpdateVehicleLights(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                do_update,
+                e,
+            )
+        })
     }
 
     /// Enables or disables collision detection between two vehicles.
@@ -492,14 +571,17 @@ impl TrafficManager {
         reference_actor: &A1,
         other_actor: &A2,
         detect_collision: bool,
-    ) {
+    ) -> crate::Result<()> {
         let cxx_ref = reference_actor.cxx_actor();
         let cxx_other = other_actor.cxx_actor();
-        self.inner.pin_mut().SetCollisionDetection(
-            unsafe { cxx_ref.as_ref().unwrap_unchecked() },
-            unsafe { cxx_other.as_ref().unwrap_unchecked() },
-            detect_collision,
-        );
+        with_ffi_error("set_collision_detection", |e| {
+            self.inner.pin_mut().SetCollisionDetection(
+                unsafe { cxx_ref.as_ref().unwrap_unchecked() },
+                unsafe { cxx_other.as_ref().unwrap_unchecked() },
+                detect_collision,
+                e,
+            )
+        })
     }
 
     /// Forces a lane change for a vehicle.
@@ -521,11 +603,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_force_lane_change<A: ActorBase>(&mut self, actor: &A, direction: bool) {
+    pub fn set_force_lane_change<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        direction: bool,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetForceLaneChange(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, direction);
+        with_ffi_error("set_force_lane_change", |e| {
+            self.inner.pin_mut().SetForceLaneChange(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                direction,
+                e,
+            )
+        })
     }
 
     /// Enables or disables automatic lane changes for a vehicle.
@@ -547,11 +637,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_auto_lane_change<A: ActorBase>(&mut self, actor: &A, enable: bool) {
+    pub fn set_auto_lane_change<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        enable: bool,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetAutoLaneChange(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, enable);
+        with_ffi_error("set_auto_lane_change", |e| {
+            self.inner.pin_mut().SetAutoLaneChange(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                enable,
+                e,
+            )
+        })
     }
 
     /// Sets the minimum distance to maintain from the leading vehicle in meters.
@@ -573,12 +671,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_distance_to_leading_vehicle<A: ActorBase>(&mut self, actor: &A, distance: f32) {
+    pub fn set_distance_to_leading_vehicle<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        distance: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetDistanceToLeadingVehicle(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            distance,
-        );
+        with_ffi_error("set_distance_to_leading_vehicle", |e| {
+            self.inner.pin_mut().SetDistanceToLeadingVehicle(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                distance,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to ignore pedestrians.
@@ -600,12 +705,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_percentage_ignore_walkers<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+    pub fn set_percentage_ignore_walkers<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetPercentageIgnoreWalkers(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_percentage_ignore_walkers", |e| {
+            self.inner.pin_mut().SetPercentageIgnoreWalkers(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to ignore other vehicles.
@@ -627,12 +739,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_percentage_ignore_vehicles<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+    pub fn set_percentage_ignore_vehicles<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetPercentageIgnoreVehicles(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_percentage_ignore_vehicles", |e| {
+            self.inner.pin_mut().SetPercentageIgnoreVehicles(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to run red lights.
@@ -654,12 +773,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_percentage_running_light<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+    pub fn set_percentage_running_light<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetPercentageRunningLight(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_percentage_running_light", |e| {
+            self.inner.pin_mut().SetPercentageRunningLight(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to ignore stop signs.
@@ -681,11 +807,19 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_percentage_running_sign<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+    pub fn set_percentage_running_sign<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetPercentageRunningSign(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, percentage);
+        with_ffi_error("set_percentage_running_sign", |e| {
+            self.inner.pin_mut().SetPercentageRunningSign(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Enables or disables synchronous mode for the traffic manager.
@@ -707,14 +841,16 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_synchronous_mode(&mut self, yes: bool) {
-        self.inner.pin_mut().SetSynchronousMode(yes);
+    pub fn set_synchronous_mode(&mut self, yes: bool) -> crate::Result<()> {
+        with_ffi_error("set_synchronous_mode", |e| {
+            self.inner.pin_mut().SetSynchronousMode(yes, e)
+        })
     }
 
     /// Sets the timeout for synchronous mode.
     ///
     /// This defines how long the traffic manager will wait for a world tick in synchronous mode.
-    pub fn set_synchronous_mode_time_out(&mut self, time: Duration) {
+    pub fn set_synchronous_mode_time_out(&mut self, time: Duration) -> crate::Result<()> {
         // Use as_millis() to avoid floating point overflow and precision loss
         let millis = time.as_millis();
 
@@ -726,9 +862,11 @@ impl TrafficManager {
             millis as f64
         };
 
-        self.inner
-            .pin_mut()
-            .SetSynchronousModeTimeOutInMiliSecond(millis_f64);
+        with_ffi_error("set_synchronous_mode_time_out", |e| {
+            self.inner
+                .pin_mut()
+                .SetSynchronousModeTimeOutInMiliSecond(millis_f64, e)
+        })
     }
 
     /// Executes one tick in synchronous mode.
@@ -750,8 +888,10 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn synchronous_tick(&mut self) -> bool {
-        self.inner.pin_mut().SynchronousTick()
+    pub fn synchronous_tick(&mut self) -> crate::Result<bool> {
+        with_ffi_error("synchronous_tick", |e| {
+            self.inner.pin_mut().SynchronousTick(e)
+        })
     }
 
     /// Sets the minimum distance to maintain from the leading vehicle for all vehicles.
@@ -773,10 +913,12 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_global_distance_to_leading_vehicle(&mut self, distance: f32) {
-        self.inner
-            .pin_mut()
-            .SetGlobalDistanceToLeadingVehicle(distance);
+    pub fn set_global_distance_to_leading_vehicle(&mut self, distance: f32) -> crate::Result<()> {
+        with_ffi_error("set_global_distance_to_leading_vehicle", |e| {
+            self.inner
+                .pin_mut()
+                .SetGlobalDistanceToLeadingVehicle(distance, e)
+        })
     }
 
     /// Sets the percentage tendency for a vehicle to keep to the right lane.
@@ -785,11 +927,19 @@ impl TrafficManager {
     ///
     /// Note: This method is absent in CARLA 0.9.16 but present in all other versions.
     #[cfg(not(carla_version_0916))]
-    pub fn set_keep_right_percentage<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+    pub fn set_keep_right_percentage<A: ActorBase>(
+        &mut self,
+        actor: &A,
+        percentage: f32,
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner
-            .pin_mut()
-            .SetKeepRightPercentage(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, percentage);
+        with_ffi_error("set_keep_right_percentage", |e| {
+            self.inner.pin_mut().SetKeepRightPercentage(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to randomly change to the left lane.
@@ -815,12 +965,15 @@ impl TrafficManager {
         &mut self,
         actor: &A,
         percentage: f32,
-    ) {
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetRandomLeftLaneChangePercentage(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_random_left_lane_change_percentage", |e| {
+            self.inner.pin_mut().SetRandomLeftLaneChangePercentage(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the percentage chance for a vehicle to randomly change to the right lane.
@@ -846,12 +999,15 @@ impl TrafficManager {
         &mut self,
         actor: &A,
         percentage: f32,
-    ) {
+    ) -> crate::Result<()> {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetRandomRightLaneChangePercentage(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        with_ffi_error("set_random_right_lane_change_percentage", |e| {
+            self.inner.pin_mut().SetRandomRightLaneChangePercentage(
+                unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+                percentage,
+                e,
+            )
+        })
     }
 
     /// Sets the random seed for the traffic manager's random number generator.
@@ -873,8 +1029,10 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_random_device_seed(&mut self, seed: u64) {
-        self.inner.pin_mut().SetRandomDeviceSeed(seed);
+    pub fn set_random_device_seed(&mut self, seed: u64) -> crate::Result<()> {
+        with_ffi_error("set_random_device_seed", |e| {
+            self.inner.pin_mut().SetRandomDeviceSeed(seed, e)
+        })
     }
 
     /// Shuts down the traffic manager and releases all resources.
@@ -894,35 +1052,32 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn shutdown(mut self) {
-        self.inner.pin_mut().ShutDown();
+    pub fn shutdown(mut self) -> crate::Result<()> {
+        with_ffi_error("shutdown", |e| self.inner.pin_mut().ShutDown(e))?;
         self.inner = UniquePtr::null();
+        Ok(())
     }
 
     /// Returns the next action planned for a vehicle.
     ///
     /// This provides access to the traffic manager's decision for the vehicle's next move.
-    pub fn next_action(&mut self, actor_id: ActorId) -> Action {
+    pub fn next_action(&mut self, actor_id: ActorId) -> crate::Result<Action> {
         let actor_id = autocxx::c_uint(actor_id);
-        let action = self
-            .inner
-            .pin_mut()
-            .GetNextAction(&actor_id)
-            .within_unique_ptr();
-        unsafe { PrivateAction::from_cxx(action).unwrap_unchecked() }.to_pair()
+        let ptr = with_ffi_error("next_action", |e| {
+            self.inner.pin_mut().GetNextAction(&actor_id, e)
+        })?;
+        Ok(unsafe { PrivateAction::from_cxx(ptr).unwrap_unchecked() }.to_pair())
     }
 
     /// Returns the action buffer for a vehicle.
     ///
     /// The action buffer contains the sequence of planned actions for the vehicle.
-    pub fn action_buffer(&mut self, actor_id: ActorId) -> ActionBuffer {
+    pub fn action_buffer(&mut self, actor_id: ActorId) -> crate::Result<ActionBuffer> {
         let actor_id = autocxx::c_uint(actor_id);
-        let ptr = self
-            .inner
-            .pin_mut()
-            .GetActionBuffer(&actor_id)
-            .within_unique_ptr();
-        unsafe { ActionBuffer::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("action_buffer", |e| {
+            self.inner.pin_mut().GetActionBuffer(&actor_id, e)
+        })?;
+        Ok(unsafe { ActionBuffer::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiTrafficManager>) -> Option<Self> {
@@ -937,7 +1092,7 @@ impl TrafficManager {
 impl Drop for TrafficManager {
     fn drop(&mut self) {
         if !self.inner.is_null() {
-            self.inner.pin_mut().ShutDown();
+            let _ = with_ffi_error("shutdown", |e| self.inner.pin_mut().ShutDown(e));
         }
     }
 }

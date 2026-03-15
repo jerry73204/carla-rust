@@ -60,22 +60,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all("_out")?;
 
     // Connect to CARLA server
-    let client = Client::default();
-    let mut world = client.world();
+    let client = Client::connect("localhost", 2000, None)?;
+    let mut world = client.world()?;
 
     // Enable synchronous mode for perfect sensor sync
-    let original_settings = world.settings();
+    let original_settings = world.settings()?;
     let settings = EpisodeSettings {
         synchronous_mode: true,
         fixed_delta_seconds: Some(0.05), // 20 FPS
         ..Default::default()
     };
-    world.apply_settings(&settings, Duration::from_secs(5));
+    world.apply_settings(&settings, Duration::from_secs(5))?;
 
     println!("Enabled synchronous mode (20 FPS)");
 
     // Get blueprints
-    let bp_lib = world.blueprint_library();
+    let bp_lib = world.blueprint_library()?;
     let vehicle_bp = bp_lib
         .find("vehicle.lincoln.mkz_2017")
         .ok_or("Failed to find vehicle blueprint")?;
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Spawn vehicle
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
     let vehicle = world
         .spawn_actor(&vehicle_bp, spawn_point)
@@ -131,7 +131,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Enable autopilot
     let vehicle_actor =
         carla::client::Vehicle::try_from(vehicle.clone()).expect("Failed to convert to Vehicle");
-    vehicle_actor.set_autopilot(true);
+    vehicle_actor.set_autopilot(true)?;
     println!("Enabled autopilot");
 
     // Attach camera (front center, at windshield height)
@@ -184,7 +184,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Ok(image) = Image::try_from(sensor_data) {
             *camera_data_clone.lock().unwrap() = Some((image, transform, frame));
         }
-    });
+    })?;
 
     // LiDAR listener
     let lidar_data_clone = lidar_data.clone();
@@ -194,14 +194,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Ok(measurement) = LidarMeasurement::try_from(sensor_data) {
             *lidar_data_clone.lock().unwrap() = Some((measurement, transform, frame));
         }
-    });
+    })?;
 
     println!("Capturing and processing {} frames...\n", NUM_FRAMES);
 
     // Process frames
     for frame_idx in 0..NUM_FRAMES {
         // Tick the world
-        world.tick();
+        world.tick()?;
 
         // Small delay to ensure data arrives
         std::thread::sleep(Duration::from_millis(50));
@@ -298,12 +298,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Cleaning up...");
 
     // Cleanup
-    camera.destroy();
-    lidar.destroy();
-    vehicle.destroy();
+    camera.destroy()?;
+    lidar.destroy()?;
+    vehicle.destroy()?;
 
     // Restore original settings
-    world.apply_settings(&original_settings, Duration::from_secs(5));
+    world.apply_settings(&original_settings, Duration::from_secs(5))?;
 
     Ok(())
 }

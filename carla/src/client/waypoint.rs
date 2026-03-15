@@ -1,12 +1,12 @@
 use super::{Junction, LandmarkList, WaypointList};
 use crate::{
+    error::ffi::with_ffi_error,
     geom::Transform,
     road::{
         JuncId, LaneId, LaneType, RoadId, SectionId,
         element::{LaneMarking, LaneMarking_LaneChange},
     },
 };
-use autocxx::WithinUniquePtr;
 use carla_sys::carla_rust::client::FfiWaypoint;
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -26,26 +26,29 @@ use static_assertions::assert_impl_all;
 /// # Examples
 ///
 /// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use carla::client::Client;
 ///
-/// let client = Client::default();
-/// let world = client.world();
-/// let map = world.map();
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let world = client.world()?;
+/// let map = world.map()?;
 ///
 /// // Get a waypoint at a specific location
 /// let location = carla::geom::Location::new(10.0, 20.0, 0.3);
-/// if let Some(waypoint) = map.waypoint_at(&location) {
+/// if let Some(waypoint) = map.waypoint_at(&location)? {
 ///     println!("Lane ID: {}", waypoint.lane_id());
 ///     println!("Lane width: {}m", waypoint.lane_width());
 ///
 ///     // Navigate forward
-///     let next_waypoints = waypoint.next(2.0); // 2 meters ahead
+///     let next_waypoints = waypoint.next(2.0)?; // 2 meters ahead
 ///
 ///     // Change lanes
-///     if let Some(left_lane) = waypoint.left() {
+///     if let Some(left_lane) = waypoint.left()? {
 ///         println!("Can change to left lane");
 ///     }
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -243,9 +246,9 @@ impl Waypoint {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn junction(&self) -> Option<Junction> {
-        let ptr = self.inner.GetJunction();
-        Junction::from_cxx(ptr)
+    pub fn junction(&self) -> crate::Result<Option<Junction>> {
+        let ptr = with_ffi_error("junction", |e| self.inner.GetJunction(e))?;
+        Ok(Junction::from_cxx(ptr))
     }
 
     /// Returns the width of the lane in meters.
@@ -312,9 +315,9 @@ impl Waypoint {
     ///
     /// # Arguments
     /// * `distance` - Distance in meters to the next waypoint(s)
-    pub fn next(&self, distance: f64) -> WaypointList {
-        let ptr = self.inner.GetNext(distance).within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn next(&self, distance: f64) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("next", |e| self.inner.GetNext(distance, e))?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns waypoints at a specified distance in the backward direction.
@@ -339,9 +342,9 @@ impl Waypoint {
     ///
     /// # Arguments
     /// * `distance` - Distance in meters to the previous waypoint(s)
-    pub fn previous(&self, distance: f64) -> WaypointList {
-        let ptr = self.inner.GetPrevious(distance).within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn previous(&self, distance: f64) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("previous", |e| self.inner.GetPrevious(distance, e))?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns waypoints at a specified distance ahead until reaching the end of the lane.
@@ -364,9 +367,11 @@ impl Waypoint {
     ///
     /// # Arguments
     /// * `distance` - Distance between waypoints in meters
-    pub fn next_until_lane_end(&self, distance: f64) -> WaypointList {
-        let ptr = self.inner.GetNextUntilLaneEnd(distance).within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn next_until_lane_end(&self, distance: f64) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("next_until_lane_end", |e| {
+            self.inner.GetNextUntilLaneEnd(distance, e)
+        })?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns waypoints at a specified distance backward until reaching the start of the lane.
@@ -389,12 +394,11 @@ impl Waypoint {
     ///
     /// # Arguments
     /// * `distance` - Distance between waypoints in meters
-    pub fn previous_until_lane_start(&self, distance: f64) -> WaypointList {
-        let ptr = self
-            .inner
-            .GetPreviousUntilLaneStart(distance)
-            .within_unique_ptr();
-        unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn previous_until_lane_start(&self, distance: f64) -> crate::Result<WaypointList> {
+        let ptr = with_ffi_error("previous_until_lane_start", |e| {
+            self.inner.GetPreviousUntilLaneStart(distance, e)
+        })?;
+        Ok(unsafe { WaypointList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the waypoint to the left lane, if available.
@@ -416,9 +420,9 @@ impl Waypoint {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn left(&self) -> Option<Waypoint> {
-        let ptr = self.inner.GetLeft();
-        Self::from_cxx(ptr)
+    pub fn left(&self) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("left", |e| self.inner.GetLeft(e))?;
+        Ok(Self::from_cxx(ptr))
     }
 
     /// Returns the waypoint to the right lane, if available.
@@ -440,9 +444,9 @@ impl Waypoint {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn right(&self) -> Option<Waypoint> {
-        let ptr = self.inner.GetRight();
-        Self::from_cxx(ptr)
+    pub fn right(&self) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("right", |e| self.inner.GetRight(e))?;
+        Ok(Self::from_cxx(ptr))
     }
 
     /// Returns the lane marking on the right side of the lane.
@@ -462,9 +466,9 @@ impl Waypoint {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn right_lane_marking(&self) -> Option<LaneMarking> {
-        let ptr = self.inner.GetRightLaneMarking();
-        LaneMarking::from_cxx(ptr)
+    pub fn right_lane_marking(&self) -> crate::Result<Option<LaneMarking>> {
+        let ptr = with_ffi_error("right_lane_marking", |e| self.inner.GetRightLaneMarking(e))?;
+        Ok(LaneMarking::from_cxx(ptr))
     }
 
     /// Returns the lane marking on the left side of the lane.
@@ -484,9 +488,9 @@ impl Waypoint {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn left_lane_marking(&self) -> Option<LaneMarking> {
-        let ptr = self.inner.GetLeftLaneMarking();
-        LaneMarking::from_cxx(ptr)
+    pub fn left_lane_marking(&self) -> crate::Result<Option<LaneMarking>> {
+        let ptr = with_ffi_error("left_lane_marking", |e| self.inner.GetLeftLaneMarking(e))?;
+        Ok(LaneMarking::from_cxx(ptr))
     }
 
     /// Returns the lane change permission for this waypoint.
@@ -520,12 +524,16 @@ impl Waypoint {
     ///
     /// # Returns
     /// A list of landmarks (traffic signs, speed limits, etc.) within the specified distance.
-    pub fn all_landmarks_in_distance(&self, distance: f64, stop_at_junction: bool) -> LandmarkList {
-        let ptr = self
-            .inner
-            .GetAllLandmarksInDistance(distance, stop_at_junction)
-            .within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    pub fn all_landmarks_in_distance(
+        &self,
+        distance: f64,
+        stop_at_junction: bool,
+    ) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("all_landmarks_in_distance", |e| {
+            self.inner
+                .GetAllLandmarksInDistance(distance, stop_at_junction, e)
+        })?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns landmarks of a specific type within a specified distance.
@@ -542,12 +550,12 @@ impl Waypoint {
         distance: f64,
         filter_type: &str,
         stop_at_junction: bool,
-    ) -> LandmarkList {
-        let ptr = self
-            .inner
-            .GetLandmarksOfTypeInDistance(distance, filter_type, stop_at_junction)
-            .within_unique_ptr();
-        unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() }
+    ) -> crate::Result<LandmarkList> {
+        let ptr = with_ffi_error("landmarks_of_type_in_distance", |e| {
+            self.inner
+                .GetLandmarksOfTypeInDistance(distance, filter_type, stop_at_junction, e)
+        })?;
+        Ok(unsafe { LandmarkList::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Python-compatible alias for `all_landmarks_in_distance()`.
@@ -574,7 +582,11 @@ impl Waypoint {
     /// * `distance` - Maximum search distance in meters
     /// * `stop_at_junction` - If true, stops searching at junctions
     #[inline]
-    pub fn get_landmarks(&self, distance: f64, stop_at_junction: bool) -> LandmarkList {
+    pub fn get_landmarks(
+        &self,
+        distance: f64,
+        stop_at_junction: bool,
+    ) -> crate::Result<LandmarkList> {
         self.all_landmarks_in_distance(distance, stop_at_junction)
     }
 
@@ -608,7 +620,7 @@ impl Waypoint {
         distance: f64,
         type_: &str,
         stop_at_junction: bool,
-    ) -> LandmarkList {
+    ) -> crate::Result<LandmarkList> {
         self.landmarks_of_type_in_distance(distance, type_, stop_at_junction)
     }
 

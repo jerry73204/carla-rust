@@ -22,11 +22,11 @@ use std::{thread, time::Duration};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Batch Operations Tests ===\n");
 
-    let mut client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let mut client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server\n");
 
     let mut passed = 0;
@@ -145,12 +145,12 @@ where
 // ===== Spawn/Destroy Tests =====
 
 fn test_batch_spawn_actors(client: &mut Client, world: &mut carla::client::World) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_count = 5.min(spawn_points.len());
 
     // Create batch spawn commands
@@ -165,7 +165,7 @@ fn test_batch_spawn_actors(client: &mut Client, world: &mut carla::client::World
     }
 
     // Execute batch spawn
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     // Verify all spawned successfully
     assert_eq!(
@@ -184,19 +184,19 @@ fn test_batch_spawn_actors(client: &mut Client, world: &mut carla::client::World
             destroy_commands.push(Command::destroy_actor(actor_id));
         }
     }
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     Ok(())
 }
 
 fn test_batch_destroy_actors(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     // First spawn some actors
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -208,7 +208,7 @@ fn test_batch_destroy_actors(client: &mut Client, world: &mut carla::client::Wor
         ));
     }
 
-    let spawn_responses = client.apply_batch_sync(spawn_commands, false);
+    let spawn_responses = client.apply_batch_sync(spawn_commands, false)?;
 
     // Collect actor IDs
     let actor_ids: Vec<_> = spawn_responses
@@ -225,7 +225,7 @@ fn test_batch_destroy_actors(client: &mut Client, world: &mut carla::client::Wor
     }
 
     // Execute batch destroy
-    let destroy_responses = client.apply_batch_sync(destroy_commands, false);
+    let destroy_responses = client.apply_batch_sync(destroy_commands, false)?;
 
     // Verify responses
     assert_eq!(
@@ -244,12 +244,12 @@ fn test_batch_apply_vehicle_control(
     world: &mut carla::client::World,
 ) -> TestResult {
     // Spawn vehicles
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -261,7 +261,7 @@ fn test_batch_apply_vehicle_control(
         ));
     }
 
-    let spawn_responses = client.apply_batch_sync(spawn_commands, false);
+    let spawn_responses = client.apply_batch_sync(spawn_commands, false)?;
     let vehicle_ids: Vec<_> = spawn_responses
         .iter()
         .filter_map(|r| r.actor_id())
@@ -285,7 +285,7 @@ fn test_batch_apply_vehicle_control(
     }
 
     // Execute batch control
-    let control_responses = client.apply_batch_sync(control_commands, false);
+    let control_responses = client.apply_batch_sync(control_commands, false)?;
 
     assert_eq!(
         control_responses.len(),
@@ -298,7 +298,7 @@ fn test_batch_apply_vehicle_control(
         .iter()
         .map(|&id| Command::destroy_actor(id))
         .collect();
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     Ok(())
 }
@@ -308,12 +308,12 @@ fn test_batch_apply_walker_control(
     world: &mut carla::client::World,
 ) -> TestResult {
     // Spawn walkers
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let walker_bp = blueprint_library
         .find("walker.pedestrian.0001")
         .ok_or("Walker blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -325,7 +325,7 @@ fn test_batch_apply_walker_control(
         ));
     }
 
-    let spawn_responses = client.apply_batch_sync(spawn_commands, false);
+    let spawn_responses = client.apply_batch_sync(spawn_commands, false)?;
     let walker_ids: Vec<_> = spawn_responses
         .iter()
         .filter_map(|r| r.actor_id())
@@ -354,7 +354,7 @@ fn test_batch_apply_walker_control(
     }
 
     // Execute batch control
-    let control_responses = client.apply_batch_sync(control_commands, false);
+    let control_responses = client.apply_batch_sync(control_commands, false)?;
 
     assert_eq!(
         control_responses.len(),
@@ -367,7 +367,7 @@ fn test_batch_apply_walker_control(
         .iter()
         .map(|&id| Command::destroy_actor(id))
         .collect();
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     Ok(())
 }
@@ -378,12 +378,12 @@ fn test_batch_command_response(
     client: &mut Client,
     world: &mut carla::client::World,
 ) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Create a single spawn command
@@ -393,7 +393,7 @@ fn test_batch_command_response(
         None,
     )];
 
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     // Test response structure
     assert_eq!(responses.len(), 1, "Should have one response");
@@ -406,7 +406,7 @@ fn test_batch_command_response(
 
     // Cleanup
     if let Some(actor_id) = response.actor_id() {
-        client.apply_batch_sync(vec![Command::destroy_actor(actor_id)], false);
+        client.apply_batch_sync(vec![Command::destroy_actor(actor_id)], false)?;
     }
 
     Ok(())
@@ -417,7 +417,7 @@ fn test_batch_error_handling(client: &mut Client) -> TestResult {
     let invalid_id = 999999;
     let commands = vec![Command::destroy_actor(invalid_id)];
 
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     assert_eq!(responses.len(), 1, "Should have one response");
 
@@ -429,12 +429,12 @@ fn test_batch_error_handling(client: &mut Client) -> TestResult {
 }
 
 fn test_batch_partial_failure(client: &mut Client, world: &mut carla::client::World) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
 
     // Mix valid and potentially invalid commands
     let mut commands = Vec::new();
@@ -461,7 +461,7 @@ fn test_batch_partial_failure(client: &mut Client, world: &mut carla::client::Wo
     }
 
     let command_count = commands.len();
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     assert_eq!(
         responses.len(),
@@ -477,7 +477,7 @@ fn test_batch_partial_failure(client: &mut Client, world: &mut carla::client::Wo
         }
     }
     if !destroy_commands.is_empty() {
-        client.apply_batch_sync(destroy_commands, false);
+        client.apply_batch_sync(destroy_commands, false)?;
     }
 
     Ok(())
@@ -489,12 +489,12 @@ fn test_batch_order_preservation(
     client: &mut Client,
     world: &mut carla::client::World,
 ) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_count = 3.min(spawn_points.len());
 
     // Create commands with specific order
@@ -507,7 +507,7 @@ fn test_batch_order_preservation(
         ));
     }
 
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     // Verify response count matches command count (order is preserved)
     assert_eq!(
@@ -522,7 +522,7 @@ fn test_batch_order_preservation(
         .filter_map(|r| r.actor_id())
         .map(Command::destroy_actor)
         .collect();
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     Ok(())
 }
@@ -530,7 +530,7 @@ fn test_batch_order_preservation(
 fn test_empty_batch(client: &mut Client) -> TestResult {
     // Execute empty batch
     let commands: Vec<Command> = Vec::new();
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     assert_eq!(responses.len(), 0, "Empty batch should return no responses");
 
@@ -538,12 +538,12 @@ fn test_empty_batch(client: &mut Client) -> TestResult {
 }
 
 fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
 
     // Create a large batch (up to 50 or available spawn points)
     let batch_size = 50.min(spawn_points.len());
@@ -557,7 +557,7 @@ fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> Te
         ));
     }
 
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     assert_eq!(
         responses.len(),
@@ -578,7 +578,7 @@ fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> Te
 
     // Destroy in batches to avoid overwhelming the server
     if !destroy_commands.is_empty() {
-        client.apply_batch_sync(destroy_commands, false);
+        client.apply_batch_sync(destroy_commands, false)?;
     }
 
     Ok(())
@@ -587,12 +587,12 @@ fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> Te
 // ===== Performance & Mixed Tests =====
 
 fn test_batch_performance(client: &mut Client, world: &mut carla::client::World) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let test_size = 10.min(spawn_points.len());
 
     // Create batch commands
@@ -607,7 +607,7 @@ fn test_batch_performance(client: &mut Client, world: &mut carla::client::World)
 
     // Measure batch execution time
     let start = std::time::Instant::now();
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
     let batch_duration = start.elapsed();
 
     // Verify it executed reasonably fast (batch should be quick)
@@ -625,18 +625,18 @@ fn test_batch_performance(client: &mut Client, world: &mut carla::client::World)
         .filter_map(|r| r.actor_id())
         .map(Command::destroy_actor)
         .collect();
-    client.apply_batch_sync(destroy_commands, false);
+    client.apply_batch_sync(destroy_commands, false)?;
 
     Ok(())
 }
 
 fn test_mixed_command_types(client: &mut Client, world: &mut carla::client::World) -> TestResult {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Mix different command types in one batch
@@ -646,7 +646,7 @@ fn test_mixed_command_types(client: &mut Client, world: &mut carla::client::Worl
         None,
     )];
 
-    let responses = client.apply_batch_sync(commands, false);
+    let responses = client.apply_batch_sync(commands, false)?;
 
     let actor_id = responses[0].actor_id().ok_or("Failed to spawn vehicle")?;
 
@@ -680,7 +680,7 @@ fn test_mixed_command_types(client: &mut Client, world: &mut carla::client::Worl
     mixed_commands.push(Command::set_autopilot(actor_id, true, 8000));
 
     // Execute mixed batch
-    let mixed_responses = client.apply_batch_sync(mixed_commands, false);
+    let mixed_responses = client.apply_batch_sync(mixed_commands, false)?;
 
     assert_eq!(
         mixed_responses.len(),
@@ -691,7 +691,7 @@ fn test_mixed_command_types(client: &mut Client, world: &mut carla::client::Worl
     thread::sleep(Duration::from_millis(100));
 
     // Cleanup
-    client.apply_batch_sync(vec![Command::destroy_actor(actor_id)], false);
+    client.apply_batch_sync(vec![Command::destroy_actor(actor_id)], false)?;
 
     Ok(())
 }

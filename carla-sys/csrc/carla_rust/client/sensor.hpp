@@ -5,6 +5,7 @@
 #include "carla_rust/compat.hpp"
 #include "carla/client/Sensor.h"
 #include "carla/sensor/SensorData.h"
+#include "carla_rust/client/result.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -17,16 +18,20 @@ class FfiSensor {
 public:
     FfiSensor(SharedPtr<Sensor>&& base) : inner_(std::move(base)) {}
 
-    void Listen(void* caller, void* fn, void* delete_fn) const {
-        auto container = std::make_shared<ListenCallback>(caller, fn, delete_fn);
-        auto callback = [container = std::move(container)](SharedPtr<SensorData> data) {
-            auto ffi_data = std::make_shared<FfiSensorData>(std::move(data));
-            (*container)(ffi_data);
-        };
-        inner_->Listen(std::move(callback));
+    void Listen(void* caller, void* fn, void* delete_fn, FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            auto container = std::make_shared<ListenCallback>(caller, fn, delete_fn);
+            auto callback = [container = std::move(container)](SharedPtr<SensorData> data) {
+                auto ffi_data = std::make_shared<FfiSensorData>(std::move(data));
+                (*container)(ffi_data);
+            };
+            inner_->Listen(std::move(callback));
+        });
     }
 
-    void Stop() const { inner_->Stop(); }
+    void Stop(FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->Stop(); });
+    }
 
     bool IsListening() const { return inner_->IsListening(); }
 

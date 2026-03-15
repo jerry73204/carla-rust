@@ -38,22 +38,22 @@ struct DriveStats {
     obstacle_detected: AtomicBool,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Complete Autonomous Driving Scenario ===\n");
 
     // Connect to CARLA
-    let client = Client::connect("127.0.0.1", 2000, None);
-    let mut world = client.world();
+    let client = Client::connect("127.0.0.1", 2000, None)?;
+    let mut world = client.world()?;
     println!("Connected to CARLA server");
 
     // Test 1: Setup vehicle with sensors
     println!("\n--- Test 1: Spawning vehicle with sensors ---");
-    let (vehicle, sensors, stats) = setup_autonomous_vehicle(&mut world);
+    let (vehicle, sensors, stats) = setup_autonomous_vehicle(&mut world).expect("setup failed");
     println!("✓ Vehicle spawned with {} sensors", sensors.len());
 
     // Test 2: Enable Traffic Manager / Autopilot
     println!("\n--- Test 2: Enabling autonomous control ---");
-    vehicle.set_autopilot(true);
+    let _ = vehicle.set_autopilot(true);
     println!("✓ Autopilot enabled");
 
     // Test 3: Drive and monitor
@@ -73,11 +73,11 @@ fn main() {
 
     // Cleanup
     println!("\n--- Cleaning up ---");
-    vehicle.set_autopilot(false);
+    let _ = vehicle.set_autopilot(false);
     for sensor in sensors {
-        sensor.destroy();
+        let _ = sensor.destroy();
     }
-    vehicle.destroy();
+    let _ = vehicle.destroy();
 
     println!("\n=== Autonomous Driving Test Complete ===");
     println!("Integration test passed!");
@@ -86,16 +86,16 @@ fn main() {
 
 fn setup_autonomous_vehicle(
     world: &mut carla::client::World,
-) -> (Vehicle, Vec<Sensor>, Arc<DriveStats>) {
+) -> Result<(Vehicle, Vec<Sensor>, Arc<DriveStats>), Box<dyn std::error::Error>> {
     let stats = Arc::new(DriveStats::default());
 
     // Spawn vehicle
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map().recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points();
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -118,7 +118,7 @@ fn setup_autonomous_vehicle(
         println!("  ✓ Attached LiDAR sensor");
     }
 
-    (vehicle, sensors, stats)
+    Ok((vehicle, sensors, stats))
 }
 
 fn attach_front_camera(
@@ -126,7 +126,7 @@ fn attach_front_camera(
     vehicle: &Vehicle,
     stats: Arc<DriveStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut camera_bp = blueprint_library.find("sensor.camera.rgb")?;
 
     let _ = camera_bp.set_attribute("image_size_x", "800");
@@ -149,11 +149,13 @@ fn attach_front_camera(
 
     let sensor = Sensor::try_from(camera_actor).ok()?;
 
-    sensor.listen(move |data| {
-        if let Ok(_image) = Image::try_from(data) {
-            stats.camera_frames.fetch_add(1, Ordering::Relaxed);
-        }
-    });
+    sensor
+        .listen(move |data| {
+            if let Ok(_image) = Image::try_from(data) {
+                stats.camera_frames.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+        .ok()?;
 
     Some(sensor)
 }
@@ -163,7 +165,7 @@ fn attach_lidar(
     vehicle: &Vehicle,
     stats: Arc<DriveStats>,
 ) -> Option<Sensor> {
-    let blueprint_library = world.blueprint_library();
+    let blueprint_library = world.blueprint_library().ok()?;
     let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast")?;
 
     let _ = lidar_bp.set_attribute("channels", "32");
@@ -188,18 +190,20 @@ fn attach_lidar(
     let sensor = Sensor::try_from(lidar_actor).ok()?;
 
     let stats_clone = Arc::clone(&stats);
-    sensor.listen(move |data| {
-        if let Ok(lidar_data) = LidarMeasurement::try_from(data) {
-            stats_clone.lidar_frames.fetch_add(1, Ordering::Relaxed);
+    sensor
+        .listen(move |data| {
+            if let Ok(lidar_data) = LidarMeasurement::try_from(data) {
+                stats_clone.lidar_frames.fetch_add(1, Ordering::Relaxed);
 
-            // Simple obstacle detection: check if we have close points
-            let point_count = lidar_data.len();
-            if point_count > 1000 {
-                // High point density suggests nearby obstacles
-                stats_clone.obstacle_detected.store(true, Ordering::Relaxed);
+                // Simple obstacle detection: check if we have close points
+                let point_count = lidar_data.len();
+                if point_count > 1000 {
+                    // High point density suggests nearby obstacles
+                    stats_clone.obstacle_detected.store(true, Ordering::Relaxed);
+                }
             }
-        }
-    });
+        })
+        .ok()?;
 
     Some(sensor)
 }
@@ -212,14 +216,14 @@ fn monitor_autonomous_drive(
     let start = Instant::now();
     let mut last_report = Instant::now();
     let mut distance_traveled = 0.0;
-    let mut last_location = vehicle.transform().location;
+    let mut last_location = vehicle.transform().unwrap().location;
 
     while start.elapsed() < Duration::from_secs(DRIVING_DURATION_SECS) {
         // Tick the world
-        world.tick();
+        let _ = world.tick();
 
         // Calculate distance traveled
-        let current_location = vehicle.transform().location;
+        let current_location = vehicle.transform().unwrap().location;
         let delta = ((current_location.x - last_location.x).powi(2)
             + (current_location.y - last_location.y).powi(2)
             + (current_location.z - last_location.z).powi(2))
@@ -278,15 +282,15 @@ fn analyze_drive_stats(stats: &DriveStats) {
 }
 
 fn test_waypoint_navigation(world: &carla::client::World, vehicle: &Vehicle) {
-    let map = world.map();
-    let vehicle_location = vehicle.transform().location;
+    let map = world.map().expect("map");
+    let vehicle_location = vehicle.transform().unwrap().location;
 
     // Get nearest waypoint
-    if let Some(current_waypoint) = map.waypoint_at(&vehicle_location) {
+    if let Ok(Some(current_waypoint)) = map.waypoint_at(&vehicle_location) {
         println!("  ✓ Found current waypoint");
 
         // Get next waypoints (path ahead)
-        let next_waypoints = current_waypoint.next(10.0);
+        let next_waypoints = current_waypoint.next(10.0).expect("next waypoints");
         println!("  ✓ Found {} waypoints ahead", next_waypoints.len());
 
         if let Some(next_wp) = next_waypoints.get(0) {

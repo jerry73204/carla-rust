@@ -105,7 +105,7 @@ async fn main() -> Result<()> {
 
     // Connect to CARLA server
     info!("Connecting to CARLA at {}:{}", config.host, config.port);
-    let mut client = carla::client::Client::connect(&config.host, config.port, None);
+    let mut client = carla::client::Client::connect(&config.host, config.port, None)?;
 
     // ✅ Subphase 12.1.2: Create world and spawn vehicle
     let mut world = self::world::World::new(&client, &config)?;
