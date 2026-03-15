@@ -662,6 +662,33 @@ impl TrafficManager {
         );
     }
 
+    /// Sets the percentage chance for a vehicle to ignore stop signs.
+    ///
+    /// A value of 100 means the vehicle will always ignore stop signs, 0 means it will always obey them.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.TrafficManager.ignore_signs_percentage](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficManager.ignore_signs_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.TrafficManager.ignore_signs_percentage](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.TrafficManager.ignore_signs_percentage)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.TrafficManager.ignore_signs_percentage](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.TrafficManager.ignore_signs_percentage)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
+    pub fn set_percentage_running_sign<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
+        let cxx_actor = actor.cxx_actor();
+        self.inner.pin_mut().SetPercentageRunningSign(
+            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
+            percentage,
+        );
+    }
+
     /// Enables or disables synchronous mode for the traffic manager.
     ///
     /// In synchronous mode, the traffic manager waits for a tick before updating.

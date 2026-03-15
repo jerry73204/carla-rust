@@ -242,51 +242,22 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Medium
 
-- [ ] `global_lane_offset(offset)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `update_vehicle_lights(actor, enabled)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `force_lane_change(actor, direction)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `ignore_signs_percentage(actor, percentage)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_global_distance_to_leading_vehicle(distance)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `random_left_lanechange_percentage(actor, percentage)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `random_right_lanechange_percentage(actor, percentage)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_random_device_seed(seed)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_osm_mode(enabled)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_path(actor, path)` / `set_route(actor, route)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_respawn_dormant_vehicles(enabled)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `set_boundaries_respawn_dormant_vehicles(lower, upper)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `get_next_action(actor) -> (Action, Waypoint)`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `get_all_actions(actor) -> Vec<(Action, Waypoint)>`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
-- [ ] `synchronous_tick() -> bool`
-  - [ ] Add C++ wrapper
-  - [ ] Add Rust wrapper
+- [x] `global_lane_offset(offset)` — already implemented as `set_global_lane_offset()`
+- [x] `update_vehicle_lights(actor, enabled)` — already implemented as `set_update_vehicle_lights()`
+- [x] `force_lane_change(actor, direction)` — already implemented as `set_force_lane_change()`
+- [x] `ignore_signs_percentage(actor, percentage)` — added Rust wrapper `set_percentage_running_sign()`
+  - C++ wrapper `SetPercentageRunningSign()` already existed
+- [x] `set_global_distance_to_leading_vehicle(distance)` — already implemented
+- [x] `random_left_lanechange_percentage(actor, percentage)` — already implemented as `set_random_left_lane_change_percentage()`
+- [x] `random_right_lanechange_percentage(actor, percentage)` — already implemented as `set_random_right_lane_change_percentage()`
+- [x] `set_random_device_seed(seed)` — already implemented
+- [x] `set_osm_mode(enabled)` — already implemented
+- [x] `set_path(actor, path)` / `set_route(actor, route)` — already implemented as `set_custom_path()` / `set_import_route()`
+- [x] `set_respawn_dormant_vehicles(enabled)` — already implemented
+- [x] `set_boundaries_respawn_dormant_vehicles(lower, upper)` — already implemented
+- [x] `get_next_action(actor) -> (Action, Waypoint)` — already implemented as `next_action()`
+- [x] `get_all_actions(actor) -> Vec<(Action, Waypoint)>` — already implemented as `action_buffer()`
+- [x] `synchronous_tick() -> bool` — already implemented
 
 ---
 

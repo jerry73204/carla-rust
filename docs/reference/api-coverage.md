@@ -489,21 +489,21 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | `ignore_vehicles_percentage()`                              | Have        | 0.9.14                                        |
 | `ignore_walkers_percentage()`                               | Have        | 0.9.14                                        |
 | `shut_down()`                                               | Have        | 0.9.14                                        |
-| `global_lane_offset()`                                      | **Missing** | 0.9.14                                        |
-| `update_vehicle_lights()`                                   | **Missing** | 0.9.14                                        |
-| `force_lane_change()`                                       | **Missing** | 0.9.14                                        |
-| `ignore_signs_percentage()`                                 | **Missing** | 0.9.14                                        |
-| `set_global_distance_to_leading_vehicle()`                  | **Missing** | 0.9.14                                        |
-| `random_left_lanechange_percentage()`                       | **Missing** | 0.9.14                                        |
-| `random_right_lanechange_percentage()`                      | **Missing** | 0.9.14                                        |
-| `set_random_device_seed()`                                  | **Missing** | 0.9.14                                        |
-| `set_osm_mode()`                                            | **Missing** | 0.9.14                                        |
-| `set_path()` / `set_route()`                                | **Missing** | 0.9.14                                        |
-| `set_respawn_dormant_vehicles()`                            | **Missing** | 0.9.14                                        |
-| `set_boundaries_respawn_dormant_vehicles()`                 | **Missing** | 0.9.14                                        |
-| `get_next_action()` / `get_all_actions()`                   | **Missing** | 0.9.14                                        |
-| `synchronous_tick()`                                        | **Missing** | 0.9.14                                        |
-| `keep_right_rule_percentage()`                              | **Missing** | 0.9.14 (absent in 0.9.16, restored in 0.10.0) |
+| `global_lane_offset()`                                      | Have        | 0.9.14                                        |
+| `update_vehicle_lights()`                                   | Have        | 0.9.14                                        |
+| `force_lane_change()`                                       | Have        | 0.9.14                                        |
+| `ignore_signs_percentage()`                                 | Have        | 0.9.14                                        |
+| `set_global_distance_to_leading_vehicle()`                  | Have        | 0.9.14                                        |
+| `random_left_lanechange_percentage()`                       | Have        | 0.9.14                                        |
+| `random_right_lanechange_percentage()`                      | Have        | 0.9.14                                        |
+| `set_random_device_seed()`                                  | Have        | 0.9.14                                        |
+| `set_osm_mode()`                                            | Have        | 0.9.14                                        |
+| `set_path()` / `set_route()`                                | Have        | 0.9.14                                        |
+| `set_respawn_dormant_vehicles()`                            | Have        | 0.9.14                                        |
+| `set_boundaries_respawn_dormant_vehicles()`                 | Have        | 0.9.14                                        |
+| `get_next_action()` / `get_all_actions()`                   | Have        | 0.9.14                                        |
+| `synchronous_tick()`                                        | Have        | 0.9.14                                        |
+| `keep_right_rule_percentage()`                              | Have        | 0.9.14 (absent in 0.9.16, restored in 0.10.0) |
 
 ---
 
