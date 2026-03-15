@@ -81,7 +81,7 @@ impl ActorAttributeValue {
     /// Returns the value as a [`Color`], or `None` if the attribute type is not `RGBColor`.
     pub fn as_color(&self) -> Option<Color> {
         if self.type_() == ActorAttributeType::RGBColor {
-            Some(self.inner.to_color().into())
+            Some(self.inner.to_color())
         } else {
             None
         }

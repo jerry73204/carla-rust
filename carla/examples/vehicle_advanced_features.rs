@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(carla_version_0916)]
     {
         println!("\n--- Demo 5: Vehicle Telemetry Data (0.9.16+) ---");
-        let telemetry = vehicle.telemetry_data();
+        let telemetry = vehicle.telemetry_data()?;
 
         println!("Vehicle Status:");
         println!(

@@ -1,10 +1,26 @@
 use carla_sys::carla::rpc::WeatherParameters;
 
+/// Weather presets matching the CARLA Python API.
+///
+/// These constants reproduce the static presets defined in the C++ `WeatherParameters` class.
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use carla::{client::Client, rpc::weather};
+///
+/// let client = Client::connect("localhost", 2000, None)?;
+/// let mut world = client.world()?;
+/// world.set_weather(&weather::CLEAR_NOON)?;
+/// # Ok(())
+/// # }
+/// ```
 // Field order: cloudiness, precipitation, precipitation_deposits, wind_intensity,
 //              sun_azimuth_angle, sun_altitude_angle, fog_density, fog_distance,
 //              fog_falloff, wetness, scattering_intensity, mie_scattering_scale,
 //              rayleigh_scattering_scale, dust_storm
-
+#[allow(clippy::too_many_arguments)]
 const fn wp(
     cloudiness: f32,
     precipitation: f32,
@@ -38,23 +54,6 @@ const fn wp(
         dust_storm,
     }
 }
-
-/// Weather presets matching the CARLA Python API.
-///
-/// These constants reproduce the static presets defined in the C++ `WeatherParameters` class.
-///
-/// # Examples
-///
-/// ```no_run
-/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// use carla::{client::Client, rpc::weather};
-///
-/// let client = Client::connect("localhost", 2000, None)?;
-/// let mut world = client.world()?;
-/// world.set_weather(&weather::CLEAR_NOON)?;
-/// # Ok(())
-/// # }
-/// ```
 
 //                                              cloud  precip dep    wind   azim   alt    fogD   fogDist fogF   wet    scatI  mieS   raylS    dust
 pub const DEFAULT: WeatherParameters = wp(
