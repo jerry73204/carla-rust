@@ -92,6 +92,7 @@ impl EpisodeSettings {
     pub(crate) fn to_cxx(&self) -> UniquePtr<FfiEpisodeSettings> {
         let fixed_delta_seconds = self.fixed_delta_seconds.unwrap_or(0.0);
 
+        #[allow(unused_mut)]
         let mut settings = FfiEpisodeSettings::new2(
             self.synchronous_mode,
             self.no_rendering_mode,
