@@ -683,10 +683,9 @@ impl TrafficManager {
     )]
     pub fn set_percentage_running_sign<A: ActorBase>(&mut self, actor: &A, percentage: f32) {
         let cxx_actor = actor.cxx_actor();
-        self.inner.pin_mut().SetPercentageRunningSign(
-            unsafe { cxx_actor.as_ref().unwrap_unchecked() },
-            percentage,
-        );
+        self.inner
+            .pin_mut()
+            .SetPercentageRunningSign(unsafe { cxx_actor.as_ref().unwrap_unchecked() }, percentage);
     }
 
     /// Enables or disables synchronous mode for the traffic manager.

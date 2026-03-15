@@ -268,25 +268,26 @@ Most World methods were already implemented. Items below reflect current status.
 ### Types needed by Phase 2–3
 
 - [x] `ActorState` enum — `Invalid`, `Active`, `Dormant`, `PendingKill`
-- [ ] `LabelledPoint` struct (FFI type exists as `FfiLabelledPoint`)
-- [ ] `CityObjectLabel` enum
-- [ ] `FloatColor` struct
-- [ ] `TextureColor` / `TextureFloatColor`
-- [ ] `MaterialParameter` enum
-- [ ] `SignalOrientation` enum
+- [x] `LabelledPoint` struct — already re-exported as `FfiLabelledPoint as LabelledPoint`
+- [x] `CityObjectLabel` enum — already autocxx-generated, added re-export from `rpc.rs`
+- [x] `FloatColor` struct — added native Rust type, `#[cfg(carla_0100)]` (0.10.0-only C++ type)
+- [ ] `TextureColor` / `TextureFloatColor` — deferred (C++ template types, need custom wrappers)
+- [x] `MaterialParameter` enum — added native Rust enum, `#[cfg(carla_0100)]` (0.10.0-only C++ type)
+- [x] `SignalOrientation` enum — already auto-generated via autocxx
 
 ### Types needed by Phase 6
 
-- [ ] `AckermannControllerSettings` — FFI type exists, add Rust wrapper
+- [x] `AckermannControllerSettings` — already complete (autocxx POD + Rust methods on Vehicle)
 
 ### 0.10.0 layout changes
 
-- [ ] `VehiclePhysicsControl` — ~20 new fields in 0.10.0
-  - [ ] Version-gated struct definitions
-  - [ ] Conversion between layouts
-- [ ] `WheelPhysicsControl` — ~40 fields in 0.10.0 vs ~7 in 0.9.x
-  - [ ] Version-gated struct definitions
-  - [ ] Conversion between layouts
+- [ ] `VehiclePhysicsControl` — ~30 fields in 0.10.0 vs ~17 in 0.9.x
+  - [ ] Version-gated C++ wrapper (current wrapper uses 0.9.x field names)
+  - [ ] Version-gated Rust struct
+  - Note: Current wrapper compiles for 0.10.0 but accesses wrong fields
+- [ ] `WheelPhysicsControl` — ~39 fields in 0.10.0 vs ~7 in 0.9.x
+  - [ ] Need custom C++ wrapper for 0.10.0 (has `std::vector` field, can't be POD)
+  - [ ] Version-gated Rust struct
 
 ---
 

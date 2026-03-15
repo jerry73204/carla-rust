@@ -130,6 +130,72 @@ impl From<carla_sys::carla_rust::sensor::data::FfiColor> for Color {
     }
 }
 
+/// Floating-point RGBA color type with components in the range 0.0–1.0.
+///
+/// Used for texture operations and material parameters in CARLA 0.10.0+.
+///
+/// Corresponds to [`carla.FloatColor`] in the Python API.
+///
+/// [`carla.FloatColor`]: https://carla.readthedocs.io/en/latest/python_api/#carla.FloatColor
+#[cfg(carla_0100)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[repr(C)]
+pub struct FloatColor {
+    /// Red component (0.0–1.0)
+    pub r: f32,
+    /// Green component (0.0–1.0)
+    pub g: f32,
+    /// Blue component (0.0–1.0)
+    pub b: f32,
+    /// Alpha component (0.0–1.0), 1.0 = fully opaque
+    pub a: f32,
+}
+
+#[cfg(carla_0100)]
+impl FloatColor {
+    /// Create a new float color with RGB values and full opacity.
+    pub const fn new(r: f32, g: f32, b: f32) -> Self {
+        Self { r, g, b, a: 1.0 }
+    }
+
+    /// Create a new float color with RGBA values.
+    pub const fn rgba(r: f32, g: f32, b: f32, a: f32) -> Self {
+        Self { r, g, b, a }
+    }
+}
+
+#[cfg(carla_0100)]
+impl From<Color> for FloatColor {
+    fn from(c: Color) -> Self {
+        Self {
+            r: c.r as f32 / 255.0,
+            g: c.g as f32 / 255.0,
+            b: c.b as f32 / 255.0,
+            a: c.a as f32 / 255.0,
+        }
+    }
+}
+
+/// Material parameter type for texture operations.
+///
+/// Specifies which texture slot to apply when using texture application methods.
+///
+/// Corresponds to [`carla.MaterialParameter`] in the Python API.
+///
+/// [`carla.MaterialParameter`]: https://carla.readthedocs.io/en/latest/python_api/#carla.MaterialParameter
+#[cfg(carla_0100)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MaterialParameter {
+    /// Normal map texture
+    TexNormal,
+    /// Combined AO, Roughness, Metallic, and Emissive texture
+    TexAoRoughnessMetallicEmissive,
+    /// Diffuse (albedo) texture
+    TexDiffuse,
+    /// Emissive texture
+    TexEmissive,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

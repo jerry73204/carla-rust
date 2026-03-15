@@ -435,13 +435,13 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | Type                                               | Status      | Since  | Used by                                          |
 |----------------------------------------------------|-------------|--------|--------------------------------------------------|
 | `ActorState` enum (`Invalid`, `Active`, `Dormant`) | Have        | 0.9.14 | `Actor::GetActorState()`                         |
-| `FloatColor` struct                                | **Missing** | 0.9.14 | `TextureFloatColor` / texture methods            |
-| `TextureColor` / `TextureFloatColor`               | **Missing** | 0.9.14 | `World::ApplyColorTextureToObject()` etc.        |
-| `MaterialParameter` enum                           | **Missing** | 0.9.14 | `World::ApplyColorTextureToObject()` parameter   |
-| `LabelledPoint` struct                             | **Missing** | 0.9.14 | `World::CastRay()`, `ProjectPoint()` return type |
-| `CityObjectLabel` / `ObjectLabel` enum             | **Missing** | 0.9.14 | `LabelledPoint` field, `World::GetLevelBBs()`    |
+| `FloatColor` struct                                | Have        | 0.10.0 | `TextureFloatColor` / texture methods            |
+| `TextureColor` / `TextureFloatColor`               | **Missing** | 0.10.0 | `World::ApplyColorTextureToObject()` etc.        |
+| `MaterialParameter` enum                           | Have        | 0.10.0 | `World::ApplyColorTextureToObject()` parameter   |
+| `LabelledPoint` struct                             | Have        | 0.9.14 | `World::CastRay()`, `ProjectPoint()` return type |
+| `CityObjectLabel` / `ObjectLabel` enum             | Have        | 0.9.14 | `LabelledPoint` field, `World::GetLevelBBs()`    |
 | `MapLayer` enum (load/unload support)              | Partial     | 0.9.14 | `World::LoadLevelLayer()` parameter              |
-| `SignalOrientation` enum                           | **Missing** | 0.9.14 | `Landmark::GetOrientation()` return type         |
+| `SignalOrientation` enum                           | Have        | 0.9.14 | `Landmark::GetOrientation()` return type         |
 | `ActorAttributeType` enum                          | **Missing** | 0.9.14 | `ActorAttributeValueAccess::GetType()`           |
 | `AckermannControllerSettings` struct               | Have        | 0.9.14 | `Vehicle::GetAckermannControllerSettings()`      |
 
