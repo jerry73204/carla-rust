@@ -3,6 +3,8 @@ use super::{
     BoundingBoxList, DebugHelper, EnvironmentObjectList, LabelledPointList, Landmark, LightManager,
     Map, Waypoint, WorldSnapshot,
 };
+#[cfg(carla_0100)]
+use crate::rpc::{MaterialParameter, TextureColor, TextureFloatColor};
 use crate::{
     error::{OperationError, Result, ffi::with_ffi_error},
     geom::{Location, Transform, Vector3D},
@@ -1320,6 +1322,74 @@ impl World {
     pub fn debug(&mut self) -> crate::Result<DebugHelper> {
         let ptr = with_ffi_error("debug", |e| self.inner.pin_mut().MakeDebugHelper(e))?;
         Ok(DebugHelper { inner: ptr })
+    }
+
+    /// Applies a color texture to a single object by name.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    pub fn apply_color_texture_to_object(
+        &mut self,
+        object_name: &str,
+        parameter: MaterialParameter,
+        texture: &TextureColor,
+    ) -> crate::Result<()> {
+        let_cxx_string!(name = object_name);
+        with_ffi_error("apply_color_texture_to_object", |e| {
+            self.inner.pin_mut().ApplyColorTextureToObject(
+                &name,
+                parameter.as_u8(),
+                &texture.inner,
+                e,
+            )
+        })
+    }
+
+    /// Applies a float color texture to a single object by name.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    pub fn apply_float_color_texture_to_object(
+        &mut self,
+        object_name: &str,
+        parameter: MaterialParameter,
+        texture: &TextureFloatColor,
+    ) -> crate::Result<()> {
+        let_cxx_string!(name = object_name);
+        with_ffi_error("apply_float_color_texture_to_object", |e| {
+            self.inner.pin_mut().ApplyFloatColorTextureToObject(
+                &name,
+                parameter.as_u8(),
+                &texture.inner,
+                e,
+            )
+        })
+    }
+
+    /// Applies a full set of textures (diffuse, emissive, normal, AO/roughness/metallic/emissive)
+    /// to a single object by name.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    pub fn apply_textures_to_object(
+        &mut self,
+        object_name: &str,
+        diffuse: &TextureColor,
+        emissive: &TextureFloatColor,
+        normal: &TextureFloatColor,
+        ao_roughness_metallic_emissive: &TextureFloatColor,
+    ) -> crate::Result<()> {
+        let_cxx_string!(name = object_name);
+        with_ffi_error("apply_textures_to_object", |e| {
+            self.inner.pin_mut().ApplyTexturesToObject(
+                &name,
+                &diffuse.inner,
+                &emissive.inner,
+                &normal.inner,
+                &ao_roughness_metallic_emissive.inner,
+                e,
+            )
+        })
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {

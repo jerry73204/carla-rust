@@ -37,10 +37,9 @@ See `reference/api-coverage.md` for the full gap analysis.
 - [x] `Actor::get_actor_class_name() -> String` — 0.10.0 only
   - [x] Add C++ wrapper gated with `CARLA_VERSION_0100`
   - [x] Add Rust wrapper gated with `#[cfg(carla_0100)]`
-- [ ] `Actor::apply_texture()` — 0.10.0 only
-  - [ ] Add C++ wrapper gated with `CARLA_VERSION_0100`
-  - [ ] Add Rust wrapper gated with `#[cfg(carla_0100)]`
-  - [ ] Depends on texture types (Phase 10)
+- [x] `Actor::apply_texture()` — 0.10.0 only
+  - [x] Add C++ wrapper gated with `CARLA_VERSION_0100` — `ApplyColorTexture`, `ApplyFloatColorTexture`
+  - [x] Add Rust wrapper gated with `#[cfg(carla_0100)]` — `apply_color_texture()`, `apply_float_color_texture()`
 
 ---
 
@@ -93,12 +92,12 @@ Most World methods were already implemented. Items below reflect current status.
 
 ### Remaining (deferred)
 
-### Texture operations — depends on Phase 10 types
+### Texture operations
 
-- [ ] `World::apply_color_texture_to_object(object, material, texture)`
-  - [ ] Depends on `TextureColor`, `MaterialParameter` types (Phase 10)
-- [ ] `World::apply_float_color_texture_to_object(object, material, texture)`
-- [ ] `World::apply_textures_to_object(object, color_tex, float_tex)`
+- [x] `World::apply_color_texture_to_object(object, material, texture)` — 0.10.0 only
+- [x] `World::apply_float_color_texture_to_object(object, material, texture)` — 0.10.0 only
+- [x] `World::apply_textures_to_object(object, diffuse, emissive, normal, ao_roughness)` — 0.10.0 only
+- Note: Multi-object variants (`apply_*_to_objects`) deferred — requires CxxVector<CxxString> construction from Rust
 
 ### Event callbacks — requires FFI design
 
@@ -271,7 +270,7 @@ Most World methods were already implemented. Items below reflect current status.
 - [x] `LabelledPoint` struct — already re-exported as `FfiLabelledPoint as LabelledPoint`
 - [x] `CityObjectLabel` enum — already autocxx-generated, added re-export from `rpc.rs`
 - [x] `FloatColor` struct — added native Rust type, `#[cfg(carla_0100)]` (0.10.0-only C++ type)
-- [ ] `TextureColor` / `TextureFloatColor` — deferred (C++ template types, need custom wrappers)
+- [x] `TextureColor` / `TextureFloatColor` — C++ wrappers with `TexturePixel` trait in Rust, `#[cfg(carla_0100)]`
 - [x] `MaterialParameter` enum — added native Rust enum, `#[cfg(carla_0100)]` (0.10.0-only C++ type)
 - [x] `SignalOrientation` enum — already auto-generated via autocxx
 

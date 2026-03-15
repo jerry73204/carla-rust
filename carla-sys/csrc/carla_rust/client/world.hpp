@@ -28,6 +28,7 @@
 #include "carla_rust/client/light_manager.hpp"
 #include "carla_rust/rpc/vehicle_light_state_list.hpp"
 #include "carla_rust/client/result.hpp"
+#include "carla_rust/rpc/texture.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -256,41 +257,37 @@ public:
         });
     }
 
-    // void ApplyColorTextureToObject(
-    //                                const std::string &actor_name,
-    //                                const rpc::MaterialParameter& parameter,
-    //                                const rpc::TextureColor& Texture);
+#ifdef CARLA_VERSION_0100
+    void ApplyColorTextureToObject(const std::string& actor_name, uint8_t parameter,
+                                   const carla_rust::rpc::FfiTextureColor& texture,
+                                   FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.ApplyColorTextureToObject(
+                actor_name, static_cast<carla::rpc::MaterialParameter>(parameter), texture.inner());
+        });
+    }
 
-    // void ApplyColorTextureToObjects(
-    //                                 const std::vector<std::string> &objects_names,
-    //                                 const rpc::MaterialParameter& parameter,
-    //                                 const rpc::TextureColor& Texture);
+    void ApplyFloatColorTextureToObject(const std::string& actor_name, uint8_t parameter,
+                                        const carla_rust::rpc::FfiTextureFloatColor& texture,
+                                        FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.ApplyFloatColorTextureToObject(
+                actor_name, static_cast<carla::rpc::MaterialParameter>(parameter), texture.inner());
+        });
+    }
 
-    // void ApplyFloatColorTextureToObject(
-    //                                     const std::string &actor_name,
-    //                                     const rpc::MaterialParameter& parameter,
-    //                                     const rpc::TextureFloatColor& Texture);
-
-    // void ApplyFloatColorTextureToObjects(
-    //                                      const std::vector<std::string> &objects_names,
-    //                                      const rpc::MaterialParameter& parameter,
-    //                                      const rpc::TextureFloatColor& Texture);
-
-    // void ApplyTexturesToObject(
-    //                            const std::string &actor_name,
-    //                            const rpc::TextureColor& diffuse_texture,
-    //                            const rpc::TextureFloatColor& emissive_texture,
-    //                            const rpc::TextureFloatColor& normal_texture,
-    //                            const rpc::TextureFloatColor&
-    //                            ao_roughness_metallic_emissive_texture);
-
-    // void ApplyTexturesToObjects(
-    //                             const std::vector<std::string> &objects_names,
-    //                             const rpc::TextureColor& diffuse_texture,
-    //                             const rpc::TextureFloatColor& emissive_texture,
-    //                             const rpc::TextureFloatColor& normal_texture,
-    //                             const rpc::TextureFloatColor&
-    //                             ao_roughness_metallic_emissive_texture);
+    void ApplyTexturesToObject(const std::string& actor_name,
+                               const carla_rust::rpc::FfiTextureColor& diffuse,
+                               const carla_rust::rpc::FfiTextureFloatColor& emissive,
+                               const carla_rust::rpc::FfiTextureFloatColor& normal,
+                               const carla_rust::rpc::FfiTextureFloatColor& ao_roughness,
+                               FfiError& error) {
+        ffi_call_void(error, [&]() {
+            inner_.ApplyTexturesToObject(actor_name, diffuse.inner(), emissive.inner(),
+                                         normal.inner(), ao_roughness.inner());
+        });
+    }
+#endif
 
     std::unique_ptr<FfiEpisodeSettings> GetSettings(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiEpisodeSettings>(nullptr), [&]() {

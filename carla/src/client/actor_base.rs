@@ -1,4 +1,6 @@
 use super::{Actor, ActorAttributeValueList, World};
+#[cfg(carla_0100)]
+use crate::rpc::{MaterialParameter, TextureColor, TextureFloatColor};
 use crate::{
     error::ffi::with_ffi_error,
     geom::{BoundingBox, Location, Transform, Vector3D},
@@ -728,6 +730,36 @@ pub trait ActorBase: Clone {
     fn actor_class_name(&self) -> crate::Result<String> {
         with_ffi_error("actor_class_name", |e| {
             self.cxx_actor().GetActorClassName(e).to_string()
+        })
+    }
+
+    /// Applies a color texture to this actor.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    fn apply_color_texture(
+        &self,
+        parameter: MaterialParameter,
+        texture: &TextureColor,
+    ) -> crate::Result<()> {
+        with_ffi_error("apply_color_texture", |e| {
+            self.cxx_actor()
+                .ApplyColorTexture(parameter.as_u8(), &texture.inner, e)
+        })
+    }
+
+    /// Applies a float color texture to this actor.
+    ///
+    /// **Available in CARLA 0.10.0+**
+    #[cfg(carla_0100)]
+    fn apply_float_color_texture(
+        &self,
+        parameter: MaterialParameter,
+        texture: &TextureFloatColor,
+    ) -> crate::Result<()> {
+        with_ffi_error("apply_float_color_texture", |e| {
+            self.cxx_actor()
+                .ApplyFloatColorTexture(parameter.as_u8(), &texture.inner, e)
         })
     }
 

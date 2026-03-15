@@ -16,6 +16,7 @@
 #include "carla_rust/client/actor_attribute.hpp"
 #include "carla_rust/client/actor_attribute_value_list.hpp"
 #include "carla_rust/client/result.hpp"
+#include "carla_rust/rpc/texture.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -247,6 +248,23 @@ public:
 
     std::string GetActorClassName(FfiError& error) const {
         return ffi_call(error, std::string(), [&]() { return inner_->GetActorClassName(); });
+    }
+
+    void ApplyColorTexture(uint8_t parameter, const carla_rust::rpc::FfiTextureColor& texture,
+                           FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            inner_->ApplyTexture(static_cast<carla::rpc::MaterialParameter>(parameter),
+                                 texture.inner());
+        });
+    }
+
+    void ApplyFloatColorTexture(uint8_t parameter,
+                                const carla_rust::rpc::FfiTextureFloatColor& texture,
+                                FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            inner_->ApplyTexture(static_cast<carla::rpc::MaterialParameter>(parameter),
+                                 texture.inner());
+        });
     }
 #endif
 

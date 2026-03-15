@@ -196,6 +196,18 @@ pub enum MaterialParameter {
     TexEmissive,
 }
 
+#[cfg(carla_0100)]
+impl MaterialParameter {
+    pub(crate) fn as_u8(self) -> u8 {
+        match self {
+            Self::TexNormal => 0,
+            Self::TexAoRoughnessMetallicEmissive => 1,
+            Self::TexDiffuse => 2,
+            Self::TexEmissive => 3,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -86,9 +86,9 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `project_point()`                         | Have        | 0.9.14 |
 | `ground_projection()`                     | Have        | 0.9.14 |
 | `get_names_of_all_objects()`              | Have        | 0.9.14 |
-| `apply_color_texture_to_object()`         | **Missing** | 0.9.14 |
-| `apply_float_color_texture_to_object()`   | **Missing** | 0.9.14 |
-| `apply_textures_to_object()`              | **Missing** | 0.9.14 |
+| `apply_color_texture_to_object()`         | Have        | 0.10.0 |
+| `apply_float_color_texture_to_object()`   | Have        | 0.10.0 |
+| `apply_textures_to_object()`              | Have        | 0.10.0 |
 | `get_actor(id)` (single actor lookup)     | Have        | 0.9.14 |
 | `is_weather_enabled()`                    | Have        | 0.10.0 |
 
@@ -148,7 +148,7 @@ All APIs are present in 0.9.14 unless noted otherwise.
 | `set_collisions()`                                     | Have        | 0.9.15 |
 | `get_actor_name()`                                     | Have        | 0.10.0 |
 | `get_actor_class_name()`                               | Have        | 0.10.0 |
-| `apply_texture()`                                      | **Missing** | 0.10.0 |
+| `apply_texture()`                                      | Have        | 0.10.0 |
 
 ### `Vehicle`
 
@@ -436,13 +436,13 @@ These types are used in public method signatures of Client, World, Actor, etc.
 |----------------------------------------------------|-------------|--------|--------------------------------------------------|
 | `ActorState` enum (`Invalid`, `Active`, `Dormant`) | Have        | 0.9.14 | `Actor::GetActorState()`                         |
 | `FloatColor` struct                                | Have        | 0.10.0 | `TextureFloatColor` / texture methods            |
-| `TextureColor` / `TextureFloatColor`               | **Missing** | 0.10.0 | `World::ApplyColorTextureToObject()` etc.        |
+| `TextureColor` / `TextureFloatColor`               | Have        | 0.10.0 | `World::ApplyColorTextureToObject()` etc.        |
 | `MaterialParameter` enum                           | Have        | 0.10.0 | `World::ApplyColorTextureToObject()` parameter   |
 | `LabelledPoint` struct                             | Have        | 0.9.14 | `World::CastRay()`, `ProjectPoint()` return type |
 | `CityObjectLabel` / `ObjectLabel` enum             | Have        | 0.9.14 | `LabelledPoint` field, `World::GetLevelBBs()`    |
 | `MapLayer` enum (load/unload support)              | Partial     | 0.9.14 | `World::LoadLevelLayer()` parameter              |
 | `SignalOrientation` enum                           | Have        | 0.9.14 | `Landmark::GetOrientation()` return type         |
-| `ActorAttributeType` enum                          | **Missing** | 0.9.14 | `ActorAttributeValueAccess::GetType()`           |
+| `ActorAttributeType` enum                          | Have        | 0.9.14 | `ActorAttributeValueAccess::GetType()`           |
 | `AckermannControllerSettings` struct               | Have        | 0.9.14 | `Vehicle::GetAckermannControllerSettings()`      |
 
 ---
