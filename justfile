@@ -11,13 +11,27 @@ versions := "0.9.14 0.9.15 0.9.16 0.10.0"
 @_default:
     just --list
 
-# Build all supported CARLA versions
+# Build library for all supported CARLA versions
 build:
     #!/usr/bin/env bash
     set -euo pipefail
     for VERSION in {{ versions }}; do
         echo "=================================================="
         echo "Building CARLA ${VERSION}..."
+        echo "=================================================="
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
+            cargo build --profile {{ profile }}
+        echo ""
+    done
+    echo "All versions built successfully!"
+
+# Build all targets (lib, tests, examples) for all supported CARLA versions
+build-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for VERSION in {{ versions }}; do
+        echo "=================================================="
+        echo "Building all targets for CARLA ${VERSION}..."
         echo "=================================================="
         CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
             cargo build --all-targets --profile {{ profile }}
@@ -42,7 +56,7 @@ test:
 # Run Rust and C++ checks for all supported CARLA versions
 check: check-rust check-cpp
 
-# Run Rust checks (fmt + clippy) for all supported CARLA versions
+# Run Rust checks (fmt + clippy on lib) for all supported CARLA versions
 check-rust:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -50,6 +64,20 @@ check-rust:
     for VERSION in {{ versions }}; do
         echo "=================================================="
         echo "Clippy CARLA ${VERSION}..."
+        echo "=================================================="
+        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
+            cargo clippy -- -D warnings
+        echo ""
+    done
+
+# Run Rust checks on all targets (lib, tests, examples) for all supported CARLA versions
+check-rust-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo +nightly fmt --check
+    for VERSION in {{ versions }}; do
+        echo "=================================================="
+        echo "Clippy all targets CARLA ${VERSION}..."
         echo "=================================================="
         CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
             cargo clippy --all-targets -- -D warnings
