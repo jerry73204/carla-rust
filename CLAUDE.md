@@ -10,14 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rust client library for the CARLA simulator. Uses FFI bindings (via [autocxx](https://github.com/google/autocxx)) to interface with the CARLA C++ client library and provides safe, idiomatic Rust wrappers.
 
-**Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
+**Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16, 0.10.0 (default: 0.10.0)
 
 ## Crate Architecture
 
 Cargo workspace with three crates (`carla` -> `carla-sys` -> `carla-src`):
 
 - **carla**: High-level Rust API (`src/client/`, `src/geom/`, `src/rpc/`, `src/sensor/`, `src/traffic_manager/`, `src/road/`, `src/prelude`)
-- **carla-sys**: FFI bindings (`src/ffi.rs`, `csrc/` for C++ wrappers, `build.rs` for prebuilt binary handling)
+- **carla-sys**: FFI bindings (`src/bindings.rs`, `csrc/` for C++ wrappers, `build.rs` for prebuilt binary handling)
 - **carla-src**: Build utility for compiling `libcarla_client` from source
 
 ## Build Rules
@@ -25,13 +25,15 @@ Cargo workspace with three crates (`carla` -> `carla-sys` -> `carla-src`):
 **Always use `just` or `--profile dev-release`:**
 
 ```bash
-just build                                          # Recommended
+just build                                          # Recommended (all CARLA versions)
 cargo build --all-targets --profile dev-release     # If using cargo directly
 ```
 
 The `dev-release` profile (defined in `Cargo.toml`) is required for example automation and adequate simulation performance. Run `just --list` for all commands.
 
 **CARLA version selection:** `CARLA_VERSION=0.9.14 cargo build`
+
+Each version uses a separate target directory (`target/carla-${VERSION}`).
 
 **Environment:** Requires `libclang-dev` for autocxx.
 
@@ -45,19 +47,51 @@ The `dev-release` profile (defined in `Cargo.toml`) is required for example auto
 ## Linting
 
 ```bash
-just lint-rust    # fmt + clippy
+just check         # Full check: Rust (fmt + clippy) + C++ (format + tidy)
+just check-rust    # fmt + clippy for all CARLA versions
+just format        # Auto-format Rust + C++
 ```
 
 Common clippy: use `!collection.is_empty()` not `collection.len() > 0`.
 
 ## FFI Patterns
 
-When adding new bindings:
-1. Add C++ header includes to `carla-sys/src/ffi.rs`
+### Adding New Bindings
+
+1. Add C++ header includes to `carla-sys/src/bindings.rs`
 2. Add `generate!()` declarations in autocxx's block
 3. Add safe Rust wrappers in `carla/src/` modules
 
 When autocxx can't handle a type, create a C++ wrapper in `carla-sys/csrc/carla_rust/`. Debug missing methods with `cargo doc -p carla-sys --no-deps`.
+
+### FFI Exception Safety
+
+All C++ methods that make RPC calls (can throw) are wrapped for exception safety:
+
+**C++ side:** Methods take `FfiError& error` as their last parameter and wrap the body with `ffi_call(error, default_val, [&]() { ... })` or `ffi_call_void(error, [&]() { ... })`. Templates are in `carla-sys/csrc/carla_rust/client/result.hpp`.
+
+**Rust side:** Methods return `crate::Result<T>` and use the `with_ffi_error()` helper from `carla/src/error/ffi.rs`:
+
+```rust
+pub fn weather(&self) -> crate::Result<WeatherParameters> {
+    with_ffi_error("weather", |e| self.inner.GetWeather(e))
+}
+```
+
+**Noexcept methods** (cached data, local pointer casts) do NOT need wrapping — they return values directly without `Result`. Examples: `ActorBase::id()`, `Waypoint::transform()`, `Vehicle::control()`.
+
+When adding a new C++ method:
+- If it makes an RPC call or can throw: add `FfiError& error` as last param, wrap with `ffi_call`/`ffi_call_void`, return `Result<T>` in Rust
+- If it only accesses cached/local data: mark `noexcept` in C++, return bare `T` in Rust
+
+## Error Handling
+
+All public API methods that communicate with the CARLA server return `crate::Result<T>` (alias for `std::result::Result<T, CarlaError>`).
+
+- `CarlaError` hierarchy: `Connection`, `Resource`, `Operation`, `Validation`, `Map`, `Sensor`, `Internal`, `Io`
+- Helper methods: `is_timeout()`, `is_not_found()`, `is_retriable()`, etc.
+- `Client::connect()` returns `Result` (no `Default` impl)
+- See `carla/src/error.rs` for full type definitions
 
 ## Geometry Types
 
