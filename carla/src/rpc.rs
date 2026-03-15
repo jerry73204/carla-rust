@@ -6,6 +6,8 @@ mod environment_object;
 mod episode_settings;
 mod light_id;
 mod map_layer;
+#[cfg(carla_0100)]
+mod texture;
 mod vehicle_failure_state;
 mod vehicle_light_state;
 mod vehicle_light_state_list;
@@ -35,6 +37,8 @@ pub use environment_object::*;
 pub use episode_settings::*;
 pub use light_id::*;
 pub use map_layer::*;
+#[cfg(carla_0100)]
+pub use texture::*;
 pub use vehicle_failure_state::*;
 pub use vehicle_light_state::*;
 pub use vehicle_light_state_list::*;

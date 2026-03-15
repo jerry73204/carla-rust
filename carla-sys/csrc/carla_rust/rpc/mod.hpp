@@ -5,6 +5,7 @@
 #include "environment_object.hpp"
 #include "labelled_point.hpp"
 #include "light_state.hpp"
+#include "texture.hpp"
 #include "vehicle_light_state_list.hpp"
 #include "vehicle_physics_control.hpp"
 #include "vehicle_telemetry_data.hpp"  // Includes stub types for older versions

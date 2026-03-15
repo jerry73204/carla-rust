@@ -125,6 +125,12 @@ include_cpp! {
     // by #ifdef CARLA_VERSION_0916 in C++, and the Rust API is guarded by #[cfg(carla_0916)].
     generate!("carla_rust::rpc::FfiVehicleTelemetryData")
 
+    // NOTE: Texture types are 0.10.0-only, but we provide stub types for older versions
+    // so autocxx can generate bindings without failing. The actual implementation is guarded
+    // by #ifdef CARLA_VERSION_0100 in C++, and the Rust API is guarded by #[cfg(carla_0100)].
+    generate!("carla_rust::rpc::FfiTextureColor")
+    generate!("carla_rust::rpc::FfiTextureFloatColor")
+
     // carla
     generate!("carla::SharedPtr")
     generate!("carla::time_duration")
