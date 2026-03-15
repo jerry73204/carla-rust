@@ -311,6 +311,75 @@ impl LightManager {
         })
     }
 
+    /// Returns a list of lights that are currently turned on in the specified group.
+    pub fn turned_on_lights(&self, group: LightGroup) -> crate::Result<LightList> {
+        let ptr = with_ffi_error("turned_on_lights", |e| {
+            self.inner.GetTurnedOnLights(group, e)
+        })?;
+        Ok(unsafe { LightList::from_cxx(ptr).unwrap_unchecked() })
+    }
+
+    /// Returns a list of lights that are currently turned off in the specified group.
+    pub fn turned_off_lights(&self, group: LightGroup) -> crate::Result<LightList> {
+        let ptr = with_ffi_error("turned_off_lights", |e| {
+            self.inner.GetTurnedOffLights(group, e)
+        })?;
+        Ok(unsafe { LightList::from_cxx(ptr).unwrap_unchecked() })
+    }
+
+    /// Turns on all lights in the list.
+    pub fn turn_on_list(&self, lights: &mut LightList) -> crate::Result<()> {
+        with_ffi_error("turn_on_list", |e| {
+            self.inner.TurnOnList(lights.inner.pin_mut(), e)
+        })
+    }
+
+    /// Turns off all lights in the list.
+    pub fn turn_off_list(&self, lights: &mut LightList) -> crate::Result<()> {
+        with_ffi_error("turn_off_list", |e| {
+            self.inner.TurnOffList(lights.inner.pin_mut(), e)
+        })
+    }
+
+    /// Sets the same color on all lights in the list.
+    pub fn set_color_list(&self, lights: &mut LightList, color: Color) -> crate::Result<()> {
+        with_ffi_error("set_color_list", |e| {
+            self.inner.SetColorList1(lights.inner.pin_mut(), color, e)
+        })
+    }
+
+    /// Sets the same intensity on all lights in the list.
+    pub fn set_intensity_list(&self, lights: &mut LightList, intensity: f32) -> crate::Result<()> {
+        with_ffi_error("set_intensity_list", |e| {
+            self.inner
+                .SetIntensityList1(lights.inner.pin_mut(), intensity, e)
+        })
+    }
+
+    /// Sets the same light state on all lights in the list.
+    pub fn set_light_state_list(
+        &self,
+        lights: &mut LightList,
+        state: LightState,
+    ) -> crate::Result<()> {
+        with_ffi_error("set_light_state_list", |e| {
+            self.inner
+                .SetLightStateList1(lights.inner.pin_mut(), state, e)
+        })
+    }
+
+    /// Sets the same light group on all lights in the list.
+    pub fn set_light_group_list(
+        &self,
+        lights: &mut LightList,
+        group: LightGroup,
+    ) -> crate::Result<()> {
+        with_ffi_error("set_light_group_list", |e| {
+            self.inner
+                .SetLightGroupList1(lights.inner.pin_mut(), group, e)
+        })
+    }
+
     pub fn from_cxx(ptr: SharedPtr<FfiLightManager>) -> Option<Self> {
         if ptr.is_null() {
             return None;

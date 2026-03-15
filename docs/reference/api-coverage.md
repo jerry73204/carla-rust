@@ -528,9 +528,9 @@ These types are used in public method signatures of Client, World, Actor, etc.
 |-------------------------------------------------|-------------|--------|
 | Basic light operations                          | Have        | 0.9.14 |
 | `set_daylight_cycle()`                          | Have        | 0.9.14 |
-| Batch `SetColor/SetIntensity` (multiple values) | **Missing** | 0.9.14 |
-| `GetAllLights(type)` filter by group            | **Missing** | 0.9.14 |
-| `GetTurnedOnLights()` / `GetTurnedOffLights()`  | **Missing** | 0.9.14 |
+| Batch `SetColor/SetIntensity` (multiple values) | Have        | 0.9.14 |
+| `GetAllLights(type)` filter by group            | Have        | 0.9.14 |
+| `GetTurnedOnLights()` / `GetTurnedOffLights()`  | Have        | 0.9.14 |
 
 ---
 

@@ -327,9 +327,14 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Low
 
-- [ ] Batch `SetColor`/`SetIntensity` (multiple values at once)
-- [ ] `GetAllLights(type)` — filter by light group
-- [ ] `GetTurnedOnLights()` / `GetTurnedOffLights()`
+- [x] Batch `SetColor`/`SetIntensity` (multiple values at once)
+  - [x] C++ wrappers already existed (`SetColorList1`, `SetIntensityList1`, etc.)
+  - [x] Added Rust wrappers: `set_color_list()`, `set_intensity_list()`, `set_light_state_list()`, `set_light_group_list()`, `turn_on_list()`, `turn_off_list()`
+- [x] `GetAllLights(type)` — filter by light group
+  - [x] Already implemented as `all_lights(group)` which takes a `LightGroup` parameter
+- [x] `GetTurnedOnLights()` / `GetTurnedOffLights()`
+  - [x] C++ wrappers already existed
+  - [x] Added Rust wrappers: `turned_on_lights(group)`, `turned_off_lights(group)`
 
 ---
 
