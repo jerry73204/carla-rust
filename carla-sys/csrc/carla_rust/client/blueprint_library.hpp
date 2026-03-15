@@ -20,7 +20,17 @@ public:
         return std::make_shared<FfiBlueprintLibrary>(std::move(lib));
     }
 
-    const ActorBlueprint* find(const std::string& key) const { return inner_->Find(key); }
+#ifdef CARLA_VERSION_0915_PLUS
+    std::shared_ptr<FfiBlueprintLibrary> filter_by_attribute(const std::string& name,
+                                                             const std::string& value) const {
+        auto lib = inner_->FilterByAttribute(name, value);
+        return std::make_shared<FfiBlueprintLibrary>(std::move(lib));
+    }
+#endif
+
+    const ActorBlueprint* find(const std::string& key) const {
+        return inner_->Find(key);
+    }
 
     const ActorBlueprint* at(size_t pos) const {
         if (pos >= size()) {
@@ -29,9 +39,13 @@ public:
         return &inner_->at(pos);
     }
 
-    bool is_empty() const { return inner_->empty(); }
+    bool is_empty() const {
+        return inner_->empty();
+    }
 
-    size_t size() const { return inner_->size(); }
+    size_t size() const {
+        return inner_->size();
+    }
 
 private:
     SharedPtr<BlueprintLibrary> inner_;

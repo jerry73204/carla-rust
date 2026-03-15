@@ -516,8 +516,9 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | `len()` / `iter()` / `get()`                                        | Have        | 0.9.14 |
 | `id()` / `type()` / `is_modifiable()` / `value()`                   | Have        | 0.9.14 |
 | `recommended_values()`                                              | Have        | 0.9.14 |
-| `filter_by_attribute()`                                             | **Missing** | 0.9.15 |
-| `as_bool()` / `as_int()` / `as_float()` / `as_str()` / `as_color()` | **Missing** | 0.9.14 |
+| `filter_by_attribute()`                                             | Have        | 0.9.15 |
+| `as_bool()` / `as_int()` / `as_float()` / `as_str()` / `as_color()` | Have        | 0.9.14 |
+| `ActorAttributeType` enum                                           | Have        | 0.9.14 |
 
 ---
 

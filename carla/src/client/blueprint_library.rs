@@ -103,6 +103,23 @@ impl BlueprintLibrary {
         unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 
+    /// Filters blueprints by attribute name and value.
+    ///
+    /// Returns a new library containing only blueprints where the specified
+    /// attribute matches the given value.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - Attribute name to filter by (e.g., `"number_of_wheels"`)
+    /// * `value` - Attribute value to match (e.g., `"4"`)
+    #[cfg(any(carla_version_0915, carla_version_0916, carla_version_0100))]
+    pub fn filter_by_attribute(&self, name: &str, value: &str) -> Self {
+        let_cxx_string!(name = name);
+        let_cxx_string!(value = value);
+        let ptr = self.inner.filter_by_attribute(&name, &value);
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+    }
+
     /// Finds a blueprint by its exact ID.
     ///
     /// # Arguments

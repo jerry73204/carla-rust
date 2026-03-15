@@ -17,9 +17,10 @@ mod walker_bone_control;
 pub use actor_state::*;
 pub use carla_sys::{
     carla::rpc::{
-        AckermannControllerSettings, AttachmentType, CityObjectLabel, GearPhysicsControl,
-        OpendriveGenerationParameters, TrafficLightState, VehicleAckermannControl, VehicleControl,
-        VehicleDoor, VehicleWheelLocation, WalkerControl, WeatherParameters, WheelPhysicsControl,
+        AckermannControllerSettings, ActorAttributeType, AttachmentType, CityObjectLabel,
+        GearPhysicsControl, OpendriveGenerationParameters, TrafficLightState,
+        VehicleAckermannControl, VehicleControl, VehicleDoor, VehicleWheelLocation, WalkerControl,
+        WeatherParameters, WheelPhysicsControl,
     },
     carla_rust::rpc::{
         FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint, FfiRpcLightGroup as LightGroup,

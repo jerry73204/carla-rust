@@ -41,6 +41,51 @@ impl ActorAttributeValue {
     pub fn value_string(&self) -> String {
         self.inner.GetValue().to_string()
     }
+
+    /// Returns the value as a `bool`, or `None` if the attribute type is not `Bool`.
+    pub fn as_bool(&self) -> Option<bool> {
+        if self.type_() == ActorAttributeType::Bool {
+            Some(self.inner.to_bool())
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as an `i32`, or `None` if the attribute type is not `Int`.
+    pub fn as_int(&self) -> Option<c_int> {
+        if self.type_() == ActorAttributeType::Int {
+            Some(self.inner.to_int().0)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as an `f32`, or `None` if the attribute type is not `Float`.
+    pub fn as_float(&self) -> Option<f32> {
+        if self.type_() == ActorAttributeType::Float {
+            Some(self.inner.to_float())
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a `String`, or `None` if the attribute type is not `String`.
+    pub fn as_str(&self) -> Option<String> {
+        if self.type_() == ActorAttributeType::String {
+            Some(self.inner.to_string().to_string())
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a [`Color`], or `None` if the attribute type is not `RGBColor`.
+    pub fn as_color(&self) -> Option<Color> {
+        if self.type_() == ActorAttributeType::RGBColor {
+            Some(self.inner.to_color().into())
+        } else {
+            None
+        }
+    }
 }
 
 /// The typed value of an attribute on an actor.
