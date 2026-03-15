@@ -415,18 +415,18 @@ Currently we use a compatibility shim providing 0.9.x layout for all versions.
 | `SetAutopilot`                 | Have        | 0.9.14 |
 | `SetVehicleLightState`         | Have        | 0.9.14 |
 | `SetTrafficLightState`         | Have        | 0.9.14 |
-| `ApplyWalkerState`             | **Missing** | 0.9.14 |
-| `ApplyTargetVelocity`          | **Missing** | 0.9.14 |
-| `ApplyTargetAngularVelocity`   | **Missing** | 0.9.14 |
-| `ApplyImpulse`                 | **Missing** | 0.9.14 |
-| `ApplyForce`                   | **Missing** | 0.9.14 |
-| `ApplyAngularImpulse`          | **Missing** | 0.9.14 |
-| `ApplyTorque`                  | **Missing** | 0.9.14 |
-| `SetSimulatePhysics`           | **Missing** | 0.9.14 |
-| `SetEnableGravity`             | **Missing** | 0.9.14 |
-| `ShowDebugTelemetry`           | **Missing** | 0.9.14 |
-| `ConsoleCommand`               | **Missing** | 0.9.14 |
-| `SpawnActor.then()` chaining   | **Missing** | 0.9.14 |
+| `ApplyWalkerState`             | Have        | 0.9.14 |
+| `ApplyTargetVelocity`          | Have        | 0.9.14 |
+| `ApplyTargetAngularVelocity`   | Have        | 0.9.14 |
+| `ApplyImpulse`                 | Have        | 0.9.14 |
+| `ApplyForce`                   | Have        | 0.9.14 |
+| `ApplyAngularImpulse`          | Have        | 0.9.14 |
+| `ApplyTorque`                  | Have        | 0.9.14 |
+| `SetSimulatePhysics`           | Have        | 0.9.14 |
+| `SetEnableGravity`             | Have        | 0.9.14 |
+| `ShowDebugTelemetry`           | Have        | 0.9.14 |
+| `ConsoleCommand`               | Have        | 0.9.14 |
+| `SpawnActor.then()` chaining   | Have        | 0.9.14 |
 
 ### Other missing RPC types
 

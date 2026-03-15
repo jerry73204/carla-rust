@@ -342,13 +342,16 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Low
 
-- [ ] `ApplyWalkerState`
-- [ ] `ApplyTargetVelocity` / `ApplyTargetAngularVelocity`
-- [ ] `ApplyImpulse` / `ApplyForce` / `ApplyAngularImpulse` / `ApplyTorque`
-- [ ] `SetSimulatePhysics` / `SetEnableGravity`
-- [ ] `ShowDebugTelemetry`
-- [ ] `ConsoleCommand`
-- [ ] `SpawnActor.then()` chaining
+- [x] `ApplyWalkerState` — already implemented
+- [x] `ApplyTargetVelocity` / `ApplyTargetAngularVelocity` — already implemented
+- [x] `ApplyImpulse` / `ApplyForce` / `ApplyAngularImpulse` / `ApplyTorque` — already implemented
+- [x] `SetSimulatePhysics` / `SetEnableGravity` — already implemented
+- [x] `ShowDebugTelemetry` — already implemented
+- [x] `ConsoleCommand` — already implemented
+- [x] `SpawnActor.then()` chaining
+  - [x] Added `do_after: Vec<Command>` field to `SpawnActor` variant
+  - [x] Added `Command::then()` builder method for chaining
+  - [x] Added C++ `AttachDoAfterToLastSpawn()` with boost::variant2/std compat
 
 ---
 

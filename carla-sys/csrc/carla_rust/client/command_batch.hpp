@@ -161,14 +161,37 @@ public:
             Command::SetTrafficLightState{actor_id, static_cast<TrafficLightState>(state)});
     }
 
+    // Attach accumulated sub-commands to the last SpawnActor's do_after list
+    void AttachDoAfterToLastSpawn(std::unique_ptr<FfiCommandBatch> sub_batch) {
+        if (commands_.empty() || !sub_batch)
+            return;
+#ifdef CARLA_VERSION_0100
+        auto* spawn = std::get_if<Command::SpawnActor>(&commands_.back().command);
+#else
+        auto* spawn = boost::variant2::get_if<Command::SpawnActor>(&commands_.back().command);
+#endif
+        if (spawn) {
+            auto sub_commands = sub_batch->TakeCommands();
+            for (auto& cmd : sub_commands) {
+                spawn->do_after.push_back(std::move(cmd));
+            }
+        }
+    }
+
     // Get the accumulated commands (consumes the batch)
-    std::vector<Command> TakeCommands() { return std::move(commands_); }
+    std::vector<Command> TakeCommands() {
+        return std::move(commands_);
+    }
 
     // Get the number of commands in the batch
-    size_t Size() const { return commands_.size(); }
+    size_t Size() const {
+        return commands_.size();
+    }
 
     // Clear all commands
-    void Clear() { commands_.clear(); }
+    void Clear() {
+        commands_.clear();
+    }
 
 private:
     std::vector<Command> commands_;

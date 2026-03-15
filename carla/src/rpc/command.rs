@@ -69,6 +69,7 @@ pub enum Command {
         blueprint: ActorBlueprint,
         transform: Transform,
         parent: Option<ActorId>,
+        do_after: Vec<Command>,
     },
 
     /// Remove an actor from the simulation.
@@ -190,7 +191,36 @@ impl Command {
             blueprint,
             transform,
             parent,
+            do_after: Vec::new(),
         }
+    }
+
+    /// Chains a command to execute after this spawn completes.
+    ///
+    /// The chained command will use the newly spawned actor's ID automatically.
+    /// Use `actor_id: 0` in the chained command as a placeholder for the future actor.
+    ///
+    /// This is only valid on `SpawnActor` commands; calling it on other variants
+    /// returns `self` unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use carla::rpc::Command;
+    ///
+    /// # let blueprint = todo!();
+    /// # let transform = todo!();
+    /// let cmd = Command::spawn_actor(blueprint, transform, None)
+    ///     .then(Command::set_autopilot(0, true, 8000));
+    /// ```
+    pub fn then(mut self, command: Command) -> Self {
+        if let Self::SpawnActor {
+            ref mut do_after, ..
+        } = self
+        {
+            do_after.push(command);
+        }
+        self
     }
 
     /// Creates a destroy actor command.
@@ -242,6 +272,7 @@ impl Command {
                 blueprint,
                 transform,
                 parent,
+                do_after,
             } => {
                 let desc = blueprint.inner.MakeActorDescription().within_unique_ptr();
                 Batch::AddSpawnActor(
@@ -250,6 +281,14 @@ impl Command {
                     transform.as_ffi(),
                     parent.unwrap_or(0),
                 );
+
+                if !do_after.is_empty() {
+                    let mut sub_batch = FfiCommandBatch::new().within_unique_ptr();
+                    for cmd in do_after {
+                        cmd.add(&mut sub_batch);
+                    }
+                    Batch::AttachDoAfterToLastSpawn(batch.pin_mut(), sub_batch);
+                }
             }
             Self::DestroyActor { actor_id } => {
                 Batch::AddDestroyActor(batch.pin_mut(), *actor_id);
