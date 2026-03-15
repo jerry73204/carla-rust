@@ -11,78 +11,53 @@ versions := "0.9.14 0.9.15 0.9.16 0.10.0"
 @_default:
     just --list
 
-# Build library for all supported CARLA versions
+# Build library for all supported CARLA versions (parallel)
 build:
     #!/usr/bin/env bash
     set -euo pipefail
-    for VERSION in {{ versions }}; do
-        echo "=================================================="
-        echo "Building CARLA ${VERSION}..."
-        echo "=================================================="
-        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
-            cargo build --profile {{ profile }}
-        echo ""
-    done
+    parallel --keep-order --halt now,fail=1 --tag \
+        'CARLA_VERSION={} CARGO_TARGET_DIR=target/carla-{} cargo build --profile {{ profile }}' \
+        ::: {{ versions }}
     echo "All versions built successfully!"
 
-# Build all targets (lib, tests, examples) for all supported CARLA versions
+# Build all targets (lib, tests, examples) for all supported CARLA versions (parallel)
 build-all:
     #!/usr/bin/env bash
     set -euo pipefail
-    for VERSION in {{ versions }}; do
-        echo "=================================================="
-        echo "Building all targets for CARLA ${VERSION}..."
-        echo "=================================================="
-        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
-            cargo build --all-targets --profile {{ profile }}
-        echo ""
-    done
+    parallel --keep-order --halt now,fail=1 --tag \
+        'CARLA_VERSION={} CARGO_TARGET_DIR=target/carla-{} cargo build --all-targets --profile {{ profile }}' \
+        ::: {{ versions }}
     echo "All versions built successfully!"
 
-# Run unit tests for all supported CARLA versions
+# Run unit tests for all supported CARLA versions (parallel)
 test:
     #!/usr/bin/env bash
     set -euo pipefail
-    for VERSION in {{ versions }}; do
-        echo "=================================================="
-        echo "Testing CARLA ${VERSION}..."
-        echo "=================================================="
-        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
-            cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}
-        echo ""
-    done
+    parallel --keep-order --halt now,fail=1 --tag \
+        'CARLA_VERSION={} CARGO_TARGET_DIR=target/carla-{} cargo nextest run --no-tests pass --no-fail-fast --cargo-profile {{ profile }}' \
+        ::: {{ versions }}
     echo "All versions tested successfully!"
 
 # Run Rust and C++ checks for all supported CARLA versions
 check: check-rust check-cpp
 
-# Run Rust checks (fmt + clippy on lib) for all supported CARLA versions
+# Run Rust checks (fmt + clippy on lib) for all supported CARLA versions (parallel)
 check-rust:
     #!/usr/bin/env bash
     set -euo pipefail
     cargo +nightly fmt --check
-    for VERSION in {{ versions }}; do
-        echo "=================================================="
-        echo "Clippy CARLA ${VERSION}..."
-        echo "=================================================="
-        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
-            cargo clippy -- -D warnings
-        echo ""
-    done
+    parallel --keep-order --halt now,fail=1 --tag \
+        'CARLA_VERSION={} CARGO_TARGET_DIR=target/carla-{} cargo clippy -- -D warnings' \
+        ::: {{ versions }}
 
-# Run Rust checks on all targets (lib, tests, examples) for all supported CARLA versions
+# Run Rust checks on all targets (lib, tests, examples) for all supported CARLA versions (parallel)
 check-rust-all:
     #!/usr/bin/env bash
     set -euo pipefail
     cargo +nightly fmt --check
-    for VERSION in {{ versions }}; do
-        echo "=================================================="
-        echo "Clippy all targets CARLA ${VERSION}..."
-        echo "=================================================="
-        CARLA_VERSION="${VERSION}" CARGO_TARGET_DIR="target/carla-${VERSION}" \
-            cargo clippy --all-targets -- -D warnings
-        echo ""
-    done
+    parallel --keep-order --halt now,fail=1 --tag \
+        'CARLA_VERSION={} CARGO_TARGET_DIR=target/carla-{} cargo clippy --all-targets -- -D warnings' \
+        ::: {{ versions }}
 
 # Run C++ checks (format + tidy)
 check-cpp: check-cpp-format check-cpp-tidy
