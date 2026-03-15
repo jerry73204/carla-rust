@@ -295,16 +295,17 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Low
 
-- [ ] `NormalsImage` type
-- [ ] `horizontal_angle` / `channels` properties on LiDAR measurements
-- [ ] GBuffer subscription methods on Sensor
-  - [ ] `listen_to_gbuffer()`
-  - [ ] `is_listening_gbuffer()`
-  - [ ] `stop_gbuffer()`
-- [ ] ROS bridge methods on Sensor — 0.9.15+ only
-  - [ ] `enable_for_ros()`
-  - [ ] `disable_for_ros()`
-  - [ ] `is_enabled_for_ros()`
+- [x] `NormalsImage` type — same C++ type as `Image` (`ImageTmpl<Color>`), already covered
+- [x] `horizontal_angle` / `channels` properties on LiDAR measurements — already implemented
+  - `horizontal_angle()`, `channel_count()`, `point_count(channel)` on both LiDAR types
+- [x] GBuffer query/stop methods on Sensor
+  - [x] `is_listening_gbuffer(id)` — via `ServerSideSensor` dynamic cast
+  - [x] `stop_gbuffer(id)` — via `ServerSideSensor` dynamic cast
+  - [ ] `listen_to_gbuffer(id, callback)` — deferred (requires callback FFI bridge)
+- [x] ROS bridge methods on Sensor — 0.9.15+ only
+  - [x] `enable_for_ros()` — gated with `#[cfg(carla_0915)]`
+  - [x] `disable_for_ros()` — gated with `#[cfg(carla_0915)]`
+  - [x] `is_enabled_for_ros()` — gated with `#[cfg(carla_0915)]`
 
 ---
 

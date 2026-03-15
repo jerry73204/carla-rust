@@ -212,11 +212,11 @@ All methods implemented. 100% coverage.
 | `stop()`                 | Have        | 0.9.14 |
 | `is_listening()`         | Have        | 0.9.14 |
 | `listen_to_gbuffer()`    | **Missing** | 0.9.14 |
-| `is_listening_gbuffer()` | **Missing** | 0.9.14 |
-| `stop_gbuffer()`         | **Missing** | 0.9.14 |
-| `enable_for_ros()`       | **Missing** | 0.9.15 |
-| `disable_for_ros()`      | **Missing** | 0.9.15 |
-| `is_enabled_for_ros()`   | **Missing** | 0.9.15 |
+| `is_listening_gbuffer()` | Have        | 0.9.14 |
+| `stop_gbuffer()`         | Have        | 0.9.14 |
+| `enable_for_ros()`       | Have        | 0.9.15 |
+| `disable_for_ros()`      | Have        | 0.9.15 |
+| `is_enabled_for_ros()`   | Have        | 0.9.15 |
 
 ---
 
@@ -463,8 +463,8 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | `DVSEventArray` / `DVSEvent`                     | Have        | 0.9.14      |
 | `GnssMeasurement`                                | Have        | 0.9.14      |
 | `ImuMeasurement`                                 | Have        | 0.9.14      |
-| `NormalsImage`                                   | **Missing** | 0.9.14      |
-| `horizontal_angle` / `channels` (LiDAR props)    | **Missing** | 0.9.14      |
+| `NormalsImage`                                   | Have        | 0.9.14 (alias for `Image`) |
+| `horizontal_angle` / `channels` (LiDAR props)    | Have        | 0.9.14      |
 | `Image::save_to_disk()`                          | **Missing** | Python-only |
 | `Image::convert()` (ColorConverter)              | **Missing** | Python-only |
 

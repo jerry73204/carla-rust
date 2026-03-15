@@ -170,6 +170,52 @@ impl Sensor {
         })
     }
 
+    /// Returns whether the sensor is listening to a specific GBuffer stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `gbuffer_id` - The GBuffer texture ID to check
+    pub fn is_listening_gbuffer(&self, gbuffer_id: u32) -> crate::Result<bool> {
+        with_ffi_error("is_listening_gbuffer", |e| {
+            self.inner.IsListeningGBuffer(gbuffer_id, e)
+        })
+    }
+
+    /// Stops listening to a specific GBuffer stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `gbuffer_id` - The GBuffer texture ID to stop listening to
+    pub fn stop_gbuffer(&self, gbuffer_id: u32) -> crate::Result<()> {
+        with_ffi_error("stop_gbuffer", |e| {
+            self.inner.StopGBuffer(gbuffer_id, e);
+        })
+    }
+
+    /// Enables this sensor for ROS2 publishing.
+    ///
+    /// When enabled, the sensor's data will be published to ROS2 topics.
+    #[cfg(carla_0915)]
+    pub fn enable_for_ros(&self) -> crate::Result<()> {
+        with_ffi_error("enable_for_ros", |e| {
+            self.inner.EnableForROS(e);
+        })
+    }
+
+    /// Disables this sensor for ROS2 publishing.
+    #[cfg(carla_0915)]
+    pub fn disable_for_ros(&self) -> crate::Result<()> {
+        with_ffi_error("disable_for_ros", |e| {
+            self.inner.DisableForROS(e);
+        })
+    }
+
+    /// Returns whether this sensor is currently enabled for ROS2 publishing.
+    #[cfg(carla_0915)]
+    pub fn is_enabled_for_ros(&self) -> crate::Result<bool> {
+        with_ffi_error("is_enabled_for_ros", |e| self.inner.IsEnabledForROS(e))
+    }
+
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiSensor>) -> Option<Self> {
         if ptr.is_null() {
             None
