@@ -13,6 +13,7 @@ mod vehicle_physics_control;
 #[cfg(carla_version_0916)]
 mod vehicle_telemetry_data;
 mod walker_bone_control;
+pub mod weather;
 
 pub use actor_state::*;
 pub use carla_sys::{

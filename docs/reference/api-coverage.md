@@ -393,7 +393,7 @@ Currently we use a compatibility shim providing 0.9.x layout for all versions.
 | Feature                                         | Status      | Since  |
 |-------------------------------------------------|-------------|--------|
 | All 14 fields                                   | Have        | 0.9.14 |
-| Static presets (23: ClearNoon, DustStorm, etc.) | **Missing** | 0.9.14 |
+| Static presets (23: ClearNoon, DustStorm, etc.) | Have        | 0.9.14 |
 
 ### `OpendriveGenerationParameters`
 

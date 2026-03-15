@@ -359,26 +359,9 @@ Most World methods were already implemented. Items below reflect current status.
 
 **Priority:** Low — pure Rust, no FFI needed.
 
-- [ ] `ClearNoon`
-- [ ] `CloudyNoon`
-- [ ] `WetNoon`
-- [ ] `WetCloudyNoon`
-- [ ] `SoftRainNoon`
-- [ ] `MidRainNoon`
-- [ ] `HardRainNoon`
-- [ ] `ClearSunset`
-- [ ] `CloudySunset`
-- [ ] `WetSunset`
-- [ ] `WetCloudySunset`
-- [ ] `SoftRainSunset`
-- [ ] `MidRainSunset`
-- [ ] `HardRainSunset`
-- [ ] `ClearNight`
-- [ ] `CloudyNight`
-- [ ] `WetNight`
-- [ ] `WetCloudyNight`
-- [ ] `SoftRainNight`
-- [ ] `MidRainNight`
-- [ ] `HardRainNight`
-- [ ] `DustStorm`
-- [ ] `Fog`
+- [x] All 23 presets implemented as constants in `rpc::weather` module
+  - [x] Noon: `CLEAR_NOON`, `CLOUDY_NOON`, `WET_NOON`, `WET_CLOUDY_NOON`, `SOFT_RAIN_NOON`, `MID_RAIN_NOON`, `HARD_RAIN_NOON`
+  - [x] Sunset: `CLEAR_SUNSET`, `CLOUDY_SUNSET`, `WET_SUNSET`, `WET_CLOUDY_SUNSET`, `SOFT_RAIN_SUNSET`, `MID_RAIN_SUNSET`, `HARD_RAIN_SUNSET`
+  - [x] Night: `CLEAR_NIGHT`, `CLOUDY_NIGHT`, `WET_NIGHT`, `WET_CLOUDY_NIGHT`, `SOFT_RAIN_NIGHT`, `MID_RAIN_NIGHT`, `HARD_RAIN_NIGHT`
+  - [x] Special: `DUST_STORM`, `DEFAULT`
+  - Note: `Fog` was listed in roadmap but doesn't exist as a CARLA preset
