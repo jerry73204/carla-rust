@@ -431,7 +431,7 @@ impl BehaviorAgent {
         if walker_found {
             // Distance is computed from center to center,
             // we use bounding boxes to calculate the actual distance
-            let vehicle_bbox = self.core.vehicle.bounding_box();
+            let vehicle_bbox = self.core.vehicle.bounding_box()?;
 
             // Get maximum extent (approximate radius) for ego vehicle
             let vehicle_radius = vehicle_bbox.extent.x.max(vehicle_bbox.extent.y);
@@ -464,12 +464,12 @@ impl BehaviorAgent {
         if vehicle_found {
             // Distance is computed from center to center,
             // we use bounding boxes to calculate the actual distance
-            let ego_bbox = self.core.vehicle.bounding_box();
+            let ego_bbox = self.core.vehicle.bounding_box()?;
 
             // Get the obstacle vehicle and its bounding box
             let vehicle_actor = self.core.world.actor(vehicle_id.unwrap())?.unwrap();
             let obstacle_bbox = if let Ok(vehicle) = Vehicle::try_from(vehicle_actor) {
-                vehicle.bounding_box()
+                vehicle.bounding_box()?
             } else {
                 // If not a vehicle (shouldn't happen in vehicle detection), use default bbox
                 ego_bbox.clone()

@@ -868,7 +868,7 @@ impl World {
     /// # }
     /// ```
     pub fn wait_for_tick(&self) -> Result<WorldSnapshot> {
-        self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)
+        self.wait_for_tick_or_timeout(DEFAULT_TICK_TIMEOUT)?
             .ok_or_else(|| {
                 crate::error::ConnectionError::Timeout {
                     operation: "wait_for_tick".to_string(),
@@ -890,11 +890,13 @@ impl World {
 
     /// Waits for the next tick with a custom timeout.
     ///
-    /// Returns `None` if the timeout expires.
-    #[must_use]
-    pub fn wait_for_tick_or_timeout(&self, timeout: Duration) -> Option<WorldSnapshot> {
-        let ptr = self.inner.WaitForTick(timeout.as_millis() as usize);
-        WorldSnapshot::from_cxx(ptr)
+    /// Returns `Ok(None)` if the timeout expires (expected behavior).
+    /// Returns `Err` if the server is disconnected or another error occurs.
+    pub fn wait_for_tick_or_timeout(&self, timeout: Duration) -> Result<Option<WorldSnapshot>> {
+        with_ffi_error("wait_for_tick", |error| {
+            let ptr = self.inner.WaitForTick(timeout.as_millis() as usize, error);
+            WorldSnapshot::from_cxx(ptr)
+        })
     }
 
     /// Advances the simulation by one tick (synchronous mode only).

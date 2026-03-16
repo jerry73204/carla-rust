@@ -559,7 +559,7 @@ impl AgentCore {
 
             // Try to cast to Vehicle to get bounding box
             if let Ok(other_vehicle) = crate::client::Vehicle::try_from(actor.clone()) {
-                let bbox = other_vehicle.bounding_box();
+                let bbox = other_vehicle.bounding_box()?;
 
                 // Build bounding box polygon in world coordinates
                 let bbox_transform = other_transform;

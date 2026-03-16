@@ -94,7 +94,9 @@ public:
         return ffi_call(error, 0.0f, [&]() { return inner_->GetWheelSteerAngle(wheel_location); });
     }
 
-    VehicleControl GetControl() const { return inner_->GetControl(); }
+    VehicleControl GetControl(FfiError& error) const {
+        return ffi_call(error, VehicleControl(), [&]() { return inner_->GetControl(); });
+    }
 
     std::unique_ptr<FfiVehiclePhysicsControl> GetPhysicsControl(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiVehiclePhysicsControl>(nullptr), [&]() {
@@ -103,19 +105,34 @@ public:
         });
     }
 
-    VehicleLightState::LightState GetLightState() const { return inner_->GetLightState(); }
+    VehicleLightState::LightState GetLightState(FfiError& error) const {
+        return ffi_call(error, VehicleLightState::LightState(),
+                        [&]() { return inner_->GetLightState(); });
+    }
 
-    float GetSpeedLimit() const { return inner_->GetSpeedLimit(); }
+    float GetSpeedLimit(FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetSpeedLimit(); });
+    }
 
-    TrafficLightState GetTrafficLightState() const { return inner_->GetTrafficLightState(); }
+    TrafficLightState GetTrafficLightState(FfiError& error) const {
+        return ffi_call(error, TrafficLightState(),
+                        [&]() { return inner_->GetTrafficLightState(); });
+    }
 
-    bool IsAtTrafficLight() const { return inner_->IsAtTrafficLight(); }
+    bool IsAtTrafficLight(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsAtTrafficLight(); });
+    }
 
-    carla::rpc::VehicleFailureState GetFailureState() const { return inner_->GetFailureState(); }
+    carla::rpc::VehicleFailureState GetFailureState(FfiError& error) const {
+        return ffi_call(error, carla::rpc::VehicleFailureState(),
+                        [&]() { return inner_->GetFailureState(); });
+    }
 
-    FfiBoundingBox GetBoundingBox() const {
-        auto orig = inner_->GetBoundingBox();
-        return FfiBoundingBox(std::move(orig));
+    std::unique_ptr<FfiBoundingBox> GetBoundingBox(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiBoundingBox>(nullptr), [&]() {
+            auto orig = inner_->GetBoundingBox();
+            return std::make_unique<FfiBoundingBox>(std::move(orig));
+        });
     }
 
     std::shared_ptr<FfiTrafficLight> GetTrafficLight(FfiError& error) const {

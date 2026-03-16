@@ -154,11 +154,21 @@ public:
         }
     }
 
-    std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis) const {
+    std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis, FfiError& error) const {
+        error.clear();
         try {
             auto snapshot = inner_.WaitForTick(time_duration::milliseconds(millis));
             return std::make_unique<FfiWorldSnapshot>(std::move(snapshot));
-        } catch (TimeoutException& e) {
+        } catch (const TimeoutException&) {
+            // Timeout is expected behavior (returns None), not an error
+            return nullptr;
+        } catch (const std::exception& e) {
+            auto ek = carla_rust::error::classify_exception(e);
+            error.set(static_cast<int32_t>(ek), e.what());
+            return nullptr;
+        } catch (...) {
+            error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Unknown),
+                      "Unknown C++ exception");
             return nullptr;
         }
     }

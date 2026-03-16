@@ -60,7 +60,7 @@ use static_assertions::assert_impl_all;
 /// let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
 ///
 /// // Control the vehicle
-/// let mut control = vehicle.control();
+/// let mut control = vehicle.control()?;
 /// control.throttle = 0.7;
 /// control.steer = -0.3;
 /// vehicle.apply_control(&control)?;
@@ -193,7 +193,7 @@ impl Vehicle {
     /// # let spawn_points = world.map()?.recommended_spawn_points();
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
-    /// let mut control = vehicle.control();
+    /// let mut control = vehicle.control()?;
     /// control.throttle = 1.0; // Full throttle
     /// control.steer = 0.5; // Steer right
     /// control.brake = 0.0; // No braking
@@ -224,8 +224,8 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn control(&self) -> VehicleControl {
-        self.inner.GetControl()
+    pub fn control(&self) -> crate::Result<VehicleControl> {
+        with_ffi_error("get_control", |error| self.inner.GetControl(error))
     }
 
     /// Applies physics control parameters (mass, drag, torque curve, etc.).
@@ -520,16 +520,16 @@ impl Vehicle {
     /// # let spawn_points = world.map()?.recommended_spawn_points();
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
-    /// let lights = vehicle.light_state();
+    /// let lights = vehicle.light_state()?;
     /// if lights.contains(VehicleLightState::LOW_BEAM) {
     ///     println!("Low beams are on");
     /// }
     /// # Ok(())
     /// # }
     /// ```
-    pub fn light_state(&self) -> VehicleLightState {
-        let ffi_state = self.inner.GetLightState();
-        VehicleLightState::from_ffi(&ffi_state)
+    pub fn light_state(&self) -> crate::Result<VehicleLightState> {
+        let ffi_state = with_ffi_error("get_light_state", |e| self.inner.GetLightState(e))?;
+        Ok(VehicleLightState::from_ffi(&ffi_state))
     }
 
     /// Returns the state of the traffic light affecting this vehicle.
@@ -549,8 +549,10 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn traffic_light_state(&self) -> TrafficLightState {
-        self.inner.GetTrafficLightState()
+    pub fn traffic_light_state(&self) -> crate::Result<TrafficLightState> {
+        with_ffi_error("get_traffic_light_state", |e| {
+            self.inner.GetTrafficLightState(e)
+        })
     }
 
     /// Returns whether the vehicle is currently at a traffic light.
@@ -570,8 +572,8 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_at_traffic_light(&self) -> bool {
-        self.inner.IsAtTrafficLight()
+    pub fn is_at_traffic_light(&self) -> crate::Result<bool> {
+        with_ffi_error("is_at_traffic_light", |e| self.inner.IsAtTrafficLight(e))
     }
 
     /// Returns the traffic light affecting this vehicle, if any.
@@ -606,8 +608,8 @@ impl Vehicle {
     /// # Returns
     ///
     /// The failure state (None, Rollover, Engine, or TirePuncture)
-    pub fn failure_state(&self) -> VehicleFailureState {
-        self.inner.GetFailureState()
+    pub fn failure_state(&self) -> crate::Result<VehicleFailureState> {
+        with_ffi_error("get_failure_state", |e| self.inner.GetFailureState(e))
     }
 
     /// Returns the bounding box of the vehicle.
@@ -642,13 +644,13 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, 0);
     /// # let world = client.world();
     /// # let vehicle: Vehicle = unimplemented!();
-    /// let bbox = vehicle.bounding_box();
+    /// let bbox = vehicle.bounding_box()?;
     /// println!("Extent: {:?}", bbox.extent);
     /// println!("Center: {:?}", bbox.transform.translation);
     /// ```
-    pub fn bounding_box(&self) -> BoundingBox {
-        let bbox = self.inner.GetBoundingBox();
-        BoundingBox::from_native(&bbox)
+    pub fn bounding_box(&self) -> crate::Result<BoundingBox> {
+        let bbox_ptr = with_ffi_error("get_bounding_box", |e| self.inner.GetBoundingBox(e))?;
+        Ok(BoundingBox::from_native(&bbox_ptr))
     }
 
     /// Returns detailed vehicle telemetry data including wheel physics.

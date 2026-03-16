@@ -34,9 +34,9 @@
 //! # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
 //!
 //! // Control a vehicle
-//! let mut control = vehicle.control();
+//! let mut control = vehicle.control()?;
 //! control.throttle = 0.5;
-//! vehicle.apply_control(&control);
+//! vehicle.apply_control(&control)?;
 //! ```
 //!
 //! # Core Concepts
@@ -133,10 +133,10 @@
 //! # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
 //!
 //! // Apply vehicle control
-//! let mut control = vehicle.control();
+//! let mut control = vehicle.control()?;
 //! control.throttle = 1.0;
 //! control.steer = -0.5;
-//! vehicle.apply_control(&control);
+//! vehicle.apply_control(&control)?;
 //! ```
 //!
 //! ## Attaching a Camera Sensor
