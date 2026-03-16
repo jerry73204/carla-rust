@@ -157,10 +157,10 @@ impl Hud {
         }
 
         // Get map name
-        if self.map_name.is_empty() {
-            if let Ok(map) = world.world.map() {
-                self.map_name = map.name();
-            }
+        if self.map_name.is_empty()
+            && let Ok(map) = world.world.map()
+        {
+            self.map_name = map.name();
         }
 
         // ✅ Subphase 12.5.3: Update collision sensor frame count

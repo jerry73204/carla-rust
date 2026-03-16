@@ -129,6 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::process::exit(0);
 }
 
+#[allow(clippy::type_complexity)]
 fn setup_scenario(
     world: &mut carla::client::World,
 ) -> Result<(Vehicle, Vec<Sensor>, Arc<SensorStats>), Box<dyn std::error::Error>> {

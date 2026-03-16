@@ -89,13 +89,13 @@ fn test_environment_objects(world: &carla::client::World) {
 
         if !ids_to_toggle.is_empty() {
             println!("  Disabling {} objects...", ids_to_toggle.len());
-            let _ = world
+            world
                 .enable_environment_objects(&ids_to_toggle, false)
                 .expect("API call failed");
             std::thread::sleep(Duration::from_millis(500));
 
             println!("  Re-enabling objects...");
-            let _ = world
+            world
                 .enable_environment_objects(&ids_to_toggle, true)
                 .expect("API call failed");
             println!("✓ Successfully toggled environment objects");
@@ -140,7 +140,7 @@ fn test_weather_changes(world: &mut carla::client::World) {
     rainy_weather.precipitation = 80.0;
     rainy_weather.precipitation_deposits = 50.0;
     rainy_weather.wetness = 80.0;
-    let _ = world.set_weather(&rainy_weather).expect("API call failed");
+    world.set_weather(&rainy_weather).expect("API call failed");
     std::thread::sleep(Duration::from_millis(500));
 
     let current_weather = world.weather().expect("weather");
@@ -161,7 +161,7 @@ fn test_weather_changes(world: &mut carla::client::World) {
     sunny_weather.precipitation = 0.0;
     sunny_weather.wetness = 0.0;
     sunny_weather.sun_altitude_angle = 45.0;
-    let _ = world.set_weather(&sunny_weather).expect("API call failed");
+    world.set_weather(&sunny_weather).expect("API call failed");
     std::thread::sleep(Duration::from_millis(500));
 
     let current_weather = world.weather().expect("weather");
@@ -177,7 +177,7 @@ fn test_weather_changes(world: &mut carla::client::World) {
 
     // Test 4: Restore original weather
     println!("\n  Restoring original weather...");
-    let _ = world
+    world
         .set_weather(&original_weather)
         .expect("API call failed");
     println!("✓ Weather restored");

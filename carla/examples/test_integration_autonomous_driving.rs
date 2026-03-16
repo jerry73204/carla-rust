@@ -84,6 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::process::exit(0);
 }
 
+#[allow(clippy::type_complexity)]
 fn setup_autonomous_vehicle(
     world: &mut carla::client::World,
 ) -> Result<(Vehicle, Vec<Sensor>, Arc<DriveStats>), Box<dyn std::error::Error>> {
