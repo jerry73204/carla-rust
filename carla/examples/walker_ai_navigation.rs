@@ -32,19 +32,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find walker blueprint
     let walker_bp = blueprint_library
-        .filter("walker.pedestrian.*")
-        .get(0)
+        .filter("walker.pedestrian.*")?
+        .get(0)?
         .expect("No walker blueprints found");
     println!("✓ Walker blueprint: {}", walker_bp.id());
 
     // Find AI controller blueprint
     let ai_controller_bp = blueprint_library
-        .find("controller.ai.walker")
+        .find("controller.ai.walker")?
         .expect("AI walker controller blueprint not found");
     println!("✓ AI controller blueprint: {}", ai_controller_bp.id());
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     if spawn_points.is_empty() {
         eprintln!("✗ No spawn points available");
         std::process::exit(1);

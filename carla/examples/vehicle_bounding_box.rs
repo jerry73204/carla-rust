@@ -21,7 +21,7 @@ fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.is_empty() {
         return Err(anyhow::anyhow!("Need at least 1 spawn point"));
@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     // Spawn a vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
@@ -44,7 +44,7 @@ fn main() -> Result<()> {
 
     // Query bounding box
     println!("\nQuerying vehicle bounding box...");
-    let bbox = vehicle.bounding_box();
+    let bbox = vehicle.bounding_box()?;
 
     println!("\nBounding Box Information:");
     println!("  Extent (half-dimensions):");

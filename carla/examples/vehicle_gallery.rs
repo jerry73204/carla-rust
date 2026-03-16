@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Found {} vehicle blueprints\n", vehicle_blueprints.len());
 
     // Get spawn point
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Get spectator for camera control

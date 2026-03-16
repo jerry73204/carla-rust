@@ -25,7 +25,7 @@ fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.len() < 2 {
         return Err(anyhow::anyhow!("Need at least 2 spawn points"));
@@ -34,12 +34,14 @@ fn main() -> Result<()> {
     // Spawn a vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
 
-    let spawn_point = &spawn_points.as_slice()[0];
+    let spawn_point = spawn_points
+        .get(0)
+        .ok_or(anyhow::anyhow!("No spawn points"))?;
     let vehicle = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = carla::client::Vehicle::try_from(vehicle)
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
@@ -77,9 +79,10 @@ fn main() -> Result<()> {
     let mut agent = BehaviorAgent::new(vehicle.clone(), config, None, None)?;
 
     // Set destination
-    let dest_transform = &spawn_points.as_slice()[1];
-    let dest_isometry = dest_transform.to_na();
-    let destination = carla::geom::Location::from_na_translation(&dest_isometry.translation);
+    let destination = spawn_points
+        .get(1)
+        .ok_or(anyhow::anyhow!("Need at least 2 spawn points"))?
+        .location;
 
     agent.set_destination(destination, None, true)?;
 

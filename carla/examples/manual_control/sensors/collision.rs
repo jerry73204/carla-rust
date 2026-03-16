@@ -95,7 +95,7 @@ impl CollisionSensor {
                 let frame = *frame_count_clone.lock().unwrap();
 
                 // Log collision
-                let other_actor = collision_event.other_actor();
+                let other_actor = collision_event.other_actor().ok().flatten();
                 if let Some(other) = other_actor {
                     warn!(
                         "Collision with actor ID {} (intensity: {:.1})",

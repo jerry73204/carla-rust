@@ -144,7 +144,7 @@ impl CameraManager {
     fn new(world: &mut CarlaWorld) -> anyhow::Result<Self> {
         let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
         let mut camera_bp = camera_bp;
@@ -154,7 +154,7 @@ impl CameraManager {
         let _ = camera_bp.set_attribute("fov", &fov.to_string());
 
         // Spawn camera at a good vantage point
-        let spawn_points = world.map()?.recommended_spawn_points();
+        let spawn_points = world.map()?.recommended_spawn_points()?;
         let spawn_point = spawn_points
             .get(0)
             .ok_or_else(|| anyhow::anyhow!("No spawn points available"))?;
@@ -267,13 +267,13 @@ impl SkeletonVisualizer {
 
     fn spawn_walkers(world: &mut CarlaWorld) -> anyhow::Result<Vec<WalkerInfo>> {
         let blueprint_library = world.blueprint_library()?;
-        let walker_blueprints = blueprint_library.filter("walker.pedestrian.*");
+        let walker_blueprints = blueprint_library.filter("walker.pedestrian.*")?;
 
         if walker_blueprints.is_empty() {
             return Err(anyhow::anyhow!("No walker blueprints found"));
         }
 
-        let spawn_points = world.map()?.recommended_spawn_points();
+        let spawn_points = world.map()?.recommended_spawn_points()?;
         if spawn_points.is_empty() {
             return Err(anyhow::anyhow!("No spawn points available"));
         }
@@ -308,7 +308,7 @@ impl SkeletonVisualizer {
                     if let Ok(walker) = Walker::try_from(actor.clone()) {
                         // Enable AI control - spawn controller attached to walker
                         let ai_bp = blueprint_library
-                            .find("controller.ai.walker")
+                            .find("controller.ai.walker")?
                             .ok_or_else(|| anyhow::anyhow!("AI controller blueprint not found"))?;
 
                         // Spawn controller attached to walker
@@ -404,10 +404,10 @@ impl SkeletonVisualizer {
                 .walkers
                 .iter()
                 .enumerate()
-                .map(|(idx, walker_info)| {
-                    let bone_transforms = walker_info.walker.get_bones_transform();
+                .filter_map(|(idx, walker_info)| {
+                    let bone_transforms = walker_info.walker.get_bones_transform().ok()?;
                     let is_selected = idx == self.selected_walker_idx;
-                    (bone_transforms, walker_info.color, is_selected)
+                    Some((bone_transforms, walker_info.color, is_selected))
                 })
                 .collect();
 
@@ -520,7 +520,7 @@ impl SkeletonVisualizer {
                 bone_positions.get(*bone1_name),
                 bone_positions.get(*bone2_name),
             ) {
-                self.world.debug().unwrap().draw_line(
+                let _ = self.world.debug().unwrap().draw_line(
                     pos1,
                     pos2,
                     0.02, // thickness
@@ -533,7 +533,7 @@ impl SkeletonVisualizer {
 
         // Draw spheres at joints
         for bone in &bone_transforms.bone_transforms {
-            self.world.debug().unwrap().draw_point(
+            let _ = self.world.debug().unwrap().draw_point(
                 bone.world.location,
                 0.03, // size
                 carla_color,

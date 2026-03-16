@@ -170,14 +170,15 @@ impl Hud {
 
         // ✅ Subphase 12.6.1: Get vehicle control state
         if let Some(ref player) = world.player {
-            let control = player.control();
-            self.throttle = control.throttle;
-            self.steer = control.steer;
-            self.brake = control.brake;
-            self.hand_brake = control.hand_brake;
-            self.reverse = control.reverse;
-            self.gear = control.gear;
-            self.manual_gear_shift = control.manual_gear_shift;
+            if let Ok(control) = player.control() {
+                self.throttle = control.throttle;
+                self.steer = control.steer;
+                self.brake = control.brake;
+                self.hand_brake = control.hand_brake;
+                self.reverse = control.reverse;
+                self.gear = control.gear;
+                self.manual_gear_shift = control.manual_gear_shift;
+            }
         }
 
         // ✅ Subphase 12.6.2: Calculate nearby vehicles

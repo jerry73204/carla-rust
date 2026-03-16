@@ -11,7 +11,6 @@ use anyhow::Result;
 use carla::{
     agents::navigation::{ConstantVelocityAgent, ConstantVelocityAgentConfig},
     client::{ActorBase, Client},
-    geom::Location,
 };
 
 fn main() -> Result<()> {
@@ -25,7 +24,7 @@ fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.len() < 2 {
         return Err(anyhow::anyhow!("Need at least 2 spawn points"));
@@ -34,18 +33,21 @@ fn main() -> Result<()> {
     // Spawn a vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.tesla.model3")
+        .filter("vehicle.tesla.model3")?
         .iter()
         .next()
         .unwrap_or_else(|| {
             blueprint_library
                 .filter("vehicle.*")
+                .expect("Failed to filter blueprints")
                 .iter()
                 .next()
                 .expect("No vehicle blueprints found")
         });
 
-    let spawn_point = &spawn_points.as_slice()[0];
+    let spawn_point = spawn_points
+        .get(0)
+        .ok_or(anyhow::anyhow!("No spawn points"))?;
     let vehicle = world.spawn_actor(&vehicle_bp, spawn_point)?;
     let vehicle = carla::client::Vehicle::try_from(vehicle)
         .map_err(|_| anyhow::anyhow!("Failed to cast to Vehicle"))?;
@@ -62,8 +64,10 @@ fn main() -> Result<()> {
     let mut agent = ConstantVelocityAgent::new(vehicle.clone(), config, None, None)?;
 
     // Set destination to second spawn point
-    let destination_isometry = &spawn_points.as_slice()[1].to_na();
-    let destination = Location::from_na_translation(&destination_isometry.translation);
+    let destination = spawn_points
+        .get(1)
+        .ok_or(anyhow::anyhow!("Need at least 2 spawn points"))?
+        .location;
 
     println!(
         "Setting destination: ({:.1}, {:.1}, {:.1})",

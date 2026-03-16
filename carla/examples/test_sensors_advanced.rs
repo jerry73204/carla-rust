@@ -140,7 +140,7 @@ fn test_dvs_event_creation(world: &mut carla::client::World) -> TestResult {
     // Test creating a DVS camera sensor
     let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
-        .find("sensor.camera.dvs")
+        .find("sensor.camera.dvs")?
         .ok_or("DVS camera blueprint not found")?;
 
     println!("  DVS blueprint ID: {}", dvs_bp.id());
@@ -165,7 +165,7 @@ fn test_dvs_camera_events(world: &mut carla::client::World) -> TestResult {
     // Spawn DVS camera and capture events
     let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
-        .find("sensor.camera.dvs")
+        .find("sensor.camera.dvs")?
         .ok_or("DVS camera blueprint not found")?;
 
     let spawn_point = Transform {
@@ -216,7 +216,7 @@ fn test_dvs_event_stream(world: &mut carla::client::World) -> TestResult {
     // Test continuous DVS event streaming
     let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
-        .find("sensor.camera.dvs")
+        .find("sensor.camera.dvs")?
         .ok_or("DVS camera blueprint not found")?;
 
     let spawn_point = Transform {
@@ -258,7 +258,7 @@ fn test_dvs_high_frequency(world: &mut carla::client::World) -> TestResult {
     // Test DVS high-frequency event capture
     let blueprint_library = world.blueprint_library()?;
     let dvs_bp = blueprint_library
-        .find("sensor.camera.dvs")
+        .find("sensor.camera.dvs")?
         .ok_or("DVS camera blueprint not found")?;
 
     // Configure for high frequency (attributes may exist in blueprint)
@@ -285,7 +285,7 @@ fn test_optical_flow_capture(world: &mut carla::client::World) -> TestResult {
     // Test optical flow camera capture
     let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
-        .find("sensor.camera.optical_flow")
+        .find("sensor.camera.optical_flow")?
         .ok_or("Optical flow camera blueprint not found")?;
 
     println!("  Optical flow blueprint ID: {}", of_bp.id());
@@ -340,7 +340,7 @@ fn test_optical_flow_visualization(world: &mut carla::client::World) -> TestResu
     // Test optical flow data for visualization
     let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
-        .find("sensor.camera.optical_flow")
+        .find("sensor.camera.optical_flow")?
         .ok_or("Optical flow camera blueprint not found")?;
 
     let spawn_point = Transform {
@@ -383,15 +383,15 @@ fn test_optical_flow_motion(world: &mut carla::client::World) -> TestResult {
     // Test optical flow captures motion
     let blueprint_library = world.blueprint_library()?;
     let of_bp = blueprint_library
-        .find("sensor.camera.optical_flow")
+        .find("sensor.camera.optical_flow")?
         .ok_or("Optical flow camera blueprint not found")?;
 
     // Spawn on a vehicle to ensure motion
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let vehicle_actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
@@ -447,7 +447,7 @@ fn test_normals_sensor_capture(world: &mut carla::client::World) -> TestResult {
 
     // Try to find depth camera as proxy for testing similar advanced rendering
     let depth_bp = blueprint_library
-        .find("sensor.camera.depth")
+        .find("sensor.camera.depth")?
         .ok_or("Depth camera blueprint not found")?;
 
     println!("  Testing with depth camera as normals proxy");
@@ -496,7 +496,7 @@ fn test_normals_world_space(world: &mut carla::client::World) -> TestResult {
 
     let blueprint_library = world.blueprint_library()?;
     let depth_bp = blueprint_library
-        .find("sensor.camera.depth")
+        .find("sensor.camera.depth")?
         .ok_or("Depth camera blueprint not found")?;
 
     let spawn_point = Transform {
@@ -541,12 +541,12 @@ fn test_sensor_synchronization_advanced(world: &mut carla::client::World) -> Tes
 
     // Spawn RGB camera
     let rgb_bp = blueprint_library
-        .find("sensor.camera.rgb")
+        .find("sensor.camera.rgb")?
         .ok_or("RGB camera blueprint not found")?;
 
     // Spawn optical flow camera
     let of_bp = blueprint_library
-        .find("sensor.camera.optical_flow")
+        .find("sensor.camera.optical_flow")?
         .ok_or("Optical flow camera blueprint not found")?;
 
     let spawn_point = Transform {

@@ -121,12 +121,14 @@ fn setup_scenario(world: &mut carla::client::World) {
         .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
+        .expect("Failed to query blueprint")
         .expect("Vehicle blueprint not found");
 
     let spawn_points = world
         .map()
         .expect("Failed to get map")
-        .recommended_spawn_points();
+        .recommended_spawn_points()
+        .expect("Failed to get spawn points");
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let _vehicle = world
@@ -214,7 +216,7 @@ fn test_debug_draw_point(world: &mut carla::client::World) -> TestResult {
     let location = Location::new(0.0, 0.0, 1.0);
 
     // Draw a point and verify it doesn't panic
-    debug.draw_point(location, 0.5, Color::RED, 2.0, false);
+    debug.draw_point(location, 0.5, Color::RED, 2.0, false)?;
 
     // Give server time to process
     std::thread::sleep(Duration::from_millis(100));
@@ -227,7 +229,7 @@ fn test_debug_draw_line(world: &mut carla::client::World) -> TestResult {
     let end = Location::new(10.0, 0.0, 1.0);
 
     // Draw a line
-    debug.draw_line(begin, end, 0.1, Color::GREEN, 2.0, false);
+    debug.draw_line(begin, end, 0.1, Color::GREEN, 2.0, false)?;
 
     std::thread::sleep(Duration::from_millis(100));
     Ok(())
@@ -239,7 +241,7 @@ fn test_debug_draw_arrow(world: &mut carla::client::World) -> TestResult {
     let end = Location::new(0.0, 0.0, 5.0);
 
     // Draw an arrow pointing up
-    debug.draw_arrow(begin, end, 0.1, 0.2, Color::BLUE, 2.0, false);
+    debug.draw_arrow(begin, end, 0.1, 0.2, Color::BLUE, 2.0, false)?;
 
     std::thread::sleep(Duration::from_millis(100));
     Ok(())
@@ -251,7 +253,7 @@ fn test_debug_draw_box(world: &mut carla::client::World) -> TestResult {
     let rotation = Rotation::new(0.0, 45.0, 0.0);
 
     // Draw a bounding box
-    debug.draw_box(&bbox, rotation, 0.1, Color::YELLOW, 2.0, false);
+    debug.draw_box(&bbox, rotation, 0.1, Color::YELLOW, 2.0, false)?;
 
     std::thread::sleep(Duration::from_millis(100));
     Ok(())
@@ -262,7 +264,7 @@ fn test_debug_draw_string(world: &mut carla::client::World) -> TestResult {
     let location = Location::new(0.0, 0.0, 5.0);
 
     // Draw text label
-    debug.draw_string(location, "Test Label", true, Color::WHITE, 2.0, false);
+    debug.draw_string(location, "Test Label", true, Color::WHITE, 2.0, false)?;
 
     std::thread::sleep(Duration::from_millis(100));
     Ok(())
@@ -273,7 +275,7 @@ fn test_debug_shapes_lifetime(world: &mut carla::client::World) -> TestResult {
     let location = Location::new(5.0, 0.0, 1.0);
 
     // Draw a shape with short lifetime (0.5 seconds)
-    debug.draw_point(location, 1.0, Color::MAGENTA, 0.5, false);
+    debug.draw_point(location, 1.0, Color::MAGENTA, 0.5, false)?;
 
     // Wait for it to disappear
     std::thread::sleep(Duration::from_millis(600));
@@ -288,7 +290,7 @@ fn test_debug_multiple_shapes(world: &mut carla::client::World) -> TestResult {
     // Draw multiple shapes simultaneously
     for i in 0..5 {
         let x = i as f32 * 2.0;
-        debug.draw_point(Location::new(x, 0.0, 1.0), 0.3, Color::RED, 2.0, false);
+        debug.draw_point(Location::new(x, 0.0, 1.0), 0.3, Color::RED, 2.0, false)?;
     }
 
     std::thread::sleep(Duration::from_millis(100));
@@ -309,7 +311,7 @@ fn test_debug_shape_colors(world: &mut carla::client::World) -> TestResult {
 
     for (i, color) in colors.iter().enumerate() {
         let y = i as f32 * 2.0;
-        debug.draw_point(Location::new(0.0, y, 1.0), 0.3, *color, 2.0, false);
+        debug.draw_point(Location::new(0.0, y, 1.0), 0.3, *color, 2.0, false)?;
     }
 
     std::thread::sleep(Duration::from_millis(100));

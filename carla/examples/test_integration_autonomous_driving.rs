@@ -93,10 +93,10 @@ fn setup_autonomous_vehicle(
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -128,7 +128,7 @@ fn attach_front_camera(
     stats: Arc<DriveStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library.find("sensor.camera.rgb")?;
+    let mut camera_bp = blueprint_library.find("sensor.camera.rgb").ok()??;
 
     let _ = camera_bp.set_attribute("image_size_x", "800");
     let _ = camera_bp.set_attribute("image_size_y", "600");
@@ -167,7 +167,7 @@ fn attach_lidar(
     stats: Arc<DriveStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast")?;
+    let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast").ok()??;
 
     let _ = lidar_bp.set_attribute("channels", "32");
     let _ = lidar_bp.set_attribute("range", "50.0");
@@ -248,7 +248,7 @@ fn monitor_autonomous_drive(
                 if obstacles { "Yes" } else { "No" }
             );
 
-            if !vehicle.is_alive() {
+            if !vehicle.is_alive().unwrap_or(false) {
                 println!("  WARNING: Vehicle was destroyed!");
                 break;
             }

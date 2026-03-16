@@ -379,7 +379,7 @@ async fn main() -> Result<()> {
         .find(|bp| bp.id() == "vehicle.tesla.model3")
         .context("Failed to find vehicle blueprint")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).context("No spawn points available")?;
 
     let vehicle_actor = world

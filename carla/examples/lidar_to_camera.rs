@@ -77,15 +77,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get blueprints
     let bp_lib = world.blueprint_library()?;
     let vehicle_bp = bp_lib
-        .find("vehicle.lincoln.mkz_2017")
+        .find("vehicle.lincoln.mkz_2017")?
         .ok_or("Failed to find vehicle blueprint")?;
 
     let mut camera_bp = bp_lib
-        .find("sensor.camera.rgb")
+        .find("sensor.camera.rgb")?
         .ok_or("Failed to find RGB camera blueprint")?;
 
     let mut lidar_bp = bp_lib
-        .find("sensor.lidar.ray_cast")
+        .find("sensor.lidar.ray_cast")?
         .ok_or("Failed to find LiDAR blueprint")?;
 
     // Configure camera
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Spawn vehicle
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
     let vehicle = world
         .spawn_actor(&vehicle_bp, spawn_point)

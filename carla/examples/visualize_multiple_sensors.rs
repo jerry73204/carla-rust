@@ -76,10 +76,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle...");
     let bp_lib = world.blueprint_library()?;
     let vehicle_bp = bp_lib
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     if spawn_points.is_empty() {
         return Err("No spawn points available".into());
     }
@@ -121,7 +121,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. RGB Camera
     let mut rgb_bp = bp_lib
-        .find("sensor.camera.rgb")
+        .find("sensor.camera.rgb")?
         .ok_or("RGB camera not found")?;
     configure_camera(&mut rgb_bp)?;
     let rgb_sensor = spawn_sensor(&mut world, &rgb_bp, &sensor_transform, &vehicle)?;
@@ -129,7 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 2. Depth Camera
     let mut depth_bp = bp_lib
-        .find("sensor.camera.depth")
+        .find("sensor.camera.depth")?
         .ok_or("Depth camera not found")?;
     configure_camera(&mut depth_bp)?;
     let depth_sensor = spawn_sensor(&mut world, &depth_bp, &sensor_transform, &vehicle)?;
@@ -137,7 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3. Semantic Segmentation Camera
     let mut semantic_bp = bp_lib
-        .find("sensor.camera.semantic_segmentation")
+        .find("sensor.camera.semantic_segmentation")?
         .ok_or("Semantic camera not found")?;
     configure_camera(&mut semantic_bp)?;
     let semantic_sensor = spawn_sensor(&mut world, &semantic_bp, &sensor_transform, &vehicle)?;
@@ -145,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. LiDAR
     let mut lidar_bp = bp_lib
-        .find("sensor.lidar.ray_cast")
+        .find("sensor.lidar.ray_cast")?
         .ok_or("LiDAR not found")?;
     if !lidar_bp.set_attribute("range", "50.0") {
         return Err("Failed to set lidar range".into());

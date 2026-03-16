@@ -186,10 +186,7 @@ fn attach_rgb_camera(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library
-        .find("sensor.camera.rgb")
-        .ok()?
-        .flatten()?;
+    let mut camera_bp = blueprint_library.find("sensor.camera.rgb").ok()??;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -228,10 +225,7 @@ fn attach_depth_camera(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library
-        .find("sensor.camera.depth")
-        .ok()?
-        .flatten()?;
+    let mut camera_bp = blueprint_library.find("sensor.camera.depth").ok()??;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -271,8 +265,7 @@ fn attach_semantic_camera(
     let blueprint_library = world.blueprint_library().ok()?;
     let mut camera_bp = blueprint_library
         .find("sensor.camera.semantic_segmentation")
-        .ok()?
-        .flatten()?;
+        .ok()??;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -310,10 +303,7 @@ fn attach_lidar_sensor(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut lidar_bp = blueprint_library
-        .find("sensor.lidar.ray_cast")
-        .ok()?
-        .flatten()?;
+    let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast").ok()??;
 
     let _ = lidar_bp.set_attribute("channels", &LIDAR_CHANNELS.to_string());
     let _ = lidar_bp.set_attribute("range", &LIDAR_RANGE.to_string());

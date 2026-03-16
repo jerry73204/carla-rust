@@ -64,7 +64,7 @@ impl CameraManager {
 
         // Create RGB camera
         let rgb_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("RGB camera blueprint not found"))?;
 
         let mut rgb_bp = rgb_bp;
@@ -74,7 +74,7 @@ impl CameraManager {
 
         // Create semantic segmentation camera
         let semantic_bp = blueprint_library
-            .find("sensor.camera.semantic_segmentation")
+            .find("sensor.camera.semantic_segmentation")?
             .ok_or_else(|| anyhow::anyhow!("Semantic camera blueprint not found"))?;
 
         let mut semantic_bp = semantic_bp;
@@ -387,7 +387,7 @@ async fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.is_empty() {
         return Err(anyhow::anyhow!("No spawn points available"));
@@ -396,7 +396,7 @@ async fn main() -> Result<()> {
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;

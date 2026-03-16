@@ -128,14 +128,14 @@ impl VehicleManager {
 
     fn spawn_vehicles(&mut self, world: &mut CarlaWorld, count: usize) -> Result<usize> {
         let blueprint_library = world.blueprint_library()?;
-        let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.*").iter().collect();
+        let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.*")?.iter().collect();
 
         if vehicle_blueprints.is_empty() {
             return Err(anyhow::anyhow!("No vehicle blueprints found"));
         }
 
         let map = world.map()?;
-        let spawn_points = map.recommended_spawn_points();
+        let spawn_points = map.recommended_spawn_points()?;
 
         if spawn_points.is_empty() {
             return Err(anyhow::anyhow!("No spawn points available"));

@@ -95,7 +95,7 @@ impl LidarManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self, Box<dyn std::error::Error>> {
         let blueprint_library = world.blueprint_library()?;
         let lidar_bp = blueprint_library
-            .find("sensor.lidar.ray_cast")
+            .find("sensor.lidar.ray_cast")?
             .ok_or("LiDAR blueprint not found")?;
 
         let mut lidar_bp = lidar_bp;
@@ -269,9 +269,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
+        .expect("Failed to query blueprint")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
