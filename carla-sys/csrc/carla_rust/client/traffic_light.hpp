@@ -31,49 +31,65 @@ class FfiTrafficLight {
 public:
     FfiTrafficLight(SharedPtr<TrafficLight>&& base) noexcept : inner_(std::move(base)) {}
 
-    const FfiBoundingBox& GetTriggerVolume() const noexcept {
-        const BoundingBox& orig = inner_->GetTriggerVolume();
-        const FfiBoundingBox& new_ = reinterpret_cast<const FfiBoundingBox&>(orig);
-        return new_;
+    FfiBoundingBox GetTriggerVolume(FfiError& error) const {
+        return ffi_call(error, FfiBoundingBox(), [&]() {
+            const BoundingBox& orig = inner_->GetTriggerVolume();
+            return reinterpret_cast<const FfiBoundingBox&>(orig);
+        });
     }
 
-    std::unique_ptr<std::string> GetSignId() const noexcept {
-        return std::make_unique<std::string>(inner_->GetSignId());
+    std::unique_ptr<std::string> GetSignId(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<std::string>(nullptr),
+                        [&]() { return std::make_unique<std::string>(inner_->GetSignId()); });
     }
 
     void SetState(TrafficLightState state, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->SetState(state); });
     }
 
-    TrafficLightState GetState() const noexcept { return inner_->GetState(); }
+    TrafficLightState GetState(FfiError& error) const {
+        return ffi_call(error, TrafficLightState::Off, [&]() { return inner_->GetState(); });
+    }
 
     void SetGreenTime(float green_time, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->SetGreenTime(green_time); });
     }
 
-    float GetGreenTime() const noexcept { return inner_->GetGreenTime(); }
+    float GetGreenTime(FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetGreenTime(); });
+    }
 
     void SetYellowTime(float yellow_time, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->SetYellowTime(yellow_time); });
     }
 
-    float GetYellowTime() const noexcept { return inner_->GetYellowTime(); }
+    float GetYellowTime(FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetYellowTime(); });
+    }
 
     void SetRedTime(float red_time, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->SetRedTime(red_time); });
     }
 
-    float GetRedTime() const noexcept { return inner_->GetRedTime(); }
+    float GetRedTime(FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetRedTime(); });
+    }
 
-    float GetElapsedTime() const noexcept { return inner_->GetElapsedTime(); }
+    float GetElapsedTime(FfiError& error) const {
+        return ffi_call(error, 0.0f, [&]() { return inner_->GetElapsedTime(); });
+    }
 
     void Freeze(bool freeze, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->Freeze(freeze); });
     }
 
-    bool IsFrozen() const noexcept { return inner_->IsFrozen(); }
+    bool IsFrozen(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsFrozen(); });
+    }
 
-    uint32_t GetPoleIndex() const noexcept { return inner_->GetPoleIndex(); }
+    uint32_t GetPoleIndex(FfiError& error) const {
+        return ffi_call(error, uint32_t(0), [&]() { return inner_->GetPoleIndex(); });
+    }
 
     std::unique_ptr<FfiTrafficLightList> GetGroupTrafficLights(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiTrafficLightList>(nullptr), [&]() {

@@ -45,10 +45,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle...");
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. RGB Camera
     let mut camera_rgb_bp = blueprint_library
-        .find("sensor.camera.rgb")
+        .find("sensor.camera.rgb")?
         .ok_or("RGB camera not found")?;
     if !camera_rgb_bp.set_attribute("image_size_x", "800") {
         return Err("Failed to set RGB camera image_size_x".into());
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 2. Depth Camera
     let mut camera_depth_bp = blueprint_library
-        .find("sensor.camera.depth")
+        .find("sensor.camera.depth")?
         .ok_or("Depth camera not found")?;
     if !camera_depth_bp.set_attribute("image_size_x", "800") {
         return Err("Failed to set depth camera image_size_x".into());
@@ -119,7 +119,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3. Semantic Segmentation Camera
     let mut camera_seg_bp = blueprint_library
-        .find("sensor.camera.semantic_segmentation")
+        .find("sensor.camera.semantic_segmentation")?
         .ok_or("Semantic camera not found")?;
     if !camera_seg_bp.set_attribute("image_size_x", "800") {
         return Err("Failed to set semantic camera image_size_x".into());
@@ -143,7 +143,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. Lidar
     let mut lidar_bp = blueprint_library
-        .find("sensor.lidar.ray_cast")
+        .find("sensor.lidar.ray_cast")?
         .ok_or("Lidar not found")?;
     if !lidar_bp.set_attribute("range", "50.0") {
         return Err("Failed to set lidar range".into());

@@ -1,4 +1,5 @@
 use crate::{
+    error::ffi::with_ffi_error,
     geom::BoundingBox,
     road::{JuncId, LaneType},
 };
@@ -91,9 +92,9 @@ impl Junction {
     ///
     /// # Arguments
     /// * `type_` - Lane type filter (e.g., `LaneType::Driving`)
-    pub fn waypoints(&self, type_: LaneType) -> WaypointPairList {
-        let vec = self.inner.GetWaypoints(type_);
-        unsafe { WaypointPairList::from_cxx(vec).unwrap_unchecked() }
+    pub fn waypoints(&self, type_: LaneType) -> crate::Result<WaypointPairList> {
+        let vec = with_ffi_error("waypoints", |e| self.inner.GetWaypoints(type_, e))?;
+        Ok(unsafe { WaypointPairList::from_cxx(vec).unwrap_unchecked() })
     }
 
     /// Returns the bounding box enclosing the junction.
@@ -113,9 +114,9 @@ impl Junction {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn bounding_box(&self) -> BoundingBox {
-        let bbox = self.inner.GetBoundingBox();
-        BoundingBox::from_native(&bbox)
+    pub fn bounding_box(&self) -> crate::Result<BoundingBox> {
+        let bbox = with_ffi_error("bounding_box", |e| self.inner.GetBoundingBox(e))?;
+        Ok(BoundingBox::from_native(&bbox))
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiJunction>) -> Option<Self> {

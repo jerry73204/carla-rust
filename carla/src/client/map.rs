@@ -41,7 +41,7 @@ use static_assertions::assert_impl_all;
 /// println!("Map: {}", map.name());
 ///
 /// // Get recommended spawn points
-/// let spawn_points = map.recommended_spawn_points();
+/// let spawn_points = map.recommended_spawn_points()?;
 /// if let Some(spawn_point) = spawn_points.get(0) {
 ///     println!("First spawn point: {:?}", spawn_point);
 /// }
@@ -130,9 +130,11 @@ impl Map {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn recommended_spawn_points(&self) -> RecommendedSpawnPoints {
-        let ptr = self.inner.GetRecommendedSpawnPoints().within_unique_ptr();
-        unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() }
+    pub fn recommended_spawn_points(&self) -> crate::Result<RecommendedSpawnPoints> {
+        let ptr = with_ffi_error("recommended_spawn_points", |e| {
+            self.inner.GetRecommendedSpawnPoints(e).within_unique_ptr()
+        })?;
+        Ok(unsafe { RecommendedSpawnPoints::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Finds the nearest waypoint on a driving lane.
@@ -497,24 +499,27 @@ impl Map {
     }
 
     /// Returns the geo-reference of the map (latitude, longitude, altitude origin).
-    pub fn geo_reference(&self) -> GeoLocation {
-        GeoLocation::from_ffi(self.inner.GetGeoReference())
+    pub fn geo_reference(&self) -> crate::Result<GeoLocation> {
+        let geo = with_ffi_error("geo_reference", |e| self.inner.GetGeoReference(e))?;
+        Ok(GeoLocation::from_ffi(geo))
     }
 
     /// Returns all crosswalk zone locations in the map.
-    pub fn crosswalk_zones(&self) -> Vec<Location> {
-        self.inner
-            .GetAllCrosswalkZones()
+    pub fn crosswalk_zones(&self) -> crate::Result<Vec<Location>> {
+        let zones = with_ffi_error("crosswalk_zones", |e| self.inner.GetAllCrosswalkZones(e))?;
+        Ok(zones
             .iter()
             .map(|loc| Location::new(loc.x, loc.y, loc.z))
-            .collect()
+            .collect())
     }
 
     /// Generates a chunked mesh for the map and saves it to disk.
     ///
     /// This pre-processes the map geometry for faster loading.
-    pub fn cook_in_memory_map(&self, path: &str) {
-        self.inner.CookInMemoryMap(path.to_string());
+    pub fn cook_in_memory_map(&self, path: &str) -> crate::Result<()> {
+        with_ffi_error("cook_in_memory_map", |e| {
+            self.inner.CookInMemoryMap(path.to_string(), e)
+        })
     }
 }
 
@@ -543,7 +548,7 @@ impl Map {
 /// let world = client.world()?;
 /// let map = world.map()?;
 ///
-/// let spawn_points = map.recommended_spawn_points();
+/// let spawn_points = map.recommended_spawn_points()?;
 /// println!("Available spawn points: {}", spawn_points.len());
 ///
 /// // Use the first spawn point

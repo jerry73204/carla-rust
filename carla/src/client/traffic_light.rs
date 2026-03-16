@@ -35,8 +35,8 @@ use static_assertions::assert_impl_all;
 /// let traffic_lights = world.traffic_lights_from_waypoint(&waypoint, 50.0)?;
 ///
 /// if let Some(light) = traffic_lights.get(0) {
-///     println!("Current state: {:?}", light.state());
-///     println!("Green time: {}s", light.green_time());
+///     println!("Current state: {:?}", light.state()?);
+///     println!("Green time: {}s", light.green_time()?);
 ///
 ///     // Change the traffic light state
 ///     light.set_state(TrafficLightState::Green)?;
@@ -70,8 +70,9 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn sign_id(&self) -> SignId {
-        self.inner.GetSignId().to_string()
+    pub fn sign_id(&self) -> crate::Result<SignId> {
+        let id = with_ffi_error("sign_id", |e| self.inner.GetSignId(e))?;
+        Ok(id.to_string())
     }
 
     /// Returns the trigger volume bounding box.
@@ -93,8 +94,9 @@ impl TrafficLight {
     )]
     ///
     /// The trigger volume is the area where vehicles are affected by this traffic light.
-    pub fn trigger_volume(&self) -> BoundingBox {
-        BoundingBox::from_native(self.inner.GetTriggerVolume())
+    pub fn trigger_volume(&self) -> crate::Result<BoundingBox> {
+        let bbox = with_ffi_error("trigger_volume", |e| self.inner.GetTriggerVolume(e))?;
+        Ok(BoundingBox::from_native(&bbox))
     }
 
     /// Returns the current state of the traffic light.
@@ -114,8 +116,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn state(&self) -> TrafficLightState {
-        self.inner.GetState()
+    pub fn state(&self) -> crate::Result<TrafficLightState> {
+        with_ffi_error("state", |e| self.inner.GetState(e))
     }
 
     /// Sets the state of the traffic light.
@@ -156,8 +158,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn green_time(&self) -> f32 {
-        self.inner.GetGreenTime()
+    pub fn green_time(&self) -> crate::Result<f32> {
+        with_ffi_error("green_time", |e| self.inner.GetGreenTime(e))
     }
 
     /// Returns the duration of the yellow light phase in seconds.
@@ -177,8 +179,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn yellow_time(&self) -> f32 {
-        self.inner.GetYellowTime()
+    pub fn yellow_time(&self) -> crate::Result<f32> {
+        with_ffi_error("yellow_time", |e| self.inner.GetYellowTime(e))
     }
 
     /// Returns the duration of the red light phase in seconds.
@@ -198,8 +200,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn red_time(&self) -> f32 {
-        self.inner.GetRedTime()
+    pub fn red_time(&self) -> crate::Result<f32> {
+        with_ffi_error("red_time", |e| self.inner.GetRedTime(e))
     }
 
     /// Sets the duration of the green light phase.
@@ -291,8 +293,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn elapsed_time(&self) -> f32 {
-        self.inner.GetElapsedTime()
+    pub fn elapsed_time(&self) -> crate::Result<f32> {
+        with_ffi_error("elapsed_time", |e| self.inner.GetElapsedTime(e))
     }
 
     /// Freezes or unfreezes the traffic light.
@@ -338,8 +340,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_frozen(&self) -> bool {
-        self.inner.IsFrozen()
+    pub fn is_frozen(&self) -> crate::Result<bool> {
+        with_ffi_error("is_frozen", |e| self.inner.IsFrozen(e))
     }
 
     /// Returns the index of the pole in the traffic light group.
@@ -359,8 +361,8 @@ impl TrafficLight {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn pole_index(&self) -> u32 {
-        self.inner.GetPoleIndex()
+    pub fn pole_index(&self) -> crate::Result<u32> {
+        with_ffi_error("pole_index", |e| self.inner.GetPoleIndex(e))
     }
 
     /// Returns all traffic lights in the same synchronization group.

@@ -48,7 +48,7 @@ impl RadarSensor {
         // Get blueprint for sensor.other.radar
         let blueprint_library = world.world.blueprint_library()?;
         let mut radar_bp = blueprint_library
-            .find("sensor.other.radar")
+            .find("sensor.other.radar")?
             .ok_or_else(|| eyre!("sensor.other.radar blueprint not found"))?;
 
         // Set radar attributes
@@ -124,7 +124,7 @@ impl RadarSensor {
                     };
 
                     // Draw debug point (size 0.1m, lifetime 0.1s)
-                    debug.draw_point(location, 0.1, color, 0.1, false);
+                    let _ = debug.draw_point(location, 0.1, color, 0.1, false);
                 }
             }
         })?;

@@ -350,7 +350,7 @@ impl BehaviorAgent {
     /// Detects pedestrian obstacles and returns (found, actor, distance).
     fn pedestrian_avoid_manager(&self) -> Result<(bool, Option<Actor>, f32)> {
         // Similar to vehicle detection but for walkers
-        let walker_list = self.core.world.actors()?.filter("*walker.pedestrian*");
+        let walker_list = self.core.world.actors()?.filter("*walker.pedestrian*")?;
         let vehicle_location = self.core.vehicle.transform()?.location;
 
         let params = self.behavior.params();

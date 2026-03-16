@@ -14,6 +14,7 @@ using carla_rust::geom::FfiTransform;
 
 class FfiTransformList {
 public:
+    FfiTransformList() : inner_() {}
     FfiTransformList(std::vector<Transform>&& vec) : inner_(std::move(vec)) {}
 
     size_t len() const { return inner_.size(); }

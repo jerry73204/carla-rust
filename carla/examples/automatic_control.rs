@@ -58,7 +58,7 @@ impl CameraManager {
         // Create RGB camera
         let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
         // Set camera attributes
@@ -332,7 +332,7 @@ async fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.len() < 2 {
         return Err(anyhow::anyhow!("Need at least 2 spawn points"));
@@ -341,7 +341,7 @@ async fn main() -> Result<()> {
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;

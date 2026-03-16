@@ -59,7 +59,7 @@ impl IMUSensor {
         // Get blueprint for sensor.other.imu
         let blueprint_library = world.world.blueprint_library()?;
         let imu_bp = blueprint_library
-            .find("sensor.other.imu")
+            .find("sensor.other.imu")?
             .ok_or_else(|| eyre!("sensor.other.imu blueprint not found"))?;
 
         info!("Spawning IMU sensor");

@@ -75,7 +75,8 @@ fn demo_operation_errors_with_retry(world: &mut carla::client::World) {
     let spawn_points = world
         .map()
         .expect("API call failed")
-        .recommended_spawn_points();
+        .recommended_spawn_points()
+        .expect("API call failed");
     let spawn_point = match spawn_points.get(0) {
         Some(p) => p.clone(),
         None => {
@@ -90,6 +91,7 @@ fn demo_operation_errors_with_retry(world: &mut carla::client::World) {
         .blueprint_library()
         .expect("API call failed")
         .find("vehicle.tesla.model3")
+        .expect("API call failed")
     {
         Some(bp) => bp,
         None => {

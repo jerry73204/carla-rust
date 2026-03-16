@@ -177,6 +177,8 @@ public:
     double longitude;
     double altitude;
 
+    FfiGeoLocation() : latitude(0.0), longitude(0.0), altitude(0.0) {}
+
     FfiGeoLocation(carla::geom::GeoLocation&& base) {
         *this = std::move(reinterpret_cast<FfiGeoLocation&&>(base));
     }
@@ -211,6 +213,17 @@ public:
 #ifdef CARLA_VERSION_0916
     uint32_t actor_id;
 #endif
+
+    FfiBoundingBox()
+        : location(),
+          extent(),
+          rotation()
+#ifdef CARLA_VERSION_0916
+          ,
+          actor_id(0)
+#endif
+    {
+    }
 
     FfiBoundingBox(BoundingBox&& base)
         : location(reinterpret_cast<FfiLocation&&>(std::move(base.location))),

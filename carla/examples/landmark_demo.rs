@@ -22,7 +22,7 @@ fn main() -> Result<()> {
     println!("Map: {}\n", map.name());
 
     // Get spawn points to find landmarks
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.is_empty() {
         return Err(anyhow::anyhow!("No spawn points available"));
@@ -199,7 +199,7 @@ fn main() -> Result<()> {
                 );
 
                 // Get the waypoint where the landmark is effective
-                if let Some(lm_waypoint) = landmark.waypoint() {
+                if let Some(lm_waypoint) = landmark.waypoint()? {
                     println!(
                         "  Effective at: Road {}, Lane {}",
                         lm_waypoint.road_id(),

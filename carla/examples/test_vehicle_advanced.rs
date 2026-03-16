@@ -131,10 +131,10 @@ fn setup_test_scenario(
 
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -280,7 +280,7 @@ fn test_failure_state_creation() -> TestResult {
 
 fn test_apply_failure_state(vehicle: &Vehicle) -> TestResult {
     // Query the current failure state
-    let initial_state = vehicle.failure_state();
+    let initial_state = vehicle.failure_state()?;
 
     // Should start with no failures
     assert!(
@@ -297,9 +297,9 @@ fn test_apply_failure_state(vehicle: &Vehicle) -> TestResult {
 
 fn test_vehicle_with_failures(vehicle: &Vehicle) -> TestResult {
     // Test querying failure state multiple times
-    let state1 = vehicle.failure_state();
+    let state1 = vehicle.failure_state()?;
     thread::sleep(Duration::from_millis(50));
-    let state2 = vehicle.failure_state();
+    let state2 = vehicle.failure_state()?;
 
     // States should be consistent if no failures applied
     assert!(state1 == state2, "Failure state should be stable");
@@ -372,7 +372,7 @@ fn test_vehicle_light_query(vehicle: &Vehicle) -> TestResult {
     thread::sleep(Duration::from_millis(200));
 
     // Query the current state
-    let current_lights = vehicle.light_state();
+    let current_lights = vehicle.light_state()?;
 
     // Verify position light is on
     assert!(
@@ -391,7 +391,7 @@ fn test_vehicle_light_query(vehicle: &Vehicle) -> TestResult {
     thread::sleep(Duration::from_millis(100));
 
     // Query again
-    let _lights_off = vehicle.light_state();
+    let _lights_off = vehicle.light_state()?;
 
     // Note: CARLA might keep some lights on by default
     // Just verify we can query the state without errors

@@ -47,7 +47,7 @@ impl LaneInvasionSensor {
         // Get blueprint for sensor.other.lane_invasion
         let blueprint_library = world.world.blueprint_library()?;
         let lane_invasion_bp = blueprint_library
-            .find("sensor.other.lane_invasion")
+            .find("sensor.other.lane_invasion")?
             .ok_or_else(|| eyre!("sensor.other.lane_invasion blueprint not found"))?;
 
         info!("Spawning lane invasion sensor");

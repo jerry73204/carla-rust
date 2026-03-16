@@ -25,16 +25,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let blueprint_library = world.blueprint_library()?;
 
     // Get all walker blueprints
-    let walker_blueprints = blueprint_library.filter("walker.pedestrian.*");
+    let walker_blueprints = blueprint_library.filter("walker.pedestrian.*")?;
     println!("Found {} walker blueprints", walker_blueprints.len());
 
     // Use first walker blueprint
     let walker_bp = walker_blueprints
-        .get(0)
+        .get(0)?
         .expect("No walker blueprints available");
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     println!("Available spawn points: {}", spawn_points.len());
 
     // Spawn 3 walkers (or fewer if not enough spawn points)
@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             i + 1,
             walker.id(),
             walker.type_id(),
-            walker.is_alive(),
+            walker.is_alive()?,
             location.x,
             location.y,
             location.z

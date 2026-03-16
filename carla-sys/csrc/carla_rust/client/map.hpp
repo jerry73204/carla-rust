@@ -35,9 +35,11 @@ public:
 
     const std::string& GetOpenDrive() const noexcept { return inner_->GetOpenDrive(); }
 
-    FfiTransformList GetRecommendedSpawnPoints() const noexcept {
-        auto orig = inner_->GetRecommendedSpawnPoints();
-        return FfiTransformList(std::move(orig));
+    FfiTransformList GetRecommendedSpawnPoints(FfiError& error) const {
+        return ffi_call(error, FfiTransformList(), [&]() {
+            auto orig = inner_->GetRecommendedSpawnPoints();
+            return FfiTransformList(std::move(orig));
+        });
     }
 
     std::shared_ptr<FfiWaypoint> GetWaypoint(const FfiLocation& location, bool project_to_road,
@@ -86,19 +88,26 @@ public:
     // std::vector<road::element::LaneMarking> CalculateCrossedLanes(
     // const geom::Location &origin,
 
-    FfiGeoLocation GetGeoReference() const { return FfiGeoLocation(inner_->GetGeoReference()); }
-
-    std::vector<FfiLocation> GetAllCrosswalkZones() const {
-        auto zones = inner_->GetAllCrosswalkZones();
-        std::vector<FfiLocation> result;
-        result.reserve(zones.size());
-        for (auto& loc : zones) {
-            result.push_back(FfiLocation(std::move(loc)));
-        }
-        return result;
+    FfiGeoLocation GetGeoReference(FfiError& error) const {
+        return ffi_call(error, FfiGeoLocation(),
+                        [&]() { return FfiGeoLocation(inner_->GetGeoReference()); });
     }
 
-    void CookInMemoryMap(std::string path) const { inner_->CookInMemoryMap(path); }
+    std::vector<FfiLocation> GetAllCrosswalkZones(FfiError& error) const {
+        return ffi_call(error, std::vector<FfiLocation>(), [&]() {
+            auto zones = inner_->GetAllCrosswalkZones();
+            std::vector<FfiLocation> result;
+            result.reserve(zones.size());
+            for (auto& loc : zones) {
+                result.push_back(FfiLocation(std::move(loc)));
+            }
+            return result;
+        });
+    }
+
+    void CookInMemoryMap(std::string path, FfiError& error) const {
+        ffi_call_void(error, [&]() { inner_->CookInMemoryMap(path); });
+    }
 
     std::shared_ptr<FfiJunction> GetJunction(const FfiWaypoint& waypoint, FfiError& error) const {
         return ffi_call(error, std::shared_ptr<FfiJunction>(nullptr), [&]() {

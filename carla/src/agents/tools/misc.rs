@@ -254,7 +254,7 @@ where
         };
 
         // Draw green arrow with 10cm thickness, 30cm arrowhead
-        debug.draw_arrow(begin, end, 10.0, 30.0, Color::GREEN, life_time, false);
+        let _ = debug.draw_arrow(begin, end, 10.0, 30.0, Color::GREEN, life_time, false);
     }
 }
 

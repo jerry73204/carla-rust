@@ -170,7 +170,7 @@ impl AgentCore {
 
         // Get traffic lights if not cached
         if self.lights_list.is_none() {
-            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*"));
+            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*")?);
         }
 
         // Simplified implementation: check if any traffic light is red and nearby
@@ -182,7 +182,7 @@ impl AgentCore {
                 if let Ok(traffic_light) = TrafficLight::try_from(actor.clone()) {
                     // Check if red
                     use crate::rpc::TrafficLightState;
-                    if traffic_light.state() != TrafficLightState::Red {
+                    if traffic_light.state()? != TrafficLightState::Red {
                         continue;
                     }
 
@@ -226,7 +226,7 @@ impl AgentCore {
 
         // Get traffic lights if not cached
         if self.lights_list.is_none() {
-            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*"));
+            self.lights_list = Some(self.world.actors()?.filter("*traffic_light*")?);
         }
 
         // Get vehicle waypoint
@@ -245,7 +245,7 @@ impl AgentCore {
                 if let Ok(traffic_light) = TrafficLight::try_from(actor.clone()) {
                     // Check if red or yellow
                     use crate::rpc::TrafficLightState;
-                    let state = traffic_light.state();
+                    let state = traffic_light.state()?;
                     if state != TrafficLightState::Red && state != TrafficLightState::Yellow {
                         continue;
                     }
@@ -298,7 +298,7 @@ impl AgentCore {
             });
         }
 
-        let vehicle_list = self.world.actors()?.filter("*vehicle*");
+        let vehicle_list = self.world.actors()?.filter("*vehicle*")?;
 
         let ego_transform = self.vehicle.transform()?;
         let ego_location = ego_transform.location;
@@ -536,7 +536,7 @@ impl AgentCore {
         let route_polygon = GeoPolygon::new(LineString::from(route_coords), vec![]);
 
         // Check each vehicle for intersection
-        let vehicle_list = self.world.actors()?.filter("*vehicle*");
+        let vehicle_list = self.world.actors()?.filter("*vehicle*")?;
         let vehicle_location = self.vehicle.transform()?.location;
 
         for actor in vehicle_list.iter() {

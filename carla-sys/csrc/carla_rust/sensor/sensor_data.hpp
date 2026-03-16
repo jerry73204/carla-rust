@@ -2,6 +2,7 @@
 
 #include "data/mod.hpp"
 #include "carla_rust/compat.hpp"
+#include "carla_rust/client/result.hpp"
 
 namespace carla_rust {
 namespace sensor {
@@ -19,6 +20,8 @@ using carla::sensor::data::ObstacleDetectionEvent;
 using carla::sensor::data::OpticalFlowImage;
 using carla::sensor::data::RadarMeasurement;
 using carla::sensor::data::SemanticLidarMeasurement;
+using carla_rust::client::ffi_call;
+using carla_rust::client::FfiError;
 using carla_rust::geom::FfiTransform;
 using carla_rust::sensor::data::FfiCollisionEvent;
 using carla_rust::sensor::data::FfiDVSEventArray;

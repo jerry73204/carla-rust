@@ -26,11 +26,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find Tesla Model 3 blueprint
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .expect("Tesla Model 3 not found");
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     println!("Available spawn points: {}", spawn_points.len());
 
     // Spawn 5 vehicles (or fewer if not enough spawn points)
@@ -59,11 +59,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\nVehicle summary:");
     for (i, vehicle) in vehicles.iter().enumerate() {
         let location = vehicle.location()?;
+        let alive = vehicle.is_alive()?;
         println!(
             "  Vehicle {}: ID={}, alive={}, location=({:.1}, {:.1}, {:.1})",
             i + 1,
             vehicle.id(),
-            vehicle.is_alive(),
+            alive,
             location.x,
             location.y,
             location.z

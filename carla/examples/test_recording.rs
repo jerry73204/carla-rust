@@ -126,12 +126,14 @@ fn setup_test_scenario(world: &mut carla::client::World) -> Vehicle {
     let blueprint_library = world.blueprint_library().expect("API call failed");
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
+        .expect("API call failed")
         .expect("Vehicle blueprint not found");
 
     let spawn_points = world
         .map()
         .expect("API call failed")
-        .recommended_spawn_points();
+        .recommended_spawn_points()
+        .expect("API call failed");
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world

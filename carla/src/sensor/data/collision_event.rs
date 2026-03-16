@@ -3,7 +3,7 @@
 //! This module provides the [`CollisionEvent`] type for detecting and measuring collisions
 //! between actors in the simulation.
 
-use crate::{client::Actor, sensor::SensorData};
+use crate::{client::Actor, error::ffi::with_ffi_error, sensor::SensorData};
 use carla_sys::{carla::geom::Vector3D, carla_rust::sensor::data::FfiCollisionEvent};
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -106,11 +106,12 @@ impl CollisionEvent {
     /// ```no_run
     /// # use carla::sensor::data::CollisionEvent;
     /// # let collision: CollisionEvent = todo!();
-    /// let actor = collision.actor();
+    /// let actor = collision.actor().unwrap();
     /// println!("Collision sensor actor ID: {}", actor.id());
     /// ```
-    pub fn actor(&self) -> Actor {
-        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
+    pub fn actor(&self) -> crate::Result<Actor> {
+        let ptr = with_ffi_error("GetActor", |e| self.inner.GetActor(e))?;
+        Ok(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the actor that was hit in the collision, if any.
@@ -138,14 +139,15 @@ impl CollisionEvent {
     /// ```no_run
     /// # use carla::sensor::data::CollisionEvent;
     /// # let collision: CollisionEvent = todo!();
-    /// if let Some(other) = collision.other_actor() {
+    /// if let Some(other) = collision.other_actor().unwrap() {
     ///     println!("Collided with actor ID: {}", other.id());
     /// } else {
     ///     println!("Collided with static object");
     /// }
     /// ```
-    pub fn other_actor(&self) -> Option<Actor> {
-        Actor::from_cxx(self.inner.GetOtherActor())
+    pub fn other_actor(&self) -> crate::Result<Option<Actor>> {
+        let ptr = with_ffi_error("GetOtherActor", |e| self.inner.GetOtherActor(e))?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     /// Returns the normal impulse resulting from the collision.

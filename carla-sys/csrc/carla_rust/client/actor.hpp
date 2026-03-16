@@ -225,20 +225,21 @@ public:
     }
 #endif
 
-    bool IsAlive() const {
-        return inner_->IsAlive();
+    bool IsAlive(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsAlive(); });
     }
 
-    bool IsDormant() const {
-        return inner_->IsDormant();
+    bool IsDormant(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsDormant(); });
     }
 
-    bool IsActive() const {
-        return inner_->IsActive();
+    bool IsActive(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsActive(); });
     }
 
-    uint8_t GetActorState() const {
-        return static_cast<uint8_t>(inner_->GetActorState());
+    uint8_t GetActorState(FfiError& error) const {
+        return ffi_call(error, uint8_t(0),
+                        [&]() { return static_cast<uint8_t>(inner_->GetActorState()); });
     }
 
 #ifdef CARLA_VERSION_0100

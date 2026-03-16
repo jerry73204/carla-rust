@@ -47,6 +47,7 @@
 #include "carla/sensor/data/CollisionEvent.h"
 #include "carla/sensor/data/LaneInvasionEvent.h"
 #include "carla_rust/road.hpp"
+#include "carla_rust/client/result.hpp"
 
 namespace carla_rust {
 namespace sensor {
@@ -66,7 +67,9 @@ using carla::sensor::data::LidarDetection;
 using carla::sensor::data::ObstacleDetectionEvent;
 using carla::sensor::data::SemanticLidarData;
 using carla::sensor::data::SemanticLidarDetection;
+using carla_rust::client::ffi_call;
 using carla_rust::client::FfiActor;
+using carla_rust::client::FfiError;
 using carla_rust::geom::FfiLocation;
 using carla_rust::geom::FfiTransform;
 using carla_rust::road::element::FfiLaneMarking;
@@ -76,12 +79,16 @@ class FfiObstacleDetectionEvent {
 public:
     FfiObstacleDetectionEvent(SharedPtr<ObstacleDetectionEvent>&& base) : inner_(std::move(base)) {}
 
-    std::shared_ptr<FfiActor> GetActor() const {
-        return std::make_shared<FfiActor>(std::move(inner_->GetActor()));
+    std::shared_ptr<FfiActor> GetActor(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiActor>(), [&]() {
+            return std::make_shared<FfiActor>(std::move(inner_->GetActor()));
+        });
     }
 
-    std::shared_ptr<FfiActor> GetOtherActor() const {
-        return std::make_shared<FfiActor>(std::move(inner_->GetOtherActor()));
+    std::shared_ptr<FfiActor> GetOtherActor(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiActor>(), [&]() {
+            return std::make_shared<FfiActor>(std::move(inner_->GetOtherActor()));
+        });
     }
 
     float GetDistance() const { return inner_->GetDistance(); }

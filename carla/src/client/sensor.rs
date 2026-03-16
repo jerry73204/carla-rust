@@ -107,8 +107,8 @@ impl Sensor {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_listening(&self) -> bool {
-        self.inner.IsListening()
+    pub fn is_listening(&self) -> crate::Result<bool> {
+        with_ffi_error("is_listening", |e| self.inner.IsListening(e))
     }
 
     /// Registers a callback to receive sensor data.

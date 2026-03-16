@@ -29,11 +29,11 @@ fn spawn_walker(client: &Client) -> Result<Walker, Box<dyn std::error::Error>> {
     let bp_lib = world.blueprint_library()?;
 
     let walker_bp = bp_lib
-        .filter("walker.pedestrian.*")
-        .get(0)
+        .filter("walker.pedestrian.*")?
+        .get(0)?
         .expect("No walker blueprints found");
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
 
     // Try multiple spawn points in case some are occupied
     for i in 0..spawn_points.len().min(10) {
@@ -54,6 +54,7 @@ fn spawn_walker_ai_controller(client: &Client, walker: &Walker) -> WalkerAIContr
 
     let ai_bp = bp_lib
         .find("controller.ai.walker")
+        .expect("API call failed")
         .expect("Walker AI controller blueprint not found");
 
     // AI controller must be spawned attached to the walker as parent
@@ -78,7 +79,8 @@ fn demo_walker_spawn() {
     let walker = spawn_walker(&client).expect("Failed to spawn walker");
 
     println!("✓ Walker spawned with ID: {}", walker.id());
-    println!("✓ Walker is alive: {}", walker.is_alive());
+    let is_alive = walker.is_alive().expect("API call failed");
+    println!("✓ Walker is alive: {}", is_alive);
 }
 
 fn demo_walker_control() {
@@ -113,7 +115,7 @@ fn demo_walker_control() {
 
     thread::sleep(Duration::from_millis(100));
 
-    let current_control = walker.control();
+    let current_control = walker.control().expect("API call failed");
     println!("✓ Control applied: speed={} m/s", current_control.speed);
 }
 
@@ -172,7 +174,8 @@ fn demo_walker_ai_controller_spawn() {
     let ai_controller = spawn_walker_ai_controller(&client, &walker);
 
     println!("✓ AI controller spawned with ID: {}", ai_controller.id());
-    println!("✓ AI controller is alive: {}", ai_controller.is_alive());
+    let ai_alive = ai_controller.is_alive().expect("API call failed");
+    println!("✓ AI controller is alive: {}", ai_alive);
     println!("✓ AI controller attached to walker ID: {}", walker.id());
 }
 

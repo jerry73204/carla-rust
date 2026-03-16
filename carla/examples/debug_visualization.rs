@@ -51,11 +51,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, (name, color)) in colors.iter().enumerate() {
         let x = (i as f32) * 2.0;
         let location = Location::new(origin.x + x, origin.y, origin.z);
-        debug.draw_point(location, 0.5, *color, 60.0, false);
+        debug.draw_point(location, 0.5, *color, 60.0, false)?;
 
         // Label each point
         let label_pos = Location::new(origin.x + x, origin.y, origin.z + 1.0);
-        debug.draw_string(label_pos, name, true, Color::WHITE, 60.0, false);
+        debug.draw_string(label_pos, name, true, Color::WHITE, 60.0, false)?;
     }
 
     // 2. Draw lines forming a box outline
@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             line_start.y + line_points[i + 1].y,
             line_start.z + line_points[i + 1].z,
         );
-        debug.draw_line(start, end, 0.1, Color::GREEN, 60.0, false);
+        debug.draw_line(start, end, 0.1, Color::GREEN, 60.0, false)?;
     }
 
     debug.draw_string(
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::GREEN,
         60.0,
         false,
-    );
+    )?;
 
     // 3. Draw arrows showing coordinate axes
     println!("3. Drawing arrows...");
@@ -119,7 +119,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::RED,
         60.0,
         false,
-    );
+    )?;
     debug.draw_string(
         Location::new(arrow_x + arrow_length, arrow_y, arrow_z + 0.5),
         "X",
@@ -127,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::RED,
         60.0,
         false,
-    );
+    )?;
 
     // Y-axis (green)
     debug.draw_arrow(
@@ -138,7 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::GREEN,
         60.0,
         false,
-    );
+    )?;
     debug.draw_string(
         Location::new(arrow_x, arrow_y + arrow_length, arrow_z + 0.5),
         "Y",
@@ -146,7 +146,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::GREEN,
         60.0,
         false,
-    );
+    )?;
 
     // Z-axis (blue)
     debug.draw_arrow(
@@ -157,7 +157,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::BLUE,
         60.0,
         false,
-    );
+    )?;
     debug.draw_string(
         Location::new(arrow_x, arrow_y, arrow_z + arrow_length),
         "Z",
@@ -165,7 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::BLUE,
         60.0,
         false,
-    );
+    )?;
 
     // 4. Draw bounding boxes with different rotations
     println!("4. Drawing bounding boxes...");
@@ -196,7 +196,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             _ => Color::YELLOW,
         };
 
-        debug.draw_box(&bbox, rotation, 0.1, color, 60.0, false);
+        debug.draw_box(&bbox, rotation, 0.1, color, 60.0, false)?;
 
         // Label each box with its rotation
         debug.draw_string(
@@ -206,7 +206,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Color::WHITE,
             60.0,
             false,
-        );
+        )?;
     }
 
     // 5. Draw a text label with title
@@ -218,7 +218,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::CYAN,
         60.0,
         false,
-    );
+    )?;
 
     debug.draw_string(
         Location::new(origin.x + 10.0, origin.y + 20.0, origin.z + 3.5),
@@ -227,7 +227,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Color::WHITE,
         60.0,
         false,
-    );
+    )?;
 
     println!("\n✓ Debug visualizations drawn!");
     println!("  All visualizations will persist for 60 seconds.");

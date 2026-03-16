@@ -106,7 +106,7 @@ fn test_get_waypoint_at_location(world: &carla::client::World) -> TestResult {
     let map = world.map()?;
 
     // Try to get waypoint at spawn point (more likely to be on road)
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
     if let Some(spawn_point) = spawn_points.get(0) {
         let location = spawn_point.location;
 
@@ -138,7 +138,7 @@ fn test_waypoint_next(world: &carla::client::World) -> TestResult {
     let map = world.map()?;
 
     // Get a spawn point on the road
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
     if let Some(spawn_point) = spawn_points.get(0)
         && let Some(waypoint) = map.waypoint_at(&spawn_point.location)?
     {
@@ -177,7 +177,7 @@ fn test_waypoint_lane_change(world: &carla::client::World) -> TestResult {
     // Note: Lane change API (get_left_lane/get_right_lane) not yet available
 
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if let Some(spawn_point) = spawn_points.get(0)
         && let Some(waypoint) = map.waypoint_at(&spawn_point.location)?
@@ -197,7 +197,7 @@ fn test_waypoint_lane_change(world: &carla::client::World) -> TestResult {
 
 fn test_waypoint_transform(world: &carla::client::World) -> TestResult {
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if let Some(spawn_point) = spawn_points.get(0) {
         // Get waypoint and verify transform
@@ -275,7 +275,7 @@ fn test_route_planning(world: &carla::client::World) -> TestResult {
     // We can simulate simple routing by using waypoint.next() to follow the road
 
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.len() >= 2 {
         let start_loc = spawn_points.get(0).unwrap().location;
@@ -323,7 +323,7 @@ fn test_route_waypoints(world: &carla::client::World) -> TestResult {
     // Test generating waypoints along a path using next()
 
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if let Some(spawn_point) = spawn_points.get(0)
         && let Some(start_wp) = map.waypoint_at(&spawn_point.location)?

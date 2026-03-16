@@ -54,8 +54,8 @@ use static_assertions::assert_impl_all;
 /// let mut world = client.world()?;
 ///
 /// # let bp_lib = world.blueprint_library()?;
-/// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-/// # let spawn_points = world.map()?.recommended_spawn_points();
+/// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+/// # let spawn_points = world.map()?.recommended_spawn_points()?;
 /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
 /// let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
 ///
@@ -105,8 +105,8 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, None)?;
     /// # let mut world = client.world()?;
     /// # let bp_lib = world.blueprint_library()?;
-    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points()?;
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// vehicle.set_autopilot(true)?;
@@ -189,8 +189,8 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, None)?;
     /// # let mut world = client.world()?;
     /// # let bp_lib = world.blueprint_library()?;
-    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points()?;
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// let mut control = vehicle.control()?;
@@ -421,8 +421,8 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, None)?;
     /// # let mut world = client.world()?;
     /// # let bp_lib = world.blueprint_library()?;
-    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points()?;
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// // Turn on position and low beam lights
@@ -516,8 +516,8 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, None)?;
     /// # let mut world = client.world()?;
     /// # let bp_lib = world.blueprint_library()?;
-    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points()?;
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// let lights = vehicle.light_state()?;
@@ -684,8 +684,8 @@ impl Vehicle {
     /// # let client = Client::connect("localhost", 2000, None)?;
     /// # let mut world = client.world()?;
     /// # let bp_lib = world.blueprint_library()?;
-    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
-    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*")?.get(0)?.unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points()?;
     /// # let actor = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
     /// # let vehicle: carla::client::Vehicle = actor.try_into().unwrap();
     /// let telemetry = vehicle.telemetry_data()?;

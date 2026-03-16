@@ -42,6 +42,7 @@
 //! ```
 
 use crate::{
+    error::ffi::with_ffi_error,
     geom::{BoundingBox, FfiRotation, Location, Rotation},
     rpc::Color,
 };
@@ -100,16 +101,19 @@ impl DebugHelper {
         color: Color,
         life_time: f32,
         persistent_lines: bool,
-    ) {
+    ) -> crate::Result<()> {
         let ffi_color = color.into();
-        FfiDebugHelper_DrawPoint(
-            &self.inner,
-            location.as_ffi(),
-            size,
-            &ffi_color,
-            life_time,
-            persistent_lines,
-        )
+        with_ffi_error("draw_point", |e| {
+            FfiDebugHelper_DrawPoint(
+                &self.inner,
+                location.as_ffi(),
+                size,
+                &ffi_color,
+                life_time,
+                persistent_lines,
+                e,
+            );
+        })
     }
 
     /// Draws a line between two points.
@@ -155,17 +159,20 @@ impl DebugHelper {
         color: Color,
         life_time: f32,
         persistent_lines: bool,
-    ) {
+    ) -> crate::Result<()> {
         let ffi_color = color.into();
-        FfiDebugHelper_DrawLine(
-            &self.inner,
-            begin.as_ffi(),
-            end.as_ffi(),
-            thickness,
-            &ffi_color,
-            life_time,
-            persistent_lines,
-        )
+        with_ffi_error("draw_line", |e| {
+            FfiDebugHelper_DrawLine(
+                &self.inner,
+                begin.as_ffi(),
+                end.as_ffi(),
+                thickness,
+                &ffi_color,
+                life_time,
+                persistent_lines,
+                e,
+            );
+        })
     }
 
     /// Draws an arrow from begin to end.
@@ -215,18 +222,21 @@ impl DebugHelper {
         color: Color,
         life_time: f32,
         persistent_lines: bool,
-    ) {
+    ) -> crate::Result<()> {
         let ffi_color = color.into();
-        FfiDebugHelper_DrawArrow(
-            &self.inner,
-            begin.as_ffi(),
-            end.as_ffi(),
-            thickness,
-            arrow_size,
-            &ffi_color,
-            life_time,
-            persistent_lines,
-        )
+        with_ffi_error("draw_arrow", |e| {
+            FfiDebugHelper_DrawArrow(
+                &self.inner,
+                begin.as_ffi(),
+                end.as_ffi(),
+                thickness,
+                arrow_size,
+                &ffi_color,
+                life_time,
+                persistent_lines,
+                e,
+            );
+        })
     }
 
     /// Draws a bounding box.
@@ -273,22 +283,25 @@ impl DebugHelper {
         color: Color,
         life_time: f32,
         persistent_lines: bool,
-    ) {
+    ) -> crate::Result<()> {
         let ffi_color = color.into();
         let native_bbox = bbox.to_native();
         // SAFETY: FfiRotation and carla::geom::Rotation have identical memory layout
         let cpp_rotation = unsafe {
             &*(rotation.as_ffi() as *const FfiRotation as *const carla_sys::carla::geom::Rotation)
         };
-        FfiDebugHelper_DrawBox(
-            &self.inner,
-            &native_bbox,
-            cpp_rotation,
-            thickness,
-            &ffi_color,
-            life_time,
-            persistent_lines,
-        )
+        with_ffi_error("draw_box", |e| {
+            FfiDebugHelper_DrawBox(
+                &self.inner,
+                &native_bbox,
+                cpp_rotation,
+                thickness,
+                &ffi_color,
+                life_time,
+                persistent_lines,
+                e,
+            );
+        })
     }
 
     /// Draws a text string at a location.
@@ -334,18 +347,21 @@ impl DebugHelper {
         color: Color,
         life_time: f32,
         persistent_lines: bool,
-    ) {
+    ) -> crate::Result<()> {
         let ffi_color = color.into();
         cxx::let_cxx_string!(text_cxx = text);
-        FfiDebugHelper_DrawString(
-            &self.inner,
-            location.as_ffi(),
-            &text_cxx,
-            draw_shadow,
-            &ffi_color,
-            life_time,
-            persistent_lines,
-        )
+        with_ffi_error("draw_string", |e| {
+            FfiDebugHelper_DrawString(
+                &self.inner,
+                location.as_ffi(),
+                &text_cxx,
+                draw_shadow,
+                &ffi_color,
+                life_time,
+                persistent_lines,
+                e,
+            );
+        })
     }
 }
 

@@ -655,8 +655,8 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn is_alive(&self) -> bool {
-        self.cxx_actor().IsAlive()
+    fn is_alive(&self) -> crate::Result<bool> {
+        with_ffi_error("is_alive", |e| self.cxx_actor().IsAlive(e))
     }
 
     /// Returns whether the actor is currently dormant (inactive/sleeping).
@@ -676,8 +676,8 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn is_dormant(&self) -> bool {
-        self.cxx_actor().IsDormant()
+    fn is_dormant(&self) -> crate::Result<bool> {
+        with_ffi_error("is_dormant", |e| self.cxx_actor().IsDormant(e))
     }
 
     /// Returns whether the actor is currently active.
@@ -697,8 +697,8 @@ pub trait ActorBase: Clone {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    fn is_active(&self) -> bool {
-        self.cxx_actor().IsActive()
+    fn is_active(&self) -> crate::Result<bool> {
+        with_ffi_error("is_active", |e| self.cxx_actor().IsActive(e))
     }
 
     /// Returns the current lifecycle state of this actor.
@@ -708,9 +708,11 @@ pub trait ActorBase: Clone {
     /// - `Active` — Actor is active in the simulation
     /// - `Dormant` — Actor is dormant (hybrid mode)
     /// - `PendingKill` — Actor is pending destruction
-    fn actor_state(&self) -> ActorState {
-        let raw = self.cxx_actor().GetActorState();
-        ActorState::from_u8(raw).unwrap_or(ActorState::Invalid)
+    fn actor_state(&self) -> crate::Result<ActorState> {
+        with_ffi_error("actor_state", |e| {
+            let raw = self.cxx_actor().GetActorState(e);
+            ActorState::from_u8(raw).unwrap_or(ActorState::Invalid)
+        })
     }
 
     /// Returns the actor's name in the Unreal Engine world.

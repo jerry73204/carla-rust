@@ -26,11 +26,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let blueprint_library = world.blueprint_library()?;
 
     // Get all blueprints
-    let all_blueprints = blueprint_library.filter("*");
+    let all_blueprints = blueprint_library.filter("*")?;
     println!("\nTotal blueprints: {}", all_blueprints.len());
 
     // Filter vehicles
-    let vehicles = blueprint_library.filter("vehicle.*");
+    let vehicles = blueprint_library.filter("vehicle.*")?;
     println!("\nVehicle blueprints: {}", vehicles.len());
     println!("First 5 vehicles:");
     for (i, bp) in vehicles.iter().take(5).enumerate() {
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Filter walkers/pedestrians
-    let walkers = blueprint_library.filter("walker.pedestrian.*");
+    let walkers = blueprint_library.filter("walker.pedestrian.*")?;
     println!("\nWalker blueprints: {}", walkers.len());
     println!("First 5 walkers:");
     for (i, bp) in walkers.iter().take(5).enumerate() {
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Filter sensors
-    let sensors = blueprint_library.filter("sensor.*");
+    let sensors = blueprint_library.filter("sensor.*")?;
     println!("\nSensor blueprints: {}", sensors.len());
     println!("First 5 sensors:");
     for (i, bp) in sensors.iter().take(5).enumerate() {
@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find specific blueprint
     println!("\nSearching for Tesla Model 3...");
-    if let Some(tesla) = blueprint_library.find("vehicle.tesla.model3") {
+    if let Some(tesla) = blueprint_library.find("vehicle.tesla.model3")? {
         println!("Found: {}", tesla.id());
 
         println!("Tags:");

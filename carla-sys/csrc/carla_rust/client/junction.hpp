@@ -7,6 +7,7 @@
 #include "carla/road/Lane.h"
 #include "carla_rust/client/waypoint.hpp"
 #include "carla_rust/client/waypoint_pair.hpp"
+#include "carla_rust/client/result.hpp"
 #include "carla_rust/geom.hpp"
 #include "waypoint_pair.hpp"
 
@@ -27,20 +28,22 @@ public:
 
     JuncId GetId() const { return inner_->GetId(); }
 
-    std::vector<FfiWaypointPair> GetWaypoints(Lane::LaneType type) const {
-        auto orig = inner_->GetWaypoints(type);
-        std::vector<FfiWaypointPair> new_;
-
-        for (const auto& pair : orig) {
-            new_.push_back(FfiWaypointPair(pair));
-        }
-
-        return new_;
+    std::vector<FfiWaypointPair> GetWaypoints(Lane::LaneType type, FfiError& error) const {
+        return ffi_call(error, std::vector<FfiWaypointPair>(), [&]() {
+            auto orig = inner_->GetWaypoints(type);
+            std::vector<FfiWaypointPair> new_;
+            for (const auto& pair : orig) {
+                new_.push_back(FfiWaypointPair(pair));
+            }
+            return new_;
+        });
     }
 
-    FfiBoundingBox GetBoundingBox() const {
-        auto orig = inner_->GetBoundingBox();
-        return FfiBoundingBox(std::move(orig));
+    FfiBoundingBox GetBoundingBox(FfiError& error) const {
+        return ffi_call(error, FfiBoundingBox(), [&]() {
+            auto orig = inner_->GetBoundingBox();
+            return FfiBoundingBox(std::move(orig));
+        });
     }
 
 private:

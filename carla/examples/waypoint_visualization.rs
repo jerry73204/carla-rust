@@ -22,7 +22,7 @@ fn main() -> Result<()> {
     println!("Connected! Visualizing waypoints...");
 
     // Get a starting location from spawn points
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
     let spawn_points_slice = spawn_points.as_slice();
     if spawn_points_slice.is_empty() {
         return Err(anyhow::anyhow!("No spawn points available"));

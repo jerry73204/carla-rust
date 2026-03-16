@@ -372,7 +372,7 @@ impl CameraManager {
     fn spawn_camera(world: &mut CarlaWorld, vehicle: &Vehicle, view: usize) -> Result<Sensor> {
         let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
         let mut camera_bp = camera_bp;
@@ -502,7 +502,7 @@ impl Hud {
         let speed_kmh = speed_ms * 3.6;
 
         // Get vehicle control state
-        let control = vehicle.control();
+        let control = vehicle.control().expect("API call failed");
 
         // Camera view name
         let camera_name = match camera_view {
@@ -694,10 +694,10 @@ async fn main() -> Result<()> {
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or_else(|| anyhow::anyhow!("Vehicle blueprint not found"))?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points
         .get(0)
         .ok_or_else(|| anyhow::anyhow!("No spawn points available"))?;

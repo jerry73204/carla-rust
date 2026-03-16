@@ -28,7 +28,9 @@ public:
         ffi_call_void(error, [&]() { inner_->ApplyControl(control); });
     }
 
-    WalkerControl GetWalkerControl() const { return inner_->GetWalkerControl(); }
+    WalkerControl GetWalkerControl(FfiError& error) const {
+        return ffi_call(error, WalkerControl(), [&]() { return inner_->GetWalkerControl(); });
+    }
 
     void SetBonesTransform(const WalkerBoneControlIn& bones, FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->SetBonesTransform(bones); });
@@ -39,11 +41,16 @@ public:
         ffi_call_void(error, [&]() { inner_->SetBonesTransform(bones.ToCpp()); });
     }
 
-    WalkerBoneControlOut GetBonesTransform() const { return inner_->GetBonesTransform(); }
+    WalkerBoneControlOut GetBonesTransform(FfiError& error) const {
+        return ffi_call(error, WalkerBoneControlOut(),
+                        [&]() { return inner_->GetBonesTransform(); });
+    }
 
     // Wrapper version using FfiWalkerBoneControlOut
-    rpc::FfiWalkerBoneControlOut GetBonesTransformFfi() const {
-        return rpc::FfiWalkerBoneControlOut::FromCpp(inner_->GetBonesTransform());
+    rpc::FfiWalkerBoneControlOut GetBonesTransformFfi(FfiError& error) const {
+        return ffi_call(error, rpc::FfiWalkerBoneControlOut(), [&]() {
+            return rpc::FfiWalkerBoneControlOut::FromCpp(inner_->GetBonesTransform());
+        });
     }
 
     void BlendPose(float blend, FfiError& error) const {

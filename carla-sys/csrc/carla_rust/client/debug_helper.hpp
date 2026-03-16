@@ -7,6 +7,7 @@
 #include "carla/sensor/data/Color.h"
 #include "../geom.hpp"
 #include "../sensor/data/color.hpp"
+#include "result.hpp"
 #include <string>
 
 namespace carla_rust {
@@ -60,46 +61,56 @@ private:
 inline void FfiDebugHelper_DrawPoint(const FfiDebugHelper& helper,
                                      const geom::FfiLocation& location, float size,
                                      const sensor::data::FfiColor& color, float life_time,
-                                     bool persistent_lines) {
-    const_cast<FfiDebugHelper&>(helper).DrawPoint(
-        location.as_native(), size, const_cast<sensor::data::FfiColor&>(color).as_builtin(),
-        life_time, persistent_lines);
+                                     bool persistent_lines, FfiError& error) {
+    ffi_call_void(error, [&]() {
+        const_cast<FfiDebugHelper&>(helper).DrawPoint(
+            location.as_native(), size, const_cast<sensor::data::FfiColor&>(color).as_builtin(),
+            life_time, persistent_lines);
+    });
 }
 
 inline void FfiDebugHelper_DrawLine(const FfiDebugHelper& helper, const geom::FfiLocation& begin,
                                     const geom::FfiLocation& end, float thickness,
                                     const sensor::data::FfiColor& color, float life_time,
-                                    bool persistent_lines) {
-    const_cast<FfiDebugHelper&>(helper).DrawLine(
-        begin.as_native(), end.as_native(), thickness,
-        const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+                                    bool persistent_lines, FfiError& error) {
+    ffi_call_void(error, [&]() {
+        const_cast<FfiDebugHelper&>(helper).DrawLine(
+            begin.as_native(), end.as_native(), thickness,
+            const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+    });
 }
 
 inline void FfiDebugHelper_DrawArrow(const FfiDebugHelper& helper, const geom::FfiLocation& begin,
                                      const geom::FfiLocation& end, float thickness,
                                      float arrow_size, const sensor::data::FfiColor& color,
-                                     float life_time, bool persistent_lines) {
-    const_cast<FfiDebugHelper&>(helper).DrawArrow(
-        begin.as_native(), end.as_native(), thickness, arrow_size,
-        const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+                                     float life_time, bool persistent_lines, FfiError& error) {
+    ffi_call_void(error, [&]() {
+        const_cast<FfiDebugHelper&>(helper).DrawArrow(
+            begin.as_native(), end.as_native(), thickness, arrow_size,
+            const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+    });
 }
 
 inline void FfiDebugHelper_DrawBox(const FfiDebugHelper& helper, const geom::FfiBoundingBox& box,
                                    const Rotation& rotation, float thickness,
                                    const sensor::data::FfiColor& color, float life_time,
-                                   bool persistent_lines) {
-    const_cast<FfiDebugHelper&>(helper).DrawBox(
-        box.as_native(), rotation, thickness,
-        const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+                                   bool persistent_lines, FfiError& error) {
+    ffi_call_void(error, [&]() {
+        const_cast<FfiDebugHelper&>(helper).DrawBox(
+            box.as_native(), rotation, thickness,
+            const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+    });
 }
 
 inline void FfiDebugHelper_DrawString(const FfiDebugHelper& helper,
                                       const geom::FfiLocation& location, const std::string& text,
                                       bool draw_shadow, const sensor::data::FfiColor& color,
-                                      float life_time, bool persistent_lines) {
-    const_cast<FfiDebugHelper&>(helper).DrawString(
-        location.as_native(), text, draw_shadow,
-        const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+                                      float life_time, bool persistent_lines, FfiError& error) {
+    ffi_call_void(error, [&]() {
+        const_cast<FfiDebugHelper&>(helper).DrawString(
+            location.as_native(), text, draw_shadow,
+            const_cast<sensor::data::FfiColor&>(color).as_builtin(), life_time, persistent_lines);
+    });
 }
 
 }  // namespace client

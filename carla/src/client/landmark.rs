@@ -1,4 +1,5 @@
 use crate::{
+    error::ffi::with_ffi_error,
     geom::Transform,
     road::{RoadId, SignalOrientation},
 };
@@ -63,9 +64,9 @@ impl Landmark {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn waypoint(&self) -> Option<Waypoint> {
-        let ptr = self.inner.GetWaypoint();
-        Waypoint::from_cxx(ptr)
+    pub fn waypoint(&self) -> crate::Result<Option<Waypoint>> {
+        let ptr = with_ffi_error("waypoint", |e| self.inner.GetWaypoint(e))?;
+        Ok(Waypoint::from_cxx(ptr))
     }
 
     /// Returns the transform (position and rotation) of the landmark.
@@ -525,15 +526,17 @@ impl Landmark {
     ///
     /// Each pair `(from_lane, to_lane)` indicates which lanes this landmark
     /// applies to.
-    pub fn lane_validities(&self) -> Vec<(i32, i32)> {
+    pub fn lane_validities(&self) -> crate::Result<Vec<(i32, i32)>> {
         let count = self.inner.GetValiditiesCount();
         let mut result = Vec::with_capacity(count);
         for i in 0..count {
-            let from = self.inner.GetValidityFromLane(i);
-            let to = self.inner.GetValidityToLane(i);
+            let from = with_ffi_error("validity_from_lane", |e| {
+                self.inner.GetValidityFromLane(i, e)
+            })?;
+            let to = with_ffi_error("validity_to_lane", |e| self.inner.GetValidityToLane(i, e))?;
             result.push((from, to));
         }
-        result
+        Ok(result)
     }
 }
 

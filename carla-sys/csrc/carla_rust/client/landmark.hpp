@@ -8,6 +8,7 @@
 #include "carla/road/Signal.h"
 #include "carla_rust/geom.hpp"
 #include "carla_rust/client/waypoint.hpp"
+#include "carla_rust/client/result.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -15,6 +16,8 @@ using carla::SharedPtr;
 using carla::client::Landmark;
 using carla::road::RoadId;
 using carla::road::SignalOrientation;
+using carla_rust::client::ffi_call;
+using carla_rust::client::FfiError;
 using carla_rust::client::FfiWaypoint;
 using carla_rust::geom::FfiTransform;
 
@@ -23,13 +26,16 @@ class FfiLandmark {
 public:
     FfiLandmark(SharedPtr<Landmark>&& base) : inner_(std::move(base)) {}
 
-    std::shared_ptr<FfiWaypoint> GetWaypoint() const {
-        auto orig = inner_->GetWaypoint();
-        if (orig) {
-            return std::make_shared<FfiWaypoint>(std::move(orig));
-        } else {
-            return nullptr;
-        }
+    std::shared_ptr<FfiWaypoint> GetWaypoint(FfiError& error) const {
+        return ffi_call(error, std::shared_ptr<FfiWaypoint>(),
+                        [&]() -> std::shared_ptr<FfiWaypoint> {
+                            auto orig = inner_->GetWaypoint();
+                            if (orig) {
+                                return std::make_shared<FfiWaypoint>(std::move(orig));
+                            } else {
+                                return nullptr;
+                            }
+                        });
     }
 
     const FfiTransform& GetTransform() const {
@@ -79,12 +85,14 @@ public:
 
     size_t GetValiditiesCount() const { return inner_->GetValidities().size(); }
 
-    int32_t GetValidityFromLane(size_t index) const {
-        return inner_->GetValidities().at(index)._from_lane;
+    int32_t GetValidityFromLane(size_t index, FfiError& error) const {
+        return ffi_call(error, int32_t(0),
+                        [&]() { return inner_->GetValidities().at(index)._from_lane; });
     }
 
-    int32_t GetValidityToLane(size_t index) const {
-        return inner_->GetValidities().at(index)._to_lane;
+    int32_t GetValidityToLane(size_t index, FfiError& error) const {
+        return ffi_call(error, int32_t(0),
+                        [&]() { return inner_->GetValidities().at(index)._to_lane; });
     }
 
     const SharedPtr<Landmark>& inner() const { return inner_; }

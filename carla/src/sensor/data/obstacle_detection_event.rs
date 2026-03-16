@@ -1,4 +1,4 @@
-use crate::{client::Actor, sensor::SensorData};
+use crate::{client::Actor, error::ffi::with_ffi_error, sensor::SensorData};
 use carla_sys::carla_rust::sensor::data::FfiObstacleDetectionEvent;
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -13,12 +13,14 @@ pub struct ObstacleDetectionEvent {
 }
 
 impl ObstacleDetectionEvent {
-    pub fn actor(&self) -> Actor {
-        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
+    pub fn actor(&self) -> crate::Result<Actor> {
+        let ptr = with_ffi_error("GetActor", |e| self.inner.GetActor(e))?;
+        Ok(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
-    pub fn other_actor(&self) -> Actor {
-        unsafe { Actor::from_cxx(self.inner.GetOtherActor()).unwrap_unchecked() }
+    pub fn other_actor(&self) -> crate::Result<Actor> {
+        let ptr = with_ffi_error("GetOtherActor", |e| self.inner.GetOtherActor(e))?;
+        Ok(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
     pub fn distance(&self) -> f32 {

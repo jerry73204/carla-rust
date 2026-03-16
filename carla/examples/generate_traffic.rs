@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     world.set_pedestrians_cross_factor(0.2)?; // 20% chance to cross roads
 
     let bp_lib = world.blueprint_library()?;
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
 
     // ========================================================================
     // PART 1: Spawn Vehicles with Autopilot
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("=== Spawning {} Vehicles ===", NUM_VEHICLES);
 
-    let vehicle_blueprints = bp_lib.filter("vehicle.*");
+    let vehicle_blueprints = bp_lib.filter("vehicle.*")?;
     if vehicle_blueprints.is_empty() {
         return Err("No vehicle blueprints found".into());
     }
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut vehicle_spawn_commands = Vec::new();
     for i in 0..NUM_VEHICLES.min(spawn_points.len()) {
         let vehicle_bp = vehicle_blueprints
-            .get(rng.random_range(0..vehicle_blueprints.len()))
+            .get(rng.random_range(0..vehicle_blueprints.len()))?
             .ok_or("Failed to get vehicle blueprint")?;
         let spawn_point = spawn_points.get(i).ok_or("No spawn point available")?;
 
@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("=== Spawning {} Walkers ===", NUM_WALKERS);
 
-    let walker_blueprints = bp_lib.filter("walker.pedestrian.*");
+    let walker_blueprints = bp_lib.filter("walker.pedestrian.*")?;
     if walker_blueprints.is_empty() {
         return Err("No walker blueprints found".into());
     }
@@ -124,7 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut walker_spawn_commands = Vec::new();
     for _ in 0..NUM_WALKERS {
         let walker_bp = walker_blueprints
-            .get(rng.random_range(0..walker_blueprints.len()))
+            .get(rng.random_range(0..walker_blueprints.len()))?
             .ok_or("Failed to get walker blueprint")?;
 
         // Get random location from navigation system
@@ -160,7 +160,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Spawning Walker AI Controllers ===");
 
     let controller_bp = bp_lib
-        .find("controller.ai.walker")
+        .find("controller.ai.walker")?
         .ok_or("Walker AI controller blueprint not found")?;
 
     // Spawn AI controller for each walker

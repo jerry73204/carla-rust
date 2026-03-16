@@ -35,7 +35,9 @@ public:
         ffi_call_void(error, [&]() { inner_->Stop(); });
     }
 
-    bool IsListening() const { return inner_->IsListening(); }
+    bool IsListening(FfiError& error) const {
+        return ffi_call(error, false, [&]() { return inner_->IsListening(); });
+    }
 
     // GBuffer methods (available in all versions)
 

@@ -50,11 +50,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get vehicle blueprint
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Tesla Model 3 blueprint not found")?;
 
     // Get spawn point
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Spawn vehicle
@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get camera blueprint
     let camera_bp = blueprint_library
-        .find("sensor.camera.rgb")
+        .find("sensor.camera.rgb")?
         .ok_or("RGB camera blueprint not found")?;
 
     // Configure camera resolution

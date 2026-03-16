@@ -1,4 +1,7 @@
-use crate::{client::LightState, geom::Location, rpc::LightId, sensor::data::Color};
+use crate::{
+    client::LightState, error::ffi::with_ffi_error, geom::Location, rpc::LightId,
+    sensor::data::Color,
+};
 use carla_sys::carla_rust::client::FfiLightRef;
 use cxx::UniquePtr;
 use derivative::Derivative;
@@ -84,8 +87,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn color(&self) -> Color {
-        self.inner.GetColor()
+    pub fn color(&self) -> crate::Result<Color> {
+        with_ffi_error("color", |e| self.inner.GetColor(e))
     }
 
     /// Returns the unique identifier of this light.
@@ -126,8 +129,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn intensity(&self) -> f32 {
-        self.inner.GetIntensity()
+    pub fn intensity(&self) -> crate::Result<f32> {
+        with_ffi_error("intensity", |e| self.inner.GetIntensity(e))
     }
 
     /// Returns the location of the light in the world.
@@ -147,8 +150,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn location(&self) -> Location {
-        Location::from_ffi(self.inner.GetLocation())
+    pub fn location(&self) -> crate::Result<Location> {
+        with_ffi_error("location", |e| {
+            Location::from_ffi(self.inner.GetLocation(e))
+        })
     }
 
     /// Returns the group that this light belongs to.
@@ -168,8 +173,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_group(&self) -> LightGroup {
-        self.inner.GetLightGroup()
+    pub fn light_group(&self) -> crate::Result<LightGroup> {
+        with_ffi_error("light_group", |e| self.inner.GetLightGroup(e))
     }
 
     /// Returns the current state of the light.
@@ -189,8 +194,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn light_state(&self) -> LightState {
-        self.inner.GetLightState()
+    pub fn light_state(&self) -> crate::Result<LightState> {
+        with_ffi_error("light_state", |e| self.inner.GetLightState(e))
     }
 
     /// Returns true if the light is currently on.
@@ -210,8 +215,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_on(&self) -> bool {
-        self.inner.IsOn()
+    pub fn is_on(&self) -> crate::Result<bool> {
+        with_ffi_error("is_on", |e| self.inner.IsOn(e))
     }
 
     /// Returns true if the light is currently off.
@@ -231,8 +236,8 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn is_off(&self) -> bool {
-        self.inner.IsOff()
+    pub fn is_off(&self) -> crate::Result<bool> {
+        with_ffi_error("is_off", |e| self.inner.IsOff(e))
     }
 
     /// Sets the color of the light.
@@ -252,8 +257,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_color(&mut self, color: Color) {
-        self.inner.pin_mut().SetColor(color)
+    pub fn set_color(&mut self, color: Color) -> crate::Result<()> {
+        with_ffi_error("set_color", |e| {
+            self.inner.pin_mut().SetColor(color, e);
+        })
     }
 
     /// Sets the intensity of the light.
@@ -273,8 +280,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_intensity(&mut self, intensity: f32) {
-        self.inner.pin_mut().SetIntensity(intensity)
+    pub fn set_intensity(&mut self, intensity: f32) -> crate::Result<()> {
+        with_ffi_error("set_intensity", |e| {
+            self.inner.pin_mut().SetIntensity(intensity, e);
+        })
     }
 
     /// Sets the group that this light belongs to.
@@ -294,8 +303,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_light_group(&mut self, group: LightGroup) {
-        self.inner.pin_mut().SetLightGroup(group)
+    pub fn set_light_group(&mut self, group: LightGroup) -> crate::Result<()> {
+        with_ffi_error("set_light_group", |e| {
+            self.inner.pin_mut().SetLightGroup(group, e);
+        })
     }
 
     /// Sets the complete state of the light.
@@ -315,8 +326,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn set_light_state(&mut self, state: &LightState) {
-        self.inner.pin_mut().SetLightState(state);
+    pub fn set_light_state(&mut self, state: &LightState) -> crate::Result<()> {
+        with_ffi_error("set_light_state", |e| {
+            self.inner.pin_mut().SetLightState(state, e);
+        })
     }
 
     /// Turns the light on.
@@ -336,8 +349,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn turn_on(&mut self) {
-        self.inner.pin_mut().TurnOn();
+    pub fn turn_on(&mut self) -> crate::Result<()> {
+        with_ffi_error("turn_on", |e| {
+            self.inner.pin_mut().TurnOn(e);
+        })
     }
 
     /// Turns the light off.
@@ -357,8 +372,10 @@ impl<'a> LightMut<'a> {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn turn_off(&mut self) {
-        self.inner.pin_mut().TurnOff();
+    pub fn turn_off(&mut self) -> crate::Result<()> {
+        with_ffi_error("turn_off", |e| {
+            self.inner.pin_mut().TurnOff(e);
+        })
     }
 
     /// Constructs a `LightMut` from a raw FFI pointer.

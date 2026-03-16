@@ -27,10 +27,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Spawning vehicle...");
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Tesla Model 3 blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     let actor = world.spawn_actor(&vehicle_bp, spawn_point)?;

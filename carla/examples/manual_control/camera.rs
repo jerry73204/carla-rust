@@ -362,7 +362,7 @@ impl CameraManager {
         // Get blueprint for current sensor
         let blueprint_library = world.world.blueprint_library()?;
         let mut sensor_bp = blueprint_library
-            .find(&sensor_def.blueprint_id)
+            .find(&sensor_def.blueprint_id)?
             .ok_or_else(|| eyre!("{} blueprint not found", sensor_def.blueprint_id))?;
 
         // Set common camera attributes

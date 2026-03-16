@@ -26,14 +26,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find a walker blueprint
     let walker_bp = blueprint_library
-        .filter("walker.pedestrian.*")
-        .get(0)
+        .filter("walker.pedestrian.*")?
+        .get(0)?
         .expect("Failed to find walker blueprint");
 
     println!("Found blueprint: {}", walker_bp.id());
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     println!("Available spawn points: {}", spawn_points.len());
 
     // Use first spawn point
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Walker spawned successfully!");
     println!("  Type: {}", walker.type_id());
     println!("  ID: {}", walker.id());
-    println!("  Alive: {}", walker.is_alive());
+    println!("  Alive: {}", walker.is_alive()?);
 
     // Get location
     let location = walker.location()?;

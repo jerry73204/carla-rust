@@ -73,11 +73,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Get vehicle blueprint
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Tesla Model 3 blueprint not found")?;
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
 
     // Demo 1: Apply Impulse (Instantaneous velocity change)
     println!("=== Demo 1: Apply Impulse ===");

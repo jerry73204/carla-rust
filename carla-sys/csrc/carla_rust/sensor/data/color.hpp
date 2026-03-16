@@ -16,6 +16,8 @@ public:
     uint8_t r;
     uint8_t a;
 
+    FfiColor() : b(0), g(0), r(0), a(0) {}
+
     FfiColor(Color&& base)
         : b(std::move(base.b)), g(std::move(base.g)), r(std::move(base.r)), a(std::move(base.a)) {}
 

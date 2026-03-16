@@ -25,6 +25,9 @@ public:
     FfiRpcLightGroup group;
     bool active;
 
+    FfiClientLightState()
+        : intensity(0.0f), color(), group(static_cast<FfiRpcLightGroup>(0)), active(false) {}
+
     FfiClientLightState(LightState&& base)
         : intensity(std::move(base._intensity)),
           color(std::move(base._color)),

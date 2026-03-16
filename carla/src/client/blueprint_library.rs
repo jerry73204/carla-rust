@@ -1,4 +1,5 @@
 use super::ActorBlueprint;
+use crate::error::ffi::with_ffi_error;
 use autocxx::prelude::*;
 use carla_sys::carla_rust::client::{FfiBlueprintLibrary, copy_actor_blueprint};
 use cxx::{SharedPtr, let_cxx_string};
@@ -29,22 +30,22 @@ use static_assertions::assert_impl_all;
 /// let library = world.blueprint_library()?;
 ///
 /// // Find a specific vehicle by ID
-/// if let Some(tesla_bp) = library.find("vehicle.tesla.model3") {
+/// if let Some(tesla_bp) = library.find("vehicle.tesla.model3")? {
 ///     println!("Found Tesla Model 3 blueprint");
 /// }
 ///
 /// // Filter vehicles by wildcard pattern
-/// let all_vehicles = library.filter("vehicle.*");
+/// let all_vehicles = library.filter("vehicle.*")?;
 /// println!("Available vehicles: {}", all_vehicles.len());
 ///
 /// // Filter Tesla vehicles specifically
-/// let tesla_vehicles = library.filter("vehicle.tesla.*");
+/// let tesla_vehicles = library.filter("vehicle.tesla.*")?;
 /// for bp in tesla_vehicles.iter() {
 ///     println!("Tesla: {}", bp.id());
 /// }
 ///
 /// // Get blueprint by index
-/// if let Some(first_bp) = library.get(0) {
+/// if let Some(first_bp) = library.get(0)? {
 ///     println!("First blueprint: {}", first_bp.id());
 /// }
 /// # Ok(())
@@ -87,20 +88,20 @@ impl BlueprintLibrary {
     /// let library = world.blueprint_library()?;
     ///
     /// // Get all vehicles
-    /// let vehicles = library.filter("vehicle.*");
+    /// let vehicles = library.filter("vehicle.*")?;
     ///
     /// // Get all sensors
-    /// let sensors = library.filter("sensor.*");
+    /// let sensors = library.filter("sensor.*")?;
     ///
     /// // Get all Tesla vehicles
-    /// let teslas = library.filter("vehicle.tesla.*");
+    /// let teslas = library.filter("vehicle.tesla.*")?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn filter(&self, pattern: &str) -> Self {
+    pub fn filter(&self, pattern: &str) -> crate::Result<Self> {
         let_cxx_string!(pattern = pattern);
-        let ptr = self.inner.filter(&pattern);
-        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("filter", |e| self.inner.filter(&pattern, e))?;
+        Ok(unsafe { Self::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Filters blueprints by attribute name and value.
@@ -113,11 +114,13 @@ impl BlueprintLibrary {
     /// * `name` - Attribute name to filter by (e.g., `"number_of_wheels"`)
     /// * `value` - Attribute value to match (e.g., `"4"`)
     #[cfg(any(carla_version_0915, carla_version_0916, carla_version_0100))]
-    pub fn filter_by_attribute(&self, name: &str, value: &str) -> Self {
+    pub fn filter_by_attribute(&self, name: &str, value: &str) -> crate::Result<Self> {
         let_cxx_string!(name = name);
         let_cxx_string!(value = value);
-        let ptr = self.inner.filter_by_attribute(&name, &value);
-        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("filter_by_attribute", |e| {
+            self.inner.filter_by_attribute(&name, &value, e)
+        })?;
+        Ok(unsafe { Self::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Finds a blueprint by its exact ID.
@@ -129,12 +132,15 @@ impl BlueprintLibrary {
     /// # Returns
     ///
     /// The blueprint if found, or `None` if the ID doesn't exist.
-    pub fn find(&self, key: &str) -> Option<ActorBlueprint> {
+    pub fn find(&self, key: &str) -> crate::Result<Option<ActorBlueprint>> {
         let_cxx_string!(key = key);
+        let ptr = with_ffi_error("find", |e| self.inner.find(&key, e))?;
         unsafe {
-            let actor_bp = self.inner.find(&key).as_ref()?;
+            let Some(actor_bp) = ptr.as_ref() else {
+                return Ok(None);
+            };
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked())
+            Ok(Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked()))
         }
     }
 
@@ -147,18 +153,21 @@ impl BlueprintLibrary {
     /// # Returns
     ///
     /// The blueprint at the index, or `None` if out of bounds.
-    pub fn get(&self, index: usize) -> Option<ActorBlueprint> {
+    pub fn get(&self, index: usize) -> crate::Result<Option<ActorBlueprint>> {
+        let ptr = with_ffi_error("at", |e| self.inner.at(index, e))?;
         unsafe {
-            let actor_bp = self.inner.at(index).as_ref()?;
+            let Some(actor_bp) = ptr.as_ref() else {
+                return Ok(None);
+            };
             let actor_bp = copy_actor_blueprint(actor_bp).within_unique_ptr();
-            Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked())
+            Ok(Some(ActorBlueprint::from_cxx(actor_bp).unwrap_unchecked()))
         }
     }
 
     /// Returns an iterator over all blueprints in the library.
     pub fn iter(&self) -> impl Iterator<Item = ActorBlueprint> + '_ {
-        // SAFETY: Index is bounds-checked by (0..self.len()), so get() always returns Some
-        (0..self.len()).map(|idx| unsafe { self.get(idx).unwrap_unchecked() })
+        // SAFETY: Index is bounds-checked by (0..self.len()), so get() always returns Ok(Some(..))
+        (0..self.len()).map(|idx| unsafe { self.get(idx).unwrap_unchecked().unwrap_unchecked() })
     }
 
     /// Returns the number of blueprints in the library.

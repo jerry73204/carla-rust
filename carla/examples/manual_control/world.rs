@@ -243,7 +243,7 @@ impl World {
 
         // Get spawn points from the map
         let map = world.map()?;
-        let spawn_points = map.recommended_spawn_points();
+        let spawn_points = map.recommended_spawn_points()?;
 
         if spawn_points.is_empty() {
             return Err(eyre!("No spawn points available on this map"));

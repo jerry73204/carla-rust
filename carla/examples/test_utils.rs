@@ -175,12 +175,14 @@ fn setup_scenario(world: &mut carla::client::World) -> Vehicle {
         .expect("Failed to get blueprint library");
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
+        .expect("Failed to query blueprint")
         .expect("Vehicle blueprint not found");
 
     let spawn_points = world
         .map()
         .expect("Failed to get map")
-        .recommended_spawn_points();
+        .recommended_spawn_points()
+        .expect("Failed to get spawn points");
 
     // Try multiple spawn points in case some are occupied
     for (i, spawn_point) in spawn_points.iter().take(10).enumerate() {
@@ -398,8 +400,8 @@ fn test_string_to_actor_id_invalid() -> TestResult {
 }
 
 fn test_episode_id_equality(world: &carla::client::World) -> TestResult {
-    let episode = world.id();
-    let episode2 = world.id();
+    let episode = world.id()?;
+    let episode2 = world.id()?;
 
     // Same world, same episode
     assert_eq!(episode, episode2);
@@ -407,7 +409,7 @@ fn test_episode_id_equality(world: &carla::client::World) -> TestResult {
 }
 
 fn test_episode_id_string_conversion(world: &carla::client::World) -> TestResult {
-    let _episode = world.id();
+    let _episode = world.id()?;
     // Episode ID is a u64, always valid
     Ok(())
 }

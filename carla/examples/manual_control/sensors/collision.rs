@@ -60,7 +60,7 @@ impl CollisionSensor {
         // Get blueprint for sensor.other.collision
         let blueprint_library = world.world.blueprint_library()?;
         let collision_bp = blueprint_library
-            .find("sensor.other.collision")
+            .find("sensor.other.collision")?
             .ok_or_else(|| eyre!("sensor.other.collision blueprint not found"))?;
 
         info!("Spawning collision sensor");

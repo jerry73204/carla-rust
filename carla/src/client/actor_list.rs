@@ -1,4 +1,4 @@
-use crate::rpc::ActorId;
+use crate::{error::ffi::with_ffi_error, rpc::ActorId};
 use carla_sys::carla_rust::client::FfiActorList;
 use cxx::{SharedPtr, let_cxx_string};
 use derivative::Derivative;
@@ -16,20 +16,20 @@ pub struct ActorList {
 }
 
 impl ActorList {
-    pub fn find(&self, actor_id: ActorId) -> Option<Actor> {
-        let ptr = self.inner.Find(actor_id);
-        Actor::from_cxx(ptr)
+    pub fn find(&self, actor_id: ActorId) -> crate::Result<Option<Actor>> {
+        let ptr = with_ffi_error("Find", |e| self.inner.Find(actor_id, e))?;
+        Ok(Actor::from_cxx(ptr))
     }
 
-    pub fn filter(&self, pattern: &str) -> Self {
+    pub fn filter(&self, pattern: &str) -> crate::Result<Self> {
         let_cxx_string!(pattern = pattern);
-        let ptr = self.inner.Filter(&pattern);
-        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
+        let ptr = with_ffi_error("Filter", |e| self.inner.Filter(&pattern, e))?;
+        Ok(unsafe { Self::from_cxx(ptr).unwrap_unchecked() })
     }
 
-    pub fn get(&self, index: usize) -> Option<Actor> {
-        let ptr = self.inner.at(index);
-        Actor::from_cxx(ptr)
+    pub fn get(&self, index: usize) -> crate::Result<Option<Actor>> {
+        let ptr = with_ffi_error("at", |e| self.inner.at(index, e))?;
+        Ok(Actor::from_cxx(ptr))
     }
 
     pub fn len(&self) -> usize {
@@ -42,7 +42,7 @@ impl ActorList {
 
     pub fn iter(&self) -> impl Iterator<Item = Actor> + Send {
         let list = self.clone();
-        (0..self.len()).filter_map(move |idx| list.get(idx))
+        (0..self.len()).filter_map(move |idx| list.get(idx).ok().flatten())
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiActorList>) -> Option<Self> {

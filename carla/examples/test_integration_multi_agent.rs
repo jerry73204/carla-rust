@@ -75,14 +75,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn spawn_vehicles(world: &mut carla::client::World, count: usize) -> Vec<Vehicle> {
     let blueprint_library = world.blueprint_library().expect("bp lib");
-    let vehicle_blueprints: Vec<_> = blueprint_library.filter("vehicle.*").iter().collect();
+    let vehicle_blueprints: Vec<_> = blueprint_library
+        .filter("vehicle.*")
+        .expect("Failed to filter blueprints")
+        .iter()
+        .collect();
 
     if vehicle_blueprints.is_empty() {
         println!("⚠️  No vehicle blueprints found!");
         return vec![];
     }
 
-    let spawn_points = world.map().expect("map").recommended_spawn_points();
+    let spawn_points = world
+        .map()
+        .expect("map")
+        .recommended_spawn_points()
+        .expect("spawn points");
     let mut vehicles = Vec::new();
 
     for i in 0..count.min(spawn_points.len()) {
@@ -111,6 +119,7 @@ fn spawn_walkers(world: &mut carla::client::World, count: usize) -> Vec<Walker> 
     let blueprint_library = world.blueprint_library().expect("bp lib");
     let walker_blueprints: Vec<_> = blueprint_library
         .filter("walker.pedestrian.*")
+        .expect("Failed to filter blueprints")
         .iter()
         .collect();
 
@@ -188,8 +197,14 @@ fn monitor_simulation(world: &mut carla::client::World, vehicles: &[Vehicle], wa
             );
 
             // Check if actors are still alive
-            let vehicle_alive = vehicles.iter().filter(|v| v.is_alive()).count();
-            let walker_alive = walkers.iter().filter(|w| w.is_alive()).count();
+            let vehicle_alive = vehicles
+                .iter()
+                .filter(|v| v.is_alive().unwrap_or(false))
+                .count();
+            let walker_alive = walkers
+                .iter()
+                .filter(|w| w.is_alive().unwrap_or(false))
+                .count();
 
             if vehicle_alive < vehicles.len() || walker_alive < walkers.len() {
                 println!(
@@ -212,27 +227,27 @@ fn visualize_agents(world: &mut carla::client::World, vehicles: &[Vehicle], walk
 
     // Draw markers above vehicles (blue)
     for vehicle in vehicles.iter().take(10) {
-        if vehicle.is_alive() {
+        if vehicle.is_alive().unwrap_or(false) {
             let transform = vehicle.transform().unwrap();
             let marker_location = Location::new(
                 transform.location.x,
                 transform.location.y,
                 transform.location.z + 3.0,
             );
-            debug.draw_point(marker_location, 0.3, Color::BLUE, 5.0, false);
+            let _ = debug.draw_point(marker_location, 0.3, Color::BLUE, 5.0, false);
         }
     }
 
     // Draw markers above walkers (green)
     for walker in walkers.iter().take(10) {
-        if walker.is_alive() {
+        if walker.is_alive().unwrap_or(false) {
             let transform = walker.transform().unwrap();
             let marker_location = Location::new(
                 transform.location.x,
                 transform.location.y,
                 transform.location.z + 2.0,
             );
-            debug.draw_point(marker_location, 0.2, Color::GREEN, 5.0, false);
+            let _ = debug.draw_point(marker_location, 0.2, Color::GREEN, 5.0, false);
         }
     }
 
@@ -246,7 +261,7 @@ fn visualize_agents(world: &mut carla::client::World, vehicles: &[Vehicle], walk
 fn cleanup_agents(vehicles: Vec<Vehicle>, walkers: Vec<Walker>) {
     // Disable autopilot before destroying
     for vehicle in &vehicles {
-        if vehicle.is_alive() {
+        if vehicle.is_alive().unwrap_or(false) {
             let _ = vehicle.set_autopilot(false);
         }
     }
@@ -254,14 +269,14 @@ fn cleanup_agents(vehicles: Vec<Vehicle>, walkers: Vec<Walker>) {
     let mut destroyed_count = 0;
 
     for vehicle in vehicles {
-        if vehicle.is_alive() {
+        if vehicle.is_alive().unwrap_or(false) {
             let _ = vehicle.destroy();
             destroyed_count += 1;
         }
     }
 
     for walker in walkers {
-        if walker.is_alive() {
+        if walker.is_alive().unwrap_or(false) {
             let _ = walker.destroy();
             destroyed_count += 1;
         }

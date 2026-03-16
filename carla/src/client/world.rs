@@ -69,7 +69,7 @@ const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 /// let mut world = client.world()?;
 ///
 /// // Get simulation info
-/// println!("World ID: {}", world.id());
+/// println!("World ID: {}", world.id()?);
 /// let map = world.map()?;
 /// println!("Map: {}", map.name());
 ///
@@ -111,8 +111,8 @@ impl World {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn id(&self) -> u64 {
-        self.inner.GetId()
+    pub fn id(&self) -> Result<u64> {
+        with_ffi_error("World::id", |e| self.inner.GetId(e))
     }
 
     /// Returns the map associated with this world.
@@ -734,21 +734,27 @@ impl World {
             let actor = {
                 use cxx::let_cxx_string;
                 let_cxx_string!(socket_name = "");
+                with_ffi_error("World::try_spawn_actor", |e| {
+                    self.inner.pin_mut().TrySpawnActor(
+                        &blueprint.inner,
+                        ffi_transform.as_ffi(),
+                        parent_ptr,
+                        attachment_type,
+                        &socket_name,
+                        e,
+                    )
+                })?
+            };
+            #[cfg(not(carla_version_0916))]
+            let actor = with_ffi_error("World::try_spawn_actor", |e| {
                 self.inner.pin_mut().TrySpawnActor(
                     &blueprint.inner,
                     ffi_transform.as_ffi(),
                     parent_ptr,
                     attachment_type,
-                    &socket_name,
+                    e,
                 )
-            };
-            #[cfg(not(carla_version_0916))]
-            let actor = self.inner.pin_mut().TrySpawnActor(
-                &blueprint.inner,
-                ffi_transform.as_ffi(),
-                parent_ptr,
-                attachment_type,
-            );
+            })?;
             Actor::from_cxx(actor).ok_or_else(|| {
                 OperationError::SpawnFailed {
                     blueprint: blueprint.id().to_string(),
@@ -1405,7 +1411,9 @@ impl World {
 
 impl Clone for World {
     fn clone(&self) -> Self {
-        unsafe { Self::from_cxx(self.inner.clone().within_unique_ptr()).unwrap_unchecked() }
+        let ptr =
+            with_ffi_error("World::clone", |e| self.inner.clone(e)).expect("World::clone failed");
+        unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
 }
 

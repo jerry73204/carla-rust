@@ -64,7 +64,9 @@ public:
     FfiWorld(const FfiWorld&) = default;
     FfiWorld(FfiWorld&&) = default;
 
-    uint64_t GetId() const { return inner_.GetId(); }
+    uint64_t GetId(FfiError& error) const {
+        return ffi_call(error, uint64_t(0), [&]() { return inner_.GetId(); });
+    }
 
     std::shared_ptr<FfiMap> GetMap(FfiError& error) const {
         return ffi_call(error, std::shared_ptr<FfiMap>(), [&]() {
@@ -121,37 +123,33 @@ public:
     }
 
     std::shared_ptr<FfiActor> TrySpawnActor(const ActorBlueprint& blueprint,
-                                            const FfiTransform& transform,
-                                            const FfiActor* parent = nullptr,
-                                            AttachmentType attachment_type = AttachmentType::Rigid
+                                            const FfiTransform& transform, const FfiActor* parent,
+                                            AttachmentType attachment_type,
 #ifdef CARLA_VERSION_0916
-                                            ,
-                                            const std::string& socket_name = ""
+                                            const std::string& socket_name,
 #endif
-                                            ) noexcept {
-        Actor* parent_arg = nullptr;
-        if (parent != nullptr) {
-            const SharedPtr<Actor>& ptr = parent->inner();
-            // SAFETY: The underlying CARLA C++ API takes a non-const Actor* but does not
-            // actually mutate the parent actor during spawning - it's a design issue in
-            // the upstream CARLA library. We accept const here to provide a safer FFI
-            // interface, but must cast to non-const to call the underlying API.
-            parent_arg = const_cast<Actor*>(ptr.get());
-        }
+                                            FfiError& error) {
+        return ffi_call(error, std::shared_ptr<FfiActor>(), [&]() -> std::shared_ptr<FfiActor> {
+            Actor* parent_arg = nullptr;
+            if (parent != nullptr) {
+                const SharedPtr<Actor>& ptr = parent->inner();
+                parent_arg = const_cast<Actor*>(ptr.get());
+            }
 
-        const Transform& transform_arg = transform.as_native();
+            const Transform& transform_arg = transform.as_native();
 
 #ifdef CARLA_VERSION_0916
-        auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type,
-                                          socket_name);
+            auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type,
+                                              socket_name);
 #else
-        auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
+            auto actor = inner_.TrySpawnActor(blueprint, transform_arg, parent_arg, attachment_type);
 #endif
-        if (actor == nullptr) {
-            return nullptr;
-        } else {
-            return std::make_shared<FfiActor>(std::move(actor));
-        }
+            if (actor == nullptr) {
+                return nullptr;
+            } else {
+                return std::make_shared<FfiActor>(std::move(actor));
+            }
+        });
     }
 
     std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis, FfiError& error) const {
@@ -445,8 +443,9 @@ public:
         });
     }
 
-    FfiWorld clone() const {
-        return *this;
+    std::unique_ptr<FfiWorld> clone(FfiError& error) const {
+        return ffi_call(error, std::unique_ptr<FfiWorld>(nullptr),
+                        [&]() { return std::make_unique<FfiWorld>(*this); });
     }
 
 private:

@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\nCurrent map: {}", map_name);
 
     // Get spawn points
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
     println!("Available spawn points: {}", spawn_points.len());
 
     // Display first few spawn points

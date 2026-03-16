@@ -139,9 +139,10 @@ fn setup_scenario(
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
         .find("vehicle.tesla.model3")
+        .expect("Failed to query blueprint")
         .expect("Vehicle blueprint not found");
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).expect("No spawn points available");
 
     let vehicle_actor = world
@@ -185,7 +186,10 @@ fn attach_rgb_camera(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library.find("sensor.camera.rgb")?;
+    let mut camera_bp = blueprint_library
+        .find("sensor.camera.rgb")
+        .ok()?
+        .flatten()?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -224,7 +228,10 @@ fn attach_depth_camera(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library.find("sensor.camera.depth")?;
+    let mut camera_bp = blueprint_library
+        .find("sensor.camera.depth")
+        .ok()?
+        .flatten()?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -262,7 +269,10 @@ fn attach_semantic_camera(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut camera_bp = blueprint_library.find("sensor.camera.semantic_segmentation")?;
+    let mut camera_bp = blueprint_library
+        .find("sensor.camera.semantic_segmentation")
+        .ok()?
+        .flatten()?;
 
     let _ = camera_bp.set_attribute("image_size_x", &RGB_WIDTH.to_string());
     let _ = camera_bp.set_attribute("image_size_y", &RGB_HEIGHT.to_string());
@@ -300,7 +310,10 @@ fn attach_lidar_sensor(
     stats: Arc<SensorStats>,
 ) -> Option<Sensor> {
     let blueprint_library = world.blueprint_library().ok()?;
-    let mut lidar_bp = blueprint_library.find("sensor.lidar.ray_cast")?;
+    let mut lidar_bp = blueprint_library
+        .find("sensor.lidar.ray_cast")
+        .ok()?
+        .flatten()?;
 
     let _ = lidar_bp.set_attribute("channels", &LIDAR_CHANNELS.to_string());
     let _ = lidar_bp.set_attribute("range", &LIDAR_RANGE.to_string());

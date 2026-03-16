@@ -147,10 +147,10 @@ where
 fn test_batch_spawn_actors(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_count = 5.min(spawn_points.len());
 
     // Create batch spawn commands
@@ -193,10 +193,10 @@ fn test_batch_destroy_actors(client: &mut Client, world: &mut carla::client::Wor
     // First spawn some actors
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -246,10 +246,10 @@ fn test_batch_apply_vehicle_control(
     // Spawn vehicles
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -310,10 +310,10 @@ fn test_batch_apply_walker_control(
     // Spawn walkers
     let blueprint_library = world.blueprint_library()?;
     let walker_bp = blueprint_library
-        .find("walker.pedestrian.0001")
+        .find("walker.pedestrian.0001")?
         .ok_or("Walker blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_count = 3.min(spawn_points.len());
 
     let mut spawn_commands = Vec::new();
@@ -380,10 +380,10 @@ fn test_batch_command_response(
 ) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Create a single spawn command
@@ -431,10 +431,10 @@ fn test_batch_error_handling(client: &mut Client) -> TestResult {
 fn test_batch_partial_failure(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
 
     // Mix valid and potentially invalid commands
     let mut commands = Vec::new();
@@ -491,10 +491,10 @@ fn test_batch_order_preservation(
 ) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_count = 3.min(spawn_points.len());
 
     // Create commands with specific order
@@ -540,10 +540,10 @@ fn test_empty_batch(client: &mut Client) -> TestResult {
 fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
 
     // Create a large batch (up to 50 or available spawn points)
     let batch_size = 50.min(spawn_points.len());
@@ -589,10 +589,10 @@ fn test_large_batch(client: &mut Client, world: &mut carla::client::World) -> Te
 fn test_batch_performance(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let test_size = 10.min(spawn_points.len());
 
     // Create batch commands
@@ -633,10 +633,10 @@ fn test_batch_performance(client: &mut Client, world: &mut carla::client::World)
 fn test_mixed_command_types(client: &mut Client, world: &mut carla::client::World) -> TestResult {
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .ok_or("Vehicle blueprint not found")?;
 
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = spawn_points.get(0).ok_or("No spawn points available")?;
 
     // Mix different command types in one batch

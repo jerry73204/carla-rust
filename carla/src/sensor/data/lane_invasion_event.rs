@@ -3,7 +3,9 @@
 //! This module provides the [`LaneInvasionEvent`] type for detecting when an actor
 //! crosses lane markings.
 
-use crate::{client::Actor, road::element::LaneMarking, sensor::SensorData};
+use crate::{
+    client::Actor, error::ffi::with_ffi_error, road::element::LaneMarking, sensor::SensorData,
+};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::sensor::data::FfiLaneInvasionEvent;
 use cxx::SharedPtr;
@@ -112,11 +114,12 @@ impl LaneInvasionEvent {
     /// ```no_run
     /// # use carla::sensor::data::LaneInvasionEvent;
     /// # let lane_invasion: LaneInvasionEvent = todo!();
-    /// let actor = lane_invasion.actor();
+    /// let actor = lane_invasion.actor().unwrap();
     /// println!("Lane invasion actor ID: {}", actor.id());
     /// ```
-    pub fn actor(&self) -> Actor {
-        unsafe { Actor::from_cxx(self.inner.GetActor()).unwrap_unchecked() }
+    pub fn actor(&self) -> crate::Result<Actor> {
+        let ptr = with_ffi_error("GetActor", |e| self.inner.GetActor(e))?;
+        Ok(unsafe { Actor::from_cxx(ptr).unwrap_unchecked() })
     }
 
     /// Returns the list of lane markings that were crossed.

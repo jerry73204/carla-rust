@@ -1,5 +1,5 @@
 use super::{Actor, ActorBase};
-use crate::{geom::BoundingBox, road::SignId};
+use crate::{error::ffi::with_ffi_error, geom::BoundingBox, road::SignId};
 use carla_sys::carla_rust::client::{FfiActor, FfiTrafficSign};
 use cxx::SharedPtr;
 use derivative::Derivative;
@@ -17,6 +17,7 @@ use static_assertions::assert_impl_all;
 /// ```no_run
 /// use carla::client::{ActorBase, Client};
 ///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::default();
 /// let world = client.world();
 ///
@@ -26,9 +27,11 @@ use static_assertions::assert_impl_all;
 ///     // Try to convert to traffic sign
 ///     if let Ok(sign) = carla::client::TrafficSign::try_from(actor.clone()) {
 ///         println!("Traffic sign at: {:?}", sign.location());
-///         println!("Sign ID: {}", sign.sign_id());
+///         println!("Sign ID: {}", sign.sign_id()?);
 ///     }
 /// }
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -41,8 +44,9 @@ impl TrafficSign {
     /// Returns the OpenDRIVE sign ID.
     ///
     /// See [carla.TrafficSign.get_opendrive_id](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficSign) in the Python API.
-    pub fn sign_id(&self) -> SignId {
-        self.inner.GetSignId().to_string()
+    pub fn sign_id(&self) -> crate::Result<SignId> {
+        let id = with_ffi_error("sign_id", |e| self.inner.GetSignId(e))?;
+        Ok(id.to_string())
     }
 
     /// Returns the trigger volume bounding box.
@@ -50,8 +54,9 @@ impl TrafficSign {
     /// See [carla.TrafficSign.get_trigger_volume](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.TrafficSign) in the Python API.
     ///
     /// The trigger volume is the area where the sign affects vehicles.
-    pub fn trigger_volume(&self) -> BoundingBox {
-        BoundingBox::from_native(self.inner.GetTriggerVolume())
+    pub fn trigger_volume(&self) -> crate::Result<BoundingBox> {
+        let bbox = with_ffi_error("trigger_volume", |e| self.inner.GetTriggerVolume(e))?;
+        Ok(BoundingBox::from_native(&bbox))
     }
 
     fn from_cxx(ptr: SharedPtr<FfiTrafficSign>) -> Option<Self> {

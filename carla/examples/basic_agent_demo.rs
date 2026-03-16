@@ -24,7 +24,7 @@ fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.len() < 2 {
         return Err(anyhow::anyhow!("Need at least 2 spawn points"));
@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     println!("Spawning vehicle...");
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;

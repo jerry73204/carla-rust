@@ -148,7 +148,7 @@ impl CameraManager {
     fn new(world: &mut CarlaWorld, vehicle: &Vehicle) -> Result<Self> {
         let blueprint_library = world.blueprint_library()?;
         let camera_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("Camera blueprint not found"))?;
 
         let mut camera_bp = camera_bp;
@@ -478,7 +478,7 @@ fn draw_3d_bounding_box(world: &mut CarlaWorld, actor: &Actor, color: Color, lif
 
     if let Ok(debug) = world.debug() {
         for (i, j) in &edges {
-            debug.draw_line(
+            let _ = debug.draw_line(
                 world_corners[*i],
                 world_corners[*j],
                 0.1,
@@ -571,7 +571,7 @@ async fn main() -> Result<()> {
 
     // Get spawn points
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
 
     if spawn_points.is_empty() {
         return Err(anyhow::anyhow!("No spawn points available"));
@@ -580,7 +580,7 @@ async fn main() -> Result<()> {
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;

@@ -280,7 +280,7 @@ impl CameraManager {
 
         // Create RGB camera
         let rgb_bp = blueprint_library
-            .find("sensor.camera.rgb")
+            .find("sensor.camera.rgb")?
             .ok_or_else(|| anyhow::anyhow!("RGB camera blueprint not found"))?;
 
         let mut rgb_bp = rgb_bp;
@@ -290,7 +290,7 @@ impl CameraManager {
 
         // Create depth camera for occlusion
         let depth_bp = blueprint_library
-            .find("sensor.camera.depth")
+            .find("sensor.camera.depth")?
             .ok_or_else(|| anyhow::anyhow!("Depth camera blueprint not found"))?;
 
         let mut depth_bp = depth_bp;
@@ -680,7 +680,7 @@ fn draw_3d_bounding_box(world: &mut CarlaWorld, actor_data: &ActorData, color: C
 
     if let Ok(debug) = world.debug() {
         for (i, j) in &edges {
-            debug.draw_line(world_corners[*i], world_corners[*j], 0.1, color, 0.1, false);
+            let _ = debug.draw_line(world_corners[*i], world_corners[*j], 0.1, color, 0.1, false);
         }
     }
 }
@@ -856,13 +856,13 @@ async fn main() -> Result<()> {
     // Spawn vehicle
     let blueprint_library = world.blueprint_library()?;
     let vehicle_bp = blueprint_library
-        .filter("vehicle.*")
+        .filter("vehicle.*")?
         .iter()
         .next()
         .ok_or_else(|| anyhow::anyhow!("No vehicle blueprints found"))?;
 
     let map = world.map()?;
-    let spawn_points = map.recommended_spawn_points();
+    let spawn_points = map.recommended_spawn_points()?;
     if spawn_points.is_empty() {
         return Err(anyhow::anyhow!("No spawn points available"));
     }

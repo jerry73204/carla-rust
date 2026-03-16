@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get walker blueprints
     let bp_lib = world.blueprint_library()?;
-    let walker_bp = match bp_lib.filter("walker.pedestrian.*").get(0) {
+    let walker_bp = match bp_lib.filter("walker.pedestrian.*")?.get(0)? {
         Some(bp) => bp,
         None => {
             eprintln!("No walker blueprints found");
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Get spawn point
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     let spawn_point = match spawn_points.get(0) {
         Some(point) => point,
         None => {
@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get current bone transforms
     println!("\n=== Getting current bone transforms ===");
-    let bone_transforms = walker.get_bones_transform();
+    let bone_transforms = walker.get_bones_transform()?;
     println!("Found {} bones", bone_transforms.bone_transforms.len());
 
     // Print first few bones as examples
@@ -148,7 +148,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get transforms again to verify they changed
     println!("\n=== Verifying bone transforms after modifications ===");
-    let final_transforms = walker.get_bones_transform();
+    let final_transforms = walker.get_bones_transform()?;
     println!(
         "Retrieved {} bones in final state",
         final_transforms.bone_transforms.len()

@@ -148,8 +148,8 @@ impl Walker {
     )]
     ///
     /// Returns the last control applied to the walker.
-    pub fn control(&self) -> WalkerControl {
-        self.inner.GetWalkerControl()
+    pub fn control(&self) -> crate::Result<WalkerControl> {
+        with_ffi_error("control", |e| self.inner.GetWalkerControl(e))
     }
 
     /// Sets bone transforms for custom walker animations.
@@ -379,10 +379,12 @@ impl Walker {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_bones_transform(&self) -> WalkerBoneControlOut {
-        let mut ffi_bones = self.inner.GetBonesTransformFfi().within_box();
-        // ffi_bones is now Pin<Box<FfiWalkerBoneControlOut>>
-        WalkerBoneControlOut::from_ffi(ffi_bones.as_mut())
+    pub fn get_bones_transform(&self) -> crate::Result<WalkerBoneControlOut> {
+        with_ffi_error("get_bones_transform", |e| {
+            let mut ffi_bones = self.inner.GetBonesTransformFfi(e).within_box();
+            // ffi_bones is now Pin<Box<FfiWalkerBoneControlOut>>
+            WalkerBoneControlOut::from_ffi(ffi_bones.as_mut())
+        })
     }
 
     /// Retrieves the pose from the current animation frame and stores it as a custom pose.

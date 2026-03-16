@@ -57,7 +57,7 @@ impl GnssSensor {
         // Get blueprint for sensor.other.gnss
         let blueprint_library = world.world.blueprint_library()?;
         let gnss_bp = blueprint_library
-            .find("sensor.other.gnss")
+            .find("sensor.other.gnss")?
             .ok_or_else(|| eyre!("sensor.other.gnss blueprint not found"))?;
 
         info!("Spawning GNSS sensor");

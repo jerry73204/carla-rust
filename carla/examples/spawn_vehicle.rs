@@ -28,13 +28,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find Tesla Model 3 blueprint
     let vehicle_bp = blueprint_library
-        .find("vehicle.tesla.model3")
+        .find("vehicle.tesla.model3")?
         .expect("Tesla Model 3 not found");
 
     println!("Found blueprint: {}", vehicle_bp.id());
 
     // Get spawn points
-    let spawn_points = world.map()?.recommended_spawn_points();
+    let spawn_points = world.map()?.recommended_spawn_points()?;
     println!("Available spawn points: {}", spawn_points.len());
 
     // Use first spawn point
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Vehicle spawned successfully!");
     println!("  Type: {}", vehicle.type_id());
     println!("  ID: {}", vehicle.id());
-    println!("  Alive: {}", vehicle.is_alive());
+    println!("  Alive: {}", vehicle.is_alive()?);
 
     // Get location
     let location = vehicle.location()?;
