@@ -151,7 +151,7 @@ Make the entire C++ FFI layer exception-free. Every method exposed to Rust eithe
 - [x] Update all ~60 examples to use `Result` returns
 - [x] Update all doc-test examples across 12+ library files
 - [x] Fix all internal callers (agents module, actor_builder, etc.)
-- [ ] Add reconnection example demonstrating `CarlaError::Connection` handling
+- [x] Add reconnection example demonstrating `CarlaError::Connection` handling (`examples/reconnection.rs`)
 
 ## Done Criteria
 
@@ -163,7 +163,7 @@ Make the entire C++ FFI layer exception-free. Every method exposed to Rust eithe
 - [x] `CARLA_TRY`/`CARLA_CATCH` macros removed
 - [x] `ffi_try_connect`/`ffi_try_get_world` free functions removed
 - [x] `try_connect()`/`try_world()` Rust methods removed
-- [ ] At least one example demonstrates reconnection on `CarlaError::Connection`
+- [x] At least one example demonstrates reconnection on `CarlaError::Connection` (`examples/reconnection.rs`)
 
 ## Summary of Changes
 
