@@ -9,4 +9,5 @@
 #include "vehicle_light_state_list.hpp"
 #include "vehicle_physics_control.hpp"
 #include "vehicle_telemetry_data.hpp"  // Includes stub types for older versions
+#include "wheel_physics_control.hpp"
 #include "walker_bone_control.hpp"

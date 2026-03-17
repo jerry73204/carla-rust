@@ -99,11 +99,12 @@ Most World methods were already implemented. Items below reflect current status.
 - [x] `World::apply_textures_to_object(object, diffuse, emissive, normal, ao_roughness)` — 0.10.0 only
 - Note: Multi-object variants (`apply_*_to_objects`) deferred — requires CxxVector<CxxString> construction from Rust
 
-### Event callbacks — requires FFI design
+### Event callbacks
 
-- [ ] `World::on_tick(callback) -> usize`
-  - [ ] Design C++ → Rust closure FFI bridge
-- [ ] `World::remove_on_tick(callback_id)`
+- [x] `World::on_tick(callback) -> OnTickId`
+  - [x] C++ bridge: `OnTickCallback` class in `on_tick_callback.hpp` (same double-boxing pattern as `ListenCallback`)
+  - [x] Rust: `World::on_tick()` / `World::remove_on_tick()` in `world.rs`
+- [x] `World::remove_on_tick(callback_id)`
 
 ---
 
@@ -280,13 +281,12 @@ Most World methods were already implemented. Items below reflect current status.
 
 ### 0.10.0 layout changes
 
-- [ ] `VehiclePhysicsControl` — ~30 fields in 0.10.0 vs ~17 in 0.9.x
-  - [ ] Version-gated C++ wrapper (current wrapper uses 0.9.x field names)
-  - [ ] Version-gated Rust struct
-  - Note: Current wrapper compiles for 0.10.0 but accesses wrong fields
-- [ ] `WheelPhysicsControl` — ~39 fields in 0.10.0 vs ~7 in 0.9.x
-  - [ ] Need custom C++ wrapper for 0.10.0 (has `std::vector` field, can't be POD)
-  - [ ] Version-gated Rust struct
+- [x] `VehiclePhysicsControl` — ~30 fields in 0.10.0 vs ~17 in 0.9.x
+  - [x] Version-gated C++ wrapper (`#ifdef CARLA_VERSION_0100` in `vehicle_physics_control.hpp`)
+  - [x] Version-gated Rust struct (`#[cfg(carla_version_0100)]` in `vehicle_physics_control.rs`)
+- [x] `WheelPhysicsControl` — ~37 fields in 0.10.0 vs ~7 in 0.9.x
+  - [x] C++ wrapper `FfiWheelPhysicsControl` for 0.10.0 (`wheel_physics_control.hpp`)
+  - [x] Version-gated Rust struct (`wheel_physics_control.rs`)
 
 ---
 

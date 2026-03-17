@@ -29,6 +29,7 @@
 #include "carla_rust/rpc/vehicle_light_state_list.hpp"
 #include "carla_rust/client/result.hpp"
 #include "carla_rust/rpc/texture.hpp"
+#include "carla_rust/client/on_tick_callback.hpp"
 
 namespace carla_rust {
 namespace client {
@@ -378,7 +379,19 @@ public:
     }
 #endif
 
-    // size_t OnTick(std::function<void(WorldSnapshot)> callback);
+    size_t OnTick(void* caller, void* fn, void* delete_fn, FfiError& error) {
+        return ffi_call(error, size_t(0), [&]() {
+            auto container = std::make_shared<OnTickCallback>(caller, fn, delete_fn);
+            auto callback = [container](WorldSnapshot snapshot) {
+                (*container)(std::move(snapshot));
+            };
+            return inner_.OnTick(std::move(callback));
+        });
+    }
+
+    void RemoveOnTick(size_t callback_id, FfiError& error) {
+        ffi_call_void(error, [&]() { inner_.RemoveOnTick(callback_id); });
+    }
 
     std::unique_ptr<FfiEnvironmentObjectList> GetEnvironmentObjects(uint8_t queried_tag,
                                                                     FfiError& error) const {

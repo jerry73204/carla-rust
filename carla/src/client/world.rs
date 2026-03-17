@@ -17,13 +17,15 @@ use crate::{
 };
 use autocxx::prelude::*;
 use carla_sys::carla_rust::{
-    client::{FfiActor, FfiWorld},
+    client::{FfiActor, FfiWorld, FfiWorldSnapshot},
     geom::FfiVector3D,
 };
 use cxx::{CxxVector, UniquePtr, let_cxx_string};
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
-use std::{ptr, time::Duration};
+use std::{mem, ptr, time::Duration};
+
+use autocxx::c_void;
 
 const DEFAULT_TICK_TIMEOUT: Duration = Duration::from_secs(60);
 
@@ -1400,6 +1402,52 @@ impl World {
         })
     }
 
+    /// Registers a callback to be called on every world tick.
+    ///
+    /// The callback receives a [`WorldSnapshot`] capturing the state of all
+    /// actors at that tick.
+    ///
+    /// Returns an [`OnTickId`] that can be passed to [`remove_on_tick`](Self::remove_on_tick)
+    /// to unregister the callback.
+    pub fn on_tick<F>(&mut self, mut callback: F) -> crate::Result<OnTickId>
+    where
+        F: FnMut(WorldSnapshot) + Send + 'static,
+    {
+        with_ffi_error("on_tick", |e| unsafe {
+            let fn_ptr = {
+                let fn_ = move |ptr: UniquePtr<FfiWorldSnapshot>| {
+                    if let Some(snapshot) = WorldSnapshot::from_cxx(ptr) {
+                        (callback)(snapshot);
+                    }
+                };
+                let fn_: Box<OnTickCb> = Box::new(fn_);
+                let fn_ = Box::new(fn_);
+                let fn_: *mut Box<OnTickCb> = Box::into_raw(fn_);
+                fn_ as *mut c_void
+            };
+
+            let caller_ptr = on_tick_caller as *mut c_void;
+            let deleter_ptr = on_tick_deleter as *mut c_void;
+
+            OnTickId(
+                self.inner
+                    .pin_mut()
+                    .OnTick(caller_ptr, fn_ptr, deleter_ptr, e),
+            )
+        })
+    }
+
+    /// Removes a previously registered on-tick callback.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The [`OnTickId`] returned by [`on_tick`](Self::on_tick)
+    pub fn remove_on_tick(&mut self, id: OnTickId) -> crate::Result<()> {
+        with_ffi_error("remove_on_tick", |e| {
+            self.inner.pin_mut().RemoveOnTick(id.0, e);
+        })
+    }
+
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiWorld>) -> Option<World> {
         if ptr.is_null() {
             None
@@ -1415,6 +1463,42 @@ impl Clone for World {
             with_ffi_error("World::clone", |e| self.inner.clone(e)).expect("World::clone failed");
         unsafe { Self::from_cxx(ptr).unwrap_unchecked() }
     }
+}
+
+/// Identifier for an on-tick callback, returned by [`World::on_tick`].
+///
+/// Pass this to [`World::remove_on_tick`] to unregister the callback.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OnTickId(usize);
+
+type OnTickCb = dyn FnMut(UniquePtr<FfiWorldSnapshot>) + Send + 'static;
+
+unsafe extern "C" fn on_tick_caller(fn_: *mut c_void, arg: *mut FfiWorldSnapshot) {
+    if fn_.is_null() || arg.is_null() {
+        eprintln!(
+            "ERROR: Null pointer in on_tick callback - fn_: {:p}, arg: {:p}",
+            fn_, arg
+        );
+        return;
+    }
+
+    let fn_ = fn_ as *mut Box<OnTickCb>;
+    unsafe {
+        // Take ownership of the heap-allocated FfiWorldSnapshot from C++
+        let snapshot = UniquePtr::from_raw(arg);
+        (*fn_)(snapshot);
+    }
+}
+
+unsafe extern "C" fn on_tick_deleter(fn_: *mut c_void) {
+    if fn_.is_null() {
+        eprintln!("ERROR: Null pointer in on_tick deleter");
+        return;
+    }
+
+    let fn_ = fn_ as *mut Box<OnTickCb>;
+    let fn_: Box<Box<OnTickCb>> = unsafe { Box::from_raw(fn_) };
+    mem::drop(fn_);
 }
 
 assert_impl_all!(World: Sync, Send);

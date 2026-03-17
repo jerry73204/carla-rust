@@ -16,14 +16,18 @@ mod vehicle_physics_control;
 mod vehicle_telemetry_data;
 mod walker_bone_control;
 pub mod weather;
+#[cfg(carla_version_0100)]
+mod wheel_physics_control;
 
 pub use actor_state::*;
+#[cfg(not(carla_version_0100))]
+pub use carla_sys::carla::rpc::WheelPhysicsControl;
 pub use carla_sys::{
     carla::rpc::{
         AckermannControllerSettings, ActorAttributeType, AttachmentType, CityObjectLabel,
         GearPhysicsControl, OpendriveGenerationParameters, TrafficLightState,
         VehicleAckermannControl, VehicleControl, VehicleDoor, VehicleWheelLocation, WalkerControl,
-        WeatherParameters, WheelPhysicsControl,
+        WeatherParameters,
     },
     carla_rust::rpc::{
         FfiActorId as ActorId, FfiLabelledPoint as LabelledPoint, FfiRpcLightGroup as LightGroup,
@@ -46,3 +50,5 @@ pub use vehicle_physics_control::*;
 #[cfg(carla_version_0916)]
 pub use vehicle_telemetry_data::*;
 pub use walker_bone_control::*;
+#[cfg(carla_version_0100)]
+pub use wheel_physics_control::WheelPhysicsControl;

@@ -81,6 +81,10 @@ std::vector<WheelPhysicsControl> new_wheel_physics_control_vector() {
     return std::vector<WheelPhysicsControl>{};
 }
 
+std::vector<float> new_float_vector() {
+    return std::vector<float>{};
+}
+
 // std::vector<std::shared_ptr<FfiActor>> new_ffi_actor_vector() {
 //     return std::vector<std::shared_ptr<FfiActor>> {};
 // }

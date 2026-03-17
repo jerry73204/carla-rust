@@ -131,6 +131,10 @@ include_cpp! {
     generate!("carla_rust::rpc::FfiTextureColor")
     generate!("carla_rust::rpc::FfiTextureFloatColor")
 
+    // NOTE: FfiWheelPhysicsControl is 0.10.0-only (wraps the non-POD WheelPhysicsControl).
+    // A stub type is provided for older versions so autocxx generates bindings on all versions.
+    generate!("carla_rust::rpc::FfiWheelPhysicsControl")
+
     // carla
     generate!("carla::SharedPtr")
     generate!("carla::time_duration")

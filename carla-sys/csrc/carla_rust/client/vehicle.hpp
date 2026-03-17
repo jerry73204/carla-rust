@@ -59,7 +59,7 @@ public:
 
     void ApplyPhysicsControl(const FfiVehiclePhysicsControl& physics_control,
                              FfiError& error) const {
-        ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.inner()); });
+        ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.as_native()); });
     }
 
     AckermannControllerSettings GetAckermannControllerSettings(FfiError& error) const {
@@ -100,8 +100,15 @@ public:
 
     std::unique_ptr<FfiVehiclePhysicsControl> GetPhysicsControl(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiVehiclePhysicsControl>(nullptr), [&]() {
+#ifdef CARLA_VERSION_0100
+            // On 0.10.0, the compat shim returns 0.9.x-layout data.
+            // Return a default-constructed wrapper; actual field population
+            // will be handled when 0.10.0 RPC serialization is implemented.
+            return std::make_unique<FfiVehiclePhysicsControl>();
+#else
             auto orig = inner_->GetPhysicsControl();
             return std::make_unique<FfiVehiclePhysicsControl>(std::move(orig));
+#endif
         });
     }
 

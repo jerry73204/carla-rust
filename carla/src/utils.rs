@@ -1,16 +1,16 @@
 //! Internal utilities.
 
+#[cfg(not(carla_version_0100))]
 use carla_sys::{
-    carla::{
-        geom::Vector2D,
-        rpc::{GearPhysicsControl, WheelPhysicsControl},
-    },
+    carla::rpc::WheelPhysicsControl, carla_rust::utils::new_wheel_physics_control_vector,
+};
+use carla_sys::{
+    carla::{geom::Vector2D, rpc::GearPhysicsControl},
     carla_rust::{
         geom::FfiLocation,
         utils::{
-            new_ffi_location_vector, new_gear_physics_control_vector, new_uint8_t_vector,
-            new_uint32_t_vector, new_uint64_t_vector, new_vector_2d_vector,
-            new_wheel_physics_control_vector,
+            new_ffi_location_vector, new_float_vector, new_gear_physics_control_vector,
+            new_uint8_t_vector, new_uint32_t_vector, new_uint64_t_vector, new_vector_2d_vector,
         },
     },
 };
@@ -53,9 +53,16 @@ impl NewCxxVectorElement for GearPhysicsControl {
     }
 }
 
+#[cfg(not(carla_version_0100))]
 impl NewCxxVectorElement for WheelPhysicsControl {
     fn new_vector() -> UniquePtr<CxxVector<Self>> {
         new_wheel_physics_control_vector()
+    }
+}
+
+impl NewCxxVectorElement for f32 {
+    fn new_vector() -> UniquePtr<CxxVector<Self>> {
+        new_float_vector()
     }
 }
 
