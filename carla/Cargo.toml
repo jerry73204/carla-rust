@@ -36,6 +36,7 @@ anyhow = "1.0.80"
 
 [dev-dependencies]
 approx = "0.5"
+libc = "0.2"
 # Dependencies for manual_control example
 macroquad = "0.4"
 eyre = "0.6"

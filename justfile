@@ -38,6 +38,18 @@ test:
         ::: {{ versions }}
     echo "All versions tested successfully!"
 
+# Run unit tests only — no CARLA simulator needed
+test-unit:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo nextest run --cargo-profile {{ profile }} -E 'kind(lib)' --no-tests pass --no-fail-fast
+
+# Run integration tests — requires CARLA simulator
+test-integration:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo nextest run --cargo-profile {{ profile }} -E 'kind(test)' --no-fail-fast
+
 # Run Rust and C++ checks for all supported CARLA versions
 check: check-rust check-cpp
 

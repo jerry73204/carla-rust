@@ -1,0 +1,16 @@
+[profile.default]
+slow-timeout = { period = "30s", terminate-after = 2 }
+fail-fast = false
+
+# CARLA integration tests use file-lock-based server pool for concurrency control.
+# Set max-threads to match CARLA_TEST_SERVERS for optimal parallelism.
+# Default: 1 server = serial execution. Override with:
+#   cargo nextest run --test-group-max-threads carla-server=N
+[test-groups.carla-server]
+max-threads = 1
+
+[[profile.default.overrides]]
+filter = "kind(test) and package(carla)"
+test-group = "carla-server"
+slow-timeout = { period = "120s", terminate-after = 2 }
+threads-required = 1
