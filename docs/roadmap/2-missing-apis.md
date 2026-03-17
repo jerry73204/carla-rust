@@ -300,7 +300,7 @@ Most World methods were already implemented. Items below reflect current status.
 - [x] GBuffer query/stop methods on Sensor
   - [x] `is_listening_gbuffer(id)` — via `ServerSideSensor` dynamic cast
   - [x] `stop_gbuffer(id)` — via `ServerSideSensor` dynamic cast
-  - [ ] `listen_to_gbuffer(id, callback)` — deferred (requires callback FFI bridge)
+  - [x] `listen_to_gbuffer(id, callback)` — same `ListenCallback` pattern as `listen()`
 - [x] ROS bridge methods on Sensor — 0.9.15+ only
   - [x] `enable_for_ros()` — gated with `#[cfg(carla_0915)]`
   - [x] `disable_for_ros()` — gated with `#[cfg(carla_0915)]`

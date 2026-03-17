@@ -170,6 +170,39 @@ impl Sensor {
         })
     }
 
+    /// Registers a callback to receive data from a specific GBuffer stream.
+    ///
+    /// Only works on server-side sensors (cameras). The callback receives
+    /// [`SensorData`] each time the GBuffer is rendered.
+    ///
+    /// # Arguments
+    ///
+    /// * `gbuffer_id` - The GBuffer texture ID to listen to
+    /// * `callback` - Function called with each [`SensorData`] produced
+    pub fn listen_to_gbuffer<F>(&self, gbuffer_id: u32, mut callback: F) -> crate::Result<()>
+    where
+        F: FnMut(SensorData) + Send + 'static,
+    {
+        with_ffi_error("listen_to_gbuffer", |e| unsafe {
+            let fn_ptr = {
+                let fn_ = move |ptr: SharedPtr<FfiSensorData>| {
+                    let data = SensorData::from_cxx(ptr);
+                    (callback)(data);
+                };
+                let fn_: Box<Callback> = Box::new(fn_);
+                let fn_ = Box::new(fn_);
+                let fn_: *mut Box<Callback> = Box::into_raw(fn_);
+                fn_ as *mut c_void
+            };
+
+            let caller_ptr = caller as *mut c_void;
+            let deleter_ptr = deleter as *mut c_void;
+
+            self.inner
+                .ListenToGBuffer(gbuffer_id, caller_ptr, fn_ptr, deleter_ptr, e);
+        })
+    }
+
     /// Returns whether the sensor is listening to a specific GBuffer stream.
     ///
     /// # Arguments

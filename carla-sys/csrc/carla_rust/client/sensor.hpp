@@ -50,6 +50,21 @@ public:
         });
     }
 
+    void ListenToGBuffer(uint32_t id, void* caller, void* fn, void* delete_fn,
+                         FfiError& error) const {
+        ffi_call_void(error, [&]() {
+            auto ss = carla_dynamic_pointer_cast<ServerSideSensor>(inner_);
+            if (ss != nullptr) {
+                auto container = std::make_shared<ListenCallback>(caller, fn, delete_fn);
+                auto callback = [container](SharedPtr<SensorData> data) {
+                    auto ffi_data = std::make_shared<FfiSensorData>(std::move(data));
+                    (*container)(ffi_data);
+                };
+                ss->ListenToGBuffer(id, std::move(callback));
+            }
+        });
+    }
+
     void StopGBuffer(uint32_t id, FfiError& error) const {
         ffi_call_void(error, [&]() {
             auto ss = carla_dynamic_pointer_cast<ServerSideSensor>(inner_);
