@@ -44,11 +44,24 @@ test-unit:
     set -euo pipefail
     cargo nextest run --cargo-profile {{ profile }} -E 'kind(lib)' --no-tests pass --no-fail-fast
 
-# Run integration tests — requires CARLA simulator
-test-integration:
+# Run integration tests — starts CARLA automatically via scripts/start-carla-test.sh
+# Set CARLA_VERSION to match your simulator (default: 0.9.16)
+test-integration carla_version="0.9.16":
     #!/usr/bin/env bash
     set -euo pipefail
-    cargo nextest run --cargo-profile {{ profile }} -E 'kind(test)' --no-fail-fast
+    CARLA_VERSION={{ carla_version }} \
+    CARGO_TARGET_DIR=target/carla-{{ carla_version }} \
+    CARLA_TEST_START_SCRIPT=./scripts/start-carla-test.sh \
+        cargo nextest run --cargo-profile {{ profile }} -E 'kind(test)' --no-fail-fast
+
+# Run integration tests against an already-running CARLA simulator
+# Start CARLA first: ./scripts/start-carla-test.sh 2000
+test-integration-external carla_version="0.9.16":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    CARLA_VERSION={{ carla_version }} \
+    CARGO_TARGET_DIR=target/carla-{{ carla_version }} \
+        cargo nextest run --cargo-profile {{ profile }} -E 'kind(test)' --no-fail-fast
 
 # Run Rust and C++ checks for all supported CARLA versions
 check: check-rust check-cpp
