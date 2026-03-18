@@ -44,18 +44,32 @@ test-unit:
     set -euo pipefail
     cargo nextest run --cargo-profile {{ profile }} -E 'kind(lib)' --no-tests pass --no-fail-fast
 
-# Run integration tests — starts CARLA automatically via scripts/start-carla-test.sh
-# Set CARLA_VERSION to match your simulator (default: 0.9.16)
+# Run integration tests — starts CARLA, runs tests, stops CARLA on exit.
+# Use `just test-integration-external` to skip start/stop and manage CARLA yourself.
 test-integration carla_version="0.9.16":
     #!/usr/bin/env bash
     set -euo pipefail
+    BASE_PORT="${CARLA_TEST_BASE_PORT:-2000}"
+    SERVERS="${CARLA_TEST_SERVERS:-1}"
+    _cleanup() {
+        echo "Stopping CARLA test servers..." >&2
+        pkill -9 -f "CarlaUE4.*-carla-rpc-port" 2>/dev/null || true
+        rm -f tmp/test-servers/port-*.pid
+    }
+    trap _cleanup EXIT
+    # Start one server per pool slot in parallel, wait for all to be TCP-ready
+    for i in $(seq 0 $((SERVERS - 1))); do
+        PORT=$((BASE_PORT + i * 10))
+        ./scripts/start-carla-test.sh "$PORT" &
+    done
+    wait
     CARLA_VERSION={{ carla_version }} \
     CARGO_TARGET_DIR=target/carla-{{ carla_version }} \
-    CARLA_TEST_START_SCRIPT=./scripts/start-carla-test.sh \
         cargo nextest run --cargo-profile {{ profile }} -E 'kind(test)' --no-fail-fast
 
-# Run integration tests against an already-running CARLA simulator
-# Start CARLA first: ./scripts/start-carla-test.sh 2000
+# Run integration tests against an already-running CARLA simulator.
+# Start CARLA first:  ./scripts/start-carla-test.sh 2000
+# Stop CARLA after:   pkill -f CarlaUE4
 test-integration-external carla_version="0.9.16":
     #!/usr/bin/env bash
     set -euo pipefail

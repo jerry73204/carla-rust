@@ -3,18 +3,10 @@ use std::{path::PathBuf, time::Duration};
 use serde::Deserialize;
 
 /// Top-level CARLA test configuration, loaded from `.config/carla-test.toml`.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[serde(default)]
 pub struct CarlaTestConfig {
-    pub server: ServerConfig,
     pub timeouts: TimeoutsConfig,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(default)]
-pub struct ServerConfig {
-    /// How many times to attempt starting CARLA before giving up.
-    pub max_restart_attempts: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -24,25 +16,8 @@ pub struct TimeoutsConfig {
     pub world_probe_secs: u64,
     /// Sleep between consecutive world readiness probe attempts (seconds).
     pub world_probe_interval_secs: u64,
-    /// Total budget after TCP ready to wait for game world (seconds).
+    /// Total budget to wait for game world readiness (seconds).
     pub world_ready_secs: u64,
-}
-
-impl Default for CarlaTestConfig {
-    fn default() -> Self {
-        Self {
-            server: ServerConfig::default(),
-            timeouts: TimeoutsConfig::default(),
-        }
-    }
-}
-
-impl Default for ServerConfig {
-    fn default() -> Self {
-        Self {
-            max_restart_attempts: 3,
-        }
-    }
 }
 
 impl Default for TimeoutsConfig {

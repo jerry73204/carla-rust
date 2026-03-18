@@ -30,8 +30,6 @@ fi
 start_once() {
     # Kill any existing CARLA on this port
     pkill -9 -f "CarlaUE4.*carla-rpc-port=${PORT}" 2>/dev/null || true
-    # Stop any leftover systemd scope from a previous run
-    systemctl --user stop "carla-test-${PORT}.scope" 2>/dev/null || true
     sleep 2
 
     cd "$CARLA_DIR"
@@ -42,13 +40,13 @@ start_once() {
         -carla-rpc-port="$PORT")
 
     # Launch CARLA inside a memory-capped systemd scope when possible.
-    # systemd-run --scope exec()s into the command, so $! is the CARLA PID.
-    # MemorySwapMax is not set so CARLA can use swap — it needs it when RAM is tight.
+    # No --unit: let systemd generate a unique name to avoid conflicts when the
+    # previous scope is still in systemd's database as an inactive unit.
+    # MemorySwapMax is not set so CARLA can use swap when RAM is tight.
     if [ -n "$CARLA_MEMORY_MAX" ] && command -v systemd-run &>/dev/null; then
         echo "Starting CARLA with memory cap ${CARLA_MEMORY_MAX} (systemd-run --scope)" >&2
         nohup systemd-run --user --scope \
             -p MemoryMax="${CARLA_MEMORY_MAX}" \
-            --unit="carla-test-${PORT}" \
             "${CARLA_CMD[@]}" \
             > /tmp/carla-test-port-${PORT}.log 2>&1 &
     else
