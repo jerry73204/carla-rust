@@ -8,8 +8,10 @@ This guide explains how to work with tests in the carla-rust library.
 2. [Running Tests](#running-tests)
 3. [Integration Test Infrastructure](#integration-test-infrastructure)
 4. [Writing Integration Tests](#writing-integration-tests)
-5. [Setting Up the Simulator](#setting-up-the-simulator)
-6. [Troubleshooting](#troubleshooting)
+5. [Configuration](#configuration)
+6. [CARLA Server Setup](#carla-server-setup)
+7. [Troubleshooting](#troubleshooting)
+8. [Future Work](#future-work)
 
 ---
 
@@ -17,26 +19,23 @@ This guide explains how to work with tests in the carla-rust library.
 
 ### 1. Unit Tests
 
-- **Location:** Inline with source code (using `#[cfg(test)]` modules)
-- **Purpose:** Test individual functions, data structures, and pure logic
+- **Location:** Inline with source code (`#[cfg(test)]` modules)
+- **Purpose:** Test pure logic — data structures, geometry, parsing
 - **Requirements:** No CARLA simulator needed
-- **Execution:** Fast (< 1 second per test)
 - **Run with:** `just test-unit`
 
 ### 2. Integration Tests
 
-- **Location:** `carla/tests/` directory
+- **Location:** `carla/tests/`
 - **Purpose:** Test library functionality against a real CARLA simulator
-- **Requirements:** Running CARLA simulator required
-- **Execution:** Discovered and run by nextest
-- **Run with:** `just test-integration`
+- **Requirements:** Running CARLA simulator on port 2000
+- **Run with:** `just test-integration` or `just test-integration-external`
 
 ### 3. Examples
 
-- **Location:** `carla/examples/` directory
-- **Purpose:** Demonstrate library functionality and serve as runnable documentation
-- **Requirements:** Running CARLA simulator required
-- **Execution:** Manual, one example at a time
+- **Location:** `carla/examples/`
+- **Purpose:** Demonstrate library functionality; runnable documentation
+- **Requirements:** Running CARLA simulator
 - **Run with:** `cargo run --profile dev-release --example <name>`
 
 ---
@@ -47,44 +46,38 @@ This guide explains how to work with tests in the carla-rust library.
 
 ```bash
 just test-unit
-
-# Or directly:
-cargo nextest run --cargo-profile dev-release -E 'kind(lib)'
 ```
 
-### Integration Tests (CARLA required)
+### Integration Tests — managed mode
 
-**External mode** — start CARLA yourself, then run tests:
+`just test-integration` starts CARLA automatically, runs all tests, then stops CARLA on exit (success or failure):
 
 ```bash
-# Start CARLA on port 2000 (default)
-./CarlaUE4.sh -RenderOffScreen -quality-level=Low
-
-# In another terminal:
 just test-integration
 ```
 
-**Managed mode** — provide a start script and tests manage CARLA automatically:
+Optional environment variables:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `CARLA_TEST_SERVERS` | `1` | Number of concurrent CARLA instances |
+| `CARLA_TEST_BASE_PORT` | `2000` | Base port; instance N uses `base + N*10` |
+| `CARLA_DIR` | `~/Downloads/CARLA_0.9.16` | Path to CARLA installation |
+| `CARLA_MEMORY_MAX` | `10G` | cgroup memory cap for CARLA process |
+
+### Integration Tests — external mode
+
+Start CARLA yourself first, then run tests. CARLA is left running when tests finish:
 
 ```bash
-CARLA_TEST_START_SCRIPT=./scripts/start-carla-test.sh just test-integration
+# Terminal 1 — keep running between test runs
+./scripts/start-carla-test.sh 2000
+
+# Terminal 2 — fast iteration (~1s per run once CARLA is up)
+just test-integration-external
 ```
 
-**Parallel servers** — run multiple CARLA instances for faster test execution:
-
-```bash
-CARLA_TEST_SERVERS=2 \
-CARLA_TEST_START_SCRIPT=./scripts/start-carla-test.sh \
-cargo nextest run --cargo-profile dev-release -E 'kind(test)' \
-    --test-group-max-threads carla-server=2
-```
-
-### All Tests (unit + integration)
-
-```bash
-just test          # Unit tests across all CARLA versions (no simulator)
-just test-integration  # Integration tests (requires simulator)
-```
+External mode is the recommended workflow during active development: CARLA starts once and stays up across many `just test-integration-external` runs.
 
 ---
 
@@ -93,155 +86,241 @@ just test-integration  # Integration tests (requires simulator)
 ### Architecture
 
 ```
-.config/nextest.toml          # Test group: carla-server (max-threads=1)
+.config/nextest.toml            # Test group, timeouts
+.config/carla-test.toml         # Probe intervals and world-readiness timeouts
+scripts/
+├── start-carla-test.sh         # Starts one CARLA instance; blocks until TCP ready
+└── carla-config/
+    ├── apply.sh                # Patches CARLA INI files for low-memory testing
+    ├── restore.sh              # Reverts INI patches
+    ├── Engine/Config/Linux/LinuxEngine.ini
+    └── CarlaUE4/Config/DefaultEngine.ini
 carla/tests/
 ├── common/
-│   ├── mod.rs                # CLIENT/LEASE lazy statics, world()/client() helpers
-│   ├── pool.rs               # ServerLease: file-lock allocator, port management
-│   └── process.rs            # ManagedCarla: process group, graceful kill
-├── connect.rs                # Scenario: connection, world info, maps, blueprints
-└── ...                       # More scenarios over time
+│   ├── mod.rs          # CLIENT / LEASE lazy statics, world() and client() helpers
+│   ├── pool.rs         # ServerLease: flock-based pool, world-readiness probe
+│   └── config.rs       # Reads .config/carla-test.toml
+└── connect.rs          # Scenario: connection, world info, blueprints, spawn
 ```
+
+### Lifecycle
+
+**`just test-integration`** (managed):
+1. Bash starts N CARLA instances via `scripts/start-carla-test.sh` (one per pool slot)
+2. Each start script blocks until CARLA's TCP port is ready, then exits
+3. `cargo nextest run` launches test binaries
+4. Each binary calls `ServerLease::acquire()` → flock on `tmp/test-servers/port-NNNN.lock`
+5. `pool.rs` probes `world()` until the game world responds, then runs the test functions
+6. On nextest exit (pass or fail), `trap _cleanup` kills all CARLA processes
+
+**`just test-integration-external`** (manual):
+- Steps 1–2 are the user's responsibility
+- Steps 3–5 are identical
+- Step 6 does not run — CARLA is left running
 
 ### Server Pool
 
-The infrastructure manages a **pool of CARLA server instances**. Each test binary acquires exclusive access to one server via file locks in `tmp/test-servers/`.
+Each test file (`connect.rs`, future `vehicle_lifecycle.rs`, etc.) is compiled into its own binary. Nextest runs binaries as separate processes. The pool uses `flock(LOCK_EX | LOCK_NB)` on files in `tmp/test-servers/` to give each binary exclusive access to one CARLA instance.
 
-**Environment variables:**
+With the default `CARLA_TEST_SERVERS=1` and `max-threads=1` in nextest config, binaries run serially on a single CARLA instance — each one waits for the lock, verifies world readiness, runs its tests, releases the lock.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `CARLA_TEST_SERVERS` | `1` | Number of concurrent CARLA instances |
-| `CARLA_TEST_BASE_PORT` | `2000` | Base port; instance N uses `base + N*10` |
-| `CARLA_TEST_START_SCRIPT` | (none) | Script to start CARLA. Receives port as `$1`. If unset, assumes servers are already running. |
+### World-Readiness Probe
 
-### Nextest Configuration
+TCP being open does not mean the game world is loaded. After TCP is up, `pool.rs` calls `client.world()` in a loop until it responds or the configured deadline passes. With Town01 (the default test map), world is ready within ~1s of TCP; larger maps may take 60–120s.
 
-Integration tests are assigned to the `carla-server` test group with `max-threads=1` (serial by default). Override for parallel execution:
+If CARLA's TCP port is not open when `ServerLease::acquire()` is called, the test panics immediately with:
 
-```bash
-cargo nextest run -E 'kind(test)' --test-group-max-threads carla-server=N
+```
+CARLA server is not running on port 2000.
+Start it with:  just test-integration
+Or manually:    ./scripts/start-carla-test.sh 2000
 ```
 
-### Process Safety
+### CARLA Configuration Patches
 
-When using managed mode (`CARLA_TEST_START_SCRIPT`), child processes are:
-- Spawned in their own process group
-- Protected with `PR_SET_PDEATHSIG(SIGKILL)` for orphan prevention
-- Gracefully killed (SIGTERM → wait → SIGKILL) on lease drop
+`scripts/carla-config/apply.sh` patches two INI files in the CARLA installation before each start. The patches are applied automatically by `start-carla-test.sh`.
+
+Key settings:
+- Default map: **Town01** (smallest map; loads fast and uses ~1–2 GB RAM)
+- `g.TimeoutForBlockOnRenderFence=300000` — fixes crash on RTX 5090 / driver 580
+- Reduced texture streaming pool, mesh distance fields disabled, view distance 50%
+- FPS cap at 10 for headless testing
+
+Restore originals: `./scripts/carla-config/restore.sh`
 
 ---
 
 ## Writing Integration Tests
 
-### Test Organization
+### Adding a New Scenario
 
-Each test file is a **scenario** — a group of related tests that share a single CARLA connection:
+Create `carla/tests/my_scenario.rs`:
 
 ```rust
-// carla/tests/my_scenario.rs
 mod common;
 
 use carla::prelude::*;
 use common::{client, world};
 
 #[test]
-fn t01_first_test() {
+fn t01_something() {
     let w = world();
     // ...
 }
 
 #[test]
-fn t02_second_test() {
+fn t02_something_else() {
     let mut w = world();
     // ...
 }
 ```
 
+That's it — no registration needed. Nextest discovers all `#[test]` functions in `carla/tests/*.rs` and automatically assigns them to the `carla-server` group.
+
 ### Conventions
 
-- **Prefix tests with `tNN_`** for deterministic ordering (nextest runs tests alphabetically)
-- **Use `common::client()`** for read-only operations
-- **Use `common::world()`** to get a `World` handle
-- **Import `carla::prelude::*`** for trait methods like `destroy()`, `id()`
-- **Clean up spawned actors** in each test (call `actor.destroy()`)
+- **Prefix tests with `tNN_`** for deterministic ordering within a scenario (nextest runs tests from a single binary in alphabetical order)
+- **Use `common::world()`** to get a `World` handle; `common::client()` for read-only client operations
+- **Import `carla::prelude::*`** for actor trait methods (`id()`, `destroy()`, etc.)
+- **Always destroy spawned actors** — the world is shared across all tests in the file
+- **Each test should be independent** — do not rely on state left by a previous test
 
-### Adding a New Scenario
+### Example Scenario
 
-1. Create `carla/tests/my_scenario.rs`
-2. Add `mod common;` at the top
-3. Write `#[test]` functions with `tNN_` prefixes
-4. Tests automatically join the `carla-server` nextest group
+```rust
+mod common;
+
+use carla::prelude::*;
+use common::world;
+
+#[test]
+fn t01_spawn_vehicle() {
+    let mut w = world();
+    let bp = w.blueprint_library().unwrap()
+        .find("vehicle.tesla.model3").unwrap().unwrap();
+    let spawn = w.map().unwrap()
+        .recommended_spawn_points().unwrap()
+        .get(0).unwrap();
+
+    let actor = w.spawn_actor(&bp, spawn).expect("spawn failed");
+    assert!(actor.id() > 0);
+    actor.destroy().unwrap();
+}
+```
 
 ---
 
-## Setting Up the Simulator
+## Configuration
 
-### Download CARLA
+### `.config/nextest.toml`
 
-Download CARLA simulator from the [official releases](https://github.com/carla-simulator/carla/releases).
+Controls nextest behaviour for the `carla-server` test group:
+
+```toml
+[test-groups.carla-server]
+max-threads = 1   # serialise test binaries; raise to match CARLA_TEST_SERVERS
+
+[[profile.default.overrides]]
+filter = "kind(test) and package(carla)"
+test-group = "carla-server"
+slow-timeout = { period = "180s", terminate-after = 3 }
+threads-required = 1
+```
+
+### `.config/carla-test.toml`
+
+Controls how `pool.rs` waits for world readiness:
+
+```toml
+[timeouts]
+world_probe_secs = 30          # timeout for each world() RPC attempt
+world_probe_interval_secs = 5  # sleep between attempts
+world_ready_secs = 240         # total budget after TCP is open
+```
+
+---
+
+## CARLA Server Setup
+
+### Installation
+
+Download CARLA from the [official releases](https://github.com/carla-simulator/carla/releases).
 
 Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0
 
-### Start the Simulator
+Default installation path: `~/Downloads/CARLA_0.9.16` (override with `CARLA_DIR`).
 
-```bash
-# Normal mode
-./CarlaUE4.sh
+### Start Script
 
-# Headless (for CI/testing)
-./CarlaUE4.sh -RenderOffScreen
+`scripts/start-carla-test.sh PORT` starts CARLA on the given port and blocks until TCP is ready. Key options it applies:
 
-# Low quality (faster)
-./CarlaUE4.sh -RenderOffScreen -quality-level=Low
-
-# Custom port
-./CarlaUE4.sh -RenderOffScreen -carla-rpc-port=2010
-```
-
-### Example Start Script
-
-For managed mode, create a script like `scripts/start-carla-test.sh`:
-
-```bash
-#!/bin/bash
-# $1 = port number
-export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
-exec /opt/carla/CarlaUE4.sh -RenderOffScreen -quality-level=Low -carla-rpc-port=${1:-2000}
-```
+- `-RenderOffScreen` — headless rendering
+- `-opengl` — workaround for RTX 5090 / driver 580 Vulkan hang
+- `-quality-level=Low` — reduced GPU load
+- `-nosound` — suppress ALSA errors on headless servers
+- `systemd-run --scope -p MemoryMax=10G` — cgroup memory cap
 
 ---
 
 ## Troubleshooting
 
-### "CARLA server must be running"
+### "CARLA server is not running on port 2000"
 
-Tests assume a CARLA simulator is running. Either:
-1. Start CARLA manually on port 2000
-2. Set `CARLA_TEST_START_SCRIPT` to auto-start
+Run `just test-integration` (managed, starts CARLA automatically) or `./scripts/start-carla-test.sh 2000` first.
 
-### Tests hang or timeout
+### Tests are very slow on first run
 
-- Check CARLA is responsive: `cargo run --profile dev-release --example connect`
-- Default timeout is 120s per test (configurable in `.config/nextest.toml`)
-- If CARLA crashed, restart it and re-run tests
+CARLA startup takes ~60s. Subsequent test binaries reuse the running instance and take <1s each. Use `just test-integration-external` during development to avoid paying startup cost on every run.
 
-### "Failed to spawn vehicle"
+### CARLA gets OOM-killed
 
-- Restart CARLA to clear existing actors
-- Some spawn points may be occupied
+This server has limited free RAM. The INI patches reduce CARLA's footprint significantly, but Town01 still needs ~2–4 GB. If OOM kills persist:
+- Check `journalctl --user -n 50` for scope stop events
+- Try `CARLA_MEMORY_MAX=8G just test-integration` to adjust the cgroup cap
+- Check `/tmp/carla-test-port-2000.log` for CARLA's own output
 
-### Linking errors
+### "Version mismatch" warning
 
-- Ensure `libclang-dev` is installed
-- Run `cargo clean` and rebuild
+```
+WARNING: Client API version = 7a0b5709a
+WARNING: Simulator API version = 0.9.16
+```
+
+This is a non-fatal warning from the C++ client library. Tests pass regardless.
 
 ---
 
-## Best Practices
+## Future Work
 
-1. **One concept per scenario file** — keep test files focused
-2. **Clean up after yourself** — destroy spawned actors
-3. **Use descriptive test names** — `t01_connect_and_version`, not `t01_test`
-4. **Don't rely on test ordering** — each test should set up its own preconditions
-5. **Use `expect()` with messages** — better failure diagnostics
+The infrastructure is in place. Planned test scenarios, roughly in priority order:
+
+### `carla/tests/vehicle_lifecycle.rs`
+
+- Spawn a vehicle at each recommended spawn point
+- Apply throttle/brake/steer control inputs
+- Step the simulator and verify physics (position changes, velocity non-zero)
+- Destroy vehicle; verify it no longer appears in actor list
+
+### `carla/tests/sensors.rs`
+
+- Attach a RGB camera and verify frame callback fires
+- Attach a LiDAR sensor and verify point cloud is non-empty
+- Attach a collision sensor and trigger a collision
+- Attach a GNSS sensor and verify coordinate output
+
+### `carla/tests/traffic_manager.rs`
+
+- Register a vehicle with the Traffic Manager
+- Verify autopilot mode engages
+- Step simulation and verify vehicle moves autonomously
+
+### `carla/tests/map.rs`
+
+- `waypoint_at()` returns valid waypoints for spawn points
+- `topology()` returns a non-empty road graph
+- Lane type and road ID fields are populated
+
+### CI Integration
+
+- Run `just test-integration` in CI with a pre-installed CARLA
+- Add a separate CI job for unit tests (`just test-unit`) that runs on every PR without CARLA

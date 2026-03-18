@@ -39,10 +39,16 @@ Each version uses a separate target directory (`target/carla-${VERSION}`).
 
 ## Testing Rules
 
-- **DO NOT** create tests in `carla/tests/`. Use `carla/examples/` instead — examples serve as both documentation and integration tests.
-- **Unit tests** (`#[cfg(test)]`) stay in source files for pure logic (no CARLA simulator needed).
-- Run examples: `./scripts/run-examples.sh [example_names...]`
-- See `docs/reference/testing.md` and `scripts/simulators/README.md` for setup details.
+There are two categories of tests:
+
+- **Unit tests** (`#[cfg(test)]`): inline in source files, test pure logic, no CARLA simulator needed. Run with `just test-unit`.
+- **Integration tests** (`carla/tests/*.rs`): test against a live CARLA simulator. Each file is a scenario (e.g. `connect.rs`, `vehicle_lifecycle.rs`). Run with `just test-integration` (starts CARLA automatically) or `just test-integration-external` (CARLA already running).
+
+When adding a new integration test scenario, create `carla/tests/my_scenario.rs` with `mod common;` at the top. No registration needed — nextest auto-discovers all `#[test]` functions in `carla/tests/*.rs`. Prefix tests with `tNN_` for deterministic ordering.
+
+Examples (`carla/examples/`) are runnable documentation, not integration tests. Run with `cargo run --profile dev-release --example <name>`.
+
+See `docs/reference/testing.md` for full infrastructure details.
 
 ## Linting
 
