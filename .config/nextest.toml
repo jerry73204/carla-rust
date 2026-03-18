@@ -12,5 +12,6 @@ max-threads = 1
 [[profile.default.overrides]]
 filter = "kind(test) and package(carla)"
 test-group = "carla-server"
-slow-timeout = { period = "120s", terminate-after = 2 }
+slow-timeout = { period = "180s", terminate-after = 3 }
+leak-timeout = "1s"
 threads-required = 1

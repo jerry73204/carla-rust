@@ -1,7 +1,7 @@
+pub mod config;
 pub mod pool;
-pub mod process;
 
-use std::sync::LazyLock;
+use std::{sync::LazyLock, time::Duration};
 
 use carla::client::{Client, World};
 use pool::ServerLease;
@@ -12,7 +12,12 @@ static LEASE: LazyLock<ServerLease> = LazyLock::new(ServerLease::acquire);
 /// Shared CARLA client — connected once per test binary.
 static CLIENT: LazyLock<Client> = LazyLock::new(|| {
     let port = LEASE.port();
-    Client::connect("127.0.0.1", port, None).expect("CARLA server must be running")
+    let mut client =
+        Client::connect("127.0.0.1", port, None).expect("CARLA server must be running");
+    client
+        .set_timeout(Duration::from_secs(30))
+        .expect("Failed to set timeout");
+    client
 });
 
 /// Get a reference to the shared client.

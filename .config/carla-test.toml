@@ -1,0 +1,19 @@
+# CARLA integration test infrastructure configuration.
+# Controls how the test pool manages server instances and waits for readiness.
+# All timeout values are in seconds.
+
+[server]
+# How many times to attempt starting CARLA before giving up.
+max_restart_attempts = 3
+
+[timeouts]
+# Per-attempt timeout for the world() RPC probe.
+# Each call blocks for up to this long waiting for the game world to respond.
+world_probe_secs = 30
+
+# Sleep between consecutive world readiness probe attempts.
+world_probe_interval_secs = 5
+
+# Total budget (after TCP is ready) to wait for the game world to become accessible.
+# Town01 is ready almost immediately; larger maps may need 60–120 s.
+world_ready_secs = 240
