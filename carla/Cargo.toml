@@ -16,7 +16,7 @@ categories = ["api-bindings", "simulation", "game-development"]
 autocxx = "0.28.0"
 cxx = "1.0.119"
 nalgebra = "0.34.1"
-carla-sys = { version = "0.14.0", path = "../carla-sys" }
+carla-sys = { version = "0.14.1", path = "../carla-sys" }
 ndarray = "0.17"
 once_cell = "1.19.0"
 anyhow = "1.0.80"

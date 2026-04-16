@@ -66,10 +66,7 @@ fn pin_carla_version_branch(src_dir: &Path, version: &str) -> Result<()> {
         .status()
         .with_context(|| format!("failed to run `git checkout -B {branch}`"))?;
     if !status.success() {
-        bail!(
-            "`git checkout -B {branch}` failed in {}",
-            src_dir.display()
-        );
+        bail!("`git checkout -B {branch}` failed in {}", src_dir.display());
     }
     Ok(())
 }
