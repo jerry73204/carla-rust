@@ -14,7 +14,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y curl build-essential libclang-dev clang-format pkg-config libudev-dev libssl-dev git
+          apt-get install -y curl build-essential libclang-dev clang-format pkg-config libudev-dev libssl-dev git parallel
 
       - uses: actions/checkout@v4
 

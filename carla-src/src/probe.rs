@@ -166,14 +166,15 @@ where
     // Collect include dirs
     let mut include_dirs = vec![carla_source_dir, carla_third_party_dir];
 
-    // Boost: headers are scattered across libs/*/include
-    let boost_include_pattern = deps_dir
-        .join("boost-src/libs/*/include")
-        .to_str()
-        .unwrap()
-        .to_string();
-    for entry in glob::glob(&boost_include_pattern)? {
-        include_dirs.push(entry?);
+    // Boost: headers are scattered across libs/*/include and libs/*/*/include
+    // (e.g. libs/numeric/conversion/include for boost::numeric_conversion)
+    for pattern in [
+        deps_dir.join("boost-src/libs/*/include"),
+        deps_dir.join("boost-src/libs/*/*/include"),
+    ] {
+        for entry in glob::glob(pattern.to_str().unwrap())? {
+            include_dirs.push(entry?);
+        }
     }
 
     // Recast navigation includes
