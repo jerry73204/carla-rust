@@ -52,11 +52,34 @@ where
     }
 }
 
+/// Ensure CARLA's `get_git_repository_version` returns `{version}` instead of
+/// a commit SHA. That helper (in `Util/BuildTools/Environment.sh`) only echoes
+/// a clean version when the current branch is named `ue4/<version>`; otherwise
+/// it falls back to `git rev-parse --short HEAD`, which then gets baked into
+/// `LibCarla/source/carla/Version.h` and compiled into libcarla-client.a,
+/// causing a client/server version-mismatch warning at runtime.
+fn pin_carla_version_branch(src_dir: &Path, version: &str) -> Result<()> {
+    let branch = format!("ue4/{version}");
+    let status = Command::new("git")
+        .args(["checkout", "-B", &branch])
+        .current_dir(src_dir)
+        .status()
+        .with_context(|| format!("failed to run `git checkout -B {branch}`"))?;
+    if !status.success() {
+        bail!(
+            "`git checkout -B {branch}` failed in {}",
+            src_dir.display()
+        );
+    }
+    Ok(())
+}
+
 fn build_0914<P>(src_dir: P) -> Result<()>
 where
     P: AsRef<Path>,
 {
     let src_dir = src_dir.as_ref();
+    pin_carla_version_branch(src_dir, "0.9.14")?;
     let err = || {
         format!(
             "`make LibCarla.client.release` failed in {}",
@@ -83,6 +106,7 @@ where
     P: AsRef<Path>,
 {
     let src_dir = src_dir.as_ref();
+    pin_carla_version_branch(src_dir, "0.9.15")?;
     let ue4_root = src_dir.join("Unreal").join("UnrealEngine");
 
     // Set UE4_ROOT environment variable
@@ -199,6 +223,7 @@ where
     P: AsRef<Path>,
 {
     let src_dir = src_dir.as_ref();
+    pin_carla_version_branch(src_dir, "0.9.16")?;
     let ue4_root = src_dir.join("Unreal").join("UnrealEngine");
 
     // Set UE4_ROOT environment variable
