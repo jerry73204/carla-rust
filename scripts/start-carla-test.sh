@@ -29,15 +29,27 @@ fi
 
 start_once() {
     # Kill any existing CARLA on this port
-    pkill -9 -f "CarlaUE4.*carla-rpc-port=${PORT}" 2>/dev/null || true
+    pkill -9 -f "Carla(UE4|Unreal).*carla-rpc-port=${PORT}" 2>/dev/null || true
     sleep 2
 
     cd "$CARLA_DIR"
 
-    # -opengl: workaround for driver 580 / RTX 5090 Vulkan hang (GitHub Discussion #7076)
+    # Detect launcher: 0.10.0+ uses CarlaUnreal.sh, older versions use CarlaUE4.sh
+    if [ -f ./CarlaUnreal.sh ]; then
+        CARLA_SH=./CarlaUnreal.sh
+    else
+        CARLA_SH=./CarlaUE4.sh
+    fi
+
     # -nosound: suppress ALSA errors on headless servers
-    CARLA_CMD=(./CarlaUE4.sh -quality-level=Low -nosound -RenderOffScreen -opengl
+    # -opengl: workaround for driver 580 / RTX 5090 Vulkan hang (GitHub Discussion #7076)
+    #          UE5 (CarlaUnreal) does not support -opengl, so only use it for UE4
+    CARLA_CMD=("$CARLA_SH" -quality-level=Low -nosound -RenderOffScreen
         -carla-rpc-port="$PORT")
+    if [ "$CARLA_SH" = "./CarlaUE4.sh" ]; then
+        CARLA_CMD=("$CARLA_SH" -quality-level=Low -nosound -RenderOffScreen -opengl
+            -carla-rpc-port="$PORT")
+    fi
 
     # Launch CARLA inside a memory-capped systemd scope when possible.
     # No --unit: let systemd generate a unique name to avoid conflicts when the

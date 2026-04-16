@@ -34,5 +34,9 @@ apply_file() {
 
 echo "Applying carla-rust config patches to: $CARLA_DIR"
 apply_file "Engine/Config/Linux/LinuxEngine.ini"
-apply_file "CarlaUE4/Config/DefaultEngine.ini"
+if [ -d "$CARLA_DIR/CarlaUnreal" ]; then
+    apply_file "CarlaUnreal/Config/DefaultEngine.ini"
+else
+    apply_file "CarlaUE4/Config/DefaultEngine.ini"
+fi
 echo "Done."

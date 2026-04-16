@@ -26,5 +26,9 @@ restore_file() {
 
 echo "Restoring original CARLA config in: $CARLA_DIR"
 restore_file "Engine/Config/Linux/LinuxEngine.ini"
-restore_file "CarlaUE4/Config/DefaultEngine.ini"
+if [ -d "$CARLA_DIR/CarlaUnreal" ]; then
+    restore_file "CarlaUnreal/Config/DefaultEngine.ini"
+else
+    restore_file "CarlaUE4/Config/DefaultEngine.ini"
+fi
 echo "Done."
