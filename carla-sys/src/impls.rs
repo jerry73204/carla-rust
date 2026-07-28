@@ -597,3 +597,46 @@ unsafe impl Sync for crate::carla_rust::traffic_manager::FfiAction {}
 // The buffer is immutable after creation and can be safely shared.
 unsafe impl Send for crate::carla_rust::traffic_manager::FfiActionBuffer {}
 unsafe impl Sync for crate::carla_rust::traffic_manager::FfiActionBuffer {}
+
+// ============================================================================
+// Missing derives on generated types
+// ============================================================================
+//
+// autocxx generates the `carla_rust::geom` POD structs with no derives at all, and the
+// C-like enums with `Clone, Hash, PartialEq, Eq` but no `Debug` or `Copy`. Neither is
+// configurable through `autocxx_build::Builder`, so the impls are supplied here.
+//
+// This is not only cosmetic. Without `Copy` on `FfiLocation`, a field of that type cannot be
+// read out of a struct held behind a shared reference, which makes the results of
+// `World::ground_projection`, `World::project_point` and `World::cast_ray` unreadable from
+// safe Rust -- `LabelledPoint::location` cannot be moved out of a `&LabelledPoint`.
+
+/// `Debug` for a generated C-like enum.
+///
+/// autocxx derives `Clone, Hash, PartialEq, Eq` on these but not `Debug`, so they cannot be
+/// used with `assert_eq!`, `unwrap()` on a `Result` containing one, or `{:?}` at all.
+macro_rules! impl_enum_traits {
+    ($ty:path as $name:literal, [$($variant:ident),+ $(,)?]) => {
+        impl Debug for $ty {
+            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+                // The catch-all covers the trailing SIZE sentinel autocxx emits on some
+                // enums; on the enums without one it is genuinely unreachable.
+                #[allow(unreachable_patterns)]
+                let name = match self {
+                    $(<$ty>::$variant => stringify!($variant),)+
+                    _ => "Unknown",
+                };
+                write!(f, "{}::{}", $name, name)
+            }
+        }
+    };
+}
+
+impl_enum_traits!(
+    crate::carla::rpc::TrafficLightState as "TrafficLightState",
+    [Red, Yellow, Green, Off, Unknown]
+);
+impl_enum_traits!(
+    crate::carla::rpc::VehicleFailureState as "VehicleFailureState",
+    [None, Rollover, Engine, TirePuncture]
+);

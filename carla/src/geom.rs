@@ -401,6 +401,41 @@ impl Location {
         unsafe { std::mem::transmute(self) }
     }
 
+    /// Converts from a borrowed FFI type.
+    ///
+    /// autocxx gives `FfiLocation` a destructor, so it cannot be `Copy` and cannot be moved
+    /// out of a struct held behind a shared reference. That makes
+    /// [`from_ffi`](Self::from_ffi) unusable for reading a `location` field out of, say, a
+    /// [`LabelledPoint`](crate::rpc::LabelledPoint) returned by
+    /// [`World::ground_projection`](crate::client::World::ground_projection). This reads the
+    /// primitive fields instead, which needs no move.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use carla::{client::Client, geom::Location};
+    ///
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let world = client.world()?;
+    /// let probe = Location::new(0.0, 0.0, 10.0);
+    ///
+    /// if let Some(point) = world.ground_projection(&probe, 50.0)? {
+    ///     let ground = Location::from_ffi_ref(&point.location);
+    ///     println!("ground is at z={}", ground.z);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline(always)]
+    pub fn from_ffi_ref(ffi: &FfiLocation) -> Self {
+        Self {
+            x: ffi.x,
+            y: ffi.y,
+            z: ffi.z,
+        }
+    }
+
     /// Converts from the FFI type.
     #[inline(always)]
     pub fn from_ffi(ffi: FfiLocation) -> Self {
@@ -636,6 +671,16 @@ impl Rotation {
     pub fn as_ffi(&self) -> &FfiRotation {
         // Safety: repr(C) with verified layout
         unsafe { std::mem::transmute(self) }
+    }
+
+    /// Converts from a borrowed FFI type. See [`Location::from_ffi_ref`].
+    #[inline(always)]
+    pub fn from_ffi_ref(ffi: &FfiRotation) -> Self {
+        Self {
+            pitch: ffi.pitch,
+            yaw: ffi.yaw,
+            roll: ffi.roll,
+        }
     }
 
     /// Converts from the FFI type.
