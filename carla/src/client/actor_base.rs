@@ -9,6 +9,36 @@ use crate::{
 use carla_sys::carla_rust::{client::FfiActor, geom::FfiVector3D};
 use cxx::SharedPtr;
 
+/// What [`ActorBase::destroy_with_children`] managed to remove.
+///
+/// The parent's own destruction is the only part that fails loudly; the children are
+/// best effort, so whatever went wrong with them is reported here for the caller to log
+/// or ignore. Anything left in [`orphans`](Self::orphans) is a sensor still attached to a
+/// destroyed actor, which is a live crash risk for the server.
+#[derive(Debug, Default)]
+pub struct DestroyOutcome {
+    /// Whether the actor itself was destroyed (`false` means it was already gone).
+    pub destroyed: bool,
+    /// How many attached actors were removed first.
+    pub children_destroyed: usize,
+    /// Children that could not be destroyed, with the reason.
+    pub children_failed: Vec<(ActorId, crate::CarlaError)>,
+    /// Set when the actor list could not be read at all, so no child was even attempted.
+    pub list_error: Option<crate::CarlaError>,
+}
+
+impl DestroyOutcome {
+    /// Children left behind, alive and parentless.
+    pub fn orphans(&self) -> &[(ActorId, crate::CarlaError)] {
+        &self.children_failed
+    }
+
+    /// True when every attached actor was removed and the list was readable.
+    pub fn is_clean(&self) -> bool {
+        self.children_failed.is_empty() && self.list_error.is_none()
+    }
+}
+
 /// This trait defines a basic actor in the simulation.
 ///
 /// `ActorBase` is implemented by all actor types ([`Actor`], [`super::Vehicle`],
@@ -830,6 +860,72 @@ pub trait ActorBase: Clone {
     /// ```
     fn destroy(&self) -> crate::Result<bool> {
         with_ffi_error("destroy", |e| self.cxx_actor().Destroy(e))
+    }
+
+    /// Destroys the actors attached to this one, then this actor.
+    ///
+    /// Use this instead of [`destroy`](Self::destroy) for anything that carries sensors.
+    /// CARLA does **not** destroy a vehicle's sensors along with it: they stay alive,
+    /// parentless, and still ticking. An orphaned IMU takes the server down outright --
+    /// `AInertialMeasurementUnit::ComputeGyroscope` dereferences `GetOwner()` behind a
+    /// `check()` that Shipping builds compile away, so a packaged server segfaults on the
+    /// next tick. Cameras have shown a second crash on the render thread from the same
+    /// orphaning.
+    ///
+    /// Attachment is read from the server's actor list, so this also removes children
+    /// created by a *different* client -- which is the usual case: one process attaches
+    /// the sensors, another owns the vehicle's lifetime, and only the second is in a
+    /// position to close the window.
+    ///
+    /// Best effort on the children: one that cannot be destroyed is reported and skipped
+    /// rather than aborting, because the parent still has to go. The returned
+    /// [`DestroyOutcome`] carries the parent's own result and whatever went wrong with
+    /// the children, so the caller decides what deserves a log line.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use carla::client::{ActorBase, Client};
+    ///
+    /// let client = Client::connect("localhost", 2000, None)?;
+    /// let mut world = client.world()?;
+    /// # let bp_lib = world.blueprint_library()?;
+    /// # let vehicle_bp = bp_lib.filter("vehicle.*").get(0).unwrap();
+    /// # let spawn_points = world.map()?.recommended_spawn_points();
+    /// # let vehicle = world.spawn_actor(&vehicle_bp, &spawn_points.get(0).unwrap())?;
+    ///
+    /// // Takes any attached sensors with it.
+    /// let outcome = vehicle.destroy_with_children()?;
+    /// assert!(outcome.orphans().is_empty());
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn destroy_with_children(&self) -> crate::Result<DestroyOutcome> {
+        let parent_id = self.id();
+        let mut outcome = DestroyOutcome::default();
+
+        match self.world().and_then(|world| world.actors()) {
+            Ok(actors) => {
+                for actor in actors.iter() {
+                    if actor.parent_id() != parent_id {
+                        continue;
+                    }
+                    match actor.destroy() {
+                        Ok(true) => outcome.children_destroyed += 1,
+                        // Already gone counts as destroyed: the end state holds.
+                        Ok(false) => outcome.children_destroyed += 1,
+                        Err(e) => outcome.children_failed.push((actor.id(), e)),
+                    }
+                }
+            }
+            // Without the actor list there is no way to know what was attached. Say so,
+            // rather than claiming a clean sweep.
+            Err(e) => outcome.list_error = Some(e),
+        }
+
+        outcome.destroyed = self.destroy()?;
+        Ok(outcome)
     }
 
     /// Enables or disables collision detection for this actor.
