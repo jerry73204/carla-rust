@@ -319,7 +319,20 @@ pub trait ActorBase: Clone {
         })
     }
 
-    /// Returns the actor's angular velocity in radians/s.
+    /// Returns the actor's angular velocity in **degrees per second**.
+    ///
+    /// Not radians, and not the same units as the IMU sensor's gyroscope, which does
+    /// report radians per second. This doc comment used to say radians and was wrong;
+    /// the difference is a silent factor of 57.3 in anything that mixes the two.
+    ///
+    /// Measured against a differentiated yaw in synchronous mode
+    /// (`fixed_delta_seconds = 0.05`, Tesla Model 3, 39 samples of a steady turn):
+    ///
+    /// ```text
+    /// differentiated yaw rate :  74.0024 deg/s = 1.2916 rad/s
+    /// get_angular_velocity().z:  74.2289          -> ratio 1.0031 against deg/s
+    /// imu gyroscope.z         :   1.2856 rad/s    -> ratio   57.7 against this
+    /// ```
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.get_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.get_angular_velocity)"
@@ -419,7 +432,9 @@ pub trait ActorBase: Clone {
         })
     }
 
-    /// Sets the target angular velocity for physics simulation (rad/s).
+    /// Sets the target angular velocity for physics simulation, in **degrees per
+    /// second** — the same units [`ActorBase::angular_velocity`] reports, and CARLA's
+    /// own API reference for this call.
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.set_target_angular_velocity](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.set_target_angular_velocity)"

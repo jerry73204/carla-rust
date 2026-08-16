@@ -105,7 +105,11 @@ impl ActorSnapshot {
         }
     }
 
-    /// Returns the actor's angular velocity vector in radians per second.
+    /// Returns the actor's angular velocity vector in **degrees per second**.
+    ///
+    /// Same units as [`ActorBase::angular_velocity`](crate::client::ActorBase::angular_velocity),
+    /// which is where the measurement behind this claim is recorded. The IMU sensor's
+    /// gyroscope is the one that reports radians.
     ///
     /// # Examples
     ///
