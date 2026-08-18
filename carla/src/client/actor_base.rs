@@ -1,4 +1,4 @@
-use super::{Actor, ActorAttributeValueList, World};
+use super::{Actor, ActorAttributeValueList, ActorKind, World};
 #[cfg(carla_0100)]
 use crate::rpc::{MaterialParameter, TextureColor, TextureFloatColor};
 use crate::{
@@ -926,6 +926,25 @@ pub trait ActorBase: Clone {
                     if actor.parent_id() != parent_id {
                         continue;
                     }
+
+                    // A sensor must stop listening before it is destroyed. Destroying one
+                    // that is still streaming leaves the server delivering into a session
+                    // whose subscriber is gone, and 0.9.16 answers that with
+                    //
+                    //     ERROR: Invalid session: no stream available with id N
+                    //
+                    // per stream, in a hot loop -- measured at roughly 10 MB/s of log,
+                    // 184 GB of it over five hours, from the first teardown until the
+                    // server eventually segfaults. Long before that it starves the
+                    // simulation: an Autoware ego on the far side of those streams stops
+                    // being able to drive.
+                    //
+                    // Best effort, and deliberately before the destroy: a sensor that was
+                    // never listening returns an error here that says nothing useful.
+                    if let ActorKind::Sensor(sensor) = actor.clone().into_kinds() {
+                        let _ = sensor.stop();
+                    }
+
                     match actor.destroy() {
                         Ok(true) => outcome.children_destroyed += 1,
                         // Already gone counts as destroyed: the end state holds.
