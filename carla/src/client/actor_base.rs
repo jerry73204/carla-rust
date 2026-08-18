@@ -935,9 +935,7 @@ pub trait ActorBase: Clone {
                     //
                     // per stream, in a hot loop -- measured at roughly 10 MB/s of log,
                     // 184 GB of it over five hours, from the first teardown until the
-                    // server eventually segfaults. Long before that it starves the
-                    // simulation: an Autoware ego on the far side of those streams stops
-                    // being able to drive.
+                    // server segfaults.
                     //
                     // Best effort, and deliberately before the destroy: a sensor that was
                     // never listening returns an error here that says nothing useful.
