@@ -1,6 +1,5 @@
 use crate::geom::BoundingBox;
 use carla_sys::carla_rust::{client::FfiBoundingBoxList, geom::FfiBoundingBox};
-use core::slice;
 use cxx::UniquePtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
@@ -38,7 +37,7 @@ impl BoundingBoxList {
             // SAFETY: FfiBoundingBox is repr(C) and has the same layout as the underlying
             // C++ type. This is guaranteed by the FFI bindings. The data() method already
             // returns the correct pointer type.
-            slice::from_raw_parts(self.inner.data(), self.len())
+            crate::utils::ffi_slice(self.inner.data(), self.len())
         }
     }
 

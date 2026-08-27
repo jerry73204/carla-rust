@@ -1,5 +1,3 @@
-use core::slice;
-
 use crate::rpc::LabelledPoint;
 use carla_sys::carla_rust::client::FfiLabelledPointList;
 use cxx::UniquePtr;
@@ -25,7 +23,7 @@ impl LabelledPointList {
     }
 
     pub fn as_slice(&self) -> &[LabelledPoint] {
-        unsafe { slice::from_raw_parts(self.inner.data(), self.len()) }
+        unsafe { crate::utils::ffi_slice(self.inner.data(), self.len()) }
     }
 
     pub(crate) fn from_cxx(ptr: UniquePtr<FfiLabelledPointList>) -> Option<Self> {

@@ -1,5 +1,7 @@
 //! Internal utilities.
 
+use core::slice;
+
 #[cfg(not(carla_version_0100))]
 use carla_sys::{
     carla::rpc::WheelPhysicsControl, carla_rust::utils::new_wheel_physics_control_vector,
@@ -109,5 +111,52 @@ where
         let mut vec = Self::Item::new_vector();
         self.for_each(|item| vec.pin_mut().push(item));
         vec
+    }
+}
+
+/// Build a slice from an FFI container's `data()` pointer and length.
+///
+/// An empty C++ container is entitled to return a null `data()` pointer, and
+/// `slice::from_raw_parts` rejects null even for a zero length -- it is undefined behaviour,
+/// and Rust's precondition check aborts the process rather than unwinding, so a caller
+/// cannot defend against it. Every container here can legitimately be empty: an actor with
+/// no attributes, a lidar frame with no returns, a map with no spawn points. Return the
+/// empty slice for that case instead of forming a slice from the pointer at all.
+///
+/// # Safety
+///
+/// For a non-zero `len`, `ptr` must be valid, aligned, and point to `len` initialised
+/// elements that outlive `'a` -- the usual `slice::from_raw_parts` contract.
+pub(crate) unsafe fn ffi_slice<'a, T>(ptr: *const T, len: usize) -> &'a [T] {
+    if len == 0 {
+        return &[];
+    }
+    debug_assert!(
+        !ptr.is_null(),
+        "non-empty FFI container has a null data pointer"
+    );
+    debug_assert!(
+        (ptr as usize).is_multiple_of(std::mem::align_of::<T>()),
+        "FFI container data pointer is not aligned for its element type"
+    );
+    unsafe { slice::from_raw_parts(ptr, len) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ffi_slice;
+
+    /// The case that aborted a bridge process: an empty container whose `data()` is null.
+    #[test]
+    fn empty_null_pointer_yields_empty_slice() {
+        let slice: &[u32] = unsafe { ffi_slice(std::ptr::null(), 0) };
+        assert!(slice.is_empty());
+    }
+
+    #[test]
+    fn non_empty_slice_is_passed_through() {
+        let data = [1u32, 2, 3];
+        let slice = unsafe { ffi_slice(data.as_ptr(), data.len()) };
+        assert_eq!(slice, &data);
     }
 }

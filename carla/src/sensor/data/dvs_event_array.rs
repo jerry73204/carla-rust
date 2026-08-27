@@ -2,7 +2,6 @@ use crate::sensor::SensorData;
 use carla_sys::carla_rust::sensor::data::FfiDVSEventArray;
 use cxx::SharedPtr;
 use derivative::Derivative;
-use std::slice;
 
 // Re-export DVSEvent from carla_sys (opaque type)
 pub use carla_sys::carla::sensor::data::DVSEvent;
@@ -106,9 +105,7 @@ impl DVSEventArray {
         let ptr = self.inner.data();
         let len = self.len();
 
-        debug_assert!(!ptr.is_null(), "DVS event data pointer is null");
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        unsafe { crate::utils::ffi_slice(ptr, len) }
     }
 
     /// Gets a reference to the event at the given index.

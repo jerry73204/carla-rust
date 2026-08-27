@@ -1,4 +1,3 @@
-use core::slice;
 use std::marker::PhantomData;
 
 use carla_sys::carla_rust::client::FfiActorAttributeValueList;
@@ -31,7 +30,7 @@ impl<'a> ActorAttributeValueList<'a> {
         unsafe {
             // SAFETY: ActorAttributeValue is repr(transparent) and has the same layout
             // as the underlying C++ type. This is guaranteed by the FFI bindings.
-            slice::from_raw_parts(self.inner.data() as *const ActorAttributeValue, self.len())
+            crate::utils::ffi_slice(self.inner.data() as *const ActorAttributeValue, self.len())
         }
     }
 

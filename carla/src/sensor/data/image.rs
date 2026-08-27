@@ -5,7 +5,6 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use ndarray::ArrayView2;
 use static_assertions::assert_impl_all;
-use std::slice;
 
 /// Image data from RGB, depth, or semantic segmentation cameras.
 ///
@@ -178,13 +177,7 @@ impl Image {
         let ptr = self.inner.data();
         let len = self.len();
 
-        debug_assert!(!ptr.is_null(), "Image data pointer is null");
-        debug_assert!(
-            (ptr as usize).is_multiple_of(std::mem::align_of::<Color>()),
-            "Image data pointer not properly aligned"
-        );
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        unsafe { crate::utils::ffi_slice(ptr, len) }
     }
 
     /// Returns the raw image data as a byte slice.
@@ -233,9 +226,7 @@ impl Image {
         let ptr = self.inner.data() as *const u8;
         let byte_len = self.len() * std::mem::size_of::<Color>();
 
-        debug_assert!(!ptr.is_null(), "Image data pointer is null");
-
-        unsafe { slice::from_raw_parts(ptr, byte_len) }
+        unsafe { crate::utils::ffi_slice(ptr, byte_len) }
     }
 
     /// Returns the image data as a 2D array view (width × height).

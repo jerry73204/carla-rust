@@ -3,7 +3,6 @@ use carla_sys::carla_rust::sensor::data::FfiOpticalFlowImage;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use ndarray::ArrayView2;
-use std::slice;
 
 pub use carla_sys::carla_rust::sensor::data::FfiOpticalFlowPixel as OpticalFlowPixel;
 
@@ -101,13 +100,7 @@ impl OpticalFlowImage {
         let ptr = self.inner.data();
         let len = self.len();
 
-        debug_assert!(!ptr.is_null(), "Optical flow data pointer is null");
-        debug_assert!(
-            (ptr as usize).is_multiple_of(std::mem::align_of::<OpticalFlowPixel>()),
-            "Optical flow data pointer not properly aligned"
-        );
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        unsafe { crate::utils::ffi_slice(ptr, len) }
     }
 
     /// Returns the optical flow data as a 2D array view.

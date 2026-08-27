@@ -4,7 +4,6 @@ use carla_sys::carla_rust::sensor::data::FfiLidarMeasurement;
 use cxx::SharedPtr;
 use derivative::Derivative;
 use static_assertions::assert_impl_all;
-use std::slice;
 
 /// LiDAR point cloud measurement data.
 ///
@@ -170,13 +169,7 @@ impl LidarMeasurement {
         let ptr = self.inner.data();
         let len = self.len();
 
-        debug_assert!(!ptr.is_null(), "LidarMeasurement data pointer is null");
-        debug_assert!(
-            (ptr as usize).is_multiple_of(std::mem::align_of::<LidarDetection>()),
-            "LidarMeasurement data pointer not properly aligned"
-        );
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        unsafe { crate::utils::ffi_slice(ptr, len) }
     }
 
     /// Returns the total number of detected points in the measurement.

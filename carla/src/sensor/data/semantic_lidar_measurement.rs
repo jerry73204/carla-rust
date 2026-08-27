@@ -5,7 +5,6 @@ use cxx::SharedPtr;
 use derivative::Derivative;
 use ndarray::ArrayView2;
 use static_assertions::assert_impl_all;
-use std::slice;
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
@@ -32,16 +31,7 @@ impl SemanticLidarMeasurement {
         let ptr = self.inner.data();
         let len = self.len();
 
-        debug_assert!(
-            !ptr.is_null(),
-            "SemanticLidarMeasurement data pointer is null"
-        );
-        debug_assert!(
-            (ptr as usize).is_multiple_of(std::mem::align_of::<SemanticLidarDetection>()),
-            "SemanticLidarMeasurement data pointer not properly aligned"
-        );
-
-        unsafe { slice::from_raw_parts(ptr, len) }
+        unsafe { crate::utils::ffi_slice(ptr, len) }
     }
 
     pub fn as_array(&self) -> ArrayView2<'_, SemanticLidarDetection> {

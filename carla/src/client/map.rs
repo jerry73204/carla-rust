@@ -1,5 +1,3 @@
-use core::slice;
-
 use super::{Junction, Landmark, LandmarkList, Waypoint, WaypointList};
 use crate::{
     error::ffi::with_ffi_error,
@@ -587,7 +585,7 @@ impl RecommendedSpawnPoints {
     pub fn as_slice(&self) -> &[Transform] {
         // Safety: Transform is #[repr(transparent)] over FfiTransform,
         // so pointer cast is safe
-        unsafe { slice::from_raw_parts(self.inner.data() as *const Transform, self.len()) }
+        unsafe { crate::utils::ffi_slice(self.inner.data() as *const Transform, self.len()) }
     }
 
     /// Gets the spawn point at the given index.
