@@ -48,6 +48,12 @@ gilrs = "0.11"
 kiss3d = "0.35"
 
 [features]
+# CARLA version selection: enable exactly one (mutually exclusive).
+# The CARLA_VERSION environment variable, when set, overrides the feature.
+carla-0914 = ["carla-sys/carla-0914"]
+carla-0915 = ["carla-sys/carla-0915"]
+carla-0916 = ["carla-sys/carla-0916"]
+carla-0100 = ["carla-sys/carla-0100"]
 docs-only = ["carla-sys/docs-only"]
 build-prebuilt = ["carla-sys/build-prebuilt"]
 

@@ -677,3 +677,11 @@ pub mod prelude {
 }
 
 pub use carla_sys;
+
+/// The CARLA version this crate was built for, e.g. `"0.9.16"`.
+///
+/// Selected at build time by the `carla-XXXX` feature, or by the
+/// `CARLA_VERSION` environment variable, which overrides the feature.
+/// Compare it with [`Client::server_version()`](client::Client::server_version)
+/// to refuse a server the client cannot talk to.
+pub const CARLA_VERSION: &str = env!("CARLA_VERSION");

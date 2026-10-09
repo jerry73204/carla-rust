@@ -1,12 +1,11 @@
 use anyhow::{Context, Result, bail};
 use std::{env, str::FromStr};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum CarlaVersion {
     V0_9_16,
     V0_9_15,
     V0_9_14,
-    #[default]
     V0_10_0,
 }
 
@@ -40,14 +39,19 @@ impl CarlaVersion {
 }
 
 fn parse_carla_version() -> Result<CarlaVersion> {
-    // Get CARLA version from carla-sys dependency or environment
-    // Note: DEP_CARLA_* comes from carla-sys's `links = "carla"`
+    // carla-sys resolves the version (CARLA_VERSION env > `carla-XXXX`
+    // feature, error otherwise) and exports it through `links = "carla"` as
+    // DEP_CARLA_CARLA_VERSION, so carla and carla-sys always agree. carla-sys's
+    // build script fails first when nothing selects a version.
     let version_str = env::var("DEP_CARLA_CARLA_VERSION")
         .or_else(|_| env::var("CARLA_VERSION"))
-        .unwrap_or_else(|_| {
-            eprintln!("Warning: CARLA version not detected, defaulting to 0.10.0");
-            CarlaVersion::default().as_str().to_string()
-        });
+        .map_err(|_| {
+            anyhow::anyhow!(
+                "carla-sys did not export a CARLA version (DEP_CARLA_CARLA_VERSION unset). \
+                 Enable exactly one of the features carla-0914, carla-0915, carla-0916, \
+                 carla-0100, or set CARLA_VERSION"
+            )
+        })?;
 
     let version: CarlaVersion = version_str
         .parse()
@@ -98,6 +102,9 @@ fn main() -> Result<()> {
     }
 
     eprintln!("cfg flags set for CARLA version {}", version.as_str());
+
+    // Expose the selected version to the crate (carla::CARLA_VERSION).
+    println!("cargo:rustc-env=CARLA_VERSION={}", version.as_str());
 
     // Rerun if CARLA_VERSION changes
     println!("cargo:rerun-if-env-changed=CARLA_VERSION");

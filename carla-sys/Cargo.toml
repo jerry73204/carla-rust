@@ -31,6 +31,12 @@ ureq = "3.2"
 zstd = { version = "0.13.0", features = ["zstdmt"] }
 
 [features]
+# CARLA version selection: enable exactly one (mutually exclusive).
+# The CARLA_VERSION environment variable, when set, overrides the feature.
+carla-0914 = []
+carla-0915 = []
+carla-0916 = []
+carla-0100 = []
 docs-only = []
 build-prebuilt = ["save-bindings"]
 save-bindings = []

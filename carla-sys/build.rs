@@ -1,8 +1,8 @@
 use anyhow::{Context, Result, bail};
-use std::{env, path::PathBuf, str::FromStr};
+use std::{env, str::FromStr};
 
 #[cfg(not(feature = "docs-only"))]
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[cfg(not(feature = "docs-only"))]
 use std::fs::File;
@@ -10,6 +10,7 @@ use std::fs::File;
 #[cfg(not(feature = "docs-only"))]
 use std::fs;
 
+#[cfg(not(feature = "docs-only"))]
 use once_cell::sync::Lazy;
 
 #[cfg(not(feature = "docs-only"))]
@@ -41,7 +42,7 @@ struct PrebuiltEntry {
 static TAG: Lazy<String> = Lazy::new(|| {
     format!(
         "{}-{}",
-        libcarla_client::version(),
+        carla_version().as_str(),
         env::var("TARGET").expect("TARGET environment variable not set"),
     )
 });
@@ -72,11 +73,14 @@ static CARGO_MANIFEST_DIR: Lazy<&Path> = Lazy::new(|| Path::new(env!("CARGO_MANI
 #[cfg(all(feature = "build-prebuilt", not(feature = "docs-only")))]
 static GENERATED_DIR: Lazy<PathBuf> = Lazy::new(|| CARGO_MANIFEST_DIR.join("generated"));
 
-static CARLA_VERSION: Lazy<CarlaVersion> = Lazy::new(|| {
-    parse_carla_version().expect("Failed to parse CARLA_VERSION environment variable")
-});
+#[cfg(not(feature = "docs-only"))]
+// main() resolves (and reports errors for) the version before anything reads
+// this, and pins CARLA_VERSION in the environment, so this cannot fail there.
+static CARLA_VERSION: Lazy<CarlaVersion> =
+    Lazy::new(|| parse_carla_version().expect("CARLA version resolved in main()"));
 
 /// Returns the cached CARLA version
+#[cfg(not(feature = "docs-only"))]
 fn carla_version() -> CarlaVersion {
     *CARLA_VERSION
 }
@@ -87,9 +91,22 @@ fn main() -> Result<()> {
     println!("cargo:rerun-if-env-changed=CARLA_DIR");
     println!("cargo:rerun-if-env-changed=CARLA_VERSION");
 
+    // Resolve the CARLA version (CARLA_VERSION env > `carla-XXXX` feature).
+    // Fail with the resolver's message rather than a panic backtrace.
+    let version = parse_carla_version()?;
+
+    // carla-src's helpers (libs(), build(), install()) read CARLA_VERSION from
+    // the environment; make it agree with the resolved version even when the
+    // version came from a feature.
+    // SAFETY: the build script is single-threaded at this point.
+    unsafe { env::set_var("CARLA_VERSION", version.as_str()) };
+
     // Pass CARLA_VERSION to compiler
-    let version = carla_version();
     println!("cargo:rustc-env=CARLA_VERSION={}", version.as_str());
+
+    // Export version for dependent crates (available as DEP_CARLA_CARLA_VERSION
+    // through `links = "carla"`), in every build mode including docs-only.
+    println!("cargo:carla_version={}", version.as_str());
 
     // Skip build if docs-only feature presents.
     #[cfg(feature = "docs-only")]
@@ -126,9 +143,6 @@ fn main() -> Result<()> {
             CarlaVersion::V0_10_0 => vec![csrc_compat_dir, carla_include_dir, csrc_dir],
             _ => vec![carla_include_dir, csrc_dir],
         };
-
-        // Export version for dependent crates (will be available as DEP_CARLA_SYS_CARLA_VERSION)
-        println!("cargo:carla_version={}", version.as_str());
 
         // Declare valid cfg flags for carla-sys crate
         println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
@@ -382,12 +396,11 @@ fn download_tarball() -> Result<Option<PathBuf>> {
     Ok(Some(DOWNLOAD_PREBUILT_TARBALL.to_path_buf()))
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum CarlaVersion {
     V0_9_16,
     V0_9_15,
     V0_9_14,
-    #[default]
     V0_10_0,
 }
 
@@ -454,19 +467,59 @@ fn resolve_carla_dir(path: &Path) -> Result<PathBuf> {
     )
 }
 
+/// Cargo features that select a CARLA version, as `(feature, version)`.
+const VERSION_FEATURES: &[(&str, CarlaVersion)] = &[
+    ("carla-0914", CarlaVersion::V0_9_14),
+    ("carla-0915", CarlaVersion::V0_9_15),
+    ("carla-0916", CarlaVersion::V0_9_16),
+    ("carla-0100", CarlaVersion::V0_10_0),
+];
+
+/// Version used when nothing selects one and only docs are built (docs.rs).
+const DOCS_ONLY_VERSION: CarlaVersion = CarlaVersion::V0_10_0;
+
+/// Resolve the CARLA version this build targets.
+///
+/// Precedence: the `CARLA_VERSION` environment variable, then exactly one
+/// `carla-XXXX` Cargo feature. Two features, or neither (outside docs-only),
+/// is an error: the CARLA APIs differ per version, so guessing would compile
+/// against the wrong one.
 fn parse_carla_version() -> Result<CarlaVersion> {
-    let Some(ver) = env::var_os("CARLA_VERSION") else {
-        // CARLA_VERSION not set, using default version
-        return Ok(CarlaVersion::default());
-    };
-    let Ok(ver) = ver.into_string() else {
-        bail!("CARLA_VERSION environment variable contains invalid UTF-8")
-    };
-    let ver: CarlaVersion = ver.parse().with_context(|| {
-        format!(
-            "failed to parse CARLA_VERSION='{}' from environment variable",
-            ver
-        )
-    })?;
-    Ok(ver)
+    if let Some(ver) = env::var_os("CARLA_VERSION") {
+        let Ok(ver) = ver.into_string() else {
+            bail!("CARLA_VERSION environment variable contains invalid UTF-8")
+        };
+        return ver.parse().with_context(|| {
+            format!("failed to parse CARLA_VERSION='{ver}' from environment variable")
+        });
+    }
+
+    let enabled: Vec<(&str, CarlaVersion)> = VERSION_FEATURES
+        .iter()
+        .copied()
+        .filter(|(name, _)| {
+            let var = format!("CARGO_FEATURE_{}", name.to_uppercase().replace('-', "_"));
+            env::var_os(var).is_some()
+        })
+        .collect();
+
+    match enabled.as_slice() {
+        [(_, version)] => Ok(*version),
+        [] if env::var_os("CARGO_FEATURE_DOCS_ONLY").is_some() => Ok(DOCS_ONLY_VERSION),
+        [] => bail!(
+            "no CARLA version selected. Enable exactly one of the features \
+             carla-0914, carla-0915, carla-0916, carla-0100 on the `carla` dependency \
+             (e.g. `carla = {{ ..., features = [\"carla-0916\"] }}`), \
+             or set CARLA_VERSION=<0.9.14|0.9.15|0.9.16|0.10.0> for this build"
+        ),
+        many => {
+            let names: Vec<&str> = many.iter().map(|(name, _)| *name).collect();
+            bail!(
+                "conflicting CARLA version features enabled: {}. These features are \
+                 mutually exclusive; something in the dependency graph enables more than \
+                 one. Enable exactly one, or set CARLA_VERSION to override.",
+                names.join(", ")
+            )
+        }
+    }
 }

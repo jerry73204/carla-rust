@@ -39,10 +39,12 @@ test:
     echo "All versions tested successfully!"
 
 # Run unit tests only — no CARLA simulator needed
-test-unit:
+test-unit carla_version="0.10.0":
     #!/usr/bin/env bash
     set -euo pipefail
-    cargo nextest run --cargo-profile {{ profile }} -E 'kind(lib)' --no-tests pass --no-fail-fast
+    CARLA_VERSION="${CARLA_VERSION:-{{ carla_version }}}"
+    CARLA_VERSION="${CARLA_VERSION}" CARGO_TARGET_DIR="target/carla-${CARLA_VERSION}" \
+        cargo nextest run --cargo-profile {{ profile }} -E 'kind(lib)' --no-tests pass --no-fail-fast
 
 # Run integration tests — starts CARLA, runs tests, stops CARLA on exit.
 # Use `just test-integration-external` to skip start/stop and manage CARLA yourself.

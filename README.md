@@ -6,29 +6,42 @@
 
 Rust client library for CARLA simulator.
 
-**Supported Versions:** CARLA 0.9.14, 0.9.15, 0.9.16 (default: 0.9.16)
+**Supported Versions:** CARLA 0.9.14, 0.9.15, 0.9.16, 0.10.0
 
 ## Usage
 
-Add `carla` to your `Cargo.toml`:
+Add `carla` to your `Cargo.toml` and name the CARLA version you target with a feature:
 
 ```toml
 [dependencies]
-carla = "0.13"
+carla = { version = "0.13", features = ["carla-0916"] }
 ```
 
-By default, the library uses CARLA 0.9.16. To use a different version, set the `CARLA_VERSION` environment variable during build:
+The CARLA client API differs between versions, so the version must be chosen at build
+time. Enable **exactly one** of these features:
+
+| Feature      | CARLA  |
+|--------------|--------|
+| `carla-0914` | 0.9.14 |
+| `carla-0915` | 0.9.15 |
+| `carla-0916` | 0.9.16 |
+| `carla-0100` | 0.10.0 |
+
+The features are mutually exclusive: enabling two (for instance two crates in one
+dependency graph asking for different versions) is a build error that names both. Enabling
+none is also a build error -- there is no silent default.
+
+The `CARLA_VERSION` environment variable, when set, overrides the feature (useful for
+building one checkout against several servers):
 
 ```bash
-# Use CARLA 0.9.16 (default)
-cargo build
-
-# Use CARLA 0.9.14
-CARLA_VERSION=0.9.14 cargo build
-
-# Use CARLA 0.9.15
-CARLA_VERSION=0.9.15 cargo build
+cargo build                         # uses the feature in Cargo.toml
+CARLA_VERSION=0.9.15 cargo build    # overrides it
 ```
+
+The selected version is available at run time as `carla::CARLA_VERSION`; compare it with
+`Client::server_version()` to refuse a server of another version. The `docs-only` feature
+(used by docs.rs) builds without a version selected and documents the 0.10.0 API.
 
 ### Quick Start Example
 

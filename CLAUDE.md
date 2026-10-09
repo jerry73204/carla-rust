@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rust client library for the CARLA simulator. Uses FFI bindings (via [autocxx](https://github.com/google/autocxx)) to interface with the CARLA C++ client library and provides safe, idiomatic Rust wrappers.
 
-**Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16, 0.10.0 (default: 0.10.0)
+**Supported CARLA Versions:** 0.9.14, 0.9.15, 0.9.16, 0.10.0 (no default: a consumer enables exactly one `carla-XXXX` feature, or sets `CARLA_VERSION`)
 
 ## Crate Architecture
 
@@ -31,7 +31,7 @@ cargo build --all-targets --profile dev-release     # If using cargo directly
 
 The `dev-release` profile (defined in `Cargo.toml`) is required for example automation and adequate simulation performance. Run `just --list` for all commands.
 
-**CARLA version selection:** `CARLA_VERSION=0.9.14 cargo build`
+**CARLA version selection:** `CARLA_VERSION=0.9.14 cargo build` (overrides the `carla-0914`/`carla-0915`/`carla-0916`/`carla-0100` feature; with neither set the build fails)
 
 Each version uses a separate target directory (`target/carla-${VERSION}`).
 
