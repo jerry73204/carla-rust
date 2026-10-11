@@ -192,6 +192,29 @@ impl Client {
 
 Controls whether the spectator camera is used as the ego vehicle for tile loading in large maps.
 
+## CARLA 0.10 behaviour that differs at run time
+
+Measured against a 0.10.0 server (and, where marked, CARLA's own 0.10 Python client). Regression
+tests: `carla/tests/ffi_layout_0100.rs`, which run on every version.
+
+- **Geolocation sign.** CARLA's frame is left-handed (x east, y south). 0.10 maps +y to a lower
+  latitude; LibCarla 0.9.x raises the latitude with +y, mirroring north-south (CARLA's 0.9.16
+  Python client agrees). GNSS sensors follow the same convention as `Map::transform_to_geolocation`,
+  so code that turns a fix into map coordinates flips latitude on 0.9.x only.
+- **Exceptions are sliced.** 0.10's `carla::throw_exception(const std::exception&)` rethrows by
+  value, so every LibCarla exception arrives as a bare `std::exception` whose `what()` is
+  `"std::exception"`: no message, no type. carla-sys maps a bare exception raised once the full
+  timeout has elapsed in `WaitForTick` to `Ok(None)` and in `Tick` to a timeout error; every other
+  0.10 error reads "std::exception".
+- **Wheel positions.** `WheelPhysicsControl::offset`, `location` and `old_location` read zero for
+  every wheel (Python too); derive axle positions from the vehicle config instead.
+- **Physics control layout.** `VehiclePhysicsControl` and `WheelPhysicsControl` have new layouts.
+  autocxx parses 0.9.x-layout shims in `carla-sys/csrc_compat_0100/`; the C++ compile defines
+  `CARLA_RUST_NATIVE_HEADERS` so that everything handed to libcarla_client (physics controls and
+  `rpc::Command`, whose variant holds one) has the real layout. Before that, `physics_control()`
+  returned defaults, `apply_physics_control()` failed with "container size overflow", and
+  `rpc::Command` was 184 bytes against libcarla's 264.
+
 ## Version-Specific Features Summary
 
 ### CARLA 0.9.14

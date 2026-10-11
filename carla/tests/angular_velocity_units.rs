@@ -62,7 +62,7 @@ fn t01_angular_velocity_is_degrees_per_second() {
         .expect("Map must have at least one spawn point");
 
     let actor = world
-        .spawn_actor(&blueprint, &spawn)
+        .spawn_actor(&blueprint, spawn)
         .expect("Failed to spawn vehicle");
     let ActorKind::Vehicle(vehicle) = actor.into_kinds() else {
         restore(&mut world);
