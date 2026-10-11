@@ -100,6 +100,7 @@ fn t02_batch_commands_apply_in_order() {
     let mut last = first.clone();
     last.location.y += 3.0;
     let id = vehicle.id();
+    let frame_before = world.snapshot().expect("snapshot").frame();
     let mut client =
         carla::client::Client::connect("127.0.0.1", world_port(), None).expect("second client");
     let responses = client
@@ -128,6 +129,16 @@ fn t02_batch_commands_apply_in_order() {
     assert_eq!(responses.len(), 4);
     for r in &responses {
         assert!(r.error().is_none(), "batch command failed: {:?}", r.error());
+    }
+    // The tick cue ran on the second client; this client's cached episode state catches up with
+    // it asynchronously, and reading the transform before it does sees the car still at spawn.
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while world.snapshot().expect("snapshot").frame() <= frame_before {
+        assert!(
+            Instant::now() < deadline,
+            "no snapshot after the batch's tick"
+        );
+        std::thread::sleep(Duration::from_millis(10));
     }
     // Within a metre: the tick that follows the batch lets the car settle and roll. The two
     // transforms are 3 m apart in y, so this still tells the last command from the first.
