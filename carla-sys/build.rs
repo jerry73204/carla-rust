@@ -193,6 +193,9 @@ fn main() -> Result<()> {
         match version {
             CarlaVersion::V0_10_0 => {
                 builder.define("CARLA_VERSION_0100", None);
+                // The compile uses CARLA's real 0.10 headers; csrc_compat_0100's shims
+                // are for autocxx's bindgen parse only (see the shim headers).
+                builder.define("CARLA_RUST_NATIVE_HEADERS", None);
                 builder.define("CARLA_VERSION_0916_PLUS", None);
                 builder.define("CARLA_VERSION_0915_PLUS", None);
             }

@@ -59,7 +59,14 @@ public:
 
     void ApplyPhysicsControl(const FfiVehiclePhysicsControl& physics_control,
                              FfiError& error) const {
+#if !defined(CARLA_VERSION_0100)
         ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.as_native()); });
+#elif defined(CARLA_RUST_NATIVE_HEADERS)
+        ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.to_native()); });
+#else
+        (void)physics_control;
+        (void)error;  // bindgen parse only; never compiled into the library
+#endif
     }
 
     AckermannControllerSettings GetAckermannControllerSettings(FfiError& error) const {
@@ -100,11 +107,10 @@ public:
 
     std::unique_ptr<FfiVehiclePhysicsControl> GetPhysicsControl(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiVehiclePhysicsControl>(nullptr), [&]() {
-#ifdef CARLA_VERSION_0100
-            // On 0.10.0, the compat shim returns 0.9.x-layout data.
-            // Return a default-constructed wrapper; actual field population
-            // will be handled when 0.10.0 RPC serialization is implemented.
-            return std::make_unique<FfiVehiclePhysicsControl>();
+#if defined(CARLA_VERSION_0100) && defined(CARLA_RUST_NATIVE_HEADERS)
+            return std::make_unique<FfiVehiclePhysicsControl>(inner_->GetPhysicsControl());
+#elif defined(CARLA_VERSION_0100)
+            return std::make_unique<FfiVehiclePhysicsControl>();  // bindgen parse only
 #else
             auto orig = inner_->GetPhysicsControl();
             return std::make_unique<FfiVehiclePhysicsControl>(std::move(orig));

@@ -8,6 +8,18 @@
 
 #pragma once
 
+// autocxx's bindgen pass parses this shim; the C++ compile (CARLA_RUST_NATIVE_HEADERS) uses
+// CARLA's real header instead, with its wheel type renamed as in WheelPhysicsControl.h.
+// libcarla_client is built against the real type, so a shim-layout object that reached it (a
+// VehiclePhysicsControl, or an rpc::Command whose variant holds one) would be read with the
+// wrong size and field offsets.
+#ifdef CARLA_RUST_NATIVE_HEADERS
+#include "carla/rpc/WheelPhysicsControl.h"
+#define WheelPhysicsControl carla_rust_native_WheelPhysicsControl
+#include_next <carla/rpc/VehiclePhysicsControl.h>
+#undef WheelPhysicsControl
+#else
+
 #include "carla/MsgPack.h"
 #include "carla/geom/Location.h"
 #include "carla/geom/Vector2D.h"
@@ -103,3 +115,5 @@ public:
 
 }  // namespace rpc
 }  // namespace carla
+
+#endif  // CARLA_RUST_NATIVE_HEADERS

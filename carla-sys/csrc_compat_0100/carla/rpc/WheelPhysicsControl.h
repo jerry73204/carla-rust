@@ -9,6 +9,20 @@
 
 #pragma once
 
+// autocxx's bindgen pass parses only the POD shim below. The C++ compile
+// (CARLA_RUST_NATIVE_HEADERS) also needs CARLA's real type, because libcarla_client is built
+// against it: a VehiclePhysicsControl, or an rpc::Command whose variant holds one, must have the
+// real size and field offsets when it crosses into the library. The real type is renamed here so
+// that it can coexist with the shim, which the generated bindings (generate_pod!) still name. The
+// rename is invisible to libcarla_client: the wheel type appears in none of its exported
+// signatures, only inside VehiclePhysicsControl's layout, which is unchanged.
+#ifdef CARLA_RUST_NATIVE_HEADERS
+#define WheelPhysicsControl carla_rust_native_WheelPhysicsControl
+#include_next <carla/rpc/WheelPhysicsControl.h>
+#undef WheelPhysicsControl
+#endif
+
+
 #include "carla/geom/Vector3D.h"
 #include "carla/MsgPack.h"
 

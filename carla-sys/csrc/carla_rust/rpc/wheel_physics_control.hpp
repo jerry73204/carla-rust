@@ -10,6 +10,9 @@
 #include "carla/geom/Vector3D.h"
 #include "carla/geom/Location.h"
 #include "carla_rust/geom.hpp"
+#ifdef CARLA_RUST_NATIVE_HEADERS
+#include "carla/rpc/WheelPhysicsControl.h"
+#endif
 
 namespace carla_rust {
 namespace rpc {
@@ -27,6 +30,94 @@ using carla_rust::geom::FfiVector3D;
 class FfiWheelPhysicsControl {
 public:
     FfiWheelPhysicsControl() = default;
+
+#ifdef CARLA_RUST_NATIVE_HEADERS
+    // Conversions to and from CARLA's own type. Only the C++ compile sees these: bindgen
+    // parses the 0.9.x-layout shim; the real type is renamed (see csrc_compat_0100).
+    explicit FfiWheelPhysicsControl(const carla::rpc::carla_rust_native_WheelPhysicsControl& n) {
+        axle_type = n.axle_type;
+        offset = n.offset;
+        wheel_radius = n.wheel_radius;
+        wheel_width = n.wheel_width;
+        wheel_mass = n.wheel_mass;
+        cornering_stiffness = n.cornering_stiffness;
+        friction_force_multiplier = n.friction_force_multiplier;
+        side_slip_modifier = n.side_slip_modifier;
+        slip_threshold = n.slip_threshold;
+        skid_threshold = n.skid_threshold;
+        max_steer_angle = n.max_steer_angle;
+        affected_by_steering = n.affected_by_steering;
+        affected_by_brake = n.affected_by_brake;
+        affected_by_handbrake = n.affected_by_handbrake;
+        affected_by_engine = n.affected_by_engine;
+        abs_enabled = n.abs_enabled;
+        traction_control_enabled = n.traction_control_enabled;
+        max_wheelspin_rotation = n.max_wheelspin_rotation;
+        external_torque_combine_method = n.external_torque_combine_method;
+        lateral_slip_graph_ = n.lateral_slip_graph;
+        suspension_axis = n.suspension_axis;
+        suspension_force_offset = n.suspension_force_offset;
+        suspension_max_raise = n.suspension_max_raise;
+        suspension_max_drop = n.suspension_max_drop;
+        suspension_damping_ratio = n.suspension_damping_ratio;
+        wheel_load_ratio = n.wheel_load_ratio;
+        spring_rate = n.spring_rate;
+        spring_preload = n.spring_preload;
+        suspension_smoothing = n.suspension_smoothing;
+        rollbar_scaling = n.rollbar_scaling;
+        sweep_shape = n.sweep_shape;
+        sweep_type = n.sweep_type;
+        max_brake_torque = n.max_brake_torque;
+        max_hand_brake_torque = n.max_hand_brake_torque;
+        wheel_index = n.wheel_index;
+        location_ = n.location;
+        old_location_ = n.old_location;
+        velocity_ = n.velocity;
+    }
+
+    carla::rpc::carla_rust_native_WheelPhysicsControl to_native() const {
+        carla::rpc::carla_rust_native_WheelPhysicsControl n;
+        n.axle_type = axle_type;
+        n.offset = offset;
+        n.wheel_radius = wheel_radius;
+        n.wheel_width = wheel_width;
+        n.wheel_mass = wheel_mass;
+        n.cornering_stiffness = cornering_stiffness;
+        n.friction_force_multiplier = friction_force_multiplier;
+        n.side_slip_modifier = side_slip_modifier;
+        n.slip_threshold = slip_threshold;
+        n.skid_threshold = skid_threshold;
+        n.max_steer_angle = max_steer_angle;
+        n.affected_by_steering = affected_by_steering;
+        n.affected_by_brake = affected_by_brake;
+        n.affected_by_handbrake = affected_by_handbrake;
+        n.affected_by_engine = affected_by_engine;
+        n.abs_enabled = abs_enabled;
+        n.traction_control_enabled = traction_control_enabled;
+        n.max_wheelspin_rotation = max_wheelspin_rotation;
+        n.external_torque_combine_method = external_torque_combine_method;
+        n.lateral_slip_graph = lateral_slip_graph_;
+        n.suspension_axis = suspension_axis;
+        n.suspension_force_offset = suspension_force_offset;
+        n.suspension_max_raise = suspension_max_raise;
+        n.suspension_max_drop = suspension_max_drop;
+        n.suspension_damping_ratio = suspension_damping_ratio;
+        n.wheel_load_ratio = wheel_load_ratio;
+        n.spring_rate = spring_rate;
+        n.spring_preload = spring_preload;
+        n.suspension_smoothing = suspension_smoothing;
+        n.rollbar_scaling = rollbar_scaling;
+        n.sweep_shape = sweep_shape;
+        n.sweep_type = sweep_type;
+        n.max_brake_torque = max_brake_torque;
+        n.max_hand_brake_torque = max_hand_brake_torque;
+        n.wheel_index = wheel_index;
+        n.location = location_;
+        n.old_location = old_location_;
+        n.velocity = velocity_;
+        return n;
+    }
+#endif
 
     // --- Scalar fields ---
     uint8_t axle_type = 0;

@@ -156,12 +156,85 @@ public:
     // Build the compat VehiclePhysicsControl for passing to the CARLA API.
     // NOTE: This populates the compat shim struct which maps to the 0.9.x wire format.
     // Actual 0.10.0 RPC communication will need further work on the serialization layer.
-    const VehiclePhysicsControl& as_native() const {
-        // For now, return a default compat struct.
-        // The actual 0.10.0 serialization format differs and needs msgpack support.
-        static VehiclePhysicsControl dummy;
-        return dummy;
+#ifdef CARLA_RUST_NATIVE_HEADERS
+    // Conversions to and from CARLA's own type. Only the C++ compile sees these: bindgen
+    // parses the 0.9.x-layout shim, where carla::rpc::VehiclePhysicsControl has other fields.
+    explicit FfiVehiclePhysicsControl(const VehiclePhysicsControl& n) {
+        torque_curve_ = n.torque_curve;
+        max_torque_ = n.max_torque;
+        max_rpm_ = n.max_rpm;
+        idle_rpm_ = n.idle_rpm;
+        brake_effect_ = n.brake_effect;
+        rev_up_moi_ = n.rev_up_moi;
+        rev_down_rate_ = n.rev_down_rate;
+        differential_type_ = n.differential_type;
+        front_rear_split_ = n.front_rear_split;
+        use_automatic_gears_ = n.use_automatic_gears;
+        gear_change_time_ = n.gear_change_time;
+        final_ratio_ = n.final_ratio;
+        forward_gear_ratios_ = n.forward_gear_ratios;
+        reverse_gear_ratios_ = n.reverse_gear_ratios;
+        change_up_rpm_ = n.change_up_rpm;
+        change_down_rpm_ = n.change_down_rpm;
+        transmission_efficiency_ = n.transmission_efficiency;
+        mass_ = n.mass;
+        drag_coefficient_ = n.drag_coefficient;
+        center_of_mass_ = n.center_of_mass;
+        chassis_width_ = n.chassis_width;
+        chassis_height_ = n.chassis_height;
+        downforce_coefficient_ = n.downforce_coefficient;
+        drag_area_ = n.drag_area;
+        inertia_tensor_scale_ = n.inertia_tensor_scale;
+        sleep_threshold_ = n.sleep_threshold;
+        sleep_slope_limit_ = n.sleep_slope_limit;
+        steering_curve_ = n.steering_curve;
+        use_sweep_wheel_collision_ = n.use_sweep_wheel_collision;
+        wheels_.reserve(n.wheels.size());
+        for (const auto& w : n.wheels)
+            wheels_.emplace_back(w);
     }
+
+    VehiclePhysicsControl to_native() const {
+        VehiclePhysicsControl n;
+        n.torque_curve = torque_curve_;
+        n.max_torque = max_torque_;
+        n.max_rpm = max_rpm_;
+        n.idle_rpm = idle_rpm_;
+        n.brake_effect = brake_effect_;
+        n.rev_up_moi = rev_up_moi_;
+        n.rev_down_rate = rev_down_rate_;
+        n.differential_type = differential_type_;
+        n.front_rear_split = front_rear_split_;
+        n.use_automatic_gears = use_automatic_gears_;
+        n.gear_change_time = gear_change_time_;
+        n.final_ratio = final_ratio_;
+        n.forward_gear_ratios = forward_gear_ratios_;
+        n.reverse_gear_ratios = reverse_gear_ratios_;
+        n.change_up_rpm = change_up_rpm_;
+        n.change_down_rpm = change_down_rpm_;
+        n.transmission_efficiency = transmission_efficiency_;
+        n.mass = mass_;
+        n.drag_coefficient = drag_coefficient_;
+        n.center_of_mass = center_of_mass_;
+        n.chassis_width = chassis_width_;
+        n.chassis_height = chassis_height_;
+        n.downforce_coefficient = downforce_coefficient_;
+        n.drag_area = drag_area_;
+        n.inertia_tensor_scale = inertia_tensor_scale_;
+        n.sleep_threshold = sleep_threshold_;
+        n.sleep_slope_limit = sleep_slope_limit_;
+        n.steering_curve = steering_curve_;
+        n.use_sweep_wheel_collision = use_sweep_wheel_collision_;
+        n.wheels.reserve(wheels_.size());
+        for (const auto& w : wheels_)
+            n.wheels.push_back(w.to_native());
+        return n;
+    }
+
+    VehiclePhysicsControl as_native() const { return to_native(); }
+#else
+    VehiclePhysicsControl as_native() const { return {}; }  // bindgen parse only
+#endif
 
 private:
     // No inner_ on 0.10.0 - fields are stored directly above
