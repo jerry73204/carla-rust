@@ -1,5 +1,8 @@
 #pragma once
 
+#include <chrono>
+#include <typeinfo>
+
 #include <cstdint>
 #include <memory>
 // #include <type_traits>
@@ -155,6 +158,9 @@ public:
 
     std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis, FfiError& error) const {
         error.clear();
+#ifdef CARLA_VERSION_0100
+        const auto start = std::chrono::steady_clock::now();
+#endif
         try {
             auto snapshot = inner_.WaitForTick(time_duration::milliseconds(millis));
             return std::make_unique<FfiWorldSnapshot>(std::move(snapshot));
@@ -162,6 +168,18 @@ public:
             // Timeout is expected behavior (returns None), not an error
             return nullptr;
         } catch (const std::exception& e) {
+#ifdef CARLA_VERSION_0100
+            // CARLA 0.10's carla::throw_exception takes `const std::exception&` and rethrows it
+            // by value (`throw e;`), slicing every exception LibCarla raises -- TimeoutException
+            // included -- to a bare std::exception whose what() is "std::exception". The catch
+            // above never matches there, so a bare std::exception raised once the whole timeout
+            // has elapsed is taken to be the timeout.
+            const auto elapsed = std::chrono::steady_clock::now() - start;
+            if (typeid(e) == typeid(std::exception) &&
+                elapsed >= std::chrono::milliseconds(millis) * 9 / 10) {
+                return nullptr;
+            }
+#endif
             auto ek = carla_rust::error::classify_exception(e);
             error.set(static_cast<int32_t>(ek), e.what());
             return nullptr;
@@ -173,8 +191,32 @@ public:
     }
 
     uint64_t Tick(size_t millis, FfiError& error) {
+#ifdef CARLA_VERSION_0100
+        // As in WaitForTick: on 0.10 a timeout arrives as a sliced, message-less
+        // std::exception, which would be reported as Unknown. Report it as a timeout.
+        const auto start = std::chrono::steady_clock::now();
+        error.clear();
+        try {
+            return inner_.Tick(time_duration::milliseconds(millis));
+        } catch (const std::exception& e) {
+            const auto elapsed = std::chrono::steady_clock::now() - start;
+            if (typeid(e) == typeid(std::exception) &&
+                elapsed >= std::chrono::milliseconds(millis) * 9 / 10) {
+                error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Timeout),
+                          "tick timed out (CARLA 0.10 raised a bare std::exception)");
+            } else {
+                error.set(static_cast<int32_t>(carla_rust::error::classify_exception(e)), e.what());
+            }
+            return 0;
+        } catch (...) {
+            error.set(static_cast<int32_t>(carla_rust::error::ErrorKind::Unknown),
+                      "Unknown C++ exception");
+            return 0;
+        }
+#else
         return ffi_call(error, uint64_t(0),
                         [&]() { return inner_.Tick(time_duration::milliseconds(millis)); });
+#endif
     }
 
     void SetPedestriansCrossFactor(float percentage, FfiError& error) {
