@@ -93,6 +93,13 @@ public:
                         [&]() { return FfiGeoLocation(inner_->GetGeoReference()); });
     }
 
+    // Geographic coordinates of a map location, as carla.Map.transform_to_geolocation.
+    FfiGeoLocation TransformToGeolocation(const FfiLocation& location, FfiError& error) const {
+        return ffi_call(error, FfiGeoLocation(), [&]() {
+            return FfiGeoLocation(inner_->GetGeoReference().Transform(location.as_native()));
+        });
+    }
+
     std::vector<FfiLocation> GetAllCrosswalkZones(FfiError& error) const {
         return ffi_call(error, std::vector<FfiLocation>(), [&]() {
             auto zones = inner_->GetAllCrosswalkZones();

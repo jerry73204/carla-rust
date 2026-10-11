@@ -502,6 +502,36 @@ impl Map {
         Ok(GeoLocation::from_ffi(geo))
     }
 
+    /// Converts a map location to geographic coordinates, using the map's geo-reference.
+    ///
+    /// CARLA's frame is left-handed (x east, y south, z up). On CARLA 0.10 a location at larger
+    /// `y` is further south and has a lower latitude. LibCarla 0.9.x maps it the other way --
+    /// latitude grows with `y`, mirroring the map north-south -- and CARLA's own 0.9.x Python
+    /// client agrees, so code that turns GNSS fixes back into map coordinates must flip latitude
+    /// on 0.9.x only. GNSS sensors report what this function computes on the same version.
+    #[cfg_attr(
+        carla_version_0916,
+        doc = " See [carla.Map.transform_to_geolocation](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Map.transform_to_geolocation)"
+    )]
+    #[cfg_attr(
+        carla_version_0915,
+        doc = " See [carla.Map.transform_to_geolocation](https://carla.readthedocs.io/en/0.9.15/python_api/#carla.Map.transform_to_geolocation)"
+    )]
+    #[cfg_attr(
+        carla_version_0914,
+        doc = " See [carla.Map.transform_to_geolocation](https://carla.readthedocs.io/en/0.9.14/python_api/#carla.Map.transform_to_geolocation)"
+    )]
+    #[cfg_attr(
+        any(carla_version_0916, carla_version_0915, carla_version_0914),
+        doc = " in the Python API."
+    )]
+    pub fn transform_to_geolocation(&self, location: &Location) -> crate::Result<GeoLocation> {
+        let geo = with_ffi_error("transform_to_geolocation", |e| {
+            self.inner.TransformToGeolocation(location.as_ffi(), e)
+        })?;
+        Ok(GeoLocation::from_ffi(geo))
+    }
+
     /// Returns all crosswalk zone locations in the map.
     pub fn crosswalk_zones(&self) -> crate::Result<Vec<Location>> {
         let zones = with_ffi_error("crosswalk_zones", |e| self.inner.GetAllCrosswalkZones(e))?;
