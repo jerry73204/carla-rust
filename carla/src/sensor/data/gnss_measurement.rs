@@ -49,7 +49,7 @@ use static_assertions::assert_impl_all;
 ///             "Position: lat={:.6}°, lon={:.6}°, alt={:.2}m",
 ///             gnss_data.latitude(),
 ///             gnss_data.longitude(),
-///             gnss_data.attitude()
+///             gnss_data.altitude()
 ///         );
 ///
 ///         let geo = gnss_data.geo_location();
@@ -153,8 +153,14 @@ impl GnssMeasurement {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    pub fn attitude(&self) -> f64 {
+    pub fn altitude(&self) -> f64 {
         self.inner.GetAltitude()
+    }
+
+    /// Misspelled former name of [`altitude`](Self::altitude).
+    #[deprecated(since = "0.14.1", note = "renamed to `altitude`")]
+    pub fn attitude(&self) -> f64 {
+        self.altitude()
     }
 
     pub(crate) fn from_cxx(ptr: SharedPtr<FfiGnssMeasurement>) -> Option<Self> {
