@@ -197,6 +197,13 @@ public:
                                                    FfiError& error) {
         return ffi_call(error, std::vector<FfiCommandResponse>(), [&]() {
             auto commands = batch.TakeCommands();
+            // With do_tick_cue, LibCarla ticks client-side after the batch (Simulator::Tick ->
+            // NavigationTick), which dereferences the current episode. A client that has never
+            // fetched a world has none, and that tick segfaults. Fetching the world first
+            // establishes the episode.
+            if (do_tick_cue) {
+                (void)inner_.GetWorld();
+            }
             auto responses = inner_.ApplyBatchSync(std::move(commands), do_tick_cue);
 
             std::vector<FfiCommandResponse> ffi_responses;
