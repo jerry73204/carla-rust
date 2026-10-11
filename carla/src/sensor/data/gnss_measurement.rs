@@ -158,7 +158,7 @@ impl GnssMeasurement {
     }
 
     /// Misspelled former name of [`altitude`](Self::altitude).
-    #[deprecated(since = "0.14.1", note = "renamed to `altitude`")]
+    #[deprecated(since = "0.15.0", note = "renamed to `altitude`")]
     pub fn attitude(&self) -> f64 {
         self.altitude()
     }
