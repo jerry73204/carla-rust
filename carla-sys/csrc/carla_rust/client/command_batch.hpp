@@ -179,19 +179,13 @@ public:
     }
 
     // Get the accumulated commands (consumes the batch)
-    std::vector<Command> TakeCommands() {
-        return std::move(commands_);
-    }
+    std::vector<Command> TakeCommands() { return std::move(commands_); }
 
     // Get the number of commands in the batch
-    size_t Size() const {
-        return commands_.size();
-    }
+    size_t Size() const { return commands_.size(); }
 
     // Clear all commands
-    void Clear() {
-        commands_.clear();
-    }
+    void Clear() { commands_.clear(); }
 
 private:
     std::vector<Command> commands_;

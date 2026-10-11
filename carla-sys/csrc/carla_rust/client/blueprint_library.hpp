@@ -49,13 +49,9 @@ public:
                         });
     }
 
-    bool is_empty() const {
-        return inner_->empty();
-    }
+    bool is_empty() const { return inner_->empty(); }
 
-    size_t size() const {
-        return inner_->size();
-    }
+    size_t size() const { return inner_->size(); }
 
 private:
     SharedPtr<BlueprintLibrary> inner_;

@@ -527,7 +527,7 @@ impl Hud {
                 location.x, location.y, location.z
             ),
             "".to_string(),
-            format!("--- Input State ---"),
+            "--- Input State ---".to_string(),
             format!(
                 "Steering: {:.2} {}",
                 input.steering,
@@ -546,7 +546,7 @@ impl Hud {
             format!("Handbrake: {}", if input.handbrake { "ON" } else { "OFF" }),
             format!("Reverse: {}", if input.reverse { "ON" } else { "OFF" }),
             "".to_string(),
-            format!("--- Vehicle Control ---"),
+            "--- Vehicle Control ---".to_string(),
             format!("Actual Steer: {:.2}", control.steer),
             format!("Actual Throttle: {:.2}", control.throttle),
             format!("Actual Brake: {:.2}", control.brake),

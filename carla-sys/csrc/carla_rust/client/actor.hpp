@@ -273,9 +273,7 @@ public:
         return ffi_call(error, false, [&]() { return inner_->Destroy(); });
     }
 
-    const SharedPtr<Actor>& as_builtin() const {
-        return inner_;
-    }
+    const SharedPtr<Actor>& as_builtin() const { return inner_; }
 
     std::shared_ptr<FfiVehicle> to_vehicle() const {
         SharedPtr<Vehicle> ptr = carla_dynamic_pointer_cast<Vehicle>(inner_);

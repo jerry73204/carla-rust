@@ -204,8 +204,8 @@ impl Hud {
 
         // Render HUD elements with semi-transparent background
         let texts = vec![
-            format!("CARLA - Automatic Control (BasicAgent)"),
-            format!(""),
+            "CARLA - Automatic Control (BasicAgent)".to_string(),
+            String::new(),
             format!("Agent Status: {}", agent_status),
             format!("Speed: {:.1} km/h", speed_kmh),
             format!(
@@ -217,12 +217,12 @@ impl Hud {
                 dest_location.x, dest_location.y, dest_location.z
             ),
             format!("Distance to Dest: {:.1} m", distance),
-            format!(""),
-            format!("Controls:"),
-            format!("  P - Toggle Agent / Autopilot"),
-            format!("  R - Respawn with new destination"),
-            format!("  H - Toggle this HUD"),
-            format!("  ESC/Q - Quit"),
+            String::new(),
+            "Controls:".to_string(),
+            "  P - Toggle Agent / Autopilot".to_string(),
+            "  R - Respawn with new destination".to_string(),
+            "  H - Toggle this HUD".to_string(),
+            "  ESC/Q - Quit".to_string(),
         ];
 
         for text in texts {
