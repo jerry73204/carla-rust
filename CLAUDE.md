@@ -114,6 +114,43 @@ Prebuilt `libcarla_client` binaries are indexed in `carla-sys/index.json5` (URL 
 
 To create/publish prebuilt packages: `just build-prebuilt /path/to/carla/source 0.9.16`
 
+### Where the CARLA patches live
+
+The prebuilts are not stock CARLA. Each is built from a branch of the fork
+[jerry73204/carla](https://github.com/jerry73204/carla), tagged `carla-rust/<version>-<n>`; the
+GitHub release under that tag holds the tarball `index.json5` points at. To carry a new LibCarla
+fix: branch from the newest `carla-rust/<version>-<n>` tag, commit (cherry-pick upstream with
+`-x`), build, tag `-<n+1>`, upload the tarball to that release, then bump `index.json5` (URL +
+SHA256) in one commit. Never point `index.json5` at a release that does not exist yet.
+
+0.9.16 stack on tag `0.9.16`: `-2` (cmake 3.5, `build_libcarla.sh`, libpng link), `-3` (+
+worker-thread exception containment, `Setup.sh` system-clang fallback). Pending as `-4`: +
+upstream `e7e076f` "Removed TM mutex" (a synchronous TM runs `Step()` on the ticking thread with
+no handshake; 0.9.16's handshake can lose a wakeup and hang `World::tick` forever) and
+`last_frame` initialised; not yet tagged or released.
+
+### Building a 0.9.16 prebuilt without UnrealEngine
+
+`build-prebuilt` clones UnrealEngine (~8 GB) unless `Unreal/UnrealEngine/Engine` exists; the
+fork's `Setup.sh` (from `-3`) falls back to the system clang when UE's toolchain is absent, so a
+client-only build needs neither:
+
+```bash
+GIT_LFS_SKIP_SMUDGE=1 git clone -b <branch> https://github.com/jerry73204/carla.git carla
+mkdir -p carla/Unreal/UnrealEngine/{Engine,Build}
+touch carla/Unreal/UnrealEngine/Build/OneTimeSetupPerformed
+just build-prebuilt "$PWD/carla" 0.9.16
+```
+
+It deletes `Build/`, runs `git checkout -B ue4/0.9.16` in the tree (the version string comes from
+the branch name) and rebuilds boost, rpclib and recast from source (~20 min). The result is built
+with the system clang where `-3` used UE's clang 10.0.1; both link libstdc++.
+`GIT_LFS_SKIP_SMUDGE=1` matters: the client build needs none of the LFS content.
+
+To try a built tree without publishing, set `CARLA_DIR=<tree>` on a consumer build (without
+`build-prebuilt`): carla-sys installs from the tree into its own `generated/` directory instead
+of downloading.
+
 ## Documentation
 
 - `docs/roadmap/` — Development roadmap (numbered 1-5)
