@@ -116,18 +116,20 @@ To create/publish prebuilt packages: `just build-prebuilt /path/to/carla/source 
 
 ### Where the CARLA patches live
 
-The prebuilts are not stock CARLA. Each is built from a branch of the fork
-[jerry73204/carla](https://github.com/jerry73204/carla), tagged `carla-rust/<version>-<n>`; the
+The prebuilts are not stock CARLA. Each CARLA version's patches live on one branch of the fork
+[jerry73204/carla](https://github.com/jerry73204/carla), `<version>-for-carla-rust` (e.g.
+`0.9.16-for-carla-rust`), and each prebuilt is a tag on it, `carla-rust/<version>-<n>`; the
 GitHub release under that tag holds the tarball `index.json5` points at. To carry a new LibCarla
-fix: branch from the newest `carla-rust/<version>-<n>` tag, commit (cherry-pick upstream with
-`-x`), build, tag `-<n+1>`, upload the tarball to that release, then bump `index.json5` (URL +
-SHA256) in one commit. Never point `index.json5` at a release that does not exist yet.
+fix: commit on top of `<version>-for-carla-rust` (cherry-pick upstream with `-x`), keep the branch
+linear (fast-forward only), build, tag `-<n+1>` on the branch head, upload the tarball to that
+release, then bump `index.json5` (URL + SHA256) in one commit. Never point `index.json5` at a
+release that does not exist yet.
 
 0.9.16 stack on tag `0.9.16`: `-2` (cmake 3.5, `build_libcarla.sh`, libpng link), `-3` (+
 worker-thread exception containment, `Setup.sh` system-clang fallback). Pending as `-4`: +
 upstream `e7e076f` "Removed TM mutex" (a synchronous TM runs `Step()` on the ticking thread with
 no handshake; 0.9.16's handshake can lose a wakeup and hang `World::tick` forever) and
-`last_frame` initialised; not yet tagged or released.
+`last_frame` initialised, on `0.9.16-for-carla-rust` (5fa188e); not yet tagged or released.
 
 ### Building a 0.9.16 prebuilt without UnrealEngine
 
