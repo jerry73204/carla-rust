@@ -74,6 +74,25 @@ public:
         });
     }
 
+    // V2X (0.9.16 only): `sensor.other.v2x_custom` broadcasts a text message
+    // to every other custom V2X sensor in range on the next tick. Returns
+    // false on a sensor that is not server-side or an older CARLA.
+
+    bool Send(const std::string& message, FfiError& error) const {
+        return ffi_call(error, false, [&]() {
+#ifdef CARLA_VERSION_0916
+            auto ss = carla_dynamic_pointer_cast<ServerSideSensor>(inner_);
+            if (ss == nullptr)
+                return false;
+            ss->Send(message);
+            return true;
+#else
+            (void)message;
+            return false;
+#endif
+        });
+    }
+
     // ROS bridge methods (0.9.15+ only)
 
 #ifdef CARLA_VERSION_0915_PLUS

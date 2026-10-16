@@ -109,6 +109,7 @@ include_cpp! {
     generate_pod!("carla_rust::sensor::data::FfiSemanticLidarDetection")
     generate_pod!("carla_rust::sensor::data::FfiOpticalFlowPixel")
     generate!("carla_rust::sensor::data::FfiDVSEventArray")
+    generate!("carla_rust::sensor::data::FfiCustomV2XEvent")
     generate!("carla_rust::sensor::data::FfiOpticalFlowImage")
     generate_pod!("carla_rust::rpc::FfiLabelledPoint")
     generate_pod!("carla_rust::rpc::FfiRpcColor")

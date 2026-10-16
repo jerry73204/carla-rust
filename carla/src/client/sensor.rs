@@ -90,6 +90,22 @@ impl Sensor {
         })
     }
 
+    /// Broadcasts `message` from a `sensor.other.v2x_custom` sensor (CARLA 0.9.16).
+    ///
+    /// Every other custom V2X sensor in range receives it with the next tick, as a
+    /// [`CustomV2XEvent`](crate::sensor::data::CustomV2XEvent) carrying the received
+    /// power. CARLA truncates the text to 100 bytes. The sending sensor must itself be
+    /// listening ([`listen`](Self::listen)), or nothing is delivered. Returns `false`
+    /// when this sensor is not a server-side sensor.
+    ///
+    /// See [carla.Sensor.send](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.send)
+    /// in the Python API.
+    #[cfg(carla_version_0916)]
+    pub fn send(&self, message: &str) -> crate::Result<bool> {
+        cxx::let_cxx_string!(message = message);
+        with_ffi_error("send", |e| self.inner.Send(&message, e))
+    }
+
     /// Returns whether the sensor is currently listening (generating data).
     #[cfg_attr(
         carla_version_0916,

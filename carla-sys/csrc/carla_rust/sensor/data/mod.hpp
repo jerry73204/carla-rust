@@ -14,3 +14,4 @@
 #include "radar_measurement.hpp"
 #include "gnss_measurement.hpp"
 #include "imu_measurement.hpp"
+#include "custom_v2x_event.hpp"

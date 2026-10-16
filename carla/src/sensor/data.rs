@@ -10,6 +10,11 @@ pub use lane_invasion_event::*;
 mod image;
 pub use image::*;
 
+#[cfg(carla_version_0916)]
+mod custom_v2x_event;
+#[cfg(carla_version_0916)]
+pub use custom_v2x_event::*;
+
 mod gnss_measurement;
 pub use gnss_measurement::*;
 

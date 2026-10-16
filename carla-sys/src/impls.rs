@@ -550,6 +550,10 @@ impl Clone for crate::carla_rust::sensor::data::FfiColor {
 unsafe impl Send for crate::carla_rust::sensor::data::FfiCollisionEvent {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiCollisionEvent {}
 
+// CustomV2XEvent holds the messages one V2X sensor received in one frame.
+unsafe impl Send for crate::carla_rust::sensor::data::FfiCustomV2XEvent {}
+unsafe impl Sync for crate::carla_rust::sensor::data::FfiCustomV2XEvent {}
+
 // GnssMeasurement contains GPS coordinate data (latitude, longitude, altitude).
 unsafe impl Send for crate::carla_rust::sensor::data::FfiGnssMeasurement {}
 unsafe impl Sync for crate::carla_rust::sensor::data::FfiGnssMeasurement {}

@@ -24,6 +24,7 @@ using carla_rust::client::ffi_call;
 using carla_rust::client::FfiError;
 using carla_rust::geom::FfiTransform;
 using carla_rust::sensor::data::FfiCollisionEvent;
+using carla_rust::sensor::data::FfiCustomV2XEvent;
 using carla_rust::sensor::data::FfiDVSEventArray;
 using carla_rust::sensor::data::FfiGnssMeasurement;
 using carla_rust::sensor::data::FfiImage;
@@ -138,6 +139,21 @@ public:
         } else {
             return std::make_shared<FfiDVSEventArray>(std::move(ptr));
         }
+    }
+
+    /// The messages of a `sensor.other.v2x_custom` (CARLA 0.9.16); null for
+    /// any other data or an older CARLA.
+    std::shared_ptr<FfiCustomV2XEvent> to_custom_v2x_event() const {
+#ifdef CARLA_VERSION_0916
+        auto ptr = carla_dynamic_pointer_cast<carla::sensor::data::CustomV2XEvent>(inner_);
+        if (ptr == nullptr) {
+            return nullptr;
+        } else {
+            return std::make_shared<FfiCustomV2XEvent>(std::move(ptr));
+        }
+#else
+        return nullptr;
+#endif
     }
 
     std::shared_ptr<FfiOpticalFlowImage> to_optical_flow_image() const {

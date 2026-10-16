@@ -217,6 +217,7 @@ All methods implemented. 100% coverage.
 | `enable_for_ros()`       | Have        | 0.9.15 |
 | `disable_for_ros()`      | Have        | 0.9.15 |
 | `is_enabled_for_ros()`   | Have        | 0.9.15 |
+| `send()` (custom V2X)    | Have        | 0.9.16 |
 
 ---
 
@@ -463,6 +464,8 @@ These types are used in public method signatures of Client, World, Actor, etc.
 | `DVSEventArray` / `DVSEvent`                     | Have        | 0.9.14      |
 | `GnssMeasurement`                                | Have        | 0.9.14      |
 | `ImuMeasurement`                                 | Have        | 0.9.14      |
+| `CustomV2XEvent` (power, station id, message)    | Have        | 0.9.16      |
+| `CAMEvent` (ETSI CAM V2X sensor)                 | **Missing** | 0.9.16      |
 | `NormalsImage`                                   | Have        | 0.9.14 (alias for `Image`) |
 | `horizontal_angle` / `channels` (LiDAR props)    | Have        | 0.9.14      |
 | `Image::save_to_disk()`                          | **Missing** | Python-only |
