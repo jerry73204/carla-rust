@@ -98,6 +98,15 @@ impl Sensor {
     /// listening ([`listen`](Self::listen)), or nothing is delivered. Returns `false`
     /// when this sensor is not a server-side sensor.
     ///
+    /// Found on CARLA 0.9.16: only sensors attached to an actor exchange messages (a
+    /// free-standing custom V2X sensor hears nothing); a sensor whose client died, or whose
+    /// parent was destroyed, can keep re-broadcasting its last message every tick, so a
+    /// receiver should check the event's station id (the sender's parent actor) and the
+    /// message's freshness; and a sensor whose parent vehicle was destroyed under it (as
+    /// the Traffic Manager does to a vehicle standing 90 s) crashed the server 10-40 s
+    /// later. Destroy the sensor before its vehicle
+    /// ([`destroy_with_children`](crate::client::ActorBase::destroy_with_children)).
+    ///
     /// See [carla.Sensor.send](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Sensor.send)
     /// in the Python API.
     #[cfg(carla_version_0916)]
@@ -151,6 +160,11 @@ impl Sensor {
     /// # Arguments
     ///
     /// * `callback` - Function called with each [`SensorData`] produced
+    ///
+    /// The callback runs on the client's streaming thread: keep it cheap and never block
+    /// in it. In synchronous mode the server waits for every stream subscriber before the
+    /// next frame, so a blocked callback stalls the simulation (see
+    /// [`World::on_tick`](crate::client::World::on_tick)).
     ///
     /// # Examples
     ///

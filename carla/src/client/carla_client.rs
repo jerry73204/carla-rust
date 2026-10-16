@@ -42,6 +42,24 @@ use std::time::Duration;
 /// [`Client`] implements [`Send`] and [`Sync`], but the underlying CARLA server
 /// connection is not thread-safe. Coordinate access across threads carefully.
 ///
+/// # A client must not outlive its server
+///
+/// When the server goes away, the client's RPC connection never reconnects: every
+/// call times out after [`set_timeout`](Self::set_timeout), forever. Its streaming
+/// connections do reconnect, to whatever server comes up next on the same host and
+/// port, and the world-tick stream has the same token on every server, so an
+/// [`on_tick`](crate::client::World::on_tick) subscription (and LibCarla's own, which
+/// every [`World`](crate::client::World) has) silently resumes on the new server. On a
+/// frame flagged with a light update (any map load) LibCarla's light manager then
+/// queries the server from inside that stream callback over the dead RPC connection and
+/// blocks for the whole timeout; a synchronous-mode server waits for every stream
+/// subscriber before it sends the next frame, so the new server stops answering for that
+/// long (CARLA 0.9.16, measured). Probe a long-lived client (for example
+/// [`server_version`](Self::server_version), which the server answers without its game
+/// thread) and drop it, with every world and actor handle taken from it, as soon as the
+/// probe fails; setting a short timeout first keeps the destructors (which make RPCs)
+/// from waiting.
+///
 /// # Examples
 ///
 /// ```no_run

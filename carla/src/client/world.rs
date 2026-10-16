@@ -1409,6 +1409,13 @@ impl World {
     ///
     /// Returns an [`OnTickId`] that can be passed to [`remove_on_tick`](Self::remove_on_tick)
     /// to unregister the callback.
+    ///
+    /// The callback runs on the client's streaming thread. Keep it cheap and never block
+    /// in it (no RPC, no waiting on a lock another thread holds while it waits for a
+    /// frame): in synchronous mode the server's game thread waits until every stream
+    /// subscriber has taken the previous frame before it sends the next one, so a callback
+    /// that blocks stalls the whole simulation, for every client. Hand the snapshot to
+    /// another thread instead.
     pub fn on_tick<F>(&mut self, mut callback: F) -> crate::Result<OnTickId>
     where
         F: FnMut(WorldSnapshot) + Send + 'static,
