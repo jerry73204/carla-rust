@@ -465,6 +465,16 @@ static_assertions::const_assert_eq!(memoffset::offset_of!(Location, z), 8);
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 // Addition: Location + Location
+/// A location is a path point as it is: `TrafficManager::set_custom_path` and
+/// `update_upload_path` take `&[P]` with `P: AsRef<Location>`, which a slice of
+/// locations satisfies only through this.
+impl AsRef<Location> for Location {
+    #[inline]
+    fn as_ref(&self) -> &Location {
+        self
+    }
+}
+
 impl Add for Location {
     type Output = Location;
     fn add(self, rhs: Location) -> Location {
@@ -772,7 +782,11 @@ impl Vector3D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector3D {
         let len = self.length();
-        if len > 0.0 { *self / len } else { *self }
+        if len > 0.0 {
+            *self / len
+        } else {
+            *self
+        }
     }
 
     /// Calculates the dot product with another vector.
@@ -1090,7 +1104,11 @@ impl Vector2D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector2D {
         let len = self.length();
-        if len > 0.0 { *self / len } else { *self }
+        if len > 0.0 {
+            *self / len
+        } else {
+            *self
+        }
     }
 
     /// Calculates the dot product with another vector.
@@ -1520,6 +1538,18 @@ impl BoundingBox {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_location_slice_is_a_path() {
+        fn path<P: AsRef<super::Location>>(p: &[P]) -> Vec<f32> {
+            p.iter().map(|l| l.as_ref().x).collect()
+        }
+        let pts = [
+            super::Location::new(1.0, 2.0, 0.0),
+            super::Location::new(3.0, 4.0, 0.0),
+        ];
+        assert_eq!(path(&pts), vec![1.0, 3.0]);
+    }
+
     use super::*;
 
     /// Helper to compare floats with tolerance
