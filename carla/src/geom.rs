@@ -782,11 +782,7 @@ impl Vector3D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector3D {
         let len = self.length();
-        if len > 0.0 {
-            *self / len
-        } else {
-            *self
-        }
+        if len > 0.0 { *self / len } else { *self }
     }
 
     /// Calculates the dot product with another vector.
@@ -1104,11 +1100,7 @@ impl Vector2D {
     /// Returns a normalized (unit length) version of this vector.
     pub fn normalize(&self) -> Vector2D {
         let len = self.length();
-        if len > 0.0 {
-            *self / len
-        } else {
-            *self
-        }
+        if len > 0.0 { *self / len } else { *self }
     }
 
     /// Calculates the dot product with another vector.
@@ -1538,19 +1530,16 @@ impl BoundingBox {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn a_location_slice_is_a_path() {
-        fn path<P: AsRef<super::Location>>(p: &[P]) -> Vec<f32> {
+        fn path<P: AsRef<Location>>(p: &[P]) -> Vec<f32> {
             p.iter().map(|l| l.as_ref().x).collect()
         }
-        let pts = [
-            super::Location::new(1.0, 2.0, 0.0),
-            super::Location::new(3.0, 4.0, 0.0),
-        ];
+        let pts = [Location::new(1.0, 2.0, 0.0), Location::new(3.0, 4.0, 0.0)];
         assert_eq!(path(&pts), vec![1.0, 3.0]);
     }
-
-    use super::*;
 
     /// Helper to compare floats with tolerance
     fn assert_approx_eq(a: f32, b: f32, epsilon: f32) {
