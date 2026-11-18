@@ -15,6 +15,8 @@
         "url": "https://github.com/jerry73204/carla/releases/download/carla-rust%2F0.10.0-2/libcarla_client.0.10.0-x86_64-unknown-linux-gnu.tar.zstd",
         "sha256": "c3073025198fcd1e19a45a17240a3d16f9286dacd4a24f2fb854cee81eff6d0e"
     },
-    // No 1.0 prebuilt is published yet: build from source with CARLA_DIR (see README).
-    "1.0-x86_64-unknown-linux-gnu": null
+    "1.0-x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/jerry73204/carla/releases/download/carla-rust%2F1.0-1/libcarla_client.1.0-x86_64-unknown-linux-gnu.tar.zstd",
+        "sha256": "869a056f76b42c214fcf0edf9da7f3a36a16ee843313caf0f61c44fc0f54c671"
+    }
 }

@@ -46,14 +46,15 @@ The selected version is available at run time as `carla::CARLA_VERSION`; compare
 
 ### CARLA 1.0
 
-No prebuilt `libcarla_client` for 1.0 is published yet, so `carla-10` builds against a
-CARLA 1.0 source tree whose client library you have built. Unreal Engine is not needed: the
-client builds with the system compiler and libstdc++, and needs CMake 3.27.2 or newer.
+`carla-10` downloads a prebuilt `libcarla_client` for 1.0, as the other versions do. To
+build against your own CARLA 1.0 source tree instead, build its client library and point
+`CARLA_DIR` at it. Unreal Engine is not needed: the client builds with the system compiler
+and libstdc++, and needs CMake 3.27.2 or newer.
 
 ```bash
-GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 -b 1.0 https://github.com/carla-simulator/carla.git
+GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 -b 1.0-for-carla-rust https://github.com/jerry73204/carla.git
 cd carla
-cmake -B Build/libstdcxx-release -G Ninja -DCMAKE_BUILD_TYPE=Release \
+cmake -B Build/libstdcxx-release -G Ninja -DCMAKE_BUILD_TYPE=Release -DCARLA_RELEASE_VERSION=1.0 \
     -DBUILD_CARLA_CLIENT=ON -DBUILD_CARLA_SERVER=OFF -DBUILD_CARLA_UNREAL=OFF \
     -DBUILD_PYTHON_API=OFF -DBUILD_EXAMPLES=OFF -DBUILD_LIBCARLA_TESTS=OFF -DENABLE_ROS2=OFF
 cmake --build Build/libstdcxx-release --target carla-client
@@ -61,8 +62,11 @@ cd - && CARLA_DIR=/path/to/carla cargo build --features carla-10
 ```
 
 CARLA 1.0's `CMake/Dependencies.cmake` always asks Boost for its `python` library, which
-Boost's CMake refuses while `BUILD_PYTHON_API` is off. Until that is fixed upstream, remove
-`python` from `BOOST_INCLUDED_PROJECTS` when building the client alone.
+Boost's CMake refuses while `BUILD_PYTHON_API` is off. Until that is fixed upstream, build
+from the fork's branch `1.0-for-carla-rust` (jerry73204/carla), which carries the fix and
+is what the prebuilt is built from, or remove `python` from `BOOST_INCLUDED_PROJECTS`. A
+build from any commit but the `1.0` tag itself (that branch included) reports its version
+as `1.0-<commit>`; `-DCARLA_RELEASE_VERSION=1.0` makes it match the server's `1.0`.
 
 What 1.0 changes in this crate:
 

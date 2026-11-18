@@ -343,7 +343,15 @@ where
 
     // Configure with CMake
     eprintln!("Configuring CARLA {carla_version} with CMake...");
-    let status = Command::new("cmake")
+    // 1.0 stamps its version from `git describe --exact-match`, else
+    // `<version>-<hash>`: a build from a patched branch (<version>-for-carla-rust)
+    // would report "1.0-<hash>" against a "1.0" server. Name the release instead.
+    let release_version = format!("-DCARLA_RELEASE_VERSION={carla_version}");
+    let mut cmake = Command::new("cmake");
+    if carla_version == "1.0" {
+        cmake.arg(&release_version);
+    }
+    let status = cmake
         .args([
             "-B",
             build_dir.to_str().unwrap(),

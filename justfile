@@ -5,7 +5,7 @@
 profile := "dev-release"
 
 # Supported CARLA versions
-versions := "0.9.14 0.9.15 0.9.16 0.10.0"
+versions := "0.9.14 0.9.15 0.9.16 0.10.0 1.0"
 
 # Show all available recipes (default)
 @_default:
