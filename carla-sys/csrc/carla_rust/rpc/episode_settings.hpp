@@ -57,6 +57,18 @@ public:
     void set_spectator_as_ego(bool value) { inner_.spectator_as_ego = value; }
 #endif
 
+#ifdef CARLA_VERSION_10
+    bool adjust_signs_height_to_ground() const { return inner_.adjust_signs_height_to_ground; }
+
+    void set_adjust_signs_height_to_ground(bool value) {
+        inner_.adjust_signs_height_to_ground = value;
+    }
+
+    bool deterministic_collisions() const { return inner_.deterministic_collisions; }
+
+    void set_deterministic_collisions(bool value) { inner_.deterministic_collisions = value; }
+#endif
+
 private:
     EpisodeSettings inner_;
 };

@@ -10,7 +10,7 @@
 #include "carla/rpc/WheelPhysicsControl.h"
 #include "carla/rpc/VehiclePhysicsControl.h"
 #include "carla_rust/geom.hpp"
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 #include "carla_rust/rpc/wheel_physics_control.hpp"
 #endif
 
@@ -24,7 +24,7 @@ using carla::rpc::VehiclePhysicsControl;
 using carla_rust::geom::FfiLocation;
 using carla_rust::geom::FfiVector3D;
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 
 // On 0.10.0, VehiclePhysicsControl from the compat shim has 0.9.x fields.
 // The FfiVehiclePhysicsControl wrapper provides the correct 0.10.0 API.
@@ -240,7 +240,7 @@ private:
     // No inner_ on 0.10.0 - fields are stored directly above
 };
 
-#else  // !CARLA_VERSION_0100
+#else  // !CARLA_VERSION_0100_PLUS
 
 using carla::rpc::WheelPhysicsControl;
 
@@ -321,7 +321,7 @@ private:
 static_assert(sizeof(FfiVehiclePhysicsControl) == sizeof(VehiclePhysicsControl),
               "FfiVehiclePhysicsControl has invalid size");
 
-#endif  // CARLA_VERSION_0100
+#endif  // CARLA_VERSION_0100_PLUS
 
 }  // namespace rpc
 }  // namespace carla_rust

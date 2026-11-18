@@ -2,20 +2,20 @@ use crate::geom::{FfiVector2D, Location, Vector2D};
 use autocxx::prelude::*;
 use carla_sys::carla_rust::rpc::FfiVehiclePhysicsControl;
 
-#[cfg(carla_version_0100)]
+#[cfg(carla_0100)]
 use crate::{geom::Vector3D, rpc::WheelPhysicsControl, utils::IteratorExt};
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 use crate::utils::IteratorExt;
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 use carla_sys::carla::rpc::{GearPhysicsControl, WheelPhysicsControl};
 
 // =============================================================================
 // CARLA 0.10.0 VehiclePhysicsControl
 // =============================================================================
 
-#[cfg(carla_version_0100)]
+#[cfg(carla_0100)]
 /// Vehicle physics control parameters.
 ///
 /// This type contains all the physical parameters that define how a vehicle behaves,
@@ -88,7 +88,7 @@ pub struct VehiclePhysicsControl {
     pub use_sweep_wheel_collision: bool,
 }
 
-#[cfg(carla_version_0100)]
+#[cfg(carla_0100)]
 impl VehiclePhysicsControl {
     pub fn to_cxx(&self) -> UniquePtr<FfiVehiclePhysicsControl> {
         let torque_curve = self
@@ -222,7 +222,7 @@ impl VehiclePhysicsControl {
 // CARLA 0.9.x VehiclePhysicsControl
 // =============================================================================
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 /// Vehicle physics control parameters.
 ///
 /// This type contains all the physical parameters that define how a vehicle behaves,
@@ -310,7 +310,7 @@ pub struct VehiclePhysicsControl {
     pub use_sweep_wheel_collision: bool,
 }
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 impl VehiclePhysicsControl {
     pub fn to_cxx(&self) -> UniquePtr<FfiVehiclePhysicsControl> {
         let Self {

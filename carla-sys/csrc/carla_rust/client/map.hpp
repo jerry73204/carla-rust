@@ -3,6 +3,9 @@
 #include "carla/Memory.h"
 #include "carla/client/Map.h"
 #include "carla/geom/GeoLocation.h"
+#ifdef CARLA_VERSION_10
+#include "carla/geom/GeoProjection.h"
+#endif
 #include "carla_rust/geom.hpp"
 #include "carla_rust/client/landmark_list.hpp"
 #include "carla_rust/client/transform_list.hpp"
@@ -96,7 +99,13 @@ public:
     // Geographic coordinates of a map location, as carla.Map.transform_to_geolocation.
     FfiGeoLocation TransformToGeolocation(const FfiLocation& location, FfiError& error) const {
         return ffi_call(error, FfiGeoLocation(), [&]() {
+#ifdef CARLA_VERSION_10
+            // 1.0: the map's projection (GeoProjection), not the georeference.
+            return FfiGeoLocation(
+                inner_->GetGeoProjection().TransformToGeoLocation(location.as_native()));
+#else
             return FfiGeoLocation(inner_->GetGeoReference().Transform(location.as_native()));
+#endif
         });
     }
 

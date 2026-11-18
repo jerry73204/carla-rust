@@ -2,7 +2,7 @@
 
 use core::slice;
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 use carla_sys::{
     carla::rpc::WheelPhysicsControl, carla_rust::utils::new_wheel_physics_control_vector,
 };
@@ -55,7 +55,7 @@ impl NewCxxVectorElement for GearPhysicsControl {
     }
 }
 
-#[cfg(not(carla_version_0100))]
+#[cfg(not(carla_0100))]
 impl NewCxxVectorElement for WheelPhysicsControl {
     fn new_vector() -> UniquePtr<CxxVector<Self>> {
         new_wheel_physics_control_vector()

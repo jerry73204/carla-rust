@@ -38,9 +38,10 @@ where
     let carla_version = std::env::var("CARLA_VERSION").unwrap_or_else(|_| "0.10.0".to_string());
     match carla_version.as_str() {
         "0.9.14" | "0.9.15" | "0.9.16" => probe_09x(carla_src_dir, &carla_version),
-        "0.10.0" => probe_0_10_0(carla_src_dir),
+        // 1.0 keeps 0.10's CMake build layout (Build/libstdcxx-release, _deps/).
+        "0.10.0" | "1.0" => probe_0_10_0(carla_src_dir),
         _ => bail!(
-            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0, 1.0",
             carla_version
         ),
     }
@@ -148,7 +149,7 @@ where
 
     ensure!(
         build_dir.exists(),
-        "Build directory not found: '{}'. Run the 0.10.0 CMake build first.",
+        "Build directory not found: '{}'. Run the CMake (0.10.0 or 1.0) build first.",
         build_dir.display()
     );
 

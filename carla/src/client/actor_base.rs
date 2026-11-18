@@ -684,6 +684,10 @@ pub trait ActorBase: Clone {
     }
 
     /// Returns whether the actor still exists in the simulation.
+    ///
+    /// On CARLA 1.0 a handle returned by a spawn reports `true` until a world snapshot
+    /// after the spawn says otherwise; do not poll it to wait for a spawn to appear,
+    /// tick or wait for a tick instead.
     #[cfg_attr(
         carla_version_0916,
         doc = " See [carla.Actor.is_alive](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.Actor.is_alive)"
@@ -853,6 +857,10 @@ pub trait ActorBase: Clone {
     /// Destroys this actor and removes it from the simulation.
     ///
     /// Returns `true` if the actor was successfully destroyed, `false` otherwise.
+    ///
+    /// On CARLA 1.0 this always asks the server (before 1.0 the client could answer
+    /// `false` from a snapshot that did not list a just-spawned actor yet); a second
+    /// call on a handle already destroyed returns `false`.
     ///
     /// # Examples
     ///

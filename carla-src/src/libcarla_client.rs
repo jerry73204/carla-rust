@@ -12,7 +12,7 @@ pub fn version() -> &'static str {
 pub fn libs() -> &'static [&'static str] {
     let v = std::env::var("CARLA_VERSION").unwrap_or_else(|_| version().to_string());
     match v.as_str() {
-        "0.10.0" => &[
+        "0.10.0" | "1.0" => &[
             "static=carla-client",
             "static=Recast",
             "static=Detour",
@@ -44,9 +44,9 @@ where
         "0.9.14" => build_0914(src_dir),
         "0.9.15" => build_0915(src_dir),
         "0.9.16" => build_0916(src_dir),
-        "0.10.0" => build_0_10_0(src_dir),
+        "0.10.0" | "1.0" => build_cmake(src_dir, &carla_version),
         _ => bail!(
-            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
+            "Unsupported CARLA version: {}. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0, 1.0",
             carla_version
         ),
     }
@@ -332,7 +332,9 @@ where
     Ok(())
 }
 
-fn build_0_10_0<P>(src_dir: P) -> Result<()>
+/// The CMake client build of the UE5 line (0.10.0 and 1.0): the system compiler and
+/// libstdc++, no Unreal Engine and no toolchain file.
+fn build_cmake<P>(src_dir: P, carla_version: &str) -> Result<()>
 where
     P: AsRef<Path>,
 {
@@ -340,7 +342,7 @@ where
     let build_dir = src_dir.join("Build/libstdcxx-release");
 
     // Configure with CMake
-    eprintln!("Configuring CARLA 0.10.0 with CMake...");
+    eprintln!("Configuring CARLA {carla_version} with CMake...");
     let status = Command::new("cmake")
         .args([
             "-B",
@@ -366,7 +368,7 @@ where
     }
 
     // Build with CMake
-    eprintln!("Building CARLA 0.10.0 client library...");
+    eprintln!("Building CARLA {carla_version} client library...");
     let nproc = std::thread::available_parallelism()
         .map(|n| n.get().to_string())
         .unwrap_or_else(|_| "4".to_string());
@@ -480,8 +482,8 @@ where
         fs::remove_dir_all(&build_dir)?;
     }
 
-    // For 0.10.0 (CMake-based), removing Build/ is sufficient
-    if carla_version == "0.10.0" {
+    // For the CMake builds (0.10.0, 1.0), removing Build/ is sufficient
+    if carla_version == "0.10.0" || carla_version == "1.0" {
         return Ok(());
     }
 

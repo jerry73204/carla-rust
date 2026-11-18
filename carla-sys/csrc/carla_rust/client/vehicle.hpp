@@ -13,7 +13,7 @@
 #include "carla/rpc/VehicleAckermannControl.h"
 #include "carla/rpc/TrafficLightState.h"
 #include "carla/rpc/VehicleFailureState.h"
-#ifdef CARLA_VERSION_0916
+#if defined(CARLA_VERSION_0916) || defined(CARLA_VERSION_10)
 #include "carla/rpc/VehicleTelemetryData.h"
 #endif
 #include "carla/client/TrafficLight.h"
@@ -59,7 +59,7 @@ public:
 
     void ApplyPhysicsControl(const FfiVehiclePhysicsControl& physics_control,
                              FfiError& error) const {
-#if !defined(CARLA_VERSION_0100)
+#if !defined(CARLA_VERSION_0100_PLUS)
         ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.as_native()); });
 #elif defined(CARLA_RUST_NATIVE_HEADERS)
         ffi_call_void(error, [&]() { inner_->ApplyPhysicsControl(physics_control.to_native()); });
@@ -107,9 +107,9 @@ public:
 
     std::unique_ptr<FfiVehiclePhysicsControl> GetPhysicsControl(FfiError& error) const {
         return ffi_call(error, std::unique_ptr<FfiVehiclePhysicsControl>(nullptr), [&]() {
-#if defined(CARLA_VERSION_0100) && defined(CARLA_RUST_NATIVE_HEADERS)
+#if defined(CARLA_VERSION_0100_PLUS) && defined(CARLA_RUST_NATIVE_HEADERS)
             return std::make_unique<FfiVehiclePhysicsControl>(inner_->GetPhysicsControl());
-#elif defined(CARLA_VERSION_0100)
+#elif defined(CARLA_VERSION_0100_PLUS)
             return std::make_unique<FfiVehiclePhysicsControl>();  // bindgen parse only
 #else
             auto orig = inner_->GetPhysicsControl();
@@ -159,7 +159,7 @@ public:
                         });
     }
 
-#ifdef CARLA_VERSION_0916
+#if defined(CARLA_VERSION_0916) || defined(CARLA_VERSION_10)
     std::unique_ptr<carla_rust::rpc::FfiVehicleTelemetryData> GetTelemetryData(
         FfiError& error) const {
         return ffi_call(error, std::unique_ptr<carla_rust::rpc::FfiVehicleTelemetryData>(nullptr),
@@ -183,6 +183,10 @@ public:
                         [&]() { return inner_->GetVehicleBoneWorldTransforms(); });
     }
 
+#endif
+
+#ifdef CARLA_VERSION_0916
+    // PhysX is 0.9.x's vehicle physics; 1.0 runs Chaos and has no PhysX restore.
     void RestorePhysXPhysics(FfiError& error) const {
         ffi_call_void(error, [&]() { inner_->RestorePhysXPhysics(); });
     }

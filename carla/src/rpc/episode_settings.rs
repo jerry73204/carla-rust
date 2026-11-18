@@ -62,6 +62,18 @@ pub struct EpisodeSettings {
     /// Default: `true`. Available in CARLA 0.9.15+.
     #[cfg(carla_0915)]
     pub spectator_as_ego: bool,
+
+    /// Whether the server moves traffic signs down to the ground under them.
+    /// Default: `false`. Available in CARLA 1.0.
+    #[cfg(carla_10)]
+    pub adjust_signs_height_to_ground: bool,
+
+    /// Whether contacts are detected on the same frame however fast the server runs, so
+    /// that a synchronous episode repeats its collisions exactly. Default: `false`.
+    /// Available in CARLA 1.0, where it takes effect at the next map load that keeps the
+    /// settings, at about 15 to 25 % more physics time with heavy traffic.
+    #[cfg(carla_10)]
+    pub deterministic_collisions: bool,
 }
 
 impl EpisodeSettings {
@@ -86,6 +98,10 @@ impl EpisodeSettings {
             actor_active_distance: from.actor_active_distance(),
             #[cfg(carla_0915)]
             spectator_as_ego: from.spectator_as_ego(),
+            #[cfg(carla_10)]
+            adjust_signs_height_to_ground: from.adjust_signs_height_to_ground(),
+            #[cfg(carla_10)]
+            deterministic_collisions: from.deterministic_collisions(),
         }
     }
 
@@ -111,6 +127,16 @@ impl EpisodeSettings {
         settings
             .pin_mut()
             .set_spectator_as_ego(self.spectator_as_ego);
+
+        #[cfg(carla_10)]
+        {
+            settings
+                .pin_mut()
+                .set_adjust_signs_height_to_ground(self.adjust_signs_height_to_ground);
+            settings
+                .pin_mut()
+                .set_deterministic_collisions(self.deterministic_collisions);
+        }
 
         settings
     }

@@ -4,7 +4,7 @@
 // For 0.9.x, include the real header. For 0.10.0, provide a stub so
 // autocxx can generate bindings without failing.
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 
 #include "carla/MsgPack.h"
 

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 
 #include "carla/rpc/Texture.h"
 
@@ -58,7 +58,7 @@ private:
 }  // namespace rpc
 }  // namespace carla_rust
 
-#else  // !CARLA_VERSION_0100
+#else  // !CARLA_VERSION_0100_PLUS
 
 namespace carla_rust {
 namespace rpc {
@@ -75,4 +75,4 @@ struct FfiTextureFloatColor {
 }  // namespace rpc
 }  // namespace carla_rust
 
-#endif  // CARLA_VERSION_0100
+#endif  // CARLA_VERSION_0100_PLUS

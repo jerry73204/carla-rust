@@ -113,7 +113,7 @@ impl BlueprintLibrary {
     ///
     /// * `name` - Attribute name to filter by (e.g., `"number_of_wheels"`)
     /// * `value` - Attribute value to match (e.g., `"4"`)
-    #[cfg(any(carla_version_0915, carla_version_0916, carla_version_0100))]
+    #[cfg(any(carla_version_0915, carla_version_0916, carla_0100))]
     pub fn filter_by_attribute(&self, name: &str, value: &str) -> crate::Result<Self> {
         let_cxx_string!(name = name);
         let_cxx_string!(value = value);

@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 
-#ifdef CARLA_VERSION_0916
+#if defined(CARLA_VERSION_0916) || defined(CARLA_VERSION_10)
 #include "carla/rpc/VehicleTelemetryData.h"
 #include "carla/rpc/WheelTelemetryData.h"
 #else
@@ -13,7 +13,7 @@
 namespace carla_rust {
 namespace rpc {
 
-#ifdef CARLA_VERSION_0916
+#if defined(CARLA_VERSION_0916) || defined(CARLA_VERSION_10)
 
 using carla::rpc::VehicleTelemetryData;
 using carla::rpc::WheelTelemetryData;
@@ -29,7 +29,9 @@ public:
     float brake() const { return data_.brake; }
     float engine_rpm() const { return data_.engine_rpm; }
     int32_t gear() const { return data_.gear; }
+#ifdef CARLA_VERSION_0916
     float drag() const { return data_.drag; }
+#endif
 
     const std::vector<WheelTelemetryData>& wheels() const { return data_.wheels; }
 

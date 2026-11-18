@@ -4,7 +4,7 @@
 // (no GearPhysicsControl, uses flat gear ratio vectors, new fields).
 // This shim provides the 0.9.x-compatible layout for autocxx binding generation.
 // The actual 0.10.0 type is accessed through FfiVehiclePhysicsControl wrapper
-// which is guarded with #ifdef CARLA_VERSION_0100.
+// which is guarded with #ifdef CARLA_VERSION_0100_PLUS.
 
 #pragma once
 

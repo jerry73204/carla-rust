@@ -7,6 +7,7 @@ enum CarlaVersion {
     V0_9_15,
     V0_9_14,
     V0_10_0,
+    V1_0,
 }
 
 impl FromStr for CarlaVersion {
@@ -14,12 +15,13 @@ impl FromStr for CarlaVersion {
 
     fn from_str(ver_text: &str) -> Result<Self, Self::Err> {
         let ver = match ver_text {
+            "1.0" => Self::V1_0,
             "0.10.0" => Self::V0_10_0,
             "0.9.16" => Self::V0_9_16,
             "0.9.15" => Self::V0_9_15,
             "0.9.14" => Self::V0_9_14,
             _ => bail!(
-                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
+                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0, 1.0",
                 ver_text
             ),
         };
@@ -30,6 +32,7 @@ impl FromStr for CarlaVersion {
 impl CarlaVersion {
     fn as_str(&self) -> &str {
         match self {
+            CarlaVersion::V1_0 => "1.0",
             CarlaVersion::V0_10_0 => "0.10.0",
             CarlaVersion::V0_9_16 => "0.9.16",
             CarlaVersion::V0_9_15 => "0.9.15",
@@ -49,7 +52,7 @@ fn parse_carla_version() -> Result<CarlaVersion> {
             anyhow::anyhow!(
                 "carla-sys did not export a CARLA version (DEP_CARLA_CARLA_VERSION unset). \
                  Enable exactly one of the features carla-0914, carla-0915, carla-0916, \
-                 carla-0100, or set CARLA_VERSION"
+                 carla-0100, carla-10, or set CARLA_VERSION"
             )
         })?;
 
@@ -70,17 +73,20 @@ fn main() -> Result<()> {
 
     // Declare all cfg flags
     // Exact version flags: carla_version_XXXX (set for exactly one version)
+    println!("cargo:rustc-check-cfg=cfg(carla_version_10)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
     println!("cargo:rustc-check-cfg=cfg(carla_version_0914)");
     // Cumulative version flags: carla_XXXX (set for this version and all later)
+    println!("cargo:rustc-check-cfg=cfg(carla_10)");
     println!("cargo:rustc-check-cfg=cfg(carla_0100)");
     println!("cargo:rustc-check-cfg=cfg(carla_0916)");
     println!("cargo:rustc-check-cfg=cfg(carla_0915)");
 
     // Set exact version flag
     match version {
+        CarlaVersion::V1_0 => println!("cargo:rustc-cfg=carla_version_10"),
         CarlaVersion::V0_10_0 => println!("cargo:rustc-cfg=carla_version_0100"),
         CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
         CarlaVersion::V0_9_15 => println!("cargo:rustc-cfg=carla_version_0915"),
@@ -90,15 +96,21 @@ fn main() -> Result<()> {
     // Set cumulative "or later" flags
     if matches!(
         version,
-        CarlaVersion::V0_9_15 | CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0
+        CarlaVersion::V0_9_15 | CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0 | CarlaVersion::V1_0
     ) {
         println!("cargo:rustc-cfg=carla_0915");
     }
-    if matches!(version, CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0) {
+    if matches!(
+        version,
+        CarlaVersion::V0_9_16 | CarlaVersion::V0_10_0 | CarlaVersion::V1_0
+    ) {
         println!("cargo:rustc-cfg=carla_0916");
     }
-    if matches!(version, CarlaVersion::V0_10_0) {
+    if matches!(version, CarlaVersion::V0_10_0 | CarlaVersion::V1_0) {
         println!("cargo:rustc-cfg=carla_0100");
+    }
+    if matches!(version, CarlaVersion::V1_0) {
+        println!("cargo:rustc-cfg=carla_10");
     }
 
     eprintln!("cfg flags set for CARLA version {}", version.as_str());

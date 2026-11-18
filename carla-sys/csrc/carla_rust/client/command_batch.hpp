@@ -165,7 +165,7 @@ public:
     void AttachDoAfterToLastSpawn(std::unique_ptr<FfiCommandBatch> sub_batch) {
         if (commands_.empty() || !sub_batch)
             return;
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
         auto* spawn = std::get_if<Command::SpawnActor>(&commands_.back().command);
 #else
         auto* spawn = boost::variant2::get_if<Command::SpawnActor>(&commands_.back().command);

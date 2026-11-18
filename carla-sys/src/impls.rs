@@ -435,6 +435,8 @@ impl Debug for crate::carla::rpc::CityObjectLabel {
             Self::Bridge => write!(f, "Bridge"),
             Self::RailTrack => write!(f, "RailTrack"),
             Self::GuardRail => write!(f, "GuardRail"),
+            #[cfg(carla_version_10)]
+            Self::Rock => write!(f, "Rock"),
             Self::Any => write!(f, "Any"),
         }
     }

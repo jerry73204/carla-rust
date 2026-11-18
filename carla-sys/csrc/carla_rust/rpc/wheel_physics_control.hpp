@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 
 #include <cstring>
 #include <vector>
@@ -283,7 +283,7 @@ public:
 }  // namespace rpc
 }  // namespace carla_rust
 
-#else  // !CARLA_VERSION_0100
+#else  // !CARLA_VERSION_0100_PLUS
 
 // On 0.9.x, WheelPhysicsControl is POD and used directly via generate_pod!.
 // No wrapper needed.
@@ -298,4 +298,4 @@ struct FfiWheelPhysicsControl {
 }  // namespace rpc
 }  // namespace carla_rust
 
-#endif  // CARLA_VERSION_0100
+#endif  // CARLA_VERSION_0100_PLUS

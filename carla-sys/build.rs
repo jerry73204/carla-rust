@@ -140,11 +140,14 @@ fn main() -> Result<()> {
         // incompatible types (e.g., WheelPhysicsControl with std::vector).
         let csrc_compat_dir = CARGO_MANIFEST_DIR.join("csrc_compat_0100");
         let include_dirs: Vec<PathBuf> = match version {
-            CarlaVersion::V0_10_0 => vec![csrc_compat_dir, carla_include_dir, csrc_dir],
+            CarlaVersion::V0_10_0 | CarlaVersion::V1_0 => {
+                vec![csrc_compat_dir, carla_include_dir, csrc_dir]
+            }
             _ => vec![carla_include_dir, csrc_dir],
         };
 
         // Declare valid cfg flags for carla-sys crate
+        println!("cargo:rustc-check-cfg=cfg(carla_version_10)");
         println!("cargo:rustc-check-cfg=cfg(carla_version_0100)");
         println!("cargo:rustc-check-cfg=cfg(carla_version_0916)");
         println!("cargo:rustc-check-cfg=cfg(carla_version_0915)");
@@ -152,6 +155,7 @@ fn main() -> Result<()> {
 
         // Expose exact version to Rust code via cfg flags
         match version {
+            CarlaVersion::V1_0 => println!("cargo:rustc-cfg=carla_version_10"),
             CarlaVersion::V0_10_0 => println!("cargo:rustc-cfg=carla_version_0100"),
             CarlaVersion::V0_9_16 => println!("cargo:rustc-cfg=carla_version_0916"),
             CarlaVersion::V0_9_15 => println!("cargo:rustc-cfg=carla_version_0915"),
@@ -161,8 +165,16 @@ fn main() -> Result<()> {
         // Set version-specific compiler flags before autocxx processes headers.
         // Each version gets its exact flag plus cumulative "or later" flags.
         let extra_clang_args: Vec<&str> = match version {
+            CarlaVersion::V1_0 => vec![
+                "-DCARLA_VERSION_10",
+                "-DCARLA_VERSION_0100_PLUS",
+                "-DCARLA_VERSION_0916_PLUS",
+                "-DCARLA_VERSION_0915_PLUS",
+                "-std=c++20",
+            ],
             CarlaVersion::V0_10_0 => vec![
                 "-DCARLA_VERSION_0100",
+                "-DCARLA_VERSION_0100_PLUS",
                 "-DCARLA_VERSION_0916_PLUS",
                 "-DCARLA_VERSION_0915_PLUS",
                 "-std=c++20",
@@ -181,7 +193,7 @@ fn main() -> Result<()> {
             .build()?;
 
         let cpp_std = match version {
-            CarlaVersion::V0_10_0 => "-std=c++20",
+            CarlaVersion::V0_10_0 | CarlaVersion::V1_0 => "-std=c++20",
             _ => "-std=c++14",
         };
         builder.flag_if_supported(cpp_std);
@@ -191,8 +203,16 @@ fn main() -> Result<()> {
 
         // Also define for the final compilation (must match extra_clang_args)
         match version {
+            CarlaVersion::V1_0 => {
+                builder.define("CARLA_VERSION_10", None);
+                builder.define("CARLA_VERSION_0100_PLUS", None);
+                builder.define("CARLA_RUST_NATIVE_HEADERS", None);
+                builder.define("CARLA_VERSION_0916_PLUS", None);
+                builder.define("CARLA_VERSION_0915_PLUS", None);
+            }
             CarlaVersion::V0_10_0 => {
                 builder.define("CARLA_VERSION_0100", None);
+                builder.define("CARLA_VERSION_0100_PLUS", None);
                 // The compile uses CARLA's real 0.10 headers; csrc_compat_0100's shims
                 // are for autocxx's bindgen parse only (see the shim headers).
                 builder.define("CARLA_RUST_NATIVE_HEADERS", None);
@@ -405,6 +425,7 @@ enum CarlaVersion {
     V0_9_15,
     V0_9_14,
     V0_10_0,
+    V1_0,
 }
 
 impl FromStr for CarlaVersion {
@@ -412,12 +433,13 @@ impl FromStr for CarlaVersion {
 
     fn from_str(ver_text: &str) -> Result<Self, Self::Err> {
         let ver = match ver_text {
+            "1.0" => Self::V1_0,
             "0.10.0" => Self::V0_10_0,
             "0.9.16" => Self::V0_9_16,
             "0.9.15" => Self::V0_9_15,
             "0.9.14" => Self::V0_9_14,
             _ => bail!(
-                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0",
+                "unsupported CARLA version: '{}'. Supported versions: 0.9.14, 0.9.15, 0.9.16, 0.10.0, 1.0",
                 ver_text
             ),
         };
@@ -428,6 +450,7 @@ impl FromStr for CarlaVersion {
 impl CarlaVersion {
     fn as_str(&self) -> &str {
         match self {
+            CarlaVersion::V1_0 => "1.0",
             CarlaVersion::V0_10_0 => "0.10.0",
             CarlaVersion::V0_9_16 => "0.9.16",
             CarlaVersion::V0_9_15 => "0.9.15",
@@ -476,6 +499,7 @@ const VERSION_FEATURES: &[(&str, CarlaVersion)] = &[
     ("carla-0915", CarlaVersion::V0_9_15),
     ("carla-0916", CarlaVersion::V0_9_16),
     ("carla-0100", CarlaVersion::V0_10_0),
+    ("carla-10", CarlaVersion::V1_0),
 ];
 
 /// Version used when nothing selects one and only docs are built (docs.rs).
@@ -511,9 +535,9 @@ fn parse_carla_version() -> Result<CarlaVersion> {
         [] if env::var_os("CARGO_FEATURE_DOCS_ONLY").is_some() => Ok(DOCS_ONLY_VERSION),
         [] => bail!(
             "no CARLA version selected. Enable exactly one of the features \
-             carla-0914, carla-0915, carla-0916, carla-0100 on the `carla` dependency \
+             carla-0914, carla-0915, carla-0916, carla-0100, carla-10 on the `carla` dependency \
              (e.g. `carla = {{ ..., features = [\"carla-0916\"] }}`), \
-             or set CARLA_VERSION=<0.9.14|0.9.15|0.9.16|0.10.0> for this build"
+             or set CARLA_VERSION=<0.9.14|0.9.15|0.9.16|0.10.0|1.0> for this build"
         ),
         many => {
             let names: Vec<&str> = many.iter().map(|(name, _)| *name).collect();

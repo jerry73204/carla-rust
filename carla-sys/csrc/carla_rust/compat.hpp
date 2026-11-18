@@ -5,7 +5,7 @@
 // CARLA 0.10.0 switched from boost::shared_ptr to std::shared_ptr.
 // These macros select the appropriate pointer cast functions.
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
 
 #include <memory>
 

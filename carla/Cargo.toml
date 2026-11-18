@@ -54,6 +54,7 @@ carla-0914 = ["carla-sys/carla-0914"]
 carla-0915 = ["carla-sys/carla-0915"]
 carla-0916 = ["carla-sys/carla-0916"]
 carla-0100 = ["carla-sys/carla-0100"]
+carla-10 = ["carla-sys/carla-10"]
 docs-only = ["carla-sys/docs-only"]
 build-prebuilt = ["carla-sys/build-prebuilt"]
 

@@ -1,5 +1,5 @@
 use super::{Actor, ActorBase, TrafficLight};
-#[cfg(carla_version_0916)]
+#[cfg(any(carla_version_0916, carla_10))]
 use crate::rpc::VehicleTelemetryData;
 use crate::{
     error::ffi::with_ffi_error,
@@ -701,7 +701,7 @@ impl Vehicle {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(carla_version_0916)]
+    #[cfg(any(carla_version_0916, carla_10))]
     pub fn telemetry_data(&self) -> crate::Result<VehicleTelemetryData> {
         let ptr = with_ffi_error("telemetry_data", |e| self.inner.GetTelemetryData(e))?;
         Ok((&*ptr).into())
@@ -726,7 +726,7 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    #[cfg(carla_version_0916)]
+    #[cfg(any(carla_version_0916, carla_10))]
     pub fn set_wheel_pitch_angle(
         &self,
         wheel_location: VehicleWheelLocation,
@@ -756,7 +756,7 @@ impl Vehicle {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
-    #[cfg(carla_version_0916)]
+    #[cfg(any(carla_version_0916, carla_10))]
     pub fn wheel_pitch_angle(&self, wheel_location: VehicleWheelLocation) -> crate::Result<f32> {
         with_ffi_error("wheel_pitch_angle", |e| {
             self.inner.GetWheelPitchAngle(wheel_location, e)

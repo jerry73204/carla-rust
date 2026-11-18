@@ -166,7 +166,7 @@ public:
 
     geom::BoundingBox GetBoundingBox() const { return inner_->GetBoundingBox(); }
 
-#ifdef CARLA_VERSION_0916
+#if defined(CARLA_VERSION_0916) || defined(CARLA_VERSION_10)
     geom::Transform GetComponentWorldTransform(const std::string& component_name,
                                                FfiError& error) const {
         return ffi_call(error, geom::Transform(),
@@ -242,7 +242,7 @@ public:
                         [&]() { return static_cast<uint8_t>(inner_->GetActorState()); });
     }
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
     std::string GetActorName(FfiError& error) const {
         return ffi_call(error, std::string(), [&]() { return inner_->GetActorName(); });
     }

@@ -197,10 +197,13 @@ fn t04_geolocation_follows_the_left_handed_frame() {
     // that. LibCarla 0.9.x does not: its GeoLocation::Transform raises the latitude with +y,
     // mirroring the map north-south (CARLA's own 0.9.16 Python client agrees, so this is the
     // server library's convention, not this crate's). Callers converting GNSS to a map frame
-    // must therefore flip latitude on 0.9.x and not on 0.10.
-    #[cfg(carla_version_0100)]
-    assert!(south.latitude < origin.latitude, "0.10: +y must be south");
-    #[cfg(not(carla_version_0100))]
+    // must therefore flip latitude on 0.9.x and not on 0.10 or 1.0 (1.0 measured 2026-11-18).
+    #[cfg(carla_0100)]
+    assert!(
+        south.latitude < origin.latitude,
+        "0.10 and 1.0: +y must be south"
+    );
+    #[cfg(not(carla_0100))]
     assert!(
         south.latitude > origin.latitude,
         "0.9.x: +y raises latitude"

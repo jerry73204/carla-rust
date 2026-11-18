@@ -158,7 +158,7 @@ public:
 
     std::unique_ptr<FfiWorldSnapshot> WaitForTick(size_t millis, FfiError& error) const {
         error.clear();
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
         const auto start = std::chrono::steady_clock::now();
 #endif
         try {
@@ -168,7 +168,7 @@ public:
             // Timeout is expected behavior (returns None), not an error
             return nullptr;
         } catch (const std::exception& e) {
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
             // CARLA 0.10's carla::throw_exception takes `const std::exception&` and rethrows it
             // by value (`throw e;`), slicing every exception LibCarla raises -- TimeoutException
             // included -- to a bare std::exception whose what() is "std::exception". The catch
@@ -191,7 +191,7 @@ public:
     }
 
     uint64_t Tick(size_t millis, FfiError& error) {
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
         // As in WaitForTick: on 0.10 a timeout arrives as a sliced, message-less
         // std::exception, which would be reported as Unknown. Report it as a timeout.
         const auto start = std::chrono::steady_clock::now();
@@ -308,7 +308,7 @@ public:
         });
     }
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
     void ApplyColorTextureToObject(const std::string& actor_name, uint8_t parameter,
                                    const carla_rust::rpc::FfiTextureColor& texture,
                                    FfiError& error) {
@@ -401,7 +401,7 @@ public:
         ffi_call_void(error, [&]() { inner_.SetWeather(weather); });
     }
 
-#ifdef CARLA_VERSION_0100
+#ifdef CARLA_VERSION_0100_PLUS
     bool IsWeatherEnabled(FfiError& error) const {
         return ffi_call(error, false, [&]() { return inner_.IsWeatherEnabled(); });
     }

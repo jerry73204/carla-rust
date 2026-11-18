@@ -129,6 +129,8 @@ public:
         ffi_call_void(error, [&]() { inner_.UpdateImportedRoute(actor_id, route); });
     }
 
+#ifndef CARLA_VERSION_10
+    // Dormant-vehicle respawn (0.9.x large maps) is not in 1.0's traffic manager.
     void SetRespawnDormantVehicles(const bool mode_switch, FfiError& error) {
         ffi_call_void(error, [&]() { inner_.SetRespawnDormantVehicles(mode_switch); });
     }
@@ -142,6 +144,7 @@ public:
     void SetMaxBoundaries(const float lower, const float upper, FfiError& error) {
         ffi_call_void(error, [&]() { inner_.SetMaxBoundaries(lower, upper); });
     }
+#endif  // !CARLA_VERSION_10
 
     void SetHybridPhysicsMode(const bool mode_switch, FfiError& error) {
         ffi_call_void(error, [&]() { inner_.SetHybridPhysicsMode(mode_switch); });
@@ -259,7 +262,7 @@ public:
         ffi_call_void(error, [&]() { inner_.SetGlobalDistanceToLeadingVehicle(distance); });
     }
 
-#ifndef CARLA_VERSION_0916
+#if !defined(CARLA_VERSION_0916) && !defined(CARLA_VERSION_10)
     void SetKeepRightPercentage(const FfiActor& actor, const float percentage, FfiError& error) {
         ffi_call_void(error,
                       [&]() { inner_.SetKeepRightPercentage(actor.as_builtin(), percentage); });

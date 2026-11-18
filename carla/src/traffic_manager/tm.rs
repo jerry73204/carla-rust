@@ -270,6 +270,8 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
+    // Dormant-vehicle respawn (0.9.x large maps) is not in CARLA 1.0's traffic manager.
+    #[cfg(not(carla_10))]
     pub fn set_respawn_dormant_vehicles(&mut self, yes: bool) -> crate::Result<()> {
         with_ffi_error("set_respawn_dormant_vehicles", |e| {
             self.inner.pin_mut().SetRespawnDormantVehicles(yes, e)
@@ -293,6 +295,8 @@ impl TrafficManager {
         any(carla_version_0916, carla_version_0915, carla_version_0914),
         doc = " in the Python API."
     )]
+    // Dormant-vehicle respawn (0.9.x large maps) is not in CARLA 1.0's traffic manager.
+    #[cfg(not(carla_10))]
     pub fn set_boundaries_respawn_dormant_vehicles(
         &mut self,
         lower_bound: f32,
@@ -306,6 +310,8 @@ impl TrafficManager {
     }
 
     /// Sets the maximum boundaries for the simulation.
+    // Dormant-vehicle respawn (0.9.x large maps) is not in CARLA 1.0's traffic manager.
+    #[cfg(not(carla_10))]
     pub fn set_max_boundaries(&mut self, lower: f32, upper: f32) -> crate::Result<()> {
         with_ffi_error("set_max_boundaries", |e| {
             self.inner.pin_mut().SetMaxBoundaries(lower, upper, e)
@@ -926,7 +932,7 @@ impl TrafficManager {
     /// Higher values make the vehicle more likely to stay in the right lane.
     ///
     /// Note: This method is absent in CARLA 0.9.16 but present in all other versions.
-    #[cfg(not(carla_version_0916))]
+    #[cfg(not(any(carla_version_0916, carla_10)))]
     pub fn set_keep_right_percentage<A: ActorBase>(
         &mut self,
         actor: &A,

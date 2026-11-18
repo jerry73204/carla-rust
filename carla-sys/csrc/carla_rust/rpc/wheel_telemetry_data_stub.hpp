@@ -3,7 +3,7 @@
 // Stub header for WheelTelemetryData in CARLA versions < 0.9.16
 // This provides a compatible stub type for autocxx when the actual type doesn't exist
 
-#ifndef CARLA_VERSION_0916
+#if !defined(CARLA_VERSION_0916) && !defined(CARLA_VERSION_10)
 
 #include <cstdint>
 
